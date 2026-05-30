@@ -1,0 +1,245 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/chpollin/realmcraft/schema/savegame.schema.json",
+  "title": "RealmCraft Speicherstand",
+  "description": "Maschinenlesbarer Spielstand für das spielleitergeführte Aufbau- und Erzählspiel. Wird als kanonischer JSON-Block in den hybriden Markdown-Speicherstand eingebettet oder als reine .json-Datei geladen.",
+  "type": "object",
+  "required": ["schemaVersion", "meta", "volk", "grundgroessen", "lagewerte", "berater", "maechte"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "meta": {
+      "type": "object",
+      "required": ["kapitel", "zeit", "weltereignis"],
+      "properties": {
+        "spielname": { "type": "string", "description": "Name der Kampagne, z. B. 'Die Karren'. Das System heißt RealmCraft." },
+        "kapitel": { "type": "integer", "minimum": 1 },
+        "zeit": {
+          "type": "object",
+          "required": ["jahreszeit", "jahr"],
+          "properties": {
+            "jahreszeit": { "type": "string", "enum": ["Frühling", "Sommer", "Herbst", "Winter"] },
+            "jahr": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "rundeOffen": { "type": "boolean" },
+        "weltereignis": { "type": "string", "enum": ["offen", "gewürfelt"] },
+        "visualStyle": { "type": "string", "description": "Globaler Stil-Anker für Portraits." },
+        "mapStyle": { "type": "string", "description": "Stil-Anker für die Karte." }
+      }
+    },
+    "volk": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "wesensart": { "type": "string" },
+        "ausrichtung": { "type": "string" },
+        "erscheinung": { "type": "string" },
+        "region": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "gelaendewerte": { "type": "array", "items": { "$ref": "#/definitions/kennwert" } }
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "ansehen": {
+          "type": "object",
+          "properties": {
+            "stufe": { "type": "integer" },
+            "label": { "type": "string" }
+          }
+        }
+      }
+    },
+    "grundgroessen": {
+      "type": "object",
+      "required": ["nahrung", "material", "wissen"],
+      "properties": {
+        "nahrung": { "type": "integer" },
+        "material": { "type": "integer" },
+        "wissen": { "type": "integer" },
+        "bevoelkerung": {
+          "type": "object",
+          "properties": {
+            "zahl": { "type": ["integer", "null"] },
+            "label": { "type": "string" }
+          }
+        }
+      }
+    },
+    "lagewerte": {
+      "type": "object",
+      "required": ["verteidigung", "mobilitaet", "wohlstand"],
+      "properties": {
+        "verteidigung": { "type": "integer" },
+        "mobilitaet": { "type": "integer" },
+        "wohlstand": { "type": "integer" },
+        "ausbeuten": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key": { "type": "string" },
+              "value": { "type": "number" },
+              "quelle": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "modifikatoren": {
+      "type": "object",
+      "properties": {
+        "gelaende": { "type": "array", "items": { "$ref": "#/definitions/kennwert" } },
+        "lage": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key": { "type": "string" },
+              "value": { "type": "number" },
+              "grund": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "faehigkeiten": { "type": "array", "items": { "type": "string" } },
+    "gruppen": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "#/definitions/id" },
+          "name": { "type": "string" },
+          "sprecherId": { "type": "string" },
+          "kompetenz": { "type": "string" }
+        }
+      }
+    },
+    "berater": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "loyalitaet"],
+        "properties": {
+          "id": { "$ref": "#/definitions/id" },
+          "name": { "type": "string" },
+          "rolle": { "type": "string" },
+          "ziel": { "type": "string" },
+          "loyalitaet": { "type": "integer", "minimum": -5, "maximum": 5 },
+          "generation": { "type": "string" },
+          "erscheinung": { "type": "string" },
+          "portrait": { "$ref": "#/definitions/portrait" }
+        }
+      }
+    },
+    "personen": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "#/definitions/id" },
+          "name": { "type": "string" },
+          "rolle": { "type": "string" },
+          "erscheinung": { "type": "string" },
+          "portrait": { "$ref": "#/definitions/portrait" }
+        }
+      }
+    },
+    "maechte": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "#/definitions/id" },
+          "name": { "type": "string" },
+          "typ": { "type": "string" },
+          "erscheinung": { "type": "string" },
+          "profil": { "type": "array", "items": { "$ref": "#/definitions/kennwert" } },
+          "beziehung": {
+            "type": "object",
+            "properties": {
+              "wert": { "type": ["number", "null"] },
+              "label": { "type": "string" }
+            }
+          },
+          "haltung": { "type": "string" }
+        }
+      }
+    },
+    "besitz": { "type": "array", "items": { "type": "string" } },
+    "verfassung": {
+      "type": "object",
+      "properties": { "text": { "type": "string" } }
+    },
+    "beziehungenAnsehen": {
+      "type": "object",
+      "properties": { "text": { "type": "string" } }
+    },
+    "historie": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kapitel", "zusammenfassung"],
+        "properties": {
+          "kapitel": { "type": "integer" },
+          "jahre": { "type": "string" },
+          "zusammenfassung": { "type": "string" }
+        }
+      }
+    },
+    "offeneFaeden": { "type": "array", "items": { "type": "string" } },
+    "karte": {
+      "type": "object",
+      "properties": {
+        "prompt": { "type": "string" },
+        "bildCacheKey": { "type": "string" },
+        "orte": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "name": { "type": "string" },
+              "typ": { "type": "string" },
+              "richtung": { "type": "string" },
+              "beziehung": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "kennwert": {
+      "type": "object",
+      "required": ["key", "value"],
+      "properties": {
+        "key": { "type": "string" },
+        "value": { "type": "number" }
+      }
+    },
+    "portrait": {
+      "type": "object",
+      "properties": {
+        "cacheKey": { "type": "string" },
+        "prompt": { "type": "string" },
+        "dataUrl": { "type": "string", "description": "Optional eingebettetes base64-Bild (data:-URL) für portable Export-Bundles." }
+      }
+    }
+  }
+}

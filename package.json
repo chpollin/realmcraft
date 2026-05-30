@@ -1,0 +1,20 @@
+{
+  "name": "realmcraft",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RealmCraft — Spielstand-Dashboard für ein spielleitergeführtes Aufbau- und Erzählspiel. Lädt einen Speicherstand und rendert Lage, Berater, Akteure und Karte; KI-Bilder via Gemini (Nano Banana).",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit",
+    "test:e2e": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "ajv": "^8.17.1"
+  },
+  "license": "MIT"
+}
