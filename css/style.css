@@ -10,17 +10,17 @@
    Kanonische Design-Tokens (aus design/design-tokens.css, Präfix --rc-)
    ---------------------------------------------------------------------------- */
 :root {
-  /* Grund und Flächen */
-  --rc-bg: #0a0c10;
-  --rc-bg-2: #0f1218;
-  --rc-panel: #141822;
-  --rc-panel-2: #1a1f2b;
-  --rc-inset: #0c0f15;
+  /* Grund und Flächen (2026-05-30 etwas aufgehellt für mehr Präsenz) */
+  --rc-bg: #0f131a;
+  --rc-bg-2: #161b24;
+  --rc-panel: #1b2230;
+  --rc-panel-2: #232a3a;
+  --rc-inset: #12161f;
 
   /* Text / Tinte */
-  --rc-ink: #ece6d6;          /* Elfenbein */
-  --rc-ink-dim: #8d8a7e;
-  --rc-ink-faint: #5d5b52;
+  --rc-ink: #f1ece0;          /* Elfenbein */
+  --rc-ink-dim: #a7a395;
+  --rc-ink-faint: #79766a;
 
   /* Akzent Messing */
   --rc-brass: #c9a24a;
@@ -112,9 +112,9 @@ body {
   font-family: var(--sans);
   color: var(--ink);
   background:
-    radial-gradient(1200px 700px at 18% -8%, rgba(201, 162, 74, .07), transparent 60%),
-    radial-gradient(1000px 620px at 92% 110%, rgba(224, 145, 63, .05), transparent 60%),
-    linear-gradient(180deg, #0b0e13 0%, var(--bg-0) 100%);
+    radial-gradient(1200px 700px at 18% -8%, rgba(201, 162, 74, .09), transparent 60%),
+    radial-gradient(1000px 620px at 92% 110%, rgba(224, 145, 63, .06), transparent 60%),
+    linear-gradient(180deg, #11151d 0%, var(--bg-0) 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -764,10 +764,32 @@ nav.tabs {
    Footer
    ---------------------------------------------------------------------------- */
 footer.foot {
-  position: relative; z-index: 1; text-align: center; color: var(--faint); font-size: 11px;
-  letter-spacing: .12em; text-transform: uppercase; padding: 30px 0 40px;
+  position: relative; z-index: 1; text-align: center; color: var(--muted); font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase; padding: 30px 16px 44px;
+  border-top: 1px solid var(--hairline); margin-top: 32px;
 }
 footer.foot b { color: var(--brass); font-weight: 600; }
+.foot-line { line-height: 1.9; }
+.foot-sub { font-size: 11px; color: var(--faint); letter-spacing: .14em; }
+footer.foot a {
+  color: var(--brass-bright); text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+  transition: color var(--rc-dur) var(--rc-ease), border-color var(--rc-dur) var(--rc-ease);
+}
+footer.foot a:hover { color: var(--amber); border-color: var(--brass); }
+
+/* Setzungen / Sonderregeln (Historie) */
+.rules-list { display: grid; gap: 12px; }
+.rule-item {
+  padding: 14px 16px; background: var(--panel-inset);
+  border: 1px solid var(--line-soft); border-left: 2px solid var(--brass-deep);
+  border-radius: var(--radius);
+}
+.rule-title {
+  font-family: var(--serif); font-size: 18px; font-weight: 600;
+  color: var(--brass-bright); margin-bottom: 4px;
+}
+.rule-text { margin: 0; color: var(--ink-soft); line-height: 1.6; }
 
 /* ----------------------------------------------------------------------------
    Responsiv

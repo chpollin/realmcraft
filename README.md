@@ -4,7 +4,7 @@ Ein Lagebild-Dashboard für ein spielleitergeführtes, offenes Aufbau- und Erzä
 
 RealmCraft ist das **System** (Spielmechanik plus Dashboard) und kampagnenunabhängig. Jeder regelkonforme Speicherstand lässt sich laden. "Die Karren" ist der erste Beispielstand.
 
-> Status: in Aufbau. Dieses Repository enthält bereits die Mechanik, das Speicherstand-Format, das JSON-Schema und einen Beispielstand. Das Frontend und die Tests folgen.
+> Status: einsatzbereit. Mechanik, Speicherstand-Format, JSON-Schema, zwei Beispielstände (Kapitel 3 und Kapitel 4), das vollständige Dashboard und die Tests (Unit, E2E, Visual) liegen vor.
 
 ## Wie es zusammenspielt
 1. **Spielen.** Mit der Mechanik in [`docs/Spielmechanik.md`](docs/Spielmechanik.md) führt ein Spielleiter (Sprachmodell) das Spiel.
@@ -26,9 +26,17 @@ npm install
 npm run serve     # http://localhost:4173
 npm test          # Unit- und E2E-Tests
 ```
+Dann im Browser `http://localhost:4173` öffnen, oben rechts "Speicherstand laden" und einen Stand aus `examples/` wählen (z. B. `die-karren-kapitel-4.md`), oder die Datei ins Fenster ziehen.
+
+## API-Key (Bildgenerierung)
+Den Gemini-Key in eine Datei `.env` im Repo-Root legen (wird per `.gitignore` nie eingecheckt):
+```
+GEMINI_API_KEY=dein-key
+```
+`serve.mjs` liest die `.env` und reicht den Key der App über `/env.js` zu, sodass die Bildgenerierung ohne manuelle Eingabe funktioniert. Alternativ den Key direkt im Dashboard unter "Einstellungen" eintragen (dann nur im Browser-`localStorage`). Bei `file://` oder GitHub Pages gibt es kein `/env.js`; dort den Key über die Einstellungen setzen.
 
 ## Bildgenerierung
-Die Bilder entstehen über die Gemini-Bild-API. Portraits nutzen standardmäßig Nano Banana 2 (`gemini-3.1-flash-image`), die Karte Nano Banana Pro (`gemini-3-pro-image`) wegen der besseren, lesbaren Beschriftung. Beides ist in den Einstellungen umstellbar. Es wird ein eigener API-Key benötigt; ohne Key funktioniert das Dashboard mit Platzhaltern.
+Bilder entstehen über die Gemini-Bild-API (Nano Banana). Portraits nutzen standardmäßig Nano Banana 2 (`gemini-3.1-flash-image`), die Karte Nano Banana Pro (`gemini-3-pro-image`) wegen der besseren, lesbaren Beschriftung. Beide Modell-IDs sind in den Einstellungen überschreibbar; sollte ein Aufruf mit `404`/Modellfehler scheitern, die `-preview`-Variante probieren (z. B. `gemini-3.1-flash-image-preview`). Erzeugte Bilder werden lokal (IndexedDB) gecacht; ohne Key zeigt das Dashboard edle Platzhalter.
 
 ## Lizenz
 MIT

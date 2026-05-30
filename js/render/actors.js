@@ -14,7 +14,11 @@ export function renderWelt(root, state) {
   root.replaceChildren();
   if (!state) return;
 
-  const beraterById = (id) => (state.berater || []).find((b) => b.id === id);
+  // Sprecher einer Gruppe kann ein Berater oder eine sonstige Person sein
+  // (z. B. eine Verwalterin der nächsten Generation, die nicht im Rat sitzt).
+  const sprecherById = (id) =>
+    (state.berater || []).find((b) => b.id === id) ||
+    (state.personen || []).find((p) => p.id === id);
 
   // --- Mächte ---
   const powerGrid = el('div', { class: 'power-grid' },
@@ -55,7 +59,7 @@ export function renderWelt(root, state) {
   // --- Gruppen ---
   const groupGrid = el('div', { class: 'group-grid' },
     (state.gruppen || []).map((gr) => {
-      const sp = beraterById(gr.sprecherId);
+      const sp = sprecherById(gr.sprecherId);
       return el('div', { class: 'group', 'data-testid': 'group-row', dataset: { id: gr.id } }, [
         el('div', { class: 'gp', text: initials(gr.name) }),
         el('div', { class: 'gmeta' }, [

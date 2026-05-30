@@ -201,6 +201,18 @@
       }
     },
     "offeneFaeden": { "type": "array", "items": { "type": "string" } },
+    "setzungen": {
+      "type": "array",
+      "description": "Optionale Sonderregeln dieses Spiels, ergänzend zur Mechanik (z. B. Lebensstand, Nachfolge, Delegationsregiment).",
+      "items": {
+        "type": "object",
+        "required": ["titel", "text"],
+        "properties": {
+          "titel": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    },
     "karte": {
       "type": "object",
       "properties": {

@@ -10,6 +10,23 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT) || 4173;
 
+// Reads .env (if present) and returns it as a plain object. Used to hand the
+// Gemini key to the browser via /env.js without ever writing it to a tracked
+// file. .env is gitignored; /env.js is generated in memory.
+async function readEnvFile() {
+  try {
+    const raw = await readFile(join(ROOT, '.env'), 'utf8');
+    const out = {};
+    for (const line of raw.split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+      if (m && !line.trimStart().startsWith('#')) out[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -30,6 +47,17 @@ const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://localhost:${PORT}`);
     let pathname = decodeURIComponent(url.pathname);
+
+    // Runtime config: expose the local Gemini key (from .env) to the browser.
+    // Absent .env -> empty object, app falls back to the settings dialog.
+    if (pathname === '/env.js') {
+      const env = await readEnvFile();
+      const js = `window.__RC_ENV__ = ${JSON.stringify({ GEMINI_API_KEY: env.GEMINI_API_KEY || '' })};`;
+      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(js);
+      return;
+    }
+
     if (pathname === '/' || pathname.endsWith('/')) pathname += 'index.html';
 
     const filePath = normalize(join(ROOT, pathname));

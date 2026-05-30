@@ -20,6 +20,12 @@ const LS = {
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const roman = (n) => ROMAN[n] || String(n);
 
+// API-Key: bevorzugt der vom Nutzer gespeicherte; sonst ein Laufzeit-Key aus
+// .env (über serve.mjs als window.__RC_ENV__ eingespeist). So funktioniert die
+// Bildgenerierung lokal ohne manuelle Eingabe, ohne dass der Key ins Repo kommt.
+const envApiKey = () => (typeof window !== 'undefined' && window.__RC_ENV__ && window.__RC_ENV__.GEMINI_API_KEY) || '';
+const getApiKey = () => (localStorage.getItem(LS.apiKey) || envApiKey() || '').trim();
+
 // --- DOM-Referenzen aus dem Scaffold (index.html) ---
 const $ = (sel, root = document) => root.querySelector(sel);
 const els = {
@@ -178,7 +184,7 @@ async function handleFile(file) {
 // Einstellungen
 // ---------------------------------------------------------------------------
 function openSettings() {
-  els.apiKeyInput.value = localStorage.getItem(LS.apiKey) || '';
+  els.apiKeyInput.value = getApiKey();
   els.modelPortrait.value = localStorage.getItem(LS.modelPortrait) || MODELS.portrait;
   els.modelMap.value = localStorage.getItem(LS.modelMap) || MODELS.map;
   if (typeof els.settingsDialog.showModal === 'function') els.settingsDialog.showModal();
@@ -227,7 +233,7 @@ async function onGeneratePortrait(beraterId) {
     return;
   }
 
-  const apiKey = localStorage.getItem(LS.apiKey);
+  const apiKey = getApiKey();
   if (!apiKey) {
     toast('Kein API-Key. Bitte in den Einstellungen einen Gemini-Key hinterlegen.');
     openSettings();
@@ -256,7 +262,7 @@ async function onGenerateMap() {
     return;
   }
 
-  const apiKey = localStorage.getItem(LS.apiKey);
+  const apiKey = getApiKey();
   if (!apiKey) {
     toast('Kein API-Key. Bitte in den Einstellungen einen Gemini-Key hinterlegen.');
     openSettings();

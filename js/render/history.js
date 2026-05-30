@@ -65,4 +65,23 @@ export function renderHistorie(root, state) {
   ]);
 
   root.append(head);
+
+  // Optionale Sonderregeln dieses Spiels (Setzungen), falls der Stand sie führt.
+  const setzungen = state.setzungen || [];
+  if (setzungen.length) {
+    const rules = el('section', { class: 'panel pad mt', 'data-testid': 'setzungen' }, [
+      el('div', { class: 'block-head' }, [
+        el('h3', { text: 'Setzungen und Sonderregeln' }),
+        el('div', { class: 'rule' }),
+        el('span', { class: 'eyebrow', text: 'Ergänzend zur Mechanik, für dieses Spiel vereinbart' }),
+      ]),
+      el('div', { class: 'rules-list' },
+        setzungen.map((s) => el('article', { class: 'rule-item', 'data-testid': 'setzung' }, [
+          s.titel ? el('div', { class: 'rule-title', text: s.titel }) : null,
+          s.text ? el('p', { class: 'rule-text', text: s.text }) : null,
+        ])),
+      ),
+    ]);
+    root.append(rules);
+  }
 }
