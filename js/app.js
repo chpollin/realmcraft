@@ -5,6 +5,7 @@ import { setState, getState, subscribe } from './state.js';
 import { el, toast } from './components/ui.js';
 import * as store from './store.js';
 import { diffStates } from './diff.js';
+import { renderCommandBar } from './commands.js';
 import { MODELS, generateImage } from './images/gemini.js';
 import { makeKey, cacheGet, cachePut } from './images/cache.js';
 import { renderLage } from './render/overview.js';
@@ -368,6 +369,14 @@ async function onExport() {
 // Verdrahtung
 // ---------------------------------------------------------------------------
 function wire() {
+  // Befehlsleiste (immer sichtbar): Slash-Befehle fuer den Spielleiter-Chat.
+  const cmdHost = document.querySelector('[data-testid="command-bar"]');
+  if (cmdHost) {
+    renderCommandBar(cmdHost, {
+      onCopy: (text) => toast(`${text} kopiert, im Spielleiter-Chat einfuegen.`),
+    });
+  }
+
   subscribe((state) => {
     renderAll(state, pendingDelta);
     applyRoute();

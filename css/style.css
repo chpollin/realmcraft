@@ -777,11 +777,20 @@ nav.tabs {
    ---------------------------------------------------------------------------- */
 .toast-host { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 80; display: grid; gap: 8px; pointer-events: none; }
 .toast {
-  font-size: 13px; color: var(--ink);
+  font-size: 13px; color: var(--ink); line-height: 1.45;
   padding: 12px 18px; border-radius: var(--radius);
   border: 1px solid var(--bronze-line);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   box-shadow: var(--shadow); animation: toast-in .25s var(--rc-ease);
+  pointer-events: auto; cursor: pointer;
+  max-width: min(520px, calc(100vw - 32px));
+  max-height: 38vh; overflow-y: auto;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.toast::after {
+  content: "Klick zum Schliessen"; display: block;
+  margin-top: 8px; font-size: 10.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint);
 }
 @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
