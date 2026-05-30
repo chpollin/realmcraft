@@ -6,7 +6,10 @@
 // Vertrags-Modellnamen.
 export const MODELS = {
   portrait: 'gemini-3.1-flash-image',
-  map: 'gemini-3-pro-image',
+  // Karte ebenfalls auf dem Flash-Bildmodell: das Pro-Bildmodell hat im
+  // Gemini-Free-Tier ein Kontingent von 0. Über die Einstellungen auf
+  // 'gemini-3-pro-image' umstellbar (beste lesbare Beschriftung, braucht Billing).
+  map: 'gemini-3.1-flash-image',
 };
 
 // Baut die generateContent-URL fuer ein Modell.

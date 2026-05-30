@@ -36,7 +36,7 @@ GEMINI_API_KEY=dein-key
 `serve.mjs` liest die `.env` und reicht den Key der App über `/env.js` zu, sodass die Bildgenerierung ohne manuelle Eingabe funktioniert. Alternativ den Key direkt im Dashboard unter "Einstellungen" eintragen (dann nur im Browser-`localStorage`). Bei `file://` oder GitHub Pages gibt es kein `/env.js`; dort den Key über die Einstellungen setzen.
 
 ## Bildgenerierung
-Bilder entstehen über die Gemini-Bild-API (Nano Banana). Portraits nutzen standardmäßig Nano Banana 2 (`gemini-3.1-flash-image`), die Karte Nano Banana Pro (`gemini-3-pro-image`) wegen der besseren, lesbaren Beschriftung. Beide Modell-IDs sind in den Einstellungen überschreibbar; sollte ein Aufruf mit `404`/Modellfehler scheitern, die `-preview`-Variante probieren (z. B. `gemini-3.1-flash-image-preview`). Erzeugte Bilder werden lokal (IndexedDB) gecacht; ohne Key zeigt das Dashboard edle Platzhalter.
+Bilder entstehen über die Gemini-Bild-API (Nano Banana). Portraits und Karte nutzen standardmäßig Nano Banana 2 (`gemini-3.1-flash-image`), das im Free-Tier verfügbar ist. Das höher auflösende Nano Banana Pro (`gemini-3-pro-image`) gibt lesbare Kartenbeschriftung besser wieder, hat aber im Free-Tier ein Kontingent von 0 (HTTP 429 RESOURCE_EXHAUSTED); mit aktivem Billing lässt sich die Karte in den Einstellungen auf Pro umstellen. Beide Modell-IDs sind in den Einstellungen überschreibbar; sollte ein Aufruf mit `404`/Modellfehler scheitern, die `-preview`-Variante probieren (z. B. `gemini-3.1-flash-image-preview`). Erzeugte Bilder werden lokal (IndexedDB) gecacht; ohne Key zeigt das Dashboard edle Platzhalter.
 
 ## Lizenz
 MIT
