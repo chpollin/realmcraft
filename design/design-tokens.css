@@ -1,56 +1,62 @@
 /*
- * RealmCraft Design-Tokens — Richtung "War Table" (gewählt 2026-05-30).
- * Kanonische Quelle für css/style.css. Abgeleitet aus design/prototypes/war-table.html.
- * Dunkler, edler Lagetisch: Obsidian-Grund, warmes Messing, Cormorant-Serif über Inter.
+ * RealmCraft Design-Tokens, Richtung "Anthrazit" (gewaehlt 2026-05-30).
+ * Kanonische Quelle fuer css/style.css.
+ * Sachlich-neutrales Dashboard auf Anthrazit und Schwarz. Leitakzent ein
+ * kraeftiges, kultiviertes Blau; ein Orange-nach-Rot-Verlauf (--rc-flame) ist
+ * die wiederkehrende Signatur. Space Grotesk ueber Inter.
  */
 :root {
-  /* Grund und Flächen */
-  --rc-bg: #0a0c10;
-  --rc-bg-2: #0f1218;
-  --rc-panel: #141822;
-  --rc-panel-2: #1a1f2b;
-  --rc-inset: #0c0f15;
+  /* Grund: Anthrazit und Schwarz, neutral */
+  --rc-bg: #0b0c0e;
+  --rc-bg-2: #101216;
+  --rc-panel: #15171c;
+  --rc-panel-2: #1c1f25;
+  --rc-inset: #0e0f12;
 
-  /* Text / Tinte */
-  --rc-ink: #ece6d6;          /* Elfenbein */
-  --rc-ink-dim: #8d8a7e;
-  --rc-ink-faint: #5d5b52;
+  /* Tinte, neutral-kuehl */
+  --rc-ink: #eceef2;
+  --rc-ink-dim: #a3a8b0;
+  --rc-ink-faint: #6a6f77;
 
-  /* Akzent Messing */
-  --rc-brass: #c9a24a;
-  --rc-brass-bright: #e7c879;
-  --rc-brass-deep: #9c7a30;
-  --rc-amber: #e0913f;
-  --rc-bronze: #7a5a32;
-  --rc-bronze-line: #3a2f20;
+  /* Leitakzent: kraeftiges, kultiviertes Blau */
+  --rc-blue: #3a86ff;
+  --rc-blue-bright: #6aa6ff;
+  --rc-blue-deep: #1f63e6;
+
+  /* Signatur: Orange nach Rot */
+  --rc-orange: #ff7a18;
+  --rc-orange-bright: #ff9b45;
+  --rc-red: #ff3b2f;
+  --rc-red-deep: #d81f28;
+  --rc-flame: linear-gradient(118deg, #ff9b45 0%, #ff6a1a 45%, #ff2f3d 100%);
 
   /* Status / Skalen */
-  --rc-pos: #6fa37a;          /* positiv / treu */
-  --rc-warn: #c9913f;         /* schwankend / warnung */
-  --rc-neg: #b35248;          /* negativ / am Bruch */
+  --rc-pos: #3ecf8e;
+  --rc-warn: #ff9b45;
+  --rc-neg: #ff5347;
 
   /* Linien und Schatten */
-  --rc-line: #20262f;
-  --rc-line-soft: #161b23;
-  --rc-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --rc-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --rc-glow-brass: 0 0 18px rgba(201, 162, 74, 0.22);
+  --rc-line: #23262c;
+  --rc-line-soft: #181b20;
+  --rc-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --rc-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --rc-glow-blue: 0 0 18px rgba(58, 134, 255, 0.22);
 
   /* Typografie */
-  --rc-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --rc-font-display: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --rc-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Radius, Raster, Bewegung */
-  --rc-radius: 4px;
-  --rc-radius-lg: 8px;
+  --rc-radius: 6px;
+  --rc-radius-lg: 10px;
   --rc-gap: 16px;
   --rc-gap-lg: 24px;
   --rc-maxw: 1320px;
   --rc-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --rc-dur: 0.2s;
 
-  /* Loyalitäts-/Beziehungs-Skala (Verlauf rot -> messing -> grün) */
+  /* Loyalitaets-/Beziehungs-Skala (rot -> neutral -> gruen) */
   --rc-scale-neg: var(--rc-neg);
-  --rc-scale-mid: var(--rc-brass);
+  --rc-scale-mid: var(--rc-blue);
   --rc-scale-pos: var(--rc-pos);
 }
