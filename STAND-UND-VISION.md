@@ -134,7 +134,7 @@ Pflichtkern-Frontmatter je Dokument: `title, project, method, status, created, u
 
 ## 10. Offene Entscheidungen
 
-- Atlas-Akzentfarbe: tiefes Petrol oder gedämpftes Zinnober (an einem Prototyp entscheiden).
+- Theme-Feinschliff: Dosierung der Flamme und Karten-Rahmen erst nach der ersten echten Sitzung beurteilen.
 - Chronik: rein aus dem Stand gerendert, oder zusätzlich aus den `knowledge/`-Markdown-Dokumenten gespeist (Letzteres ist das Ziel, aber zweistufig).
 - Soll RealmCraft die `knowledge/`-Dokumente nur anzeigen, oder beim Laden eines neuen Stands auch fortschreiben (Chronik-Eintrag je Kapitel)?
 - Mechanik-Erweiterung im Schema: ein optionaler Block für "Vorhaben/Aktionen dieser Runde" (entschieden, ausgewürfelt, Ergebnis), damit das "Was ansteht" und der Verlauf strukturiert sind.

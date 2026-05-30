@@ -4,7 +4,7 @@ Verbindliche Schnittstelle zwischen Tests und Implementierung. Tests werden gege
 
 ## Architektur und Datei-Eigentum
 - `index.html` (Eigentum: scaffold) — vollständiges DOM nach diesem Vertrag, lädt alle Module, leere View-Container.
-- `css/style.css` (scaffold) — Styling aus `design/design-tokens.css` und `design/prototypes/war-table.html` portiert.
+- `css/style.css` (scaffold): Styling token-basiert aus `design/design-tokens.css` (Theme "Anthrazit", Schwarz/Blau, Orange-nach-Rot-Signatur `--flame`).
 - `js/app.js` (core) — Bootstrap, Hash-Routing, Datei-Upload (Klick/Drag-Drop/Paste), Settings-Dialog, ruft Render-Funktionen.
 - `js/parse.js` (core) — Speicherstand laden und prüfen.
 - `js/state.js` (core) — In-Memory-Stand.
