@@ -4,11 +4,40 @@
 //   PORT=8080 node serve.mjs  -> http://localhost:8080
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { watch } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT) || 4173;
+
+// Live-Reload: the file the terminal game-master (Claude Code) writes. Changes
+// are pushed to open dashboards via Server-Sent-Events on /events.
+const LIVE_FILE = 'savegame.json';
+const sseClients = new Set();
+
+function broadcastReload() {
+  for (const res of sseClients) {
+    try {
+      res.write('event: savegame\ndata: reload\n\n');
+    } catch {
+      sseClients.delete(res);
+    }
+  }
+}
+
+// Watch the directory, not the file directly: atomic rename-writes would kill a
+// file watch. Debounce multiple events per write.
+let liveDebounce = null;
+try {
+  watch(ROOT, (_event, filename) => {
+    if (filename !== LIVE_FILE) return;
+    if (liveDebounce) clearTimeout(liveDebounce);
+    liveDebounce = setTimeout(broadcastReload, 120);
+  });
+} catch {
+  // Without watch the server still runs, just without live reload.
+}
 
 // Reads .env (if present) and returns it as a plain object. Used to hand the
 // Gemini key to the browser via /env.js without ever writing it to a tracked
@@ -55,6 +84,19 @@ const server = createServer(async (req, res) => {
       const js = `window.__RC_ENV__ = ${JSON.stringify({ GEMINI_API_KEY: env.GEMINI_API_KEY || '' })};`;
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(js);
+      return;
+    }
+
+    // Server-Sent-Events: notify the dashboard when savegame.json changes.
+    if (pathname === '/events') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      });
+      res.write('event: hello\ndata: connected\n\n');
+      sseClients.add(res);
+      req.on('close', () => sseClients.delete(res));
       return;
     }
 

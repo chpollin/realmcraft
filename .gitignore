@@ -10,6 +10,9 @@ blob-report/
 # Design screenshots are large, regenerable binaries (node design/screenshot.mjs)
 design/screenshots/
 
+# Running private campaign (terminal game-master writes savegame.json live)
+savegame.json
+
 # Secrets — never commit API keys
 .env
 .env.*

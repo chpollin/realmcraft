@@ -105,6 +105,11 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Karte-Klick: `MODELS.map`, prompt = `state.karte.prompt`, aspectRatio `'16:9'`; in `[data-testid="map-image"]` setzen, cachen via `makeKey([ 'map', karte.prompt, mapStyle, model ])`.
 - API-Key aus `localStorage['realmcraft.apiKey']`; ohne Key zeigt der Klick einen `toast` mit Hinweis und öffnet Settings.
 
+## Live-Modus (Terminal-Spielleiter)
+- `serve.mjs` serviert `savegame.json` aus dem Repo-Root (Standard-Static-Handler) und bietet `/events` als Server-Sent-Events. Es beobachtet das Repo-Verzeichnis; ändert sich `savegame.json`, sendet es `event: savegame`.
+- `app.js` (`wireLive`) lädt beim Start `savegame.json` per `fetch` und abonniert `/events` nur dann, wenn die Datei existiert (HTTP 200). Fehlt sie (404), passiert nichts; der Leerzustand bleibt und die Tests sind unberührt. Bei `file://`/Pages (kein http) ist der Live-Modus aus.
+- Jede SSE-Meldung lädt `savegame.json` neu über denselben Pfad wie ein Datei-Upload (Delta-Banner, Verlauf, Render). So spiegelt der Browser, was Claude Code im Terminal schreibt.
+
 ## Test-Hooks
 - Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`, `rc.history` (Verlauf für Auto-Restore und Kapitel-Historie).
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.

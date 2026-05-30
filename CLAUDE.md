@@ -7,7 +7,7 @@ Diese Datei macht Claude Code zum **Spielleiter** einer RealmCraft-Partie im Ter
 RealmCraft wird auf zwei gleichwertigen Wegen gespielt:
 
 1. **Im Chat** mit einem Frontier-Sprachmodell als Spielleiter. Man spielt, lässt sich auf "speichern" einen hybriden Speicherstand ausgeben und lädt das JSON ins Dashboard. Dafür braucht es diese Datei nicht; das Dashboard ist eigenständig nutzbar, ein Stand pro Projekt.
-2. **Im Terminal** mit Claude Code als Spielleiter, gegen den lokal laufenden Live-Server. Dann gilt diese Datei. Du führst das Spiel, schreibst den Stand und das Gedächtnis fort, und das Dashboard im Browser spiegelt den jeweils aktuellen Stand.
+2. **Im Terminal** mit Claude Code als Spielleiter, gegen den lokal laufenden Live-Server. Dann gilt diese Datei. Du führst das Spiel, schreibst den Stand und das Gedächtnis fort, und das Dashboard im Browser spiegelt den jeweils aktuellen Stand. Setup: `npm run serve` (oder `PORT=4173 node serve.mjs`) läuft, Browser auf `http://localhost:4173` offen; gespielt wird in dieser Terminal-Sitzung. Jedes Mal, wenn du `savegame.json` schreibst, aktualisiert sich der Browser von selbst (Live-Reload über Server-Sent-Events).
 
 ## Was du beim Start liest
 

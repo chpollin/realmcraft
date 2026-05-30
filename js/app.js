@@ -438,6 +438,39 @@ function wire() {
   }
 
   applyRoute();
+
+  // Live-Modus: gegen den lokalen Server spiegeln, was der Terminal-Spielleiter
+  // in savegame.json schreibt. Greift nur, wenn die Datei existiert.
+  wireLive();
+}
+
+// Lädt savegame.json vom Server (Terminal-Modus) und abonniert Änderungen per
+// SSE. Ohne Datei (404), ohne http (file://) oder ohne Server-Unterstützung ein
+// No-op, damit Chat-Modus und Tests unberührt bleiben.
+async function wireLive() {
+  if (typeof location === 'undefined' || !/^https?:$/.test(location.protocol)) return;
+
+  const loadLive = async () => {
+    try {
+      const res = await fetch('savegame.json', { cache: 'no-store' });
+      if (!res.ok) return false;
+      handleSavegameText(await res.text());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const present = await loadLive();
+  if (!present) return; // kein Live-Spielstand: kein SSE öffnen
+
+  toast('Live-Modus: savegame.json wird gespiegelt.');
+  try {
+    const es = new EventSource('events');
+    es.addEventListener('savegame', () => loadLive());
+  } catch {
+    // EventSource nicht verfügbar: einmaliges Laden genügt.
+  }
 }
 
 if (document.readyState === 'loading') {
