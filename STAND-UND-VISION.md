@@ -27,7 +27,7 @@ Das ist der Kern: RealmCraft wird vom Anzeige-Tool zum **Gedächtnis- und Regel-
 
 Vanilla-JS Single-Page-App, kein Build-Schritt. ES-Module, Google Fonts als einzige externe Laufzeit-Abhängigkeit.
 
-- **Dashboard, fünf Sichten**: Lage, Berater, Welt, Karte, Historie. Hash-Routing (`#/lage` … `#/historie`), Upload per Klick, Drag-Drop, Paste. Funktional fertig, Optik noch "War Table" (dunkel), Atlas-Umbau steht aus.
+- **Dashboard, fünf Sichten**: Lage, Berater, Welt, Karte, Historie. Hash-Routing (`#/lage` … `#/historie`), Upload per Klick, Drag-Drop, Paste. Funktional fertig; Optik im Theme "Anthrazit" (Schwarz/Blau, Orange-nach-Rot-Signatur, siehe Abschnitt 5).
 - **Zwei Spielweisen**: Chat (Upload des JSON ins Dashboard, eigenständig pro Projekt) und Terminal (Claude Code als Spielleiter via `CLAUDE.md`, schreibt `savegame.json` + `knowledge/` fort). `docs/Spielmechanik.md` ist auf die Vollfassung gehoben (Trends, Lebenszyklus, Delegation, Aktionen, Statuskonsole, Befehle).
 - **Update-Loop**: `js/store.js` (localStorage-Verlauf `rc.history`), `js/diff.js` (Delta), Auto-Restore, Delta-Banner in der Lage, Kapitel-Historie-Auswahl in der Topbar.
 - **Aktionsbrett/Trends/Lebensstand**: im Schema (`trends`, `runde`, `lebensstand`), in Lage- und Berater-Sicht gerendert, im Kapitel-4-Stand befüllt. Das Dashboard zeigt jetzt genau das ASCII-Lagebild als echte UI (Haupt/Neben-Zähler, Ziel/Mod/▶1d10, Trend-Pfeile, Lebensstand-Marken).
@@ -42,7 +42,7 @@ Vanilla-JS Single-Page-App, kein Build-Schritt. ES-Module, Google Fonts als einz
 ```
 realmcraft/
 ├── index.html                  Vertrags-DOM (Topbar, Tabs, 5 Views, Settings-Dialog, env.js + app.js)
-├── css/style.css               aktuell Theme "War Table" (dunkel/Messing) — wird auf "Atlas" umgebaut
+├── css/style.css               Theme "Anthrazit" (Schwarz/Blau, Orange-nach-Rot-Signatur)
 ├── js/
 │   ├── app.js                  Bootstrap, Routing, Upload, Settings, Bildgenerierung, Export, Hero
 │   ├── parse.js                extractJsonBlock, parseSavegame, validateSavegame
@@ -60,7 +60,7 @@ realmcraft/
 │   └── Frontend-Contract.md    VERBINDLICH: Modul-APIs, DOM-Testids, Routen, Test-Hooks
 ├── design/
 │   ├── prototypes/{war-table,chronicle,codex,console}.html   Design-Lauf A
-│   ├── design-tokens.css       aktuell War-Table-Tokens — wird auf Atlas gesetzt
+│   ├── design-tokens.css       kanonische Tokens des Themes "Anthrazit"
 │   └── screenshot.mjs, app-screenshot.mjs
 ├── tests/{unit,e2e,visual,fixtures}/
 ├── serve.mjs                   zero-dep Static-Server, liest .env → /env.js
@@ -87,13 +87,15 @@ Aktuelle Setzungen (Regel-Evolution dieser Partie): Lebensstand (Altern mit Lebe
 
 Offene Fäden u.a.: Was eint die Freien ohne gemeinsame Furcht. Dauerhafte freie Ordnung des Kontinents. Nachfolge nach den Gründern. Nahrungsdruck der wachsenden Stadt. Knappes Material. Eigenmächtige Berater. Drei entschiedene, noch nicht ausgewürfelte Vorhaben: Verwaltung, Stadtausbau Süd, Zuzugskampagne.
 
-## 5. Designentscheidung: "Atlas" (hell)
+## 5. Designentscheidung: Theme "Anthrazit" (gewählt 2026-05-30)
 
-Das bisherige Theme "War Table" (Obsidian, Messing, Garamond, rotierender Kompass) wirkt generisch und kitschig, die Standard-Signatur jeder Fantasy-UI. Gewählt ist stattdessen **Atlas, hell**:
+Frühere Richtungen (dunkles "War Table" mit Messing und Garamond, helles "Atlas") sind abgelöst. Gewählt ist ein sachlich-neutrales, professionelles Dashboard:
 
-- Warmes, fast weißes Papier; Tinten-Anthrazit als Text; **ein** ruhiger Akzent (tiefes Petrol oder gedämpftes Zinnober, **kein Gold**); feine kartografische Linien; humanistische Serif für Überschriften plus klare Grotesk für Zahlen.
-- Wirkt wie ein ernsthaftes Lagebriefing/Atlas, nicht wie ein RPG-Furnier. Beste Lesbarkeit für lange Sitzungen, distinktiv, weg vom Klischee. Kompass-Klischee raus, echte Daten-Visualisierung rein.
-- Umbau erhält das Vertrags-DOM und alle `data-testid` (Tests bleiben gültig); nur `css/style.css`, `design/design-tokens.css` und ggf. kleine Renderer-Anpassungen ändern sich. Visual-Baselines danach neu erzeugen.
+- **Gerüst** Anthrazit und Schwarz, neutral, ohne Fantasy-Furnier.
+- **Leitakzent** ein kräftiges, kultiviertes Blau (futuristisch, aber kulturell): Kicker, Linien, Gauges, Fokus, Portrait-Ringe, Links.
+- **Signatur** ein Orange-nach-Rot-Verlauf (Token `--flame`) als wiederkehrender Glanzpunkt: Primär-Button, Augenbraue über dem Volksnamen (Gradient-Text), aktiver Tab-Unterstrich, aktueller Kapitel-Knoten der Historie, Hauptaktion-Marke im Aktionsbrett. Ansehen-Sterne in Orange.
+- **Typografie** Space Grotesk über Inter.
+- Vertrags-DOM und alle `data-testid` unverändert (Tests gültig). Umgestellt: `css/style.css` und `design/design-tokens.css`, dazu Google-Fonts-Link und Marken-Sigil in `index.html`. Visual-Baselines neu erzeugt.
 
 ## 6. Update-Loop (der "gute Überblick")
 
@@ -143,7 +145,7 @@ Erledigt (2026-05-30): Bild-Fix (Karte auf Flash), knowledge/-Wissensbasis, Upda
 
 Offen:
 1. **Neuer Spielstand**: Der nächste Stand des Nutzers wird geladen/eingespielt; ggf. Schema-Anpassung, falls er Felder bringt, die das Schema noch nicht kennt. Erst prüfen, dann rendern.
-2. **Atlas-Theme (hell)**: Prototyp → Akzent wählen (Petrol oder Zinnober) → `css/style.css` + `design/design-tokens.css` umstellen, Vertrags-DOM erhalten, Visual-Baselines neu. Braucht eine Design-Entscheidung.
+2. **Theme-Feinschliff** (optional): Detailpolitur am Anthrazit-Theme nach der ersten echten Sitzung (Kontraste, Dosierung der Flamme, Karten-Rahmen).
 3. **Erklärung & Tooltips, schematische Orts-Karte** aus `karte.orte` (quota-unabhängiger Fallback, immer funktionierend).
 4. **Chronik-Sicht** im Frontend, die `knowledge/` + Historie erlebbar und teilbar macht.
 5. Optional: Würfeln im Dashboard (Aktion wählen, 1d10 eintragen, Rechnung zeigen). Der Wurf gehört aber eigentlich zum Spielleiter.

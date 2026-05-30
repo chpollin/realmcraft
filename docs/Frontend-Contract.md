@@ -61,7 +61,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 ### js/components/ui.js
 - `export function el(tag, attrs = {}, children = []): HTMLElement` — kleiner Hyperscript-Helfer (attrs inkl. `dataset`, `class`, `text`, Event `on*`).
 - `export function gauge(value, min, max): HTMLElement` — Balken mit Nullpunkt für Lagewerte (Skala -2..+3).
-- `export function loyaltyMeter(value): HTMLElement` — Schiene -5..+5, Farbe rot→messing→grün.
+- `export function loyaltyMeter(value): HTMLElement`: Schiene -5..+5, Farbe rot, neutral, grün.
 - `export function statCard({ label, value, sub }): HTMLElement`
 - `export function modal({ title, body, actions }): HTMLElement`
 - `export function toast(message): void`
