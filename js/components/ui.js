@@ -270,9 +270,13 @@ export function toast(message) {
     dataset: { testid: 'toast' },
     role: 'status',
     text: message,
+    title: 'Klick zum Schliessen',
+    onClick: () => t.remove(),
   });
   host.append(t);
 
-  // Sichtbar lange genug für Lesbarkeit und E2E-Assertions.
-  setTimeout(() => t.remove(), 5000);
+  // Laengere Meldungen (z. B. API-Fehler) bleiben laenger stehen; per Klick
+  // sofort schliessbar. Kurze Hinweise verschwinden von selbst.
+  const ms = message && message.length > 120 ? 12000 : 5000;
+  setTimeout(() => t.remove(), ms);
 }

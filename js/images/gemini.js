@@ -65,13 +65,22 @@ export async function generateImage({
   if (!response.ok) {
     let detail = '';
     try {
-      detail = await response.text();
+      const err = await response.json();
+      detail = err?.error?.message || '';
     } catch {
-      detail = '';
+      detail = (await response.text().catch(() => '')) || '';
     }
-    throw new Error(
-      `Bild-API-Fehler (HTTP ${response.status})${detail ? ': ' + detail : ''}`,
-    );
+    // Haeufigster Fall: das Gemini-Free-Tier gibt Bildmodellen das Kontingent 0.
+    // Keine Wiederholung und kein Modellwechsel hilft, nur aktiviertes Billing.
+    if (response.status === 429 || /quota|RESOURCE_EXHAUSTED|limit:\s*0/i.test(detail)) {
+      throw new Error(
+        `Bildgenerierung nicht moeglich: ${model} hat im Gemini-Free-Tier kein Kontingent (Limit 0). ` +
+        `Dafuer muss fuer den API-Key in der Google-Cloud-Konsole Billing aktiv sein. ` +
+        `Ohne Bild zeigt RealmCraft das Initial-Medaillon.`,
+      );
+    }
+    const short = (detail.split(/\r?\n/)[0] || '').slice(0, 200);
+    throw new Error(`Bild-API-Fehler (HTTP ${response.status})${short ? `: ${short}` : ''}`);
   }
 
   const json = await response.json();
