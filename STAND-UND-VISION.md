@@ -27,9 +27,15 @@ Das ist der Kern: RealmCraft wird vom Anzeige-Tool zum **Gedächtnis- und Regel-
 
 Vanilla-JS Single-Page-App, kein Build-Schritt. ES-Module, Google Fonts als einzige externe Laufzeit-Abhängigkeit.
 
-- **Dashboard, fünf Sichten**: Lage, Berater, Welt, Karte, Historie. Hash-Routing (`#/lage` … `#/historie`), Upload per Klick, Drag-Drop, Paste.
-- **Bild-Pipeline**: Gemini (Nano Banana). Portraits `gemini-3.1-flash-image`. Karte stand auf `gemini-3-pro-image`, das hat im **Free-Tier Kontingent 0** (429 RESOURCE_EXHAUSTED), Umstellung auf Flash für die Karte ist beschlossen, aber noch nicht eingecheckt. Key kommt aus `.env` über `serve.mjs` → `/env.js`, oder aus den Einstellungen (localStorage). IndexedDB-Cache, Export/Import-Bundle mit eingebetteten base64-Bildern.
-- **Tests grün**: Unit 58 (node:test), E2E 17 + Visual 5 (Playwright). `npm test`. Visual-Baselines existieren und müssen nach jedem Design-/Theme-Wechsel mit `npx playwright test tests/visual --update-snapshots` neu erzeugt werden.
+- **Dashboard, fünf Sichten**: Lage, Berater, Welt, Karte, Historie. Hash-Routing (`#/lage` … `#/historie`), Upload per Klick, Drag-Drop, Paste. Funktional fertig, Optik noch "War Table" (dunkel), Atlas-Umbau steht aus.
+- **Zwei Spielweisen**: Chat (Upload des JSON ins Dashboard, eigenständig pro Projekt) und Terminal (Claude Code als Spielleiter via `CLAUDE.md`, schreibt `savegame.json` + `knowledge/` fort). `docs/Spielmechanik.md` ist auf die Vollfassung gehoben (Trends, Lebenszyklus, Delegation, Aktionen, Statuskonsole, Befehle).
+- **Update-Loop**: `js/store.js` (localStorage-Verlauf `rc.history`), `js/diff.js` (Delta), Auto-Restore, Delta-Banner in der Lage, Kapitel-Historie-Auswahl in der Topbar.
+- **Aktionsbrett/Trends/Lebensstand**: im Schema (`trends`, `runde`, `lebensstand`), in Lage- und Berater-Sicht gerendert, im Kapitel-4-Stand befüllt. Das Dashboard zeigt jetzt genau das ASCII-Lagebild als echte UI (Haupt/Neben-Zähler, Ziel/Mod/▶1d10, Trend-Pfeile, Lebensstand-Marken).
+- **Live-Reload**: `serve.mjs` watcht `savegame.json` und sendet SSE `/events`; `app.js` (`wireLive`) lädt die Datei automatisch und spiegelt jede Änderung. Im Chat-Modus (keine Datei) und in Tests inaktiv (No-op). Per Probe verifiziert.
+- **Bild-Pipeline**: Gemini (Nano Banana). Portraits und Karte auf `gemini-3.1-flash-image` (Free-Tier). `gemini-3-pro-image` (Pro, beste Kartenbeschriftung) hat Free-Tier-Kontingent 0, in den Einstellungen umstellbar bei aktivem Billing. Key aus `.env` über `serve.mjs` → `/env.js` oder Einstellungen (localStorage). IndexedDB-Cache, Export/Import-Bundle mit eingebetteten base64-Bildern.
+- **knowledge/**: Wissensbasis nach Promptotyping (INDEX, welt, chronik, regeln, personen) mit der Karren-Partie befüllt.
+- **Tests grün**: Unit 70 (node:test), E2E 25 + Visual 5 (Playwright). `npm test`. Visual-Baselines müssen nach jedem Design-/Theme-Wechsel mit `npx playwright test tests/visual --update-snapshots` neu erzeugt werden.
+- **Git**: alles committet, sauberer Baum, noch nicht gepusht.
 - **Permissions**: `.claude/settings.json` mit Allowlist für node/npm/npx/git/Edit/Write, damit Subagenten nicht ständig Freigaben brauchen; destruktive Befehle bleiben blockiert.
 
 ### Dateistruktur (Ist)
@@ -133,13 +139,15 @@ Pflichtkern-Frontmatter je Dokument: `title, project, method, status, created, u
 
 ## 11. Nächste Schritte (priorisiert)
 
-1. Bild-Fix einchecken: Karte auf `gemini-3.1-flash-image` (kleine, klare Änderung in `js/images/gemini.js`).
-2. Atlas-Theme bauen (Prototyp → Auswahl Akzent → `css/style.css` + Tokens umstellen, Vertrags-DOM erhalten, Visual-Baselines neu).
-3. Update-Loop: Auto-Restore + Delta + lokale Kapitel-Historie (`state.js` Persistenz, neues `js/diff.js`, Anzeige in Lage/Berater).
-4. Erklärung & Tooltips, schematische Karte als Quota-unabhängiger Fallback.
-5. `knowledge/`-Wissensbasis nach Promptotyping-Konvention anlegen (INDEX, welt, chronik, regeln, personen) und mit der Karren-Partie befüllen.
-6. Chronik-Sicht im Frontend, die Wissensbasis + Historie erlebbar und teilbar macht.
-7. Schema-Erweiterung für Runden-Vorhaben, falls in 3/6 gebraucht.
+Erledigt (2026-05-30): Bild-Fix (Karte auf Flash), knowledge/-Wissensbasis, Update-Loop (Auto-Restore/Delta/Kapitel-Historie), Mechanik-Vollfassung + `CLAUDE.md`-Spielleiter, Aktionsbrett/Trends/Lebensstand in Schema/Render/Kapitel-4-Stand, Live-Reload (`serve.mjs` SSE + `savegame.json`-Spiegelung).
+
+Offen:
+1. **Neuer Spielstand**: Der nächste Stand des Nutzers wird geladen/eingespielt; ggf. Schema-Anpassung, falls er Felder bringt, die das Schema noch nicht kennt. Erst prüfen, dann rendern.
+2. **Atlas-Theme (hell)**: Prototyp → Akzent wählen (Petrol oder Zinnober) → `css/style.css` + `design/design-tokens.css` umstellen, Vertrags-DOM erhalten, Visual-Baselines neu. Braucht eine Design-Entscheidung.
+3. **Erklärung & Tooltips, schematische Orts-Karte** aus `karte.orte` (quota-unabhängiger Fallback, immer funktionierend).
+4. **Chronik-Sicht** im Frontend, die `knowledge/` + Historie erlebbar und teilbar macht.
+5. Optional: Würfeln im Dashboard (Aktion wählen, 1d10 eintragen, Rechnung zeigen). Der Wurf gehört aber eigentlich zum Spielleiter.
+6. Erste echte Live-Partie: `npm run serve`, Browser offen, in einer Claude-Code-Terminal-Sitzung mit `CLAUDE.md` als Spielleiter spielen.
 
 ## 12. Arbeitsweise und Konventionen
 
