@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "node serve.mjs",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "node --test tests/unit",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\"",
     "test:e2e": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "report": "playwright show-report"

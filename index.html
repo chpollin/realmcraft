@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealmCraft, Lagetisch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===================== Topbar ===================== -->
+  <header class="top" data-testid="topbar">
+    <div class="brand">
+      <div class="sigil" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e7c879" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="name">Realm<b>Craft</b></div>
+        <div class="sub">Lagetisch des Rates</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn primary" type="button" data-testid="load-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      <span class="lbl">Speicherstand laden</span>
+    </button>
+    <input type="file" data-testid="load-input" accept=".md,.json,.txt,text/markdown,application/json" hidden>
+
+    <button class="btn" type="button" data-testid="export-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+      <span class="lbl">Exportieren</span>
+    </button>
+
+    <button class="btn" type="button" data-testid="settings-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="lbl">Einstellungen</span>
+    </button>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ===================== Tabs / Navigation ===================== -->
+    <nav class="tabs" aria-label="Ansichten">
+      <button class="tab" type="button" data-tab="lage" aria-current="page"><span class="tnum">I</span> Lage</button>
+      <button class="tab" type="button" data-tab="berater"><span class="tnum">II</span> Berater</button>
+      <button class="tab" type="button" data-tab="welt"><span class="tnum">III</span> Welt</button>
+      <button class="tab" type="button" data-tab="karte"><span class="tnum">IV</span> Karte</button>
+      <button class="tab" type="button" data-tab="historie"><span class="tnum">V</span> Historie</button>
+    </nav>
+
+    <!-- ===================== Leerzustand ===================== -->
+    <section class="empty-state" data-testid="empty-state">
+      <div class="empty-sigil" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>
+        </svg>
+      </div>
+      <h2 class="empty-title">Kein Speicherstand geladen</h2>
+      <p class="empty-sub">Laden Sie einen Speicherstand, um das Lagebild des Rates zu sehen. Hybrides Markdown mit eingebettetem <code>json</code>-Block oder reines JSON.</p>
+      <div class="empty-actions">
+        <button class="btn primary" type="button" data-testid="empty-load-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span>Speicherstand laden</span>
+        </button>
+      </div>
+      <p class="empty-hint">Ziehen Sie die Datei hierher oder fügen Sie den Stand mit Strg+V ein.</p>
+    </section>
+
+    <!-- ===================== I. LAGE ===================== -->
+    <section class="view" data-view="lage" hidden></section>
+
+    <!-- ===================== II. BERATER ===================== -->
+    <section class="view" data-view="berater" hidden></section>
+
+    <!-- ===================== III. WELT ===================== -->
+    <section class="view" data-view="welt" hidden></section>
+
+    <!-- ===================== IV. KARTE ===================== -->
+    <section class="view" data-view="karte" hidden></section>
+
+    <!-- ===================== V. HISTORIE ===================== -->
+    <section class="view" data-view="historie" hidden></section>
+
+  </main>
+
+  <footer class="foot">RealmCraft <b>&middot;</b> Lagetisch des Rates</footer>
+
+  <!-- ===================== Einstellungen ===================== -->
+  <dialog class="settings-dialog" data-testid="settings-dialog">
+    <form method="dialog" class="settings-form">
+      <div class="settings-head">
+        <h2 class="settings-title">Einstellungen</h2>
+        <button class="dialog-close" type="button" data-testid="settings-close" aria-label="Schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="api-key-input">Gemini API-Schlüssel</label>
+        <input class="field-input" type="password" id="api-key-input" data-testid="api-key-input" autocomplete="off" placeholder="API-Schlüssel eingeben" spellcheck="false">
+        <p class="field-note">Wird nur lokal im Browser gespeichert und für die Bildgenerierung verwendet.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="model-portrait">Modell für Portraits</label>
+        <input class="field-input" type="text" id="model-portrait" data-testid="model-portrait" autocomplete="off" placeholder="gemini-3.1-flash-image" spellcheck="false">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="model-map">Modell für die Karte</label>
+        <input class="field-input" type="text" id="model-map" data-testid="model-map" autocomplete="off" placeholder="gemini-3-pro-image" spellcheck="false">
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn" type="button" data-testid="settings-cancel">Abbrechen</button>
+        <button class="btn primary" type="button" data-testid="save-settings">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
