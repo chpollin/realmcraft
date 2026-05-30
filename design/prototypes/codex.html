@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealmCraft — Codex · Die Karren</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Cinzel:wght@500;600;700&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* --- Tinten- & Tannengrün-Palette --- */
+    --ink-900:#0a1410;
+    --ink-800:#0e1c16;
+    --ink-750:#11241c;
+    --ink-700:#15291f;
+    --ink-650:#1a3327;
+    --ink-600:#21412f;
+    --ink-500:#2c5a40;
+    --ink-400:#3d7456;
+    --line:rgba(196,166,90,0.16);
+    --line-strong:rgba(196,166,90,0.34);
+
+    /* --- Gold / Heraldik --- */
+    --gold-300:#e9d8a6;
+    --gold-400:#d9c178;
+    --gold-500:#c4a65a;
+    --gold-600:#a3853f;
+    --gold-glow:rgba(196,166,90,0.22);
+
+    /* --- Text --- */
+    --paper:#f3ece0;
+    --paper-dim:#cdc6b6;
+    --paper-faint:#9a9486;
+
+    /* --- Funktionsfarben --- */
+    --pos:#6fae6a;
+    --pos-bright:#86c97f;
+    --neg:#c2604f;
+    --neu:#c4a65a;
+    --warm:#d98c5f;
+
+    --radius:14px;
+    --radius-sm:9px;
+    --shadow:0 18px 44px -18px rgba(0,0,0,0.72);
+    --shadow-soft:0 10px 26px -14px rgba(0,0,0,0.6);
+    --maxw:1340px;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --display:"Cinzel",serif;
+    --sans:"Inter",system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    color:var(--paper);
+    background:
+      radial-gradient(1200px 700px at 18% -8%, rgba(44,90,64,0.30), transparent 60%),
+      radial-gradient(1000px 800px at 105% 10%, rgba(15,42,30,0.55), transparent 55%),
+      linear-gradient(170deg,#0c1813 0%, var(--ink-800) 42%, var(--ink-900) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    box-shadow:inset 0 0 220px 40px rgba(0,0,0,0.55);
+  }
+  ::selection{background:var(--gold-glow);color:var(--paper);}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    display:flex;align-items:center;gap:18px;
+    padding:16px clamp(18px,4vw,46px);
+    background:linear-gradient(180deg, rgba(8,16,12,0.94), rgba(8,16,12,0.7));
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .crest{
+    width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;
+    border:1px solid var(--line-strong);border-radius:11px;
+    background:radial-gradient(circle at 35% 25%, rgba(196,166,90,0.20), rgba(15,42,30,0.4));
+    box-shadow:inset 0 0 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.3);
+  }
+  .crest svg{width:24px;height:24px;}
+  .brand-name{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.14em;color:var(--gold-300);text-transform:uppercase;}
+  .brand-sub{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--paper-faint);margin-left:2px;letter-spacing:.02em;}
+  .topbar-spacer{flex:1;}
+  .top-actions{display:flex;gap:10px;}
+  .btn{
+    font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:.02em;color:var(--paper-dim);
+    padding:9px 16px;border-radius:9px;cursor:pointer;border:1px solid var(--line-strong);
+    background:linear-gradient(180deg, rgba(33,65,47,0.5), rgba(17,36,28,0.5));
+    transition:all .18s ease;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+  }
+  .btn:hover{color:var(--paper);border-color:var(--gold-500);box-shadow:0 0 0 1px var(--gold-glow), 0 6px 16px -8px rgba(0,0,0,.6);}
+  .btn.gold{color:var(--ink-900);font-weight:600;background:linear-gradient(180deg, var(--gold-300), var(--gold-500));border-color:var(--gold-600);}
+  .btn.gold:hover{background:linear-gradient(180deg, #f1e2b6, var(--gold-400));}
+  .btn svg{width:15px;height:15px;}
+
+  /* ---------- Tabs ---------- */
+  .shell{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(16px,3.5vw,40px) 70px;}
+  .tabs{display:flex;gap:4px;margin:26px 0 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .tab{
+    position:relative;font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--paper-faint);background:none;border:none;cursor:pointer;padding:14px 20px 16px;transition:color .18s ease;
+  }
+  .tab:hover{color:var(--paper-dim);}
+  .tab.active{color:var(--gold-300);}
+  .tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;
+    background:linear-gradient(90deg, transparent, var(--gold-500), transparent);box-shadow:0 0 10px var(--gold-glow);}
+  .tab .num{font-family:var(--serif);font-style:italic;opacity:.6;margin-right:8px;font-size:13px;}
+
+  .view{display:none;animation:rise .4s ease both;}
+  .view.active{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+  /* ---------- Section heads & Initialen ---------- */
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin:34px 0 18px;}
+  .sec-head .drop{font-family:var(--serif);font-weight:700;font-size:40px;line-height:.8;color:var(--gold-400);
+    text-shadow:0 2px 10px rgba(0,0,0,.5);padding-right:14px;border-right:1px solid var(--line-strong);}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.1em;text-transform:uppercase;color:var(--paper);margin:0;}
+  .sec-head .hint{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--paper-faint);margin-left:auto;text-align:right;max-width:42ch;}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;overflow:hidden;border:1px solid var(--line-strong);border-radius:var(--radius);
+    padding:30px clamp(22px,3vw,40px) 28px;margin-top:22px;
+    background:radial-gradient(700px 280px at 88% -30%, rgba(196,166,90,0.12), transparent 60%),
+      linear-gradient(160deg, rgba(26,51,39,0.85), rgba(14,28,22,0.92));box-shadow:var(--shadow);}
+  .hero::before{content:"";position:absolute;top:0;right:0;width:160px;height:160px;
+    background:radial-gradient(circle at 100% 0%, var(--gold-glow), transparent 70%);pointer-events:none;}
+  .hero-top{display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;}
+  .hero-mark{flex:0 0 auto;width:78px;height:78px;border-radius:16px;display:grid;place-items:center;
+    border:1px solid var(--line-strong);background:radial-gradient(circle at 35% 25%, rgba(196,166,90,0.22), rgba(15,42,30,0.6));
+    box-shadow:inset 0 0 22px rgba(0,0,0,.55);}
+  .hero-mark span{font-family:var(--serif);font-weight:700;font-size:42px;color:var(--gold-300);text-shadow:0 2px 8px rgba(0,0,0,.5);}
+  .hero-titles{flex:1;min-width:260px;}
+  .hero-eyebrow{font-family:var(--display);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-500);margin-bottom:8px;}
+  .hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(36px,4.6vw,52px);line-height:1;margin:0 0 8px;color:var(--paper);letter-spacing:.01em;}
+  .hero .essence{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--paper-dim);max-width:62ch;line-height:1.45;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  .chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;letter-spacing:.02em;color:var(--paper-dim);
+    padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(8,16,12,0.45);}
+  .chip .k{font-family:var(--display);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-500);}
+  .chip .v{font-family:var(--serif);font-size:16px;color:var(--paper);}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--gold-400);box-shadow:0 0 8px var(--gold-glow);}
+  .dot.live{background:var(--warm);box-shadow:0 0 10px rgba(217,140,95,.6);}
+  .ansehen-stars{display:inline-flex;gap:3px;margin-left:4px;}
+  .ansehen-stars i{width:11px;height:11px;display:inline-block;}
+
+  .event-banner{margin-top:20px;display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-radius:var(--radius-sm);
+    border:1px solid var(--line);border-left:3px solid var(--gold-500);
+    background:linear-gradient(90deg, rgba(58,40,30,0.4), rgba(15,28,22,0.3));}
+  .event-banner .ico{flex:0 0 auto;width:34px;height:34px;display:grid;place-items:center;color:var(--gold-400);}
+  .event-banner .ico svg{width:26px;height:26px;}
+  .event-banner h3{margin:0 0 3px;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-300);}
+  .event-banner p{margin:0;font-family:var(--serif);font-size:15.5px;color:var(--paper-dim);line-height:1.5;max-width:96ch;}
+
+  /* ---------- Grid + Panels ---------- */
+  .grid{display:grid;gap:16px;}
+  .cols-2{grid-template-columns:1.5fr 1fr;}
+  .panel{border:1px solid var(--line);border-radius:var(--radius);
+    background:linear-gradient(170deg, rgba(21,41,31,0.7), rgba(14,28,22,0.78));box-shadow:var(--shadow-soft);padding:22px 24px;}
+  .panel-title{font-family:var(--display);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-500);
+    margin:0 0 16px;display:flex;align-items:center;gap:10px;}
+  .panel-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg, var(--line-strong), transparent);}
+
+  /* Stat-Cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .stat{position:relative;border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 16px 16px;overflow:hidden;
+    background:linear-gradient(165deg, rgba(26,51,39,0.6), rgba(14,28,22,0.55));transition:transform .18s ease, border-color .18s ease;}
+  .stat:hover{transform:translateY(-3px);border-color:var(--line-strong);}
+  .stat .icon{position:absolute;top:14px;right:14px;color:var(--ink-500);opacity:.95;}
+  .stat .icon svg{width:24px;height:24px;}
+  .stat .label{font-family:var(--display);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-500);}
+  .stat .value{font-family:var(--serif);font-weight:700;font-size:42px;line-height:1;margin-top:8px;color:var(--paper);}
+  .stat .value.text{font-size:30px;font-style:italic;font-weight:600;color:var(--pos-bright);}
+  .stat .sub{font-size:11.5px;color:var(--paper-faint);margin-top:5px;line-height:1.35;}
+
+  /* Gauges */
+  .gauges{display:flex;flex-direction:column;gap:18px;}
+  .gauge .grow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+  .gauge .gname{font-family:var(--serif);font-size:16px;color:var(--paper);}
+  .gauge .gval{font-family:var(--display);font-size:14px;font-weight:600;color:var(--gold-300);}
+  .gauge .gsub{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--paper-faint);margin-top:5px;}
+  .track{position:relative;height:9px;border-radius:999px;background:rgba(8,16,12,0.6);border:1px solid var(--line);overflow:hidden;}
+  .track .zero{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--line-strong);}
+  .fill{position:absolute;top:0;bottom:0;border-radius:999px;
+    background:linear-gradient(90deg, var(--ink-400), var(--gold-500));box-shadow:0 0 10px var(--gold-glow);
+    transition:width .8s cubic-bezier(.2,.8,.2,1);}
+  .fill.neu{background:linear-gradient(90deg, var(--ink-500), var(--ink-400));box-shadow:none;}
+
+  /* Ausbeute */
+  .ore{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-sm);background:rgba(8,16,12,0.35);}
+  .ore .gem{width:40px;height:40px;display:grid;place-items:center;color:var(--gold-400);}
+  .ore .gem svg{width:30px;height:30px;}
+  .ore .ore-name{font-family:var(--serif);font-size:17px;color:var(--paper);}
+  .ore .ore-sub{font-size:12px;color:var(--paper-faint);max-width:34ch;line-height:1.35;}
+  .ore .ore-val{margin-left:auto;font-family:var(--serif);font-weight:700;font-size:30px;color:var(--gold-300);}
+
+  /* Offene Fäden */
+  .threads{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  .threads li{display:flex;gap:14px;align-items:flex-start;font-family:var(--serif);font-size:16px;color:var(--paper-dim);line-height:1.45;
+    padding-bottom:12px;border-bottom:1px dashed var(--line);}
+  .threads li:last-child{border-bottom:none;padding-bottom:0;}
+  .threads .seal{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;margin-top:1px;
+    font-family:var(--display);font-size:11px;font-weight:700;color:var(--ink-900);
+    background:radial-gradient(circle at 35% 30%, var(--gold-300), var(--gold-600));box-shadow:0 2px 6px rgba(0,0,0,.4);}
+
+  /* ---------- Berater ---------- */
+  .advisor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;margin-top:8px;}
+  .advisor{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;overflow:hidden;
+    background:linear-gradient(170deg, rgba(26,51,39,0.62), rgba(13,26,20,0.7));box-shadow:var(--shadow-soft);
+    transition:transform .2s ease, border-color .2s ease;}
+  .advisor:hover{transform:translateY(-4px);border-color:var(--line-strong);}
+  .advisor::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, transparent, var(--gold-500), transparent);opacity:.55;}
+  .adv-top{display:flex;gap:16px;align-items:center;}
+  .portrait{flex:0 0 auto;width:64px;height:64px;border-radius:50%;position:relative;display:grid;place-items:center;
+    border:1.5px solid var(--gold-600);background:radial-gradient(circle at 35% 28%, var(--ink-500), var(--ink-750));
+    box-shadow:inset 0 0 14px rgba(0,0,0,.5), 0 0 0 4px rgba(8,16,12,0.5), 0 0 0 5px var(--line);}
+  .portrait svg{width:42px;height:42px;color:var(--gold-300);opacity:.9;}
+  .portrait .ini{position:absolute;font-family:var(--serif);font-weight:700;font-size:13px;color:var(--gold-300);
+    bottom:-6px;right:-6px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+    background:var(--ink-800);border:1px solid var(--gold-600);}
+  .adv-id .name{font-family:var(--serif);font-weight:700;font-size:22px;color:var(--paper);line-height:1.05;}
+  .adv-id .role{font-family:var(--display);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-500);margin-top:6px;line-height:1.4;}
+  .adv-goal{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--paper-dim);line-height:1.45;margin:16px 0 16px;
+    padding-left:14px;border-left:2px solid var(--line-strong);}
+  .adv-gen{font-size:12px;color:var(--paper-faint);margin-bottom:16px;line-height:1.4;}
+  .adv-gen b{color:var(--gold-400);font-weight:600;}
+  .adv-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--line);}
+  .loy{display:flex;flex-direction:column;gap:6px;flex:1;}
+  .loy .lrow{display:flex;justify-content:space-between;align-items:center;}
+  .loy .ltag{font-family:var(--display);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-faint);}
+  .loy .lnum{font-family:var(--serif);font-weight:700;font-size:15px;}
+  .loy-bar{display:flex;gap:3px;}
+  .loy-bar .pip{flex:1;height:6px;border-radius:2px;background:rgba(8,16,12,0.6);border:1px solid var(--line);}
+  .loy-bar .pip.on{border-color:transparent;}
+  .loy-state{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--display);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pos-bright);
+    padding:6px 11px;border-radius:999px;border:1px solid rgba(111,174,106,0.4);background:rgba(111,174,106,0.1);}
+
+  /* ---------- Welt ---------- */
+  .power-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .power{border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 18px 16px;
+    background:linear-gradient(170deg, rgba(21,41,31,0.6), rgba(13,26,20,0.66));transition:border-color .18s ease, transform .18s ease;}
+  .power:hover{border-color:var(--line-strong);transform:translateY(-2px);}
+  .power-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+  .power-sigil{width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;
+    border:1px solid var(--line-strong);background:radial-gradient(circle at 35% 28%, rgba(196,166,90,0.14), rgba(15,42,30,0.5));}
+  .power-sigil svg{width:22px;height:22px;color:var(--gold-300);}
+  .power .pname{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--paper);line-height:1.05;}
+  .power .ptyp{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--paper-faint);margin-top:4px;line-height:1.35;}
+  .power-rows{display:flex;flex-direction:column;gap:10px;}
+  .prow{display:flex;align-items:flex-start;gap:10px;font-size:13px;}
+  .prow .pk{font-family:var(--display);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-faint);width:74px;flex:0 0 auto;padding-top:3px;}
+  .rel-tag{font-family:var(--sans);font-size:12px;font-weight:600;padding:3px 11px;border-radius:999px;border:1px solid var(--line);}
+  .att{font-family:var(--serif);font-size:15px;color:var(--paper-dim);line-height:1.4;}
+
+  .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;}
+  .group{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    background:rgba(8,16,12,0.32);transition:border-color .18s ease;}
+  .group:hover{border-color:var(--line-strong);}
+  .group .gicon{width:36px;height:36px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
+    border:1px solid var(--gold-600);background:radial-gradient(circle at 35% 28%, var(--ink-500), var(--ink-750));}
+  .group .gicon svg{width:20px;height:20px;color:var(--gold-300);}
+  .group .g-name{font-family:var(--serif);font-weight:600;font-size:16px;color:var(--paper);line-height:1.1;}
+  .group .g-speaker{font-size:11.5px;color:var(--paper-faint);margin-top:3px;line-height:1.35;}
+  .group .g-speaker b{color:var(--gold-400);font-weight:600;}
+
+  /* ---------- Karte ---------- */
+  .map-layout{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;align-items:stretch;}
+  .map-frame{position:relative;border-radius:var(--radius);overflow:hidden;min-height:520px;border:1px solid var(--line-strong);
+    box-shadow:var(--shadow), inset 0 0 0 8px rgba(8,16,12,0.4), inset 0 0 0 9px var(--line);
+    background:radial-gradient(900px 500px at 30% 30%, rgba(44,90,64,0.35), transparent 60%),
+      radial-gradient(700px 500px at 80% 80%, rgba(15,42,30,0.6), transparent 60%),linear-gradient(160deg, #102019, #0a1410);}
+  .map-grid-lines{position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:46px 46px;-webkit-mask-image:radial-gradient(circle at 50% 45%, #000 30%, transparent 78%);
+    mask-image:radial-gradient(circle at 50% 45%, #000 30%, transparent 78%);}
+  .map-corner{position:absolute;width:46px;height:46px;border:1px solid var(--gold-500);opacity:.55;}
+  .map-corner.tl{top:18px;left:18px;border-right:none;border-bottom:none;}
+  .map-corner.tr{top:18px;right:18px;border-left:none;border-bottom:none;}
+  .map-corner.bl{bottom:18px;left:18px;border-right:none;border-top:none;}
+  .map-corner.br{bottom:18px;right:18px;border-left:none;border-top:none;}
+  .compass{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);width:170px;height:170px;color:var(--gold-500);opacity:.85;animation:spin 90s linear infinite;}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+  .map-caption{position:absolute;left:0;right:0;bottom:34px;text-align:center;}
+  .map-caption .mc-title{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--paper-dim);}
+  .map-caption .mc-sub{font-family:var(--display);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-500);margin-top:8px;}
+  .map-caption .mc-sub .dot{display:inline-block;margin-right:8px;vertical-align:middle;}
+  .pin{position:absolute;width:13px;height:13px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    border:1.5px solid var(--gold-300);background:radial-gradient(circle at 35% 35%, var(--gold-300), var(--gold-600));
+    box-shadow:0 0 0 4px rgba(196,166,90,0.14), 0 4px 8px rgba(0,0,0,.5);}
+  .pin.cap{width:16px;height:16px;box-shadow:0 0 0 5px rgba(196,166,90,0.2), 0 4px 10px rgba(0,0,0,.6);}
+  .pin::after{content:attr(data-l);position:absolute;left:18px;top:-4px;transform:rotate(45deg);white-space:nowrap;
+    font-family:var(--serif);font-size:13px;color:var(--paper-dim);text-shadow:0 1px 3px #000;}
+
+  .legend-panel{display:flex;flex-direction:column;}
+  .legend-list{display:flex;flex-direction:column;gap:11px;overflow:auto;max-height:560px;padding-right:4px;}
+  .legend-list::-webkit-scrollbar{width:8px;}
+  .legend-list::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;}
+  .place{display:flex;gap:13px;padding:13px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    background:linear-gradient(170deg, rgba(21,41,31,0.6), rgba(13,26,20,0.66));transition:border-color .18s ease;}
+  .place:hover{border-color:var(--line-strong);}
+  .place.cap{border-color:var(--gold-600);box-shadow:0 0 0 1px var(--gold-glow);}
+  .place .pmark{flex:0 0 auto;width:36px;height:36px;border-radius:9px;display:grid;place-items:center;
+    border:1px solid var(--line-strong);background:radial-gradient(circle at 35% 28%, rgba(196,166,90,0.16), rgba(15,42,30,0.5));}
+  .place .pmark svg{width:21px;height:21px;color:var(--gold-300);}
+  .place .p-name{font-family:var(--serif);font-weight:700;font-size:16.5px;color:var(--paper);line-height:1.1;}
+  .place .p-typ{font-family:var(--display);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-500);margin:4px 0 4px;}
+  .place .p-desc{font-family:var(--serif);font-size:13.5px;color:var(--paper-faint);line-height:1.35;}
+  .place .p-desc b{color:var(--paper-dim);font-weight:600;}
+
+  /* ---------- Historie ---------- */
+  .timeline{position:relative;margin:14px 0 8px;padding-left:8px;}
+  .timeline::before{content:"";position:absolute;left:21px;top:8px;bottom:8px;width:2px;
+    background:linear-gradient(180deg, transparent, var(--gold-600), var(--gold-500), var(--line-strong), transparent);}
+  .tl-item{position:relative;padding:0 0 26px 60px;}
+  .tl-item:last-child{padding-bottom:6px;}
+  .tl-node{position:absolute;left:6px;top:2px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-weight:700;font-size:15px;color:var(--ink-900);
+    background:radial-gradient(circle at 35% 30%, var(--gold-300), var(--gold-600));
+    box-shadow:0 0 0 5px var(--ink-800), 0 0 14px var(--gold-glow);z-index:2;}
+  .tl-item.current .tl-node{box-shadow:0 0 0 5px var(--ink-800), 0 0 0 7px var(--gold-glow), 0 0 18px var(--gold-glow);}
+  .tl-card{border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 20px;
+    background:linear-gradient(170deg, rgba(21,41,31,0.58), rgba(13,26,20,0.64));}
+  .tl-item.current .tl-card{border-color:var(--gold-600);box-shadow:0 0 0 1px var(--gold-glow);}
+  .tl-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:7px;}
+  .tl-kap{font-family:var(--display);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-500);}
+  .tl-jahre{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--paper-faint);}
+  .tl-name{font-family:var(--serif);font-weight:700;font-size:22px;color:var(--paper);}
+  .tl-now{font-family:var(--display);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-900);
+    background:var(--gold-400);padding:3px 9px;border-radius:999px;}
+  .tl-card p{margin:0;font-family:var(--serif);font-size:15.5px;color:var(--paper-dim);line-height:1.55;}
+
+  .lore-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px;}
+  .lore-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
+  .lore-list li{display:flex;gap:13px;align-items:flex-start;font-family:var(--serif);font-size:16px;color:var(--paper-dim);line-height:1.4;
+    padding:12px 15px;border:1px solid var(--line);border-radius:var(--radius-sm);background:rgba(8,16,12,0.32);transition:border-color .18s ease;}
+  .lore-list li:hover{border-color:var(--line-strong);}
+  .lore-list .li-ico{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:var(--gold-400);margin-top:1px;}
+  .lore-list .li-ico svg{width:23px;height:23px;}
+
+  /* ---------- Footer ---------- */
+  .codex-foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    font-family:var(--serif);font-style:italic;font-size:14px;color:var(--paper-faint);}
+  .codex-foot .glyph{color:var(--gold-500);letter-spacing:.4em;}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:980px){
+    .cols-2{grid-template-columns:1fr;}
+    .map-layout{grid-template-columns:1fr;}
+    .lore-grid{grid-template-columns:1fr;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .legend-list{max-height:none;}
+  }
+  @media(max-width:560px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .brand-sub{display:none;}
+    .hero h1{font-size:34px;}
+    .top-actions .btn span{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== TOPBAR ========== -->
+<header class="topbar">
+  <div class="brand">
+    <span class="crest" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e9d8a6" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12 2 L20 5 V11 C20 16 16.5 19.5 12 22 C7.5 19.5 4 16 4 11 V5 Z"/>
+        <path d="M12 6 L12 16 M8.5 9.5 L15.5 9.5"/>
+      </svg>
+    </span>
+    <div>
+      <div class="brand-name">RealmCraft</div>
+      <span class="brand-sub">Codex der Völker</span>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="top-actions">
+    <button class="btn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <span>Speicherstand laden</span>
+    </button>
+    <button class="btn gold" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Einstellungen</span>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ========== TABS ========== -->
+  <nav class="tabs" role="tablist" id="tabs">
+    <button class="tab active" data-view="lage"><span class="num">I</span>Lage</button>
+    <button class="tab" data-view="berater"><span class="num">II</span>Berater</button>
+    <button class="tab" data-view="welt"><span class="num">III</span>Welt</button>
+    <button class="tab" data-view="karte"><span class="num">IV</span>Karte</button>
+    <button class="tab" data-view="historie"><span class="num">V</span>Historie</button>
+  </nav>
+
+  <!-- ========== VIEW: LAGE ========== -->
+  <section class="view active" id="view-lage">
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-mark"><span id="hero-initial">K</span></div>
+        <div class="hero-titles">
+          <div class="hero-eyebrow" id="hero-chapter"></div>
+          <h1 id="hero-name"></h1>
+          <div class="essence" id="hero-essence"></div>
+        </div>
+      </div>
+      <div class="hero-meta" id="hero-meta"></div>
+      <div class="event-banner" id="event-banner"></div>
+    </div>
+
+    <div class="grid cols-2" style="margin-top:18px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="panel">
+          <h3 class="panel-title">Grundgrößen</h3>
+          <div class="stats" id="stats"></div>
+        </div>
+        <div class="panel">
+          <h3 class="panel-title">Lagewerte</h3>
+          <div class="gauges" id="gauges"></div>
+          <div style="margin-top:18px;" id="ausbeute"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Offene Fäden</h3>
+        <ul class="threads" id="threads"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== VIEW: BERATER ========== -->
+  <section class="view" id="view-berater">
+    <div class="sec-head">
+      <span class="drop">R</span>
+      <h2>Der Rat</h2>
+      <span class="hint">Sieben Sprecher der Gruppen, jeder mit eigenem Ziel</span>
+    </div>
+    <div class="advisor-grid" id="advisor-grid"></div>
+  </section>
+
+  <!-- ========== VIEW: WELT ========== -->
+  <section class="view" id="view-welt">
+    <div class="sec-head">
+      <span class="drop">M</span>
+      <h2>Mächte der Welt</h2>
+      <span class="hint">Bündnisse, freie Völker und ferne Reiche</span>
+    </div>
+    <div class="power-grid" id="power-grid"></div>
+
+    <div class="sec-head">
+      <span class="drop">G</span>
+      <h2>Gruppen im Volk</h2>
+      <span class="hint">Tragende Fraktionen und ihre Sprecher</span>
+    </div>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <!-- ========== VIEW: KARTE ========== -->
+  <section class="view" id="view-karte">
+    <div class="sec-head">
+      <span class="drop">K</span>
+      <h2>Karte der bekannten Welt</h2>
+      <span class="hint">Hochgebirge, Korntal und der Bund der Freien</span>
+    </div>
+    <div class="map-layout">
+      <div class="map-frame">
+        <div class="map-grid-lines"></div>
+        <span class="map-corner tl"></span><span class="map-corner tr"></span>
+        <span class="map-corner bl"></span><span class="map-corner br"></span>
+        <svg class="compass" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="0.9">
+          <circle cx="50" cy="50" r="38"/><circle cx="50" cy="50" r="30" stroke-dasharray="1 3"/>
+          <path d="M50 8 L55 50 L50 92 L45 50 Z" fill="currentColor" opacity="0.55"/>
+          <path d="M8 50 L50 45 L92 50 L50 55 Z" fill="currentColor" opacity="0.25"/>
+          <text x="50" y="20" text-anchor="middle" font-family="Cinzel" font-size="7" fill="#e9d8a6">N</text>
+        </svg>
+        <span class="pin cap" style="top:46%;left:48%;" data-l="Die Karren"></span>
+        <span class="pin" style="top:66%;left:46%;" data-l="Korntal"></span>
+        <span class="pin" style="top:22%;left:52%;" data-l="Land der Drenn"></span>
+        <span class="pin" style="top:50%;left:74%;" data-l="Eichenfurt"></span>
+        <span class="pin" style="top:52%;left:20%;" data-l="Land der Lir"></span>
+        <span class="pin" style="top:34%;left:84%;" data-l="Aurelan"></span>
+        <div class="map-caption">
+          <div class="mc-title">Karte wird generiert …</div>
+          <div class="mc-sub"><span class="dot live"></span>Kartograph zeichnet die bekannte Welt nach dem aktuellen Stand</div>
+        </div>
+      </div>
+      <div class="panel legend-panel">
+        <h3 class="panel-title">Orte-Legende</h3>
+        <div class="legend-list" id="legend-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== VIEW: HISTORIE ========== -->
+  <section class="view" id="view-historie">
+    <div class="sec-head">
+      <span class="drop">C</span>
+      <h2>Chronik der Kapitel</h2>
+      <span class="hint">Vom hungernden Häuflein zum Leuchtfeuer der Freien</span>
+    </div>
+    <div class="timeline" id="timeline"></div>
+
+    <div class="lore-grid">
+      <div class="panel">
+        <h3 class="panel-title">Fähigkeiten</h3>
+        <ul class="lore-list" id="skills"></ul>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Besitz</h3>
+        <ul class="lore-list" id="possessions"></ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="codex-foot">
+    <span id="foot-left"></span>
+    <span class="glyph">&#10022; &#10022; &#10022;</span>
+    <span>Codex / Neo-Medieval-Modern · Designstudie</span>
+  </footer>
+</div>
+
+<script>
+/* ====== DATEN — wortgetreu aus examples/die-karren-kapitel-3.json ====== */
+const DATA = {
+  meta:{
+    spielname:"Die Karren", kapitel:3,
+    zeit:{ jahreszeit:"Sommer", jahr:14 }, rundeOffen:false, weltereignis:"gewürfelt"
+  },
+  volk:{
+    name:"Die Karren",
+    wesensart:"Bergvolk, Ausrichtung Technologie",
+    ausrichtung:"Technologie",
+    erscheinung:"Hartes Bergvolk in funktionaler Wolle und Leder mit feiner Metallarbeit, Werkzeug und Wissensschriften.",
+    region:{ name:"Hochgebirge mit dem Korntal als zweitem Standbein" }
+  },
+  status:{
+    ansehen:{ stufe:3, label:"Auf nie gekannter Höhe, Leuchtfeuer der Freien" }
+  },
+  grundgroessen:{
+    nahrung:8, material:5, wissen:16,
+    bevoelkerung:{ zahl:300, label:"Karren-Kern über dreihundert, dazu das Korntal und ein großer Bund vieler Völker" }
+  },
+  lagewerte:{
+    verteidigung:3, mobilitaet:0, wohlstand:1,
+    ausbeuten:[ { key:"Erz", value:1, quelle:"Drenn über den Erzweg und eigener tiefer Stollen" } ]
+  },
+  modifikatoren:{
+    lage:[
+      { key:"Verteidigung", value:3, grund:"Die Festung" },
+      { key:"Mobilität", value:0, grund:"Straßen und Bundeswege" },
+      { key:"Wohlstand", value:1, grund:"Handel" }
+    ]
+  },
+  faehigkeiten:[
+    "Weidewirtschaft",
+    "Talackerbau, durch die Gilde verbesserter Anbau",
+    "Konservierung",
+    "Meisterliche Metallverarbeitung, Waffen und Rüstung über dem Stand der Gegner, großes Arsenal",
+    "Schrift",
+    "Wissenshaus als berühmter Hort des Wissens, fürs Volk geöffnet, mit einer Schule, die langsam Wurzeln schlägt",
+    "Verfahren zur planvollen Erschließung des Berges, eigener tiefer Stollen, der die Erzschwäche mildert",
+    "Bergfestung und kriegserprobte Verteidigung"
+  ],
+  gruppen:[
+    { id:"hirten", name:"Hirten", sprecherId:"idr", kompetenz:"Weidewirtschaft" },
+    { id:"bauern", name:"Bauern und Talbauern", sprecherId:"renja", kompetenz:"Talackerbau, verbesserter Anbau" },
+    { id:"spaeher", name:"Späher", sprecherId:"yann", kompetenz:"Erkundung und Netz" },
+    { id:"handwerk", name:"Handwerk und Bau", sprecherId:"mell", kompetenz:"Bau, Festungswerk" },
+    { id:"schmiede", name:"Schmiede und Erz", sprecherId:"harn", kompetenz:"Meisterliche Metallverarbeitung" },
+    { id:"heer", name:"Erprobtes Heer", sprecherId:"borka", kompetenz:"Kriegserprobte Verteidigung" },
+    { id:"bundesvoelker", name:"Freie Völker des Bundes", sprecherId:"soren", kompetenz:"Gemeinschaft eigenständiger Völker" }
+  ],
+  berater:[
+    { id:"borka", name:"Borka", rolle:"Sicherheit und Speicher",
+      ziel:"Sicherheit über alles, Vorsicht, die Toten geehrt",
+      loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"idr", name:"Idr", rolle:"Nahrung und Diplomatie",
+      ziel:"Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt",
+      loyalitaet:5, generation:"Gründergeneration, gealtert, einst Geflohene, Verhandlerin des Friedens mit Aurelan" },
+    { id:"mell", name:"Mell", rolle:"Bau",
+      ziel:"Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht",
+      loyalitaet:5, generation:"Gründergeneration, gealtert, Erbauer der Festung" },
+    { id:"yann", name:"Yann", rolle:"Späher und Netz",
+      ziel:"Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht",
+      loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"harn", name:"Harn", rolle:"Metall und Wissen, Haupt des Wissenshauses",
+      ziel:"Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben",
+      loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"renja", name:"Renja", rolle:"Talvolk",
+      ziel:"Würde und Freiheit der einst Unterdrückten, kein Herr über Freie",
+      loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"soren", name:"Soren", rolle:"Stimme der Bundesvölker",
+      ziel:"Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen, im Krieg bestätigt",
+      loyalitaet:5, generation:"Gründergeneration, gealtert" }
+  ],
+  maechte:[
+    { id:"bund-der-freien", name:"Bund der Freien", typ:"Gemeinschaft eigenständiger freier Völker",
+      beziehung:{ wert:2, label:"Verbündet, im Frieden wieder lockerer" },
+      haltung:"Im Krieg geeint, im Frieden sich lockernd" },
+    { id:"lir", name:"Die Lir", typ:"Befreundetes freies Volk im Westen",
+      beziehung:{ wert:3, label:"Fester Freund" },
+      haltung:"Befreundet, über eine neue Trasse verbunden" },
+    { id:"drenn", name:"Die Drenn", typ:"Bergvolk im Norden, Bundesgenosse",
+      beziehung:{ wert:3, label:"Treu" },
+      haltung:"Treuer Bundesgenosse und Erzquelle über den Erzweg" },
+    { id:"aurelan", name:"Aurelan", typ:"Großmacht der weiten Welt im Osten",
+      beziehung:{ wert:1, label:"Wachsamer, respektvoller Friede ohne Handel" },
+      haltung:"Erkannte die Karren als Freie an, die Bedrohung gelöst, aber als Macht weiter vorhanden" },
+    { id:"kontinent", name:"Der weite Kontinent", typ:"Dünn bekanntes Land vieler Völker",
+      beziehung:{ label:"Euer Name strahlt nun über den ganzen Kontinent" },
+      haltung:"Weithin unerforscht" }
+  ],
+  besitz:[
+    "Bergfestung mit Wissenshaus und Versammlungsplatz",
+    "Das Korntal",
+    "Eigener tiefer Stollen plus Erzweg von den Drenn",
+    "Die zehn Bundesorte",
+    "Das Arsenal",
+    "Befestigte Pässe und Eichenfurt",
+    "Handel mit den Lir"
+  ],
+  historie:[
+    { kapitel:1, jahre:"Jahr 0 bis 4",
+      zusammenfassung:"Vom hungernden Häuflein im leeren Kessel über Rat, Verfassung und Bündnis mit dem Talvolk zur geschützten Vasallenschaft unter den Flachlandleuten." },
+    { kapitel:2, jahre:"Jahr 6 bis 9",
+      zusammenfassung:"Die Erzfalle durch die Drenn gebrochen, das Tal zurückerobert, einen Bund freier Völker gegründet, den Kriegsherrn Torv zerschlagen, zur führenden freien Macht eines ganzen Landes geworden." },
+    { kapitel:3, jahre:"Jahr 12 bis 14",
+      zusammenfassung:"Die Großmacht Aurelan forderte Unterwerfung, Wissen und Tribut. Auf Zeit verhandelt, nichts hergegeben, die Berge zur Festung befestigt, einen Bund der Freien geeint, Aurelans Nachschub gestört und durch Stärke und einen klugen Frieden Aurelans ehrenvollen Rückzug und seine Anerkennung gewonnen. Daneben Rückschläge, tödliche Wegeunglücke, ein zäher Kampf gegen Aberglaube und Furcht, ein eigener tiefer Stollen gegen die Erzschwäche, das Wissenshaus dem Volk geöffnet, Tova als Verwalterin, der Wohlstand als neue Dimension, die Freundschaft mit den Lir." }
+  ],
+  offeneFaeden:[
+    "Was freie Völker im Frieden eint, wenn nicht mehr die gemeinsame Furcht es tut, die Gründungsfrage nun im großen Maßstab.",
+    "Ob aus dem lockernden Lager eine dauerhafte freie Ordnung des Kontinents zu schmieden ist, mit den Karren als Haupt, das führt, ohne zu herrschen.",
+    "Die reifende freie, wissende Gesellschaft und die lange Kulturarbeit, die Schule, der zähe Aberglaube, die Vernunft.",
+    "Die alternde Gründergeneration und die nachwachsende um Tova, die Frage, was über die Gründer hinaus Bestand hat.",
+    "Aurelan als anerkannte, aber weiter vorhandene Großmacht."
+  ],
+  karte:{
+    orte:[
+      { id:"die-karren", name:"Die Karren", typ:"Hauptstadt, Bergfestung", richtung:"Mittelpunkt", beziehung:"Heimat" },
+      { id:"korntal", name:"Korntal", typ:"Talregion", richtung:"Süden, darunter", beziehung:"Zweites Standbein" },
+      { id:"drenn-land", name:"Land der Drenn", typ:"Hochland", richtung:"Norden, über den Pass", beziehung:"Bundesgenosse, Erzquelle" },
+      { id:"eichenfurt", name:"Eichenfurt", typ:"Bundesort, Tor zur weiten Welt", richtung:"Osten", beziehung:"Bund, hier wurde Aurelan abgewehrt" },
+      { id:"steinbach", name:"Steinbach", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"nordfels", name:"Nordfels", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"hohenstein", name:"Hohenstein", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"gruenwald", name:"Grünwald", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"sonnenried", name:"Sonnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"bluetenau", name:"Blütenau", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"suedtor", name:"Südtor", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"brunnenried", name:"Brunnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"westmark", name:"Westmark", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"lir-land", name:"Land der Lir", typ:"Freies Volk", richtung:"Westen", beziehung:"Befreundet, neue Trasse" },
+      { id:"aurelan-reich", name:"Aurelan", typ:"Großmacht", richtung:"Osten, jenseits", beziehung:"Wachsamer Friede" }
+    ]
+  }
+};
+
+/* ====== SVG-Icon-Bibliothek (inline, keine externen Bilder) ====== */
+const ICON = {
+  nahrung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 3 4 6 4 9a4 4 0 0 1-8 0c0-3 1-6 4-9z"/><path d="M12 13v9"/></svg>',
+  material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M3 15l9 5 9-5M3 12l9 5 9-5"/></svg>',
+  wissen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a2 2 0 0 1 2 2v14a3 3 0 0 0-3-3H4z"/><path d="M20 6v14a3 3 0 0 0-3-3h-1"/></svg>',
+  bevoelkerung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M16 4a3 3 0 0 1 0 6M22 21v-1a5 5 0 0 0-3-4.6"/></svg>',
+  erz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3 6 9l6 12 6-12-3-6"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7z"/></svg>',
+  group:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M4 20a5 5 0 0 1 10 0"/><circle cx="17" cy="9" r="2.2"/><path d="M15 20a4 4 0 0 1 6-3"/></svg>',
+  weltereignis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5 5.5.5-4 4 1 5.5L12 19l-5.5 2.5 1-5.5-4-4 5.5-.5z"/></svg>',
+  // Machttypen (heuristisch nach Schlüsselwort)
+  bund:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11l-3 3a2.8 2.8 0 0 0 4 4l1-1 2 2 2-2a2.8 2.8 0 0 0 4-4l-3-3"/><path d="M9 9l3-3 3 3"/></svg>',
+  volk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M3 19a5 5 0 0 1 10 0M11 19a5 5 0 0 1 10 0"/></svg>',
+  reich:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h16M5 18l-1-8 4 3 4-6 4 6 4-3-1 8"/></svg>',
+  region:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+  // Ortstypen
+  hauptstadt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21v-9l7-5 7 5v9M9 21v-5h6v5"/></svg>',
+  tal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c4-2 5-9 9-9s5 7 9 9"/><path d="M3 18h18"/></svg>',
+  hochland:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l5-9 4 6 3-5 6 8z"/><path d="M3 19h18"/></svg>',
+  tor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V8a7 7 0 0 1 14 0v13"/><path d="M3 21h18M12 21v-7"/></svg>',
+  bundesort:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l4-3 4 3v12M12 21V11l4-3 4 3v10M3 21h18"/></svg>',
+  freiesvolk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>',
+  grossmacht:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h16M5 18l-1-8 4 3 4-6 4 6 4-3-1 8"/><circle cx="12" cy="4" r="1.4" fill="currentColor"/></svg>',
+  // Lore
+  skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.5L21 9l-5 4.3L17.5 21 12 17.2 6.5 21 8 13.3 3 9l6.6-.5z"/></svg>',
+  besitz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M2 7l10-4 10 4M9 14h6"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.5L21 9l-5 4.3L17.5 21 12 17.2 6.5 21 8 13.3 3 9l6.6-.5z"/></svg>',
+  starOutline:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l2.2 6 6.3.5-4.8 4 1.5 6L12 16.6 6.8 19.5l1.5-6-4.8-4 6.3-.5z"/></svg>'
+};
+
+/* ====== Helfer ====== */
+const $ = (s,r=document)=>r.querySelector(s);
+const el = (tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
+const fmtSigned = n => (n>0?"+"+n:""+n);
+
+function powerIcon(typ){
+  const t=(typ||"").toLowerCase();
+  if(t.includes("gemeinschaft")||t.includes("bund")) return ICON.bund;
+  if(t.includes("großmacht")||t.includes("grossmacht")||t.includes("reich")) return ICON.reich;
+  if(t.includes("volk")) return ICON.volk;
+  return ICON.region;
+}
+function placeIcon(typ){
+  const t=(typ||"").toLowerCase();
+  if(t.includes("hauptstadt")) return ICON.hauptstadt;
+  if(t.includes("tal")) return ICON.tal;
+  if(t.includes("hochland")) return ICON.hochland;
+  if(t.includes("tor")) return ICON.tor;
+  if(t.includes("bundesort")) return ICON.bundesort;
+  if(t.includes("freies volk")) return ICON.freiesvolk;
+  if(t.includes("großmacht")||t.includes("grossmacht")) return ICON.grossmacht;
+  return ICON.bundesort;
+}
+/* Beziehungswert -2..+3 -> Farbe rot..grün */
+function relColor(w){
+  if(w==null) return "var(--paper-faint)";
+  const t=Math.max(0,Math.min(1,(w+2)/5));
+  const hue=8 + t*(128-8);
+  return `hsl(${hue} 50% 55%)`;
+}
+/* Loyalität -5..+5 -> Farbe rot..grün */
+function loyColor(n){
+  const t=(n+5)/10;
+  const hue=6 + t*(128-6);
+  return `hsl(${hue} 52% 52%)`;
+}
+function loyState(n){
+  if(n>=4) return "Ergeben";
+  if(n>=1) return "Treu";
+  if(n===0) return "Schwankend";
+  if(n>=-3) return "Verstimmt";
+  return "Am Bruch";
+}
+
+/* ====== LAGE ====== */
+function renderLage(){
+  const m=DATA.meta, v=DATA.volk, st=DATA.status, gg=DATA.grundgroessen, lw=DATA.lagewerte;
+  const cleanName = v.name.replace(/^Die\s+/i,"");
+  $("#hero-initial").textContent = cleanName.charAt(0);
+  $("#hero-name").textContent = v.name;
+  $("#hero-chapter").textContent = "Kapitel III · Sommer, Jahr "+m.zeit.jahr;
+  $("#hero-essence").textContent = v.erscheinung;
+
+  // Ansehen-Sterne (Stufe 3)
+  let stars="";
+  for(let i=1;i<=3;i++){ stars += `<i style="color:${i<=st.ansehen.stufe?'var(--gold-400)':'var(--ink-500)'}">${i<=st.ansehen.stufe?ICON.star:ICON.starOutline}</i>`; }
+
+  const meta=$("#hero-meta"); meta.innerHTML="";
+  const chips=[
+    {k:"Jahreszeit",v:m.zeit.jahreszeit+" · Jahr "+m.zeit.jahr},
+    {k:"Region",v:"Hochgebirge & Korntal"},
+    {k:"Runde",v:m.rundeOffen?"offen":"abgeschlossen"},
+    {k:"Weltereignis",v:m.weltereignis,live:true}
+  ];
+  chips.forEach(c=>{
+    meta.appendChild(el("span","chip",
+      `<span class="dot ${c.live?'live':''}"></span><span class="k">${c.k}</span><span class="v">${c.v}</span>`));
+  });
+  // Ansehen-Chip mit Sternen
+  meta.appendChild(el("span","chip",
+    `<span class="k">Ansehen</span><span class="ansehen-stars">${stars}</span>`));
+
+  // Weltereignis-Banner (Beschreibung aus status, da JSON nur Schalter führt)
+  $("#event-banner").innerHTML =
+    `<span class="ico">${ICON.weltereignis}</span>
+     <div>
+       <h3>Status · ${st.ansehen.label}</h3>
+       <p>Das Weltereignis dieser Runde ist <b>${m.weltereignis}</b>. Berühmte freie Macht, die einer Großmacht standhielt und als eigenständige Macht anerkannt wurde, Leuchtfeuer der Freien über den Kontinent, Haupt eines im Krieg erprobten, im Frieden sich lockernden Bundes.</p>
+     </div>`;
+
+  // Grundgrößen
+  const stats=$("#stats"); stats.innerHTML="";
+  const sCfg=[
+    {label:"Nahrung",val:gg.nahrung,icon:"nahrung",sub:"Vorräte, Tal als zweites Standbein"},
+    {label:"Material",val:gg.material,icon:"material",sub:"Rohstoffe und Werkstoff"},
+    {label:"Wissen",val:gg.wissen,icon:"wissen",sub:"speist Fähigkeiten und Wissenshaus"},
+    {label:"Bevölkerung",val:gg.bevoelkerung.zahl,icon:"bevoelkerung",sub:"Karren-Kern, dazu Tal und Bund"}
+  ];
+  sCfg.forEach(c=>{
+    stats.appendChild(el("div","stat",
+      `<span class="icon">${ICON[c.icon]}</span>
+       <div class="label">${c.label}</div>
+       <div class="value">${c.val}</div>
+       <div class="sub">${c.sub}</div>`));
+  });
+
+  // Lagewerte als Gauges (Skala -2..+3)
+  const gauges=$("#gauges"); gauges.innerHTML="";
+  const MIN=-2, MAX=3, span=MAX-MIN;
+  const gByKey = {};
+  DATA.modifikatoren.lage.forEach(x=>gByKey[x.key]=x.grund);
+  const gCfg=[
+    {name:"Verteidigung",val:lw.verteidigung,sub:gByKey["Verteidigung"]},
+    {name:"Mobilität",val:lw.mobilitaet,sub:gByKey["Mobilität"]},
+    {name:"Wohlstand",val:lw.wohlstand,sub:gByKey["Wohlstand"]}
+  ];
+  gCfg.forEach(g=>{
+    const pct=Math.round(((g.val-MIN)/span)*100);
+    const zeroPct=Math.round(((0-MIN)/span)*100);
+    const neutral = g.val===0;
+    const node=el("div","gauge",
+      `<div class="grow"><span class="gname">${g.name}</span><span class="gval">${fmtSigned(g.val)}</span></div>
+       <div class="track"><span class="zero" style="left:${zeroPct}%"></span><span class="fill ${neutral?'neu':''}" style="width:0%"></span></div>
+       <div class="gsub">${g.sub||""}</div>`);
+    gauges.appendChild(node);
+    requestAnimationFrame(()=>{node.querySelector(".fill").style.width=Math.max(pct,3)+"%";});
+  });
+
+  // Ausbeute
+  const ore = lw.ausbeuten[0];
+  $("#ausbeute").innerHTML =
+    `<div class="ore">
+       <span class="gem">${ICON.erz}</span>
+       <div><div class="ore-name">Ausbeute · ${ore.key}</div><div class="ore-sub">${ore.quelle}</div></div>
+       <span class="ore-val">${fmtSigned(ore.value)}</span>
+     </div>`;
+
+  // Offene Fäden (Teaser: erste drei)
+  const t=$("#threads"); t.innerHTML="";
+  DATA.offeneFaeden.slice(0,3).forEach((f,i)=>{
+    t.appendChild(el("li",null,`<span class="seal">${i+1}</span><span>${f}</span>`));
+  });
+
+  $("#foot-left").textContent = "RealmCraft · "+v.name+" · Kapitel "+m.kapitel+" · "+m.zeit.jahreszeit+", Jahr "+m.zeit.jahr;
+}
+
+/* ====== BERATER ====== */
+function renderBerater(){
+  const grid=$("#advisor-grid"); grid.innerHTML="";
+  const grpBySprecher={};
+  DATA.gruppen.forEach(g=>grpBySprecher[g.sprecherId]=g.name);
+  DATA.berater.forEach(b=>{
+    const ini=b.name.charAt(0);
+    let pips="";
+    for(let i=-5;i<=5;i++){
+      if(i===0) continue;
+      const active = (b.loyalitaet>=0) ? (i>0 && i<=b.loyalitaet) : (i<0 && i>=b.loyalitaet);
+      const col = active ? loyColor(b.loyalitaet) : "transparent";
+      pips += `<span class="pip ${active?'on':''}" style="${active?`background:${col};box-shadow:0 0 6px ${col}66;`:''}"></span>`;
+    }
+    const grp = grpBySprecher[b.id];
+    grid.appendChild(el("div","advisor",
+      `<div class="adv-top">
+         <div class="portrait">${ICON.person}<span class="ini">${ini}</span></div>
+         <div class="adv-id">
+           <div class="name">${b.name}</div>
+           <div class="role">${b.rolle}</div>
+         </div>
+       </div>
+       <div class="adv-goal">„${b.ziel}“</div>
+       <div class="adv-gen">${grp?`Spricht für <b>${grp}</b> · `:""}${b.generation}</div>
+       <div class="adv-foot">
+         <div class="loy">
+           <div class="lrow">
+             <span class="ltag">Loyalität</span>
+             <span class="lnum" style="color:${loyColor(b.loyalitaet)}">${fmtSigned(b.loyalitaet)} / +5</span>
+           </div>
+           <div class="loy-bar">${pips}</div>
+         </div>
+         <span class="loy-state">${loyState(b.loyalitaet)}</span>
+       </div>`));
+  });
+}
+
+/* ====== WELT ====== */
+function renderWelt(){
+  const pg=$("#power-grid"); pg.innerHTML="";
+  DATA.maechte.forEach(m=>{
+    const w = m.beziehung.wert;
+    const col = relColor(w);
+    const wertTxt = (w!=null) ? `Beziehung ${fmtSigned(w)} · ${m.beziehung.label}` : m.beziehung.label;
+    pg.appendChild(el("div","power",
+      `<div class="power-head">
+         <span class="power-sigil">${powerIcon(m.typ)}</span>
+         <div><div class="pname">${m.name}</div><div class="ptyp">${m.typ}</div></div>
+       </div>
+       <div class="power-rows">
+         <div class="prow"><span class="pk">Beziehung</span>
+           <span class="rel-tag" style="color:${col};border-color:${col}55;background:${col}14;">${wertTxt}</span></div>
+         <div class="prow"><span class="pk">Haltung</span><span class="att">${m.haltung}</span></div>
+       </div>`));
+  });
+
+  const gr=$("#groups"); gr.innerHTML="";
+  const beraterById={};
+  DATA.berater.forEach(b=>beraterById[b.id]=b.name);
+  DATA.gruppen.forEach(g=>{
+    gr.appendChild(el("div","group",
+      `<span class="gicon">${ICON.group}</span>
+       <div><div class="g-name">${g.name}</div>
+       <div class="g-speaker">Sprecher: <b>${beraterById[g.sprecherId]||g.sprecherId}</b> · ${g.kompetenz}</div></div>`));
+  });
+}
+
+/* ====== KARTE ====== */
+function renderKarte(){
+  const ll=$("#legend-list"); ll.innerHTML="";
+  DATA.karte.orte.forEach(o=>{
+    const cap = o.richtung==="Mittelpunkt";
+    ll.appendChild(el("div","place"+(cap?" cap":""),
+      `<span class="pmark">${placeIcon(o.typ)}</span>
+       <div><div class="p-name">${o.name}</div>
+       <div class="p-typ">${o.typ}</div>
+       <div class="p-desc"><b>${o.richtung}</b> — ${o.beziehung}</div></div>`));
+  });
+}
+
+/* ====== HISTORIE ====== */
+function renderHistorie(){
+  const tl=$("#timeline"); tl.innerHTML="";
+  const roman=["","I","II","III","IV","V","VI"];
+  DATA.historie.forEach(k=>{
+    const cur = k.kapitel===DATA.meta.kapitel;
+    tl.appendChild(el("div","tl-item"+(cur?" current":""),
+      `<span class="tl-node">${roman[k.kapitel]||k.kapitel}</span>
+       <div class="tl-card">
+         <div class="tl-head">
+           <span class="tl-kap">Kapitel ${roman[k.kapitel]||k.kapitel}</span>
+           <span class="tl-jahre">${k.jahre}</span>
+           ${cur?'<span class="tl-now">Aktuell</span>':''}
+         </div>
+         <p>${k.zusammenfassung}</p>
+       </div>`));
+  });
+
+  const sk=$("#skills"); sk.innerHTML="";
+  DATA.faehigkeiten.forEach(f=>{
+    sk.appendChild(el("li",null,`<span class="li-ico">${ICON.skill}</span><span>${f}</span>`));
+  });
+  const bs=$("#possessions"); bs.innerHTML="";
+  DATA.besitz.forEach(b=>{
+    bs.appendChild(el("li",null,`<span class="li-ico">${ICON.besitz}</span><span>${b}</span>`));
+  });
+}
+
+/* ====== Tab-Steuerung ====== */
+const rendered={};
+function show(view){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===view));
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+view));
+  if(!rendered[view]){
+    ({lage:renderLage,berater:renderBerater,welt:renderWelt,karte:renderKarte,historie:renderHistorie}[view])();
+    rendered[view]=true;
+  } else if(view==="lage"){ renderLage(); }
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.getElementById("tabs").addEventListener("click",e=>{
+  const btn=e.target.closest(".tab"); if(btn) show(btn.dataset.view);
+});
+
+/* Start auf "Lage" */
+renderLage(); rendered.lage=true;
+</script>
+</body>
+</html>

@@ -7,6 +7,9 @@ playwright-report/
 blob-report/
 .playwright/
 
+# Design screenshots are large, regenerable binaries (node design/screenshot.mjs)
+design/screenshots/
+
 # Secrets — never commit API keys
 .env
 .env.*

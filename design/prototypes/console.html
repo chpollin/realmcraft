@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealmCraft — Command Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Surfaces — very dark, neutral, cool */
+    --bg-0:#05070a;          /* deepest backdrop */
+    --bg-1:#0a0e14;          /* app field */
+    --bg-2:#0e131b;          /* panel */
+    --bg-3:#131a24;          /* raised panel */
+    --bg-4:#192230;          /* hover / inset */
+    --line:#1d2733;          /* hairline grid */
+    --line-soft:#161e29;
+    /* Text */
+    --txt-0:#e6f0f6;         /* primary */
+    --txt-1:#9fb2c0;         /* secondary */
+    --txt-2:#647689;         /* muted / labels */
+    --txt-3:#42525f;         /* faint */
+    /* Accents — cool cyan / teal */
+    --cy:#3fe0d0;            /* primary cyan-teal */
+    --cy-bright:#5ff4e6;
+    --cy-dim:#1c5c57;
+    --teal:#28b9c9;
+    --blue:#4aa8ff;
+    /* Signal colors */
+    --pos:#3fd693;           /* positive / green */
+    --warn:#f2b65a;          /* warning / amber */
+    --neg:#f0584f;           /* negative / red */
+    --neutral:#6b7d8e;
+    /* Glow */
+    --glow-cy:0 0 0 1px rgba(63,224,208,.25), 0 0 18px -4px rgba(63,224,208,.45);
+    /* Geometry */
+    --r:10px;
+    --r-sm:7px;
+    --gap:18px;
+    --mono:'JetBrains Mono','SFMono-Regular',ui-monospace,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    color:var(--txt-0);
+    background:
+      radial-gradient(1200px 700px at 78% -8%, rgba(40,185,201,.07), transparent 60%),
+      radial-gradient(900px 600px at -5% 110%, rgba(74,168,255,.05), transparent 55%),
+      var(--bg-0);
+    background-attachment:fixed;
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:.005em;
+  }
+  ::selection{background:rgba(63,224,208,.28);color:#fff}
+
+  /* faint global grid overlay */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:
+      linear-gradient(rgba(63,224,208,.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(63,224,208,.022) 1px,transparent 1px);
+    background-size:46px 46px;
+    mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 85%);
+  }
+
+  .app{position:relative;z-index:1;max-width:1440px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+  /* ============ TOPBAR ============ */
+  .topbar{
+    display:flex;align-items:center;gap:22px;
+    padding:14px 26px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(14,19,27,.85),rgba(10,14,20,.7));
+    backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:30;
+  }
+  .brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;flex-shrink:0;
+    display:grid;place-items:center;position:relative;
+    background:radial-gradient(circle at 30% 25%,#123b39,#0a1417);
+    border:1px solid var(--cy-dim);
+    box-shadow:inset 0 0 14px rgba(63,224,208,.18), var(--glow-cy);
+  }
+  .brand-mark svg{width:19px;height:19px}
+  .brand-name{font-weight:700;font-size:16px;letter-spacing:.02em}
+  .brand-name b{color:var(--cy)}
+  .brand-sub{font-family:var(--mono);font-size:10px;color:var(--txt-2);letter-spacing:.22em;text-transform:uppercase;margin-top:1px}
+
+  .topbar-status{
+    display:flex;align-items:center;gap:8px;margin-left:8px;
+    font-family:var(--mono);font-size:11px;color:var(--txt-1);
+    padding:5px 11px;border:1px solid var(--line);border-radius:99px;background:var(--bg-2);
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--pos);box-shadow:0 0 9px 1px var(--pos);animation:pulse 2.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .topbar-spacer{flex:1}
+  .topbar-clock{font-family:var(--mono);font-size:11px;color:var(--txt-2);letter-spacing:.08em}
+  .tbtn{
+    font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.04em;
+    color:var(--txt-1);background:var(--bg-2);border:1px solid var(--line);
+    padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;
+    display:flex;align-items:center;gap:7px;transition:.16s;
+  }
+  .tbtn svg{width:14px;height:14px;opacity:.8}
+  .tbtn:hover{border-color:var(--cy-dim);color:var(--txt-0);background:var(--bg-3)}
+  .tbtn.primary{color:#04201d;background:linear-gradient(180deg,var(--cy-bright),var(--teal));border-color:transparent;font-weight:600;box-shadow:0 0 16px -5px rgba(63,224,208,.6)}
+  .tbtn.primary:hover{filter:brightness(1.08)}
+
+  /* ============ TABS ============ */
+  .tabs{
+    display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--line);
+    background:var(--bg-1);position:sticky;top:63px;z-index:25;overflow-x:auto;
+  }
+  .tab{
+    font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;
+    color:var(--txt-2);background:none;border:none;cursor:pointer;
+    padding:14px 18px 12px;position:relative;white-space:nowrap;
+    display:flex;align-items:center;gap:9px;transition:color .16s;text-transform:uppercase;
+  }
+  .tab .tnum{font-size:10px;color:var(--txt-3);transition:.16s}
+  .tab svg{width:15px;height:15px;opacity:.7;transition:.16s}
+  .tab:hover{color:var(--txt-0)}
+  .tab.active{color:var(--cy)}
+  .tab.active svg{opacity:1}
+  .tab.active .tnum{color:var(--cy-dim)}
+  .tab.active::after{
+    content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cy),transparent);
+    box-shadow:0 0 10px var(--cy);
+  }
+
+  /* ============ MAIN ============ */
+  main{flex:1;padding:24px 26px 56px}
+  .view{display:none;animation:fade .35s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Section heads */
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin:0 0 14px}
+  .sec-head h2{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-1)}
+  .sec-head .meta{font-family:var(--mono);font-size:11px;color:var(--txt-3)}
+  .sec-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);align-self:center}
+
+  /* Panels */
+  .panel{
+    background:linear-gradient(180deg,var(--bg-2),var(--bg-1));
+    border:1px solid var(--line);border-radius:var(--r);position:relative;
+  }
+  .panel-pad{padding:18px}
+  .corner{position:absolute;width:9px;height:9px;border-color:var(--cy-dim);opacity:.6}
+  .corner.tl{top:-1px;left:-1px;border-top:1px solid;border-left:1px solid;border-top-left-radius:var(--r)}
+  .corner.tr{top:-1px;right:-1px;border-top:1px solid;border-right:1px solid;border-top-right-radius:var(--r)}
+  .corner.bl{bottom:-1px;left:-1px;border-bottom:1px solid;border-left:1px solid;border-bottom-left-radius:var(--r)}
+  .corner.br{bottom:-1px;right:-1px;border-bottom:1px solid;border-right:1px solid;border-bottom-right-radius:var(--r)}
+
+  /* ===================== LAGE: HERO ===================== */
+  .hero{
+    position:relative;overflow:hidden;border-radius:var(--r);
+    border:1px solid var(--line);margin-bottom:var(--gap);
+    background:
+      radial-gradient(620px 280px at 88% -30%, rgba(40,185,201,.16), transparent 65%),
+      linear-gradient(135deg,#0d1620,#0a0f16 60%);
+  }
+  .hero::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(90deg,rgba(63,224,208,.04) 1px,transparent 1px);
+    background-size:54px 100%;mask-image:linear-gradient(90deg,transparent,#000 40%);
+  }
+  .hero-inner{position:relative;display:flex;align-items:flex-start;gap:26px;padding:26px 28px}
+  .hero-crest{
+    width:96px;height:96px;border-radius:16px;flex-shrink:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 35% 25%,#15413e,#0a1518);
+    border:1px solid var(--cy-dim);box-shadow:inset 0 0 26px rgba(63,224,208,.16),0 0 30px -12px rgba(63,224,208,.5);
+  }
+  .hero-crest svg{width:54px;height:54px}
+  .hero-body{flex:1;min-width:0}
+  .hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--cy);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .hero-eyebrow .chip{padding:2px 8px;border:1px solid var(--cy-dim);border-radius:99px;color:var(--cy-bright);background:rgba(63,224,208,.07);letter-spacing:.12em}
+  h1{font-size:38px;font-weight:700;letter-spacing:-.01em;line-height:1.05;margin-bottom:6px}
+  .hero-essence{font-size:14px;color:var(--txt-1);margin-bottom:16px}
+  .hero-essence b{color:var(--txt-0);font-weight:600}
+  .hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .htag{
+    font-family:var(--mono);font-size:11px;color:var(--txt-1);
+    padding:6px 11px;border:1px solid var(--line);border-radius:var(--r-sm);
+    background:var(--bg-2);display:flex;align-items:center;gap:8px;
+  }
+  .htag .k{color:var(--txt-2);text-transform:uppercase;letter-spacing:.08em;font-size:10px}
+  .htag .v{color:var(--txt-0);font-weight:600}
+  .htag.glow{border-color:var(--cy-dim);box-shadow:inset 0 0 12px rgba(63,224,208,.08)}
+  .htag.glow .v{color:var(--cy)}
+
+  .hero-renown{
+    flex-shrink:0;width:200px;align-self:stretch;padding:18px 18px 16px;
+    border-left:1px solid var(--line);display:flex;flex-direction:column;gap:6px;
+  }
+  .hr-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--txt-2)}
+  .hr-stars{display:flex;gap:5px;margin:4px 0}
+  .hr-stars svg{width:18px;height:18px}
+  .hr-val{font-family:var(--mono);font-size:13px;color:var(--cy);font-weight:600}
+  .hr-text{font-size:11.5px;color:var(--txt-1);line-height:1.45}
+
+  /* Layout grid for lage */
+  .lage-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:var(--gap);align-items:start}
+  @media(max-width:1080px){.lage-grid{grid-template-columns:1fr}}
+
+  /* Stat cards */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:var(--gap)}
+  @media(max-width:760px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+  .stat{
+    position:relative;padding:15px 15px 14px;border:1px solid var(--line);border-radius:var(--r);
+    background:linear-gradient(180deg,var(--bg-3),var(--bg-1));overflow:hidden;
+  }
+  .stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cy);opacity:.55;box-shadow:0 0 12px var(--cy)}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .stat-ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--bg-2);border:1px solid var(--line)}
+  .stat-ico svg{width:16px;height:16px;color:var(--cy)}
+  .stat-key{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-2)}
+  .stat-val{font-family:var(--mono);font-size:34px;font-weight:700;line-height:1;color:var(--txt-0);letter-spacing:-.02em}
+  .stat-val small{font-size:13px;color:var(--txt-2);font-weight:500;margin-left:2px}
+  .stat-note{font-size:10.5px;color:var(--txt-2);margin-top:7px;line-height:1.4}
+  .stat.wide{grid-column:span 1}
+
+  /* Gauges / bars */
+  .gauges{display:flex;flex-direction:column;gap:16px}
+  .gauge{}
+  .gauge-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .gauge-name{font-size:12.5px;font-weight:600;color:var(--txt-0);display:flex;align-items:center;gap:8px}
+  .gauge-name svg{width:14px;height:14px;color:var(--txt-2)}
+  .gauge-num{font-family:var(--mono);font-weight:700;font-size:14px}
+  .gauge-num.pos{color:var(--pos)}.gauge-num.zero{color:var(--neutral)}.gauge-num.neg{color:var(--neg)}
+  .track{position:relative;height:12px;border-radius:7px;background:var(--bg-0);border:1px solid var(--line);overflow:hidden}
+  .track .mid{position:absolute;left:40%;top:0;bottom:0;width:1px;background:var(--txt-3);opacity:.6;z-index:2}
+  .fill{position:absolute;top:0;bottom:0;border-radius:7px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt-3);margin-top:4px}
+  .gauge-grund{font-size:10.5px;color:var(--txt-2);margin-top:4px}
+
+  /* Yield row */
+  .yield{
+    display:flex;align-items:center;gap:12px;margin-top:16px;padding:13px 14px;
+    border:1px dashed var(--cy-dim);border-radius:var(--r);background:rgba(63,224,208,.04);
+  }
+  .yield .badge{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--cy);min-width:42px;text-align:center}
+  .yield .name{font-size:12.5px;font-weight:600;color:var(--txt-0)}
+  .yield .src{font-size:11px;color:var(--txt-2);margin-top:2px}
+
+  /* Threads teaser */
+  .threads{display:flex;flex-direction:column;gap:1px;margin-top:4px}
+  .thread{
+    display:flex;gap:13px;padding:13px 14px;border-radius:var(--r-sm);
+    background:var(--bg-2);border:1px solid var(--line-soft);transition:.16s;
+  }
+  .thread:hover{border-color:var(--cy-dim);background:var(--bg-3);transform:translateX(2px)}
+  .thread .idx{font-family:var(--mono);font-size:11px;color:var(--cy);font-weight:600;flex-shrink:0;padding-top:1px;width:24px}
+  .thread .txt{font-size:12.5px;color:var(--txt-1);line-height:1.5}
+
+  .status-quote{
+    font-size:13px;color:var(--txt-1);line-height:1.65;padding:16px 18px;
+    border-left:2px solid var(--cy-dim);background:var(--bg-2);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  }
+
+  /* ===================== BERATER ===================== */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:var(--gap)}
+  .advisor{
+    position:relative;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    background:linear-gradient(180deg,var(--bg-2),var(--bg-1));transition:.18s;
+  }
+  .advisor:hover{border-color:var(--cy-dim);box-shadow:0 8px 30px -16px rgba(0,0,0,.8),inset 0 0 0 1px rgba(63,224,208,.06)}
+  .advisor-head{display:flex;gap:14px;padding:16px 16px 14px;border-bottom:1px solid var(--line-soft)}
+  .portrait{
+    width:60px;height:60px;border-radius:13px;flex-shrink:0;position:relative;overflow:hidden;
+    border:1px solid var(--cy-dim);display:grid;place-items:center;
+    background:radial-gradient(circle at 35% 25%,#16403d,#0a1417);
+    box-shadow:inset 0 0 18px rgba(63,224,208,.14);
+  }
+  .portrait svg{width:38px;height:38px;color:rgba(63,224,208,.7)}
+  .portrait .scan{position:absolute;left:0;right:0;height:34%;top:0;background:linear-gradient(180deg,rgba(63,224,208,.16),transparent);}
+  .portrait .ini{position:absolute;font-family:var(--mono);font-weight:700;font-size:22px;color:var(--cy-bright);text-shadow:0 0 14px rgba(63,224,208,.6)}
+  .advisor-id{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+  .advisor-name{font-size:17px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .advisor-name .tag{font-family:var(--mono);font-size:9px;color:var(--txt-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;letter-spacing:.1em}
+  .advisor-role{font-size:11.5px;color:var(--cy);font-family:var(--mono);margin-top:3px;letter-spacing:.02em}
+  .advisor-body{padding:14px 16px 16px}
+  .goal-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--txt-3);margin-bottom:6px}
+  .goal{font-size:12.5px;color:var(--txt-1);line-height:1.55;font-style:italic;position:relative;padding-left:14px}
+  .goal::before{content:"\201C";position:absolute;left:-2px;top:-4px;font-size:22px;color:var(--cy-dim);font-style:normal}
+  .advisor-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
+  .loy{flex:1}
+  .loy-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+  .loy-lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-2)}
+  .loy-val{font-family:var(--mono);font-size:12px;font-weight:700}
+  .loy-track{position:relative;height:8px;border-radius:5px;background:var(--bg-0);border:1px solid var(--line);overflow:hidden}
+  .loy-track .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--txt-3);opacity:.5}
+  .loy-fill{position:absolute;top:0;bottom:0;border-radius:5px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .loy-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--txt-3);margin-top:3px}
+  .gen-chip{font-family:var(--mono);font-size:9.5px;color:var(--txt-2);text-align:right;max-width:120px;line-height:1.35}
+  .loy-pill{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:99px;letter-spacing:.06em;border:1px solid}
+
+  /* ===================== WELT ===================== */
+  .power-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:var(--gap);margin-bottom:30px}
+  .power{position:relative;border:1px solid var(--line);border-radius:var(--r);padding:17px 18px;background:linear-gradient(180deg,var(--bg-2),var(--bg-1));overflow:hidden}
+  .power::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+  .power.rel-3::before{background:var(--pos);box-shadow:0 0 12px var(--pos)}
+  .power.rel-2::before{background:var(--teal);box-shadow:0 0 12px var(--teal)}
+  .power.rel-1::before{background:var(--warn);box-shadow:0 0 12px var(--warn)}
+  .power.rel-x::before{background:var(--neutral)}
+  .power-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .power-name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .power-type{font-size:11px;color:var(--txt-2);font-family:var(--mono);margin-bottom:12px}
+  .rel-badge{font-family:var(--mono);font-size:10px;font-weight:600;padding:4px 9px;border-radius:99px;border:1px solid;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px}
+  .rel-badge .n{font-weight:700}
+  .power-rel{display:flex;flex-direction:column;gap:9px}
+  .pr-row{display:flex;gap:10px;font-size:12px}
+  .pr-row .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-3);width:72px;flat-shrink:0;padding-top:2px}
+  .pr-row .v{color:var(--txt-1);line-height:1.45;flex:1}
+  .pr-row .v b{color:var(--txt-0);font-weight:600}
+  .power-profile{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .prof-chip{font-family:var(--mono);font-size:10px;color:var(--cy);border:1px solid var(--cy-dim);border-radius:6px;padding:3px 8px;background:rgba(63,224,208,.05)}
+
+  .group-table{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg-1)}
+  .gt-head,.gt-row{display:grid;grid-template-columns:1.1fr 1.1fr 1.5fr;gap:14px;padding:11px 18px;align-items:center}
+  .gt-head{background:var(--bg-2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-2)}
+  .gt-row{border-bottom:1px solid var(--line-soft);transition:.14s;font-size:12.5px}
+  .gt-row:last-child{border-bottom:none}
+  .gt-row:hover{background:var(--bg-2)}
+  .gt-group{font-weight:600;color:var(--txt-0);display:flex;align-items:center;gap:9px}
+  .gt-dot{width:6px;height:6px;border-radius:50%;background:var(--cy);box-shadow:0 0 8px var(--cy)}
+  .gt-speaker{display:flex;align-items:center;gap:9px;color:var(--cy);font-family:var(--mono);font-size:12px}
+  .gt-mini{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#16403d,#0a1417);border:1px solid var(--cy-dim);font-family:var(--mono);font-size:10px;font-weight:700;color:var(--cy-bright);flex-shrink:0}
+  .gt-comp{color:var(--txt-1)}
+  @media(max-width:680px){.gt-head{display:none}.gt-row{grid-template-columns:1fr;gap:6px;padding:14px 16px}.gt-comp{font-size:11.5px;color:var(--txt-2)}}
+
+  /* ===================== KARTE ===================== */
+  .map-layout{display:grid;grid-template-columns:1fr 320px;gap:var(--gap);align-items:start}
+  @media(max-width:980px){.map-layout{grid-template-columns:1fr}}
+  .map-stage{
+    position:relative;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    min-height:560px;display:grid;place-items:center;
+    background:
+      radial-gradient(700px 480px at 50% 42%, rgba(40,185,201,.10), transparent 70%),
+      linear-gradient(160deg,#0b121a,#070b10);
+  }
+  .map-stage::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(63,224,208,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(63,224,208,.06) 1px,transparent 1px);
+    background-size:40px 40px;
+    mask-image:radial-gradient(circle at 50% 45%,#000 0%,transparent 78%);
+  }
+  .map-frame-corner{position:absolute;width:26px;height:26px;border-color:var(--cy);opacity:.55}
+  .mfc.tl{top:14px;left:14px;border-top:2px solid;border-left:2px solid}
+  .mfc.tr{top:14px;right:14px;border-top:2px solid;border-right:2px solid}
+  .mfc.bl{bottom:14px;left:14px;border-bottom:2px solid;border-left:2px solid}
+  .mfc.br{bottom:14px;right:14px;border-bottom:2px solid;border-right:2px solid}
+  .map-center{position:relative;text-align:center;padding:30px;z-index:2}
+  .map-radar{width:140px;height:140px;margin:0 auto 22px;position:relative}
+  .map-radar svg{width:100%;height:100%}
+  .map-sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(63,224,208,.18) 40deg,transparent 70deg);animation:sweep 4s linear infinite}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  .map-title{font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--cy);margin-bottom:8px}
+  .map-sub{font-size:12px;color:var(--txt-2);max-width:380px;margin:0 auto;line-height:1.6}
+  .map-prog{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:18px;font-family:var(--mono);font-size:10px;color:var(--txt-2);letter-spacing:.1em}
+  .map-prog .bar{width:160px;height:4px;border-radius:3px;background:var(--bg-0);border:1px solid var(--line);overflow:hidden;position:relative}
+  .map-prog .bar i{position:absolute;left:0;top:0;bottom:0;width:38%;background:linear-gradient(90deg,var(--teal),var(--cy));box-shadow:0 0 8px var(--cy);animation:loadbar 2.6s ease-in-out infinite}
+  @keyframes loadbar{0%{left:-40%}100%{left:100%}}
+  .map-compass{position:absolute;top:22px;right:60px;font-family:var(--mono);font-size:10px;color:var(--txt-2);text-align:center;z-index:2}
+  .map-compass svg{width:34px;height:34px;color:var(--cy);opacity:.7}
+
+  .legend{border:1px solid var(--line);border-radius:var(--r);background:var(--bg-1);overflow:hidden}
+  .legend-head{padding:13px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-1);display:flex;justify-content:space-between;align-items:center}
+  .legend-head .ct{color:var(--cy)}
+  .legend-list{max-height:520px;overflow:auto}
+  .legend-item{display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid var(--line-soft);align-items:flex-start;transition:.14s}
+  .legend-item:last-child{border-bottom:none}
+  .legend-item:hover{background:var(--bg-2)}
+  .lg-pin{width:20px;height:20px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--cy-dim);background:rgba(63,224,208,.06);margin-top:1px}
+  .lg-pin svg{width:11px;height:11px;color:var(--cy)}
+  .lg-pin.cap{background:var(--cy);box-shadow:0 0 10px var(--cy)}
+  .lg-pin.cap svg{color:#04201d}
+  .lg-body{min-width:0}
+  .lg-name{font-size:12.5px;font-weight:600;color:var(--txt-0)}
+  .lg-meta{font-size:10.5px;color:var(--txt-2);font-family:var(--mono);margin-top:2px}
+  .lg-rel{font-size:10.5px;color:var(--txt-1);margin-top:2px;line-height:1.4}
+
+  /* ===================== HISTORIE ===================== */
+  .hist-layout{display:grid;grid-template-columns:1.4fr 1fr;gap:var(--gap);align-items:start}
+  @media(max-width:980px){.hist-layout{grid-template-columns:1fr}}
+  .timeline{position:relative;padding-left:8px}
+  .tl-item{position:relative;padding:0 0 24px 38px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:13px;top:26px;bottom:-2px;width:1px;background:linear-gradient(180deg,var(--cy-dim),var(--line))}
+  .tl-item:last-child::before{display:none}
+  .tl-node{position:absolute;left:5px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--bg-0);border:2px solid var(--cy-dim);display:grid;place-items:center;z-index:2}
+  .tl-node i{width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 9px var(--cy)}
+  .tl-item.current .tl-node{border-color:var(--cy);box-shadow:0 0 14px -2px var(--cy)}
+  .tl-card{border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(180deg,var(--bg-2),var(--bg-1));padding:15px 17px}
+  .tl-item.current .tl-card{border-color:var(--cy-dim);box-shadow:inset 0 0 0 1px rgba(63,224,208,.05)}
+  .tl-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .tl-chap{font-size:14px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .tl-kchip{font-family:var(--mono);font-size:9px;color:var(--cy);border:1px solid var(--cy-dim);border-radius:5px;padding:2px 7px;letter-spacing:.08em}
+  .tl-years{font-family:var(--mono);font-size:11px;color:var(--txt-2)}
+  .tl-now{font-family:var(--mono);font-size:9px;color:#04201d;background:var(--cy);border-radius:99px;padding:2px 8px;font-weight:700;letter-spacing:.06em}
+  .tl-sum{font-size:12.5px;color:var(--txt-1);line-height:1.6}
+
+  .info-stack{display:flex;flex-direction:column;gap:var(--gap)}
+  .chip-list{display:flex;flex-direction:column;gap:8px}
+  .il{display:flex;gap:11px;padding:11px 13px;border:1px solid var(--line-soft);border-radius:var(--r-sm);background:var(--bg-2);transition:.14s}
+  .il:hover{border-color:var(--cy-dim);background:var(--bg-3)}
+  .il .ic{width:22px;height:22px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;background:var(--bg-0);border:1px solid var(--line)}
+  .il .ic svg{width:12px;height:12px;color:var(--cy)}
+  .il .t{font-size:12px;color:var(--txt-1);line-height:1.45}
+
+  .footer{padding:18px 26px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;color:var(--txt-3);display:flex;justify-content:space-between;letter-spacing:.08em;flex-wrap:wrap;gap:8px}
+  .footer .cy{color:var(--cy-dim)}
+
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-track{background:var(--bg-0)}
+  ::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:9px;border:2px solid var(--bg-0)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--cy-dim)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== TOPBAR ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3fe0d0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><circle cx="12" cy="9" r="1.4" fill="#3fe0d0" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Realm<b>Craft</b></div>
+        <div class="brand-sub">Command Console</div>
+      </div>
+    </div>
+    <div class="topbar-status"><span class="dot"></span><span id="tb-status">Speicherstand geladen</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-clock" id="clock">SOMMER · JAHR 14</div>
+    <button class="tbtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      Speicherstand laden
+    </button>
+    <button class="tbtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Einstellungen
+    </button>
+  </header>
+
+  <!-- ===================== TABS ===================== -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="lage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span class="tnum">01</span> Lage
+    </button>
+    <button class="tab" data-tab="berater">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="tnum">02</span> Berater
+    </button>
+    <button class="tab" data-tab="welt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span class="tnum">03</span> Welt
+    </button>
+    <button class="tab" data-tab="karte">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span class="tnum">04</span> Karte
+    </button>
+    <button class="tab" data-tab="historie">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="tnum">05</span> Historie
+    </button>
+  </nav>
+
+  <main>
+
+    <!-- ============================================ LAGE ============================================ -->
+    <section class="view active" id="view-lage">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-inner">
+          <div class="hero-crest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3fe0d0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v6c0 5 3.8 8.4 9 9 5.2-.6 9-4 9-9V7l-9-5z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div class="hero-body">
+            <div class="hero-eyebrow">
+              <span>Lagebild</span><span class="chip">Kapitel 3</span><span id="hero-welt"></span>
+            </div>
+            <h1 id="hero-name"></h1>
+            <p class="hero-essence" id="hero-essence"></p>
+            <div class="hero-tags" id="hero-tags"></div>
+          </div>
+          <div class="hero-renown">
+            <div class="hr-label">Ansehen</div>
+            <div class="hr-stars" id="hero-stars"></div>
+            <div class="hr-val" id="hero-renownval"></div>
+            <div class="hr-text" id="hero-renowntext"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-grid" id="stat-grid"></div>
+
+      <!-- TWO COLUMN -->
+      <div class="lage-grid">
+        <!-- left: gauges + status -->
+        <div style="display:flex;flex-direction:column;gap:var(--gap)">
+          <div class="panel">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <div class="panel-pad">
+              <div class="sec-head"><h2>Lagewerte</h2><span class="meta">Skala &minus;2 … +3</span><span class="rule"></span></div>
+              <div class="gauges" id="gauges"></div>
+              <div class="yield" id="yield"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <div class="panel-pad">
+              <div class="sec-head"><h2>Statuslage</h2><span class="rule"></span></div>
+              <div class="status-quote" id="status-text"></div>
+            </div>
+          </div>
+        </div>
+        <!-- right: threads -->
+        <div class="panel">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <div class="panel-pad">
+            <div class="sec-head"><h2>Offene Fäden</h2><span class="meta" id="thread-count"></span><span class="rule"></span></div>
+            <div class="threads" id="threads"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ BERATER ============================================ -->
+    <section class="view" id="view-berater">
+      <div class="sec-head"><h2>Berater &amp; Sprecher</h2><span class="meta" id="adv-count"></span><span class="rule"></span></div>
+      <div class="card-grid" id="advisor-grid"></div>
+    </section>
+
+    <!-- ============================================ WELT ============================================ -->
+    <section class="view" id="view-welt">
+      <div class="sec-head"><h2>Mächte &amp; Nachbarn</h2><span class="meta" id="power-count"></span><span class="rule"></span></div>
+      <div class="power-grid" id="power-grid"></div>
+
+      <div class="sec-head"><h2>Tragende Gruppen</h2><span class="meta" id="group-count"></span><span class="rule"></span></div>
+      <div class="group-table">
+        <div class="gt-head"><div>Gruppe</div><div>Sprecher</div><div>Kompetenz</div></div>
+        <div id="group-rows"></div>
+      </div>
+    </section>
+
+    <!-- ============================================ KARTE ============================================ -->
+    <section class="view" id="view-karte">
+      <div class="sec-head"><h2>Bekannte Welt</h2><span class="meta">Kartenstil: sauber, modern, gedämpft</span><span class="rule"></span></div>
+      <div class="map-layout">
+        <div class="map-stage">
+          <span class="map-frame-corner mfc tl"></span><span class="map-frame-corner mfc tr"></span>
+          <span class="map-frame-corner mfc bl"></span><span class="map-frame-corner mfc br"></span>
+          <div class="map-compass">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 4 14 12 12 20 10 12 12 4" fill="currentColor" stroke="none"/></svg>
+            <div>N</div>
+          </div>
+          <div class="map-center">
+            <div class="map-radar">
+              <div class="map-sweep"></div>
+              <svg viewBox="0 0 140 140" fill="none" stroke="rgba(63,224,208,.35)" stroke-width="1">
+                <circle cx="70" cy="70" r="64"/><circle cx="70" cy="70" r="44"/><circle cx="70" cy="70" r="24"/>
+                <line x1="70" y1="6" x2="70" y2="134"/><line x1="6" y1="70" x2="134" y2="70"/>
+                <circle cx="70" cy="70" r="4" fill="#3fe0d0" stroke="none"/>
+                <circle cx="100" cy="52" r="2.5" fill="#5ff4e6" stroke="none"/>
+                <circle cx="48" cy="92" r="2.5" fill="#5ff4e6" stroke="none"/>
+                <circle cx="92" cy="100" r="2.5" fill="#4aa8ff" stroke="none"/>
+                <circle cx="40" cy="50" r="2.5" fill="#5ff4e6" stroke="none"/>
+              </svg>
+            </div>
+            <div class="map-title">Karte wird generiert</div>
+            <div class="map-sub" id="map-sub"></div>
+            <div class="map-prog"><span>RENDER</span><div class="bar"><i></i></div><span id="map-count"></span></div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-head"><span>Orte-Legende</span><span class="ct" id="legend-count"></span></div>
+          <div class="legend-list" id="legend-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ HISTORIE ============================================ -->
+    <section class="view" id="view-historie">
+      <div class="hist-layout">
+        <div>
+          <div class="sec-head"><h2>Zeitstrahl der Kapitel</h2><span class="rule"></span></div>
+          <div class="timeline" id="timeline"></div>
+        </div>
+        <div class="info-stack">
+          <div class="panel">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <div class="panel-pad">
+              <div class="sec-head"><h2>Fähigkeiten</h2><span class="meta" id="skill-count"></span><span class="rule"></span></div>
+              <div class="chip-list" id="skills"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <div class="panel-pad">
+              <div class="sec-head"><h2>Besitz</h2><span class="meta" id="holdings-count"></span><span class="rule"></span></div>
+              <div class="chip-list" id="holdings"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>REALMCRAFT <span class="cy">//</span> COMMAND CONSOLE <span class="cy">//</span> SCHEMA v1</span>
+    <span id="foot-stamp"></span>
+  </footer>
+</div>
+
+<script>
+/* ===================== DATEN (aus die-karren-kapitel-3.json) ===================== */
+const DATA = {
+  meta:{ spielname:"Die Karren", kapitel:3, zeit:{jahreszeit:"Sommer", jahr:14}, rundeOffen:false, weltereignis:"gewürfelt" },
+  volk:{
+    name:"Die Karren",
+    wesensart:"Bergvolk, Ausrichtung Technologie",
+    ausrichtung:"Technologie",
+    erscheinung:"Hartes Bergvolk in funktionaler Wolle und Leder mit feiner Metallarbeit, Werkzeug und Wissensschriften.",
+    region:{ name:"Hochgebirge mit dem Korntal als zweitem Standbein" }
+  },
+  status:{
+    text:"Berühmte freie Macht, die einer Großmacht standhielt und als freie, eigenständige Macht anerkannt wurde. Leuchtfeuer der Freien über den Kontinent. Haupt eines im Krieg erprobten, im Frieden sich lockernden Bundes der Freien. Eine reife, wohlhabende, wissensgestützte freie Gesellschaft.",
+    ansehen:{ stufe:3, label:"Auf nie gekannter Höhe, Leuchtfeuer der Freien" }
+  },
+  grundgroessen:{ nahrung:8, material:5, wissen:16, bevoelkerung:{ zahl:300, label:"Karren-Kern über dreihundert, dazu das Korntal und ein großer Bund vieler Völker" } },
+  lagewerte:{
+    verteidigung:3, mobilitaet:0, wohlstand:1,
+    ausbeuten:[ { key:"Erz", value:1, quelle:"Drenn über den Erzweg und eigener tiefer Stollen" } ]
+  },
+  modifikatoren:{
+    lage:[
+      { key:"Verteidigung", value:3, grund:"Die Festung" },
+      { key:"Mobilität", value:0, grund:"Straßen und Bundeswege" },
+      { key:"Wohlstand", value:1, grund:"Handel" }
+    ]
+  },
+  faehigkeiten:[
+    "Weidewirtschaft",
+    "Talackerbau, durch die Gilde verbesserter Anbau",
+    "Konservierung",
+    "Meisterliche Metallverarbeitung, Waffen und Rüstung über dem Stand der Gegner, großes Arsenal",
+    "Schrift",
+    "Wissenshaus als berühmter Hort des Wissens, fürs Volk geöffnet, mit einer Schule, die langsam Wurzeln schlägt",
+    "Verfahren zur planvollen Erschließung des Berges, eigener tiefer Stollen, der die Erzschwäche mildert",
+    "Bergfestung und kriegserprobte Verteidigung"
+  ],
+  gruppen:[
+    { id:"hirten", name:"Hirten", sprecherId:"idr", kompetenz:"Weidewirtschaft" },
+    { id:"bauern", name:"Bauern und Talbauern", sprecherId:"renja", kompetenz:"Talackerbau, verbesserter Anbau" },
+    { id:"spaeher", name:"Späher", sprecherId:"yann", kompetenz:"Erkundung und Netz" },
+    { id:"handwerk", name:"Handwerk und Bau", sprecherId:"mell", kompetenz:"Bau, Festungswerk" },
+    { id:"schmiede", name:"Schmiede und Erz", sprecherId:"harn", kompetenz:"Meisterliche Metallverarbeitung" },
+    { id:"heer", name:"Erprobtes Heer", sprecherId:"borka", kompetenz:"Kriegserprobte Verteidigung" },
+    { id:"bundesvoelker", name:"Freie Völker des Bundes", sprecherId:"soren", kompetenz:"Gemeinschaft eigenständiger Völker" }
+  ],
+  berater:[
+    { id:"borka", name:"Borka", rolle:"Sicherheit und Speicher", ziel:"Sicherheit über alles, Vorsicht, die Toten geehrt", loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"idr", name:"Idr", rolle:"Nahrung und Diplomatie", ziel:"Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", loyalitaet:5, generation:"Gründergeneration, gealtert, einst Geflohene, Verhandlerin des Friedens mit Aurelan" },
+    { id:"mell", name:"Mell", rolle:"Bau", ziel:"Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", loyalitaet:5, generation:"Gründergeneration, gealtert, Erbauer der Festung" },
+    { id:"yann", name:"Yann", rolle:"Späher und Netz", ziel:"Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"harn", name:"Harn", rolle:"Metall und Wissen, Haupt des Wissenshauses", ziel:"Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"renja", name:"Renja", rolle:"Talvolk", ziel:"Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", loyalitaet:5, generation:"Gründergeneration, gealtert" },
+    { id:"soren", name:"Soren", rolle:"Stimme der Bundesvölker", ziel:"Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen, im Krieg bestätigt", loyalitaet:5, generation:"Gründergeneration, gealtert" }
+  ],
+  maechte:[
+    { id:"bund-der-freien", name:"Bund der Freien", typ:"Gemeinschaft eigenständiger freier Völker", profil:[{key:"Zusammenhalt",value:1}], beziehung:{wert:2,label:"Verbündet, im Frieden wieder lockerer"}, haltung:"Im Krieg geeint, im Frieden sich lockernd" },
+    { id:"lir", name:"Die Lir", typ:"Befreundetes freies Volk im Westen", beziehung:{wert:3,label:"Fester Freund"}, haltung:"Befreundet, über eine neue Trasse verbunden" },
+    { id:"drenn", name:"Die Drenn", typ:"Bergvolk im Norden, Bundesgenosse", beziehung:{wert:3,label:"Treu"}, haltung:"Treuer Bundesgenosse und Erzquelle über den Erzweg" },
+    { id:"aurelan", name:"Aurelan", typ:"Großmacht der weiten Welt im Osten", profil:[{key:"Macht",value:3}], beziehung:{wert:1,label:"Wachsamer, respektvoller Friede ohne Handel"}, haltung:"Erkannte die Karren als Freie an, die Bedrohung gelöst, aber als Macht weiter vorhanden" },
+    { id:"kontinent", name:"Der weite Kontinent", typ:"Dünn bekanntes Land vieler Völker", beziehung:{label:"Euer Name strahlt nun über den ganzen Kontinent"}, haltung:"Weithin unerforscht" }
+  ],
+  besitz:[
+    "Bergfestung mit Wissenshaus und Versammlungsplatz",
+    "Das Korntal",
+    "Eigener tiefer Stollen plus Erzweg von den Drenn",
+    "Die zehn Bundesorte",
+    "Das Arsenal",
+    "Befestigte Pässe und Eichenfurt",
+    "Handel mit den Lir"
+  ],
+  historie:[
+    { kapitel:1, jahre:"Jahr 0 bis 4", zusammenfassung:"Vom hungernden Häuflein im leeren Kessel über Rat, Verfassung und Bündnis mit dem Talvolk zur geschützten Vasallenschaft unter den Flachlandleuten." },
+    { kapitel:2, jahre:"Jahr 6 bis 9", zusammenfassung:"Die Erzfalle durch die Drenn gebrochen, das Tal zurückerobert, einen Bund freier Völker gegründet, den Kriegsherrn Torv zerschlagen, zur führenden freien Macht eines ganzen Landes geworden." },
+    { kapitel:3, jahre:"Jahr 12 bis 14", zusammenfassung:"Die Großmacht Aurelan forderte Unterwerfung, Wissen und Tribut. Auf Zeit verhandelt, nichts hergegeben, die Berge zur Festung befestigt, einen Bund der Freien geeint, Aurelans Nachschub gestört und durch Stärke und einen klugen Frieden Aurelans ehrenvollen Rückzug und seine Anerkennung gewonnen. Daneben Rückschläge, tödliche Wegeunglücke, ein zäher Kampf gegen Aberglaube und Furcht, ein eigener tiefer Stollen gegen die Erzschwäche, das Wissenshaus dem Volk geöffnet, Tova als Verwalterin, der Wohlstand als neue Dimension, die Freundschaft mit den Lir." }
+  ],
+  offeneFaeden:[
+    "Was freie Völker im Frieden eint, wenn nicht mehr die gemeinsame Furcht es tut, die Gründungsfrage nun im großen Maßstab.",
+    "Ob aus dem lockernden Lager eine dauerhafte freie Ordnung des Kontinents zu schmieden ist, mit den Karren als Haupt, das führt, ohne zu herrschen.",
+    "Die reifende freie, wissende Gesellschaft und die lange Kulturarbeit, die Schule, der zähe Aberglaube, die Vernunft.",
+    "Die alternde Gründergeneration und die nachwachsende um Tova, die Frage, was über die Gründer hinaus Bestand hat.",
+    "Aurelan als anerkannte, aber weiter vorhandene Großmacht."
+  ],
+  karte:{
+    orte:[
+      { id:"die-karren", name:"Die Karren", typ:"Hauptstadt, Bergfestung", richtung:"Mittelpunkt", beziehung:"Heimat" },
+      { id:"korntal", name:"Korntal", typ:"Talregion", richtung:"Süden, darunter", beziehung:"Zweites Standbein" },
+      { id:"drenn-land", name:"Land der Drenn", typ:"Hochland", richtung:"Norden, über den Pass", beziehung:"Bundesgenosse, Erzquelle" },
+      { id:"eichenfurt", name:"Eichenfurt", typ:"Bundesort, Tor zur weiten Welt", richtung:"Osten", beziehung:"Bund, hier wurde Aurelan abgewehrt" },
+      { id:"steinbach", name:"Steinbach", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"nordfels", name:"Nordfels", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"hohenstein", name:"Hohenstein", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"gruenwald", name:"Grünwald", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"sonnenried", name:"Sonnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"bluetenau", name:"Blütenau", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"suedtor", name:"Südtor", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"brunnenried", name:"Brunnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"westmark", name:"Westmark", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund" },
+      { id:"lir-land", name:"Land der Lir", typ:"Freies Volk", richtung:"Westen", beziehung:"Befreundet, neue Trasse" },
+      { id:"aurelan-reich", name:"Aurelan", typ:"Großmacht", richtung:"Osten, jenseits", beziehung:"Wachsamer Friede" }
+    ]
+  }
+};
+
+/* ===================== ICONS ===================== */
+const ICON = {
+  nahrung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 5 5 9c0 5 4 11 7 13 3-2 7-8 7-13 0-4-3-7-7-7z"/><path d="M12 2v11"/></svg>',
+  material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m2 14 10-10 10 10"/><path d="M5 11v9h14v-9"/><path d="M9 20v-5h6v5"/></svg>',
+  wissen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  bevoelkerung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  verteidigung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  mobilitaet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  wohlstand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  cog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
+};
+
+/* ===================== HELPERS ===================== */
+const $ = (s,r=document)=>r.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const signed=v=>v>0?'+'+v:''+v;
+const cls=v=>v>0?'pos':(v<0?'neg':'zero');
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+/* Star renderer for renown stufe (1..3 of a 3-max scale shown) */
+function stars(stufe,max=3){
+  let out='';
+  for(let i=1;i<=max;i++){
+    const on=i<=stufe;
+    out+=`<svg viewBox="0 0 24 24" fill="${on?'#3fe0d0':'none'}" stroke="${on?'#3fe0d0':'#42525f'}" stroke-width="1.4" stroke-linejoin="round"><polygon points="12 2 15.1 8.6 22 9.5 17 14.4 18.2 21.5 12 18.1 5.8 21.5 7 14.4 2 9.5 8.9 8.6 12 2"/></svg>`;
+  }
+  return out;
+}
+
+/* color for value on -2..+3 lage scale */
+function lageColor(v){
+  if(v>=2)return 'var(--pos)';
+  if(v===1)return 'var(--teal)';
+  if(v===0)return 'var(--neutral)';
+  return 'var(--neg)';
+}
+/* lage scale: min -2 max +3 → 5 units */
+function lagePct(v){ return ((v-(-2))/(3-(-2)))*100; }
+/* loyalty scale -5..+5 */
+function loyColor(v){
+  if(v>=4)return 'var(--pos)';
+  if(v>=1)return 'var(--teal)';
+  if(v===0)return 'var(--warn)';
+  if(v>=-3)return 'var(--warn)';
+  return 'var(--neg)';
+}
+function loyPct(v){ return ((v-(-5))/10)*100; }
+function loyLabel(v){
+  if(v>=4)return 'ergeben';
+  if(v>=1)return 'treu';
+  if(v===0)return 'schwankend';
+  if(v>=-3)return 'verstimmt';
+  return 'am Bruch';
+}
+
+/* ===================== RENDER: LAGE ===================== */
+function renderLage(){
+  const d=DATA;
+  $('#hero-name').textContent=d.volk.name;
+  $('#hero-welt').textContent='Weltereignis '+d.meta.weltereignis;
+  $('#hero-essence').innerHTML=`<b>${escapeHtml(d.volk.wesensart)}</b> &middot; ${escapeHtml(d.volk.erscheinung)}`;
+
+  const tags=[
+    {k:'Region',v:d.volk.region.name},
+    {k:'Jahreszeit',v:d.meta.zeit.jahreszeit+' · Jahr '+d.meta.zeit.jahr,glow:true},
+    {k:'Runde',v:d.meta.rundeOffen?'offen':'geschlossen'},
+    {k:'Ausrichtung',v:d.volk.ausrichtung,glow:true}
+  ];
+  $('#hero-tags').innerHTML=tags.map(t=>
+    `<span class="htag${t.glow?' glow':''}"><span class="k">${escapeHtml(t.k)}</span><span class="v">${escapeHtml(t.v)}</span></span>`
+  ).join('');
+
+  $('#hero-stars').innerHTML=stars(d.status.ansehen.stufe,3);
+  $('#hero-renownval').textContent='Stufe '+d.status.ansehen.stufe+' / 3';
+  $('#hero-renowntext').textContent=d.status.ansehen.label;
+
+  // stat cards
+  const g=d.grundgroessen;
+  const stats=[
+    {key:'Nahrung',icon:ICON.nahrung,val:g.nahrung},
+    {key:'Material',icon:ICON.material,val:g.material},
+    {key:'Wissen',icon:ICON.wissen,val:g.wissen},
+    {key:'Bevölkerung',icon:ICON.bevoelkerung,val:g.bevoelkerung.zahl,note:g.bevoelkerung.label}
+  ];
+  $('#stat-grid').innerHTML=stats.map(s=>`
+    <div class="stat">
+      <div class="stat-top">
+        <span class="stat-key">${s.key}</span>
+        <span class="stat-ico">${s.icon}</span>
+      </div>
+      <div class="stat-val">${s.val}</div>
+      ${s.note?`<div class="stat-note">${escapeHtml(s.note)}</div>`:''}
+    </div>`).join('');
+
+  // gauges
+  const grundByKey={};
+  d.modifikatoren.lage.forEach(m=>grundByKey[m.key.toLowerCase()]=m.grund);
+  const gauges=[
+    {name:'Verteidigung',icon:ICON.verteidigung,val:d.lagewerte.verteidigung,grund:grundByKey['verteidigung']},
+    {name:'Mobilität',icon:ICON.mobilitaet,val:d.lagewerte.mobilitaet,grund:grundByKey['mobilität']},
+    {name:'Wohlstand',icon:ICON.wohlstand,val:d.lagewerte.wohlstand,grund:grundByKey['wohlstand']}
+  ];
+  $('#gauges').innerHTML=gauges.map(gg=>{
+    const pct=lagePct(gg.val), col=lageColor(gg.val);
+    return `<div class="gauge">
+      <div class="gauge-head">
+        <span class="gauge-name">${gg.icon}${gg.name}</span>
+        <span class="gauge-num ${cls(gg.val)}">${signed(gg.val)}</span>
+      </div>
+      <div class="track"><span class="mid"></span>
+        <span class="fill" style="left:0;width:${pct}%;background:linear-gradient(90deg,${col},${col});box-shadow:0 0 12px -2px ${col}"></span>
+      </div>
+      <div class="scale"><span>-2</span><span>0</span><span>+3</span></div>
+      ${gg.grund?`<div class="gauge-grund">// ${escapeHtml(gg.grund)}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // yield
+  const y=d.lagewerte.ausbeuten[0];
+  $('#yield').innerHTML=`
+    <div class="badge">${signed(y.value)}</div>
+    <div><div class="name">Ausbeute ${escapeHtml(y.key)}</div><div class="src">${escapeHtml(y.quelle)}</div></div>`;
+
+  $('#status-text').textContent=d.status.text;
+
+  // threads
+  $('#thread-count').textContent=d.offeneFaeden.length+' Fäden';
+  $('#threads').innerHTML=d.offeneFaeden.map((t,i)=>`
+    <div class="thread"><span class="idx">${String(i+1).padStart(2,'0')}</span><span class="txt">${escapeHtml(t)}</span></div>`).join('');
+}
+
+/* ===================== RENDER: BERATER ===================== */
+function renderBerater(){
+  const d=DATA;
+  $('#adv-count').textContent=d.berater.length+' Sprecher · Loyalität −5 … +5';
+  $('#advisor-grid').innerHTML=d.berater.map(b=>{
+    const pct=loyPct(b.loyalitaet), col=loyColor(b.loyalitaet), lbl=loyLabel(b.loyalitaet);
+    const ini=b.name.charAt(0).toUpperCase();
+    return `<div class="advisor">
+      <div class="advisor-head">
+        <div class="portrait"><span class="scan"></span>${ICON.user}<span class="ini">${ini}</span></div>
+        <div class="advisor-id">
+          <div class="advisor-name">${escapeHtml(b.name)} <span class="tag">${escapeHtml(b.id)}</span></div>
+          <div class="advisor-role">${escapeHtml(b.rolle)}</div>
+        </div>
+      </div>
+      <div class="advisor-body">
+        <div class="goal-label">Ziel</div>
+        <div class="goal">${escapeHtml(b.ziel)}</div>
+        <div class="advisor-foot">
+          <div class="loy">
+            <div class="loy-top">
+              <span class="loy-lbl">Loyalität</span>
+              <span class="loy-val" style="color:${col}">${signed(b.loyalitaet)}
+                <span class="loy-pill" style="color:${col};border-color:${col}">${lbl}</span>
+              </span>
+            </div>
+            <div class="loy-track"><span class="mid"></span>
+              <span class="loy-fill" style="left:0;width:${pct}%;background:linear-gradient(90deg,var(--neg),var(--warn) 50%,${col});box-shadow:0 0 10px -2px ${col}"></span>
+            </div>
+            <div class="loy-scale"><span>-5</span><span>0</span><span>+5</span></div>
+          </div>
+        </div>
+        <div class="gen-chip" style="margin-top:10px;text-align:left;max-width:none">// ${escapeHtml(b.generation)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===================== RENDER: WELT ===================== */
+function renderWelt(){
+  const d=DATA;
+  $('#power-count').textContent=d.maechte.length+' Mächte';
+  $('#power-grid').innerHTML=d.maechte.map(m=>{
+    const w=(m.beziehung&&typeof m.beziehung.wert==='number')?m.beziehung.wert:null;
+    let relClass='rel-x', badgeCol='var(--neutral)';
+    if(w!==null){
+      if(w>=3){relClass='rel-3';badgeCol='var(--pos)';}
+      else if(w===2){relClass='rel-2';badgeCol='var(--teal)';}
+      else {relClass='rel-1';badgeCol='var(--warn)';}
+    }
+    const profile=(m.profil||[]).map(p=>`<span class="prof-chip">${escapeHtml(p.key)} ${signed(p.value)}</span>`).join('');
+    const badge = w!==null
+      ? `<span class="rel-badge" style="color:${badgeCol};border-color:${badgeCol}">Beziehung <span class="n">${signed(w)}</span></span>`
+      : `<span class="rel-badge" style="color:var(--neutral);border-color:var(--neutral)">unkartiert</span>`;
+    return `<div class="power ${relClass}">
+      <div class="power-head">
+        <div><div class="power-name">${escapeHtml(m.name)}</div></div>
+        ${badge}
+      </div>
+      <div class="power-type">${escapeHtml(m.typ)}</div>
+      <div class="power-rel">
+        <div class="pr-row"><span class="k">Beziehung</span><span class="v"><b>${escapeHtml(m.beziehung.label)}</b></span></div>
+        <div class="pr-row"><span class="k">Haltung</span><span class="v">${escapeHtml(m.haltung)}</span></div>
+      </div>
+      ${profile?`<div class="power-profile">${profile}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // groups
+  const bById={};
+  d.berater.forEach(b=>bById[b.id]=b);
+  $('#group-count').textContent=d.gruppen.length+' Gruppen';
+  $('#group-rows').innerHTML=d.gruppen.map(gr=>{
+    const sp=bById[gr.sprecherId];
+    const ini=sp?sp.name.charAt(0).toUpperCase():'?';
+    const spName=sp?sp.name:gr.sprecherId;
+    return `<div class="gt-row">
+      <div class="gt-group"><span class="gt-dot"></span>${escapeHtml(gr.name)}</div>
+      <div class="gt-speaker"><span class="gt-mini">${ini}</span>${escapeHtml(spName)}</div>
+      <div class="gt-comp">${escapeHtml(gr.kompetenz)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ===================== RENDER: KARTE ===================== */
+function renderKarte(){
+  const orte=DATA.karte.orte;
+  $('#map-sub').textContent='Bekannte Welt der Karren mit '+orte.length+' kartierten Orten. Mittelpunkt die Bergfestung, ringsum die Föderation, an den Rändern bleibt unerforschtes Land offen.';
+  $('#map-count').textContent=orte.length+' ORTE';
+  $('#legend-count').textContent=orte.length;
+  $('#legend-list').innerHTML=orte.map(o=>{
+    const cap=o.richtung==='Mittelpunkt';
+    return `<div class="legend-item">
+      <span class="lg-pin${cap?' cap':''}">${ICON.pin}</span>
+      <div class="lg-body">
+        <div class="lg-name">${escapeHtml(o.name)}</div>
+        <div class="lg-meta">${escapeHtml(o.typ)} · ${escapeHtml(o.richtung)}</div>
+        <div class="lg-rel">${escapeHtml(o.beziehung)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===================== RENDER: HISTORIE ===================== */
+function renderHistorie(){
+  const d=DATA;
+  const cur=d.meta.kapitel;
+  $('#timeline').innerHTML=d.historie.map(h=>{
+    const isCur=h.kapitel===cur;
+    return `<div class="tl-item${isCur?' current':''}">
+      <div class="tl-node"><i></i></div>
+      <div class="tl-card">
+        <div class="tl-top">
+          <div class="tl-chap"><span class="tl-kchip">KAP ${h.kapitel}</span>${isCur?'<span class="tl-now">JETZT</span>':''}</div>
+          <span class="tl-years">${escapeHtml(h.jahre)}</span>
+        </div>
+        <div class="tl-sum">${escapeHtml(h.zusammenfassung)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('#skill-count').textContent=d.faehigkeiten.length;
+  $('#skills').innerHTML=d.faehigkeiten.map(f=>`
+    <div class="il"><span class="ic">${ICON.cog}</span><span class="t">${escapeHtml(f)}</span></div>`).join('');
+
+  $('#holdings-count').textContent=d.besitz.length;
+  $('#holdings').innerHTML=d.besitz.map(b=>`
+    <div class="il"><span class="ic">${ICON.box}</span><span class="t">${escapeHtml(b)}</span></div>`).join('');
+}
+
+/* ===================== TABS ===================== */
+function initTabs(){
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    t.classList.add('active');
+    $('#view-'+t.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+}
+
+/* ===================== BOOT ===================== */
+renderLage();
+renderBerater();
+renderWelt();
+renderKarte();
+renderHistorie();
+initTabs();
+$('#clock').textContent=(DATA.meta.zeit.jahreszeit+' · Jahr '+DATA.meta.zeit.jahr).toUpperCase();
+$('#foot-stamp').textContent=DATA.volk.name.toUpperCase()+' // KAP '+DATA.meta.kapitel+' // '+DATA.meta.zeit.jahreszeit.toUpperCase()+' J'+DATA.meta.zeit.jahr;
+</script>
+</body>
+</html>

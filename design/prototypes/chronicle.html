@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RealmCraft — Die Karren · Kapitel III</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     RealmCraft — Design-Richtung "Chronicle / Editorial"
+     Hell, typografie-getrieben, redaktionell. DHCraft-minimal.
+     Saisonaler Akzent: Sommer, Jahr 14 — warmes Gold/Grün.
+     ============================================================ */
+  :root {
+    /* Grund / Papier */
+    --paper:        #f7f3ea;  /* warmes Off-White */
+    --paper-2:      #fbf8f1;  /* hellere Karte */
+    --paper-sunk:   #f0e9da;  /* eingesenkte Fläche */
+    --line:         #e4dbc9;  /* feine Trennlinien */
+    --line-strong:  #d3c7ad;
+
+    /* Tinte / Text */
+    --ink:          #20180e;  /* fast schwarz, warm */
+    --ink-2:        #4d4435;  /* sekundär */
+    --ink-3:        #897d66;  /* tertiär / Labels */
+
+    /* Saisonaler Akzent: Sommer — warmes Gold/Grün */
+    --gold:         #ad8024;
+    --gold-soft:    #d7b75f;
+    --gold-wash:    #efe2bf;
+    --green:        #5d7a3c;
+    --green-soft:   #8aa564;
+    --green-wash:   #e3ead2;
+
+    /* Funktionale Skalenfarben (Loyalität / Werte) */
+    --neg:          #b04d2c;  /* terracotta */
+    --neg-soft:     #d68a6e;
+    --neutral:      #b8a36a;
+    --pos:          #5d7a3c;  /* grün */
+
+    /* Maße */
+    --maxw:         1340px;
+    --radius:       14px;
+    --radius-sm:    9px;
+    --shadow:       0 1px 2px rgba(32,24,14,.05), 0 10px 34px -20px rgba(32,24,14,.32);
+    --shadow-soft:  0 1px 2px rgba(32,24,14,.04), 0 5px 20px -15px rgba(32,24,14,.26);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(1200px 620px at 82% -12%, var(--gold-wash) 0%, transparent 55%),
+      radial-gradient(1000px 520px at -12% 8%, var(--green-wash) 0%, transparent 52%),
+      var(--paper);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .serif { font-family: "Fraunces", Georgia, serif; }
+
+  /* ---------- Topbar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 18px;
+    padding: 13px clamp(18px, 4vw, 48px);
+    background: rgba(247,243,234,.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: baseline; gap: 13px; margin-right: auto; }
+  .brand .mark {
+    font-family: "Fraunces", serif; font-weight: 600; font-size: 23px;
+    letter-spacing: -.01em; color: var(--ink);
+  }
+  .brand .mark em { font-style: italic; color: var(--gold); }
+  .brand .tag {
+    font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600;
+  }
+  .topbtn {
+    font: 500 13px "Inter", sans-serif; color: var(--ink-2);
+    background: var(--paper-2); border: 1px solid var(--line-strong);
+    border-radius: 999px; padding: 8px 16px; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .1s;
+  }
+  .topbtn:hover { background: #fff; border-color: var(--gold-soft); }
+  .topbtn:active { transform: translateY(1px); }
+  .topbtn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .topbtn.primary:hover { background: #322617; }
+
+  /* ---------- Layout shell ---------- */
+  .shell { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(18px, 4vw, 48px) 70px; }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    position: sticky; top: 56px; z-index: 40;
+    display: flex; gap: 4px; flex-wrap: wrap;
+    padding: 14px 0 12px;
+    background: linear-gradient(var(--paper) 68%, rgba(247,243,234,0));
+  }
+  .tab {
+    font: 500 14px "Inter", sans-serif; color: var(--ink-3);
+    background: transparent; border: 1px solid transparent; border-radius: 999px;
+    padding: 8px 18px; cursor: pointer;
+    transition: color .15s, background .15s, border-color .15s;
+  }
+  .tab:hover { color: var(--ink); background: var(--paper-2); }
+  .tab[aria-selected="true"] {
+    color: var(--ink); background: var(--paper-2);
+    border-color: var(--line-strong); box-shadow: var(--shadow-soft);
+  }
+  .tab .num {
+    font-family: "Fraunces", serif; font-style: italic;
+    color: var(--gold); margin-right: 7px; font-size: 13px;
+  }
+
+  .view { display: none; animation: fade .35s ease both; }
+  .view.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none; } }
+
+  /* ---------- Section headers ---------- */
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin: 46px 0 18px; }
+  .sec-head h2 {
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.01em; margin: 0;
+  }
+  .sec-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-strong), transparent); }
+  .sec-head .hint { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+
+  /* ---------- Hero (Lage) ---------- */
+  .hero {
+    position: relative; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper-2); padding: clamp(26px, 4vw, 48px);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(460px 250px at 90% 0%, var(--gold-wash) 0%, transparent 70%),
+      radial-gradient(400px 270px at 100% 100%, var(--green-wash) 0%, transparent 72%);
+  }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.55fr 1fr; gap: 40px; align-items: start; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px; font-size: 12px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3);
+    font-weight: 600; margin-bottom: 14px;
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+  .hero h1 {
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: clamp(40px, 6vw, 66px); line-height: .98;
+    letter-spacing: -.02em; margin: 0 0 6px;
+  }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero .wesensart {
+    font-family: "Fraunces", serif; font-style: italic;
+    font-size: clamp(17px, 2.2vw, 22px); color: var(--ink-2); margin: 4px 0 14px;
+  }
+  .hero .status-text {
+    font-size: 14.5px; color: var(--ink-2); max-width: 56ch;
+    line-height: 1.6; margin: 0 0 22px;
+  }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+    font-weight: 500; color: var(--ink-2); background: var(--paper);
+    border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 14px;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .chip.summer { background: var(--gold-wash); border-color: var(--gold-soft); color: #6f520f; }
+  .chip.summer b { color: #5a420c; }
+
+  /* Ansehen panel */
+  .aside-stack { display: flex; flex-direction: column; gap: 16px; }
+  .ansehen, .worldcard {
+    position: relative; background: var(--paper);
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    padding: 22px 24px; box-shadow: var(--shadow-soft);
+  }
+  .ansehen .lbl, .worldcard .lbl {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600;
+  }
+  .ansehen .stufe { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 4px; }
+  .ansehen .stufe .stars { font-family: "Fraunces", serif; color: var(--gold); font-size: 22px; letter-spacing: 2px; }
+  .ansehen .stufe .of { font-size: 12px; color: var(--ink-3); }
+  .ansehen .val { font-family: "Fraunces", serif; font-weight: 600; font-size: 19px; line-height: 1.25; }
+  .worldcard { display: flex; align-items: center; gap: 14px; }
+  .worldcard .icon {
+    width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: var(--green-wash); color: var(--green);
+    font-family: "Fraunces", serif; font-weight: 700; font-size: 18px;
+  }
+  .worldcard .txt small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .worldcard .txt span { font-size: 14px; color: var(--ink); font-weight: 600; }
+  .worldcard .txt em { font-style: italic; color: var(--ink-2); font-weight: 400; }
+
+  /* ---------- Stat cards (Grundgrößen) ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat {
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 20px; position: relative; overflow: hidden; box-shadow: var(--shadow-soft);
+    transition: transform .15s, box-shadow .2s;
+  }
+  .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .stat .ico { font-size: 22px; line-height: 1; }
+  .stat .name { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin: 12px 0 2px; }
+  .stat .num { font-family: "Fraunces", serif; font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: -.02em; }
+  .stat .unit { font-size: 12px; color: var(--ink-3); margin-top: 5px; }
+  .stat::after { content: ""; position: absolute; right: -30px; bottom: -30px; width: 110px; height: 110px; border-radius: 50%; background: var(--gold-wash); opacity: .5; }
+  .stat.green::after { background: var(--green-wash); }
+
+  /* ---------- Gauges (Lagewerte) ---------- */
+  .gauges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .gauge { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 20px 22px; box-shadow: var(--shadow-soft); }
+  .gauge .top { display: flex; align-items: baseline; justify-content: space-between; }
+  .gauge .glabel { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .gauge .gval { font-family: "Fraunces", serif; font-weight: 600; font-size: 22px; }
+  .gauge .gval.pos { color: var(--pos); }
+  .gauge .gval.neu { color: var(--neutral); }
+  .gauge .gval.neg { color: var(--neg); }
+  .scale { position: relative; height: 10px; margin: 16px 0 6px; background: var(--paper-sunk); border-radius: 999px; border: 1px solid var(--line); }
+  .scale .zero { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--line-strong); }
+  .scale .fill { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
+  .scale .fill.pos { background: linear-gradient(90deg, var(--green-soft), var(--green)); }
+  .scale .fill.neg { background: linear-gradient(90deg, var(--neg), var(--neg-soft)); }
+  .scale-ends { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ink-3); }
+  .gauge .desc { font-size: 12.5px; color: var(--ink-2); margin-top: 10px; }
+
+  /* Ausbeute strip */
+  .ausbeute { margin-top: 16px; display: flex; align-items: center; gap: 14px; background: var(--green-wash); border: 1px solid var(--green-soft); border-radius: var(--radius-sm); padding: 14px 20px; }
+  .ausbeute .pip { width: 38px; height: 38px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 20px; background: var(--paper-2); border: 1px solid var(--green-soft); }
+  .ausbeute .txt b { color: #43592a; }
+  .ausbeute .txt small { display: block; color: var(--ink-3); font-size: 12px; }
+  .ausbeute .val { margin-left: auto; font-family: "Fraunces", serif; font-weight: 600; font-size: 24px; color: var(--pos); }
+
+  /* ---------- Threads teaser ---------- */
+  .threads { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+  .thread { background: var(--paper-2); border: 1px solid var(--line); border-left: 3px solid var(--gold-soft); border-radius: var(--radius-sm); padding: 18px 20px; box-shadow: var(--shadow-soft); display: flex; gap: 14px; }
+  .thread .idx { font-family: "Fraunces", serif; font-style: italic; font-size: 22px; color: var(--gold); flex: none; line-height: 1; }
+  .thread p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  /* ---------- Berater cards ---------- */
+  .advisors { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
+  .advisor { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-soft); transition: transform .15s, box-shadow .2s; display: flex; flex-direction: column; }
+  .advisor:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .advisor .head { display: flex; gap: 16px; align-items: center; }
+  .portrait {
+    width: 66px; height: 66px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: radial-gradient(circle at 30% 25%, #fff8, transparent 60%), conic-gradient(from 200deg, var(--gold-wash), var(--green-wash), var(--gold-wash));
+    border: 1px solid var(--line-strong); position: relative;
+  }
+  .portrait::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px dashed rgba(173,128,36,.45); }
+  .portrait .initial { font-family: "Fraunces", serif; font-weight: 600; font-size: 27px; color: var(--ink); z-index: 1; }
+  .advisor .name { font-family: "Fraunces", serif; font-weight: 600; font-size: 21px; line-height: 1.1; margin: 0; }
+  .advisor .role { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-top: 5px; }
+  .advisor .goal { font-family: "Fraunces", serif; font-style: italic; font-size: 15.5px; color: var(--ink-2); margin: 16px 0; line-height: 1.45; padding-left: 16px; border-left: 2px solid var(--gold-soft); }
+  .advisor .foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+  .loy-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .loy-label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .loy-pills { display: flex; gap: 3px; }
+  .pip-l { width: 13px; height: 13px; border-radius: 3px; background: var(--paper-sunk); border: 1px solid var(--line-strong); }
+  .pip-l.on { background: var(--pos); border-color: var(--pos); }
+  .loy-val { font-family: "Fraunces", serif; font-weight: 600; font-size: 16px; }
+  .loy-val.pos { color: var(--pos); }
+  .loy-val.neg { color: var(--neg); }
+  .advisor .gen { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+  .advisor .gen b { color: var(--ink-2); font-weight: 600; }
+  .legend-note { font-size: 12.5px; color: var(--ink-3); margin: -6px 0 20px; }
+  .legend-note .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin: 0 4px 0 12px; }
+
+  /* ---------- Welt: Mächte ---------- */
+  .powers { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+  .power { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-soft); }
+  .power .ph { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .power .pn { font-family: "Fraunces", serif; font-weight: 600; font-size: 21px; margin: 0; }
+  .power .type { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .rel { font-size: 11.5px; font-weight: 600; letter-spacing: .03em; padding: 5px 11px; border-radius: 999px; white-space: nowrap; flex: none; }
+  .rel.allied  { background: var(--green-wash); color: #43592a; border: 1px solid var(--green-soft); }
+  .rel.neutral { background: var(--gold-wash); color: #6f520f; border: 1px solid var(--gold-soft); }
+  .rel.unknown { background: var(--paper-sunk); color: var(--ink-3); border: 1px solid var(--line-strong); }
+  .power .att { margin: 16px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .power .reltext { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line-strong); font-size: 12.5px; color: var(--ink-3); }
+  .power .reltext b { color: var(--ink-2); }
+
+  /* ---------- Welt: Gruppen ---------- */
+  .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; }
+  .group { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px 18px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 14px; }
+  .group .sil { width: 44px; height: 44px; border-radius: 10px; flex: none; display: grid; place-items: center; background: var(--paper-sunk); border: 1px solid var(--line-strong); color: var(--ink-3); }
+  .group .gn { font-weight: 600; font-size: 15px; color: var(--ink); }
+  .group .sp { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .group .sp b { font-family: "Fraunces", serif; font-style: italic; font-weight: 600; color: var(--gold); }
+  .group .kp { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+
+  /* ---------- Karte ---------- */
+  .map-wrap { display: grid; grid-template-columns: 1.55fr 1fr; gap: 22px; align-items: start; }
+  .map-canvas {
+    position: relative; aspect-ratio: 16/10; border-radius: var(--radius);
+    border: 1px solid var(--line-strong);
+    background:
+      repeating-linear-gradient(45deg, rgba(173,128,36,.04) 0 14px, transparent 14px 28px),
+      radial-gradient(120% 120% at 30% 20%, var(--gold-wash) 0%, transparent 55%),
+      radial-gradient(120% 120% at 80% 90%, var(--green-wash) 0%, transparent 55%),
+      var(--paper-2);
+    overflow: hidden; box-shadow: var(--shadow); display: grid; place-items: center;
+  }
+  .map-frame { position: absolute; inset: 16px; border-radius: 10px; border: 1.5px dashed rgba(122,103,60,.42); pointer-events: none; }
+  .map-corner { position: absolute; width: 22px; height: 22px; border: 2px solid var(--gold); opacity: .55; }
+  .map-corner.tl { top: 22px; left: 22px; border-right: 0; border-bottom: 0; }
+  .map-corner.tr { top: 22px; right: 22px; border-left: 0; border-bottom: 0; }
+  .map-corner.bl { bottom: 22px; left: 22px; border-right: 0; border-top: 0; }
+  .map-corner.br { bottom: 22px; right: 22px; border-left: 0; border-top: 0; }
+  .map-center { position: relative; text-align: center; color: var(--ink-2); max-width: 70%; }
+  .map-center .compass { font-family: "Fraunces", serif; font-size: 46px; color: var(--gold); margin-bottom: 8px; }
+  .map-center .mt { font-family: "Fraunces", serif; font-style: italic; font-size: 22px; color: var(--ink); }
+  .map-center .ms { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; letter-spacing: .02em; line-height: 1.5; }
+  .mk { position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(173,128,36,.18); }
+  .mk.g { background: var(--green); box-shadow: 0 0 0 4px rgba(93,122,60,.18); }
+  .map-dir { position: absolute; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .map-dir.n { top: 26px; left: 50%; transform: translateX(-50%); }
+  .map-dir.s { bottom: 26px; left: 50%; transform: translateX(-50%); }
+  .map-dir.w { left: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+  .map-dir.e { right: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+  .legend { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-soft); }
+  .legend h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 19px; margin: 0 0 6px; }
+  .legend .lh { font-size: 12.5px; color: var(--ink-3); margin: 0 0 14px; }
+  .legend-scroll { max-height: 520px; overflow-y: auto; padding-right: 6px; }
+  .legend-scroll::-webkit-scrollbar { width: 8px; }
+  .legend-scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
+  .legend .ort { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .legend .ort:last-child { border-bottom: 0; }
+  .legend .pin { width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--gold); flex: none; margin-top: 2px; box-shadow: inset 0 0 0 4px var(--paper-2); }
+  .legend .ort.home .pin { background: var(--green); }
+  .legend .ort.fed .pin { background: var(--gold-soft); }
+  .legend .on { font-weight: 600; font-size: 14.5px; color: var(--ink); }
+  .legend .ot { font-size: 12px; color: var(--gold); font-weight: 500; }
+  .legend .od { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+  .legend .od b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Historie ---------- */
+  .timeline { position: relative; margin: 0 0 40px; padding-left: 30px; }
+  .timeline::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(var(--gold-soft), var(--green-soft)); }
+  .tl-item { position: relative; padding: 0 0 28px 8px; }
+  .tl-item::before { content: ""; position: absolute; left: -30px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); border: 3px solid var(--gold); }
+  .tl-item.current::before { background: var(--gold); }
+  .tl-kap { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  .tl-title { font-family: "Fraunces", serif; font-weight: 600; font-size: 20px; margin: 2px 0 6px; }
+  .tl-item.current .tl-title::after { content: " · jetzt"; font-style: italic; font-size: 14px; color: var(--ink-3); font-weight: 400; }
+  .tl-item p { margin: 0; font-size: 13.5px; color: var(--ink-2); max-width: 72ch; line-height: 1.6; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-soft); }
+  .panel h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 19px; margin: 0 0 16px; }
+  .skill-list { display: flex; flex-direction: column; gap: 0; }
+  .skill-list .it { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .skill-list .it:last-child { border-bottom: 0; }
+  .skill-list .it::before { content: "◆"; color: var(--gold); font-size: 10px; margin-top: 4px; flex: none; }
+  .besitz .it { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .besitz .it:last-child { border-bottom: 0; }
+  .besitz .ic { width: 32px; height: 32px; border-radius: 9px; background: var(--gold-wash); border: 1px solid var(--gold-soft); display: grid; place-items: center; flex: none; color: var(--gold); }
+  .besitz .it .nm { font-weight: 500; font-size: 14px; color: var(--ink-2); }
+
+  .verf { margin-top: 22px; background: var(--paper-2); border: 1px solid var(--line); border-left: 3px solid var(--green-soft); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-soft); }
+  .verf h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 19px; margin: 0 0 10px; }
+  .verf p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; max-width: 80ch; }
+
+  /* ---------- Footer note ---------- */
+  .foot-note { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .foot-note .serif { font-style: italic; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .gauges { grid-template-columns: 1fr; }
+    .map-wrap { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr; }
+    .topbar { flex-wrap: wrap; }
+    .brand .tag { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== TOPBAR ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">Realm<em>Craft</em></span>
+      <span class="tag">Chronik</span>
+    </div>
+    <button class="topbtn" type="button">Speicherstand laden</button>
+    <button class="topbtn primary" type="button">Einstellungen</button>
+  </header>
+
+  <main class="shell">
+    <!-- ===================== TABS ===================== -->
+    <nav class="tabs" role="tablist" aria-label="Ansichten">
+      <button class="tab" role="tab" aria-selected="true"  data-view="lage"><span class="num">I</span>Lage</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="berater"><span class="num">II</span>Berater</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="welt"><span class="num">III</span>Welt</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="karte"><span class="num">IV</span>Karte</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="historie"><span class="num">V</span>Historie</button>
+    </nav>
+
+    <!-- ===================== VIEW: LAGE ===================== -->
+    <section class="view active" id="view-lage" role="tabpanel">
+      <div class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Kapitel III · Die Chronik der Karren</span>
+            <h1 id="h-volk"></h1>
+            <p class="wesensart" id="h-wesensart"></p>
+            <p class="status-text" id="h-status"></p>
+            <div class="hero-meta" id="h-meta"></div>
+          </div>
+          <div class="aside-stack">
+            <div class="ansehen">
+              <div class="lbl">Ansehen in der Welt</div>
+              <div class="stufe">
+                <span class="stars" id="h-ansehen-stars"></span>
+                <span class="of">Stufe <span id="h-ansehen-stufe"></span> von 3</span>
+              </div>
+              <div class="val" id="h-ansehen-label"></div>
+            </div>
+            <div class="worldcard">
+              <div class="icon">⚄</div>
+              <div class="txt">
+                <small>Weltereignis dieser Runde</small>
+                <span id="h-weltereignis"></span>
+                <em id="h-rundestatus"></em>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>Grundgrößen</h2><span class="rule"></span>
+        <span class="hint">Vorräte und Reichweite des Volkes</span>
+      </div>
+      <div class="stats" id="grid-stats"></div>
+
+      <div class="sec-head">
+        <h2>Lagewerte</h2><span class="rule"></span>
+        <span class="hint">Skala −2 … +3</span>
+      </div>
+      <div class="gauges" id="grid-gauges"></div>
+      <div class="ausbeute">
+        <div class="pip">⛏</div>
+        <div class="txt"><b>Ausbeute Erz</b><small id="ausbeute-quelle"></small></div>
+        <div class="val" id="ausbeute-erz"></div>
+      </div>
+
+      <div class="sec-head">
+        <h2>Offene Fäden</h2><span class="rule"></span>
+        <span class="hint">Lose Enden für das nächste Kapitel</span>
+      </div>
+      <div class="threads" id="grid-threads"></div>
+    </section>
+
+    <!-- ===================== VIEW: BERATER ===================== -->
+    <section class="view" id="view-berater" role="tabpanel">
+      <div class="sec-head">
+        <h2>Der Rat der Karren</h2><span class="rule"></span>
+        <span class="hint">Loyalität −5 … +5</span>
+      </div>
+      <p class="legend-note">
+        Die Sprecher der tragenden Gruppen, je mit eigenem Ziel.
+        Loyalität:
+        <span class="sw" style="background:var(--neg)"></span>am Bruch
+        <span class="sw" style="background:var(--neutral)"></span>schwankend
+        <span class="sw" style="background:var(--pos)"></span>ergeben
+      </p>
+      <div class="advisors" id="grid-advisors"></div>
+    </section>
+
+    <!-- ===================== VIEW: WELT ===================== -->
+    <section class="view" id="view-welt" role="tabpanel">
+      <div class="sec-head">
+        <h2>Die Mächte</h2><span class="rule"></span>
+        <span class="hint">Wer jenseits der eigenen Grenzen wirkt</span>
+      </div>
+      <div class="powers" id="grid-powers"></div>
+
+      <div class="sec-head">
+        <h2>Gruppen &amp; Sprecher</h2><span class="rule"></span>
+        <span class="hint">Tragende Stimmen im Inneren</span>
+      </div>
+      <div class="groups" id="grid-groups"></div>
+    </section>
+
+    <!-- ===================== VIEW: KARTE ===================== -->
+    <section class="view" id="view-karte" role="tabpanel">
+      <div class="sec-head">
+        <h2>Das bekannte Land</h2><span class="rule"></span>
+        <span class="hint">Sommer · Jahr 14</span>
+      </div>
+      <div class="map-wrap">
+        <div class="map-canvas">
+          <div class="map-frame"></div>
+          <span class="map-corner tl"></span><span class="map-corner tr"></span>
+          <span class="map-corner bl"></span><span class="map-corner br"></span>
+          <span class="map-dir n">Nord</span><span class="map-dir s">Süd</span>
+          <span class="map-dir w">West</span><span class="map-dir e">Ost</span>
+          <div class="map-center">
+            <div class="compass">✶</div>
+            <div class="mt">Karte wird generiert</div>
+            <div class="ms">Die Kartographen tragen die bekannten Orte ein. Mittelpunkt ist die Bergfestung Die Karren, südlich das Korntal, im Norden das Land der Drenn.</div>
+          </div>
+          <span class="mk g" style="top:48%;left:50%"></span>
+          <span class="mk" style="top:22%;left:54%"></span>
+          <span class="mk" style="top:72%;left:46%"></span>
+          <span class="mk" style="top:40%;left:80%"></span>
+          <span class="mk" style="top:55%;left:22%"></span>
+          <span class="mk" style="top:30%;left:34%"></span>
+        </div>
+        <div class="legend">
+          <h3>Orte-Legende</h3>
+          <p class="lh">Die bekannte Welt nach aktuellem Stand · 15 Orte</p>
+          <div class="legend-scroll" id="grid-orte"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== VIEW: HISTORIE ===================== -->
+    <section class="view" id="view-historie" role="tabpanel">
+      <div class="sec-head">
+        <h2>Zeitstrahl</h2><span class="rule"></span>
+        <span class="hint">Drei Kapitel · Jahr 0 bis 14</span>
+      </div>
+      <div class="timeline" id="grid-timeline"></div>
+
+      <div class="two-col">
+        <div class="panel">
+          <h3>Fähigkeiten</h3>
+          <div class="skill-list" id="grid-skills"></div>
+        </div>
+        <div class="panel">
+          <h3>Besitz</h3>
+          <div class="besitz" id="grid-besitz"></div>
+        </div>
+      </div>
+
+      <div class="verf">
+        <h3>Verfassung &amp; Regiment</h3>
+        <p id="grid-verf"></p>
+      </div>
+    </section>
+
+    <div class="foot-note">
+      <span>RealmCraft · Design-Richtung <span class="serif">Chronicle / Editorial</span></span>
+      <span class="serif">Die Karren · Kapitel III · Sommer, Jahr 14</span>
+    </div>
+  </main>
+
+<script>
+/* ============================================================
+   DATEN — inline und wortgetreu aus examples/die-karren-kapitel-3.json.
+   ============================================================ */
+const DATA = {
+  schemaVersion: 1,
+  meta: {
+    spielname: "Die Karren",
+    kapitel: 3,
+    zeit: { jahreszeit: "Sommer", jahr: 14 },
+    rundeOffen: false,
+    weltereignis: "gewürfelt"
+  },
+  volk: {
+    name: "Die Karren",
+    wesensart: "Bergvolk, Ausrichtung Technologie",
+    ausrichtung: "Technologie",
+    region: { name: "Hochgebirge mit dem Korntal als zweitem Standbein" }
+  },
+  status: {
+    text: "Berühmte freie Macht, die einer Großmacht standhielt und als freie, eigenständige Macht anerkannt wurde. Leuchtfeuer der Freien über den Kontinent. Haupt eines im Krieg erprobten, im Frieden sich lockernden Bundes der Freien. Eine reife, wohlhabende, wissensgestützte freie Gesellschaft.",
+    ansehen: { stufe: 3, label: "Auf nie gekannter Höhe, Leuchtfeuer der Freien" }
+  },
+  grundgroessen: {
+    nahrung: 8,
+    material: 5,
+    wissen: 16,
+    bevoelkerung: { zahl: 300, label: "Karren-Kern über dreihundert, dazu das Korntal und ein großer Bund vieler Völker" }
+  },
+  lagewerte: {
+    verteidigung: 3,
+    mobilitaet: 0,
+    wohlstand: 1,
+    ausbeuten: [ { key: "Erz", value: 1, quelle: "Drenn über den Erzweg und eigener tiefer Stollen" } ]
+  },
+  faehigkeiten: [
+    "Weidewirtschaft",
+    "Talackerbau, durch die Gilde verbesserter Anbau",
+    "Konservierung",
+    "Meisterliche Metallverarbeitung, Waffen und Rüstung über dem Stand der Gegner, großes Arsenal",
+    "Schrift",
+    "Wissenshaus als berühmter Hort des Wissens, fürs Volk geöffnet, mit einer Schule, die langsam Wurzeln schlägt",
+    "Verfahren zur planvollen Erschließung des Berges, eigener tiefer Stollen, der die Erzschwäche mildert",
+    "Bergfestung und kriegserprobte Verteidigung"
+  ],
+  gruppen: [
+    { id: "hirten",        name: "Hirten",                  sprecher: "Idr",   kompetenz: "Weidewirtschaft" },
+    { id: "bauern",        name: "Bauern und Talbauern",    sprecher: "Renja", kompetenz: "Talackerbau, verbesserter Anbau" },
+    { id: "spaeher",       name: "Späher",                  sprecher: "Yann",  kompetenz: "Erkundung und Netz" },
+    { id: "handwerk",      name: "Handwerk und Bau",        sprecher: "Mell",  kompetenz: "Bau, Festungswerk" },
+    { id: "schmiede",      name: "Schmiede und Erz",        sprecher: "Harn",  kompetenz: "Meisterliche Metallverarbeitung" },
+    { id: "heer",          name: "Erprobtes Heer",          sprecher: "Borka", kompetenz: "Kriegserprobte Verteidigung" },
+    { id: "bundesvoelker", name: "Freie Völker des Bundes", sprecher: "Soren", kompetenz: "Gemeinschaft eigenständiger Völker" }
+  ],
+  berater: [
+    { id: "borka", name: "Borka", rolle: "Sicherheit und Speicher", ziel: "Sicherheit über alles, Vorsicht, die Toten geehrt", loyalitaet: 5, generation: "Gründergeneration, gealtert" },
+    { id: "idr",   name: "Idr",   rolle: "Nahrung und Diplomatie",   ziel: "Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", loyalitaet: 5, generation: "Gründergeneration, gealtert, einst Geflohene, Verhandlerin des Friedens mit Aurelan" },
+    { id: "mell",  name: "Mell",  rolle: "Bau",                      ziel: "Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", loyalitaet: 5, generation: "Gründergeneration, gealtert, Erbauer der Festung" },
+    { id: "yann",  name: "Yann",  rolle: "Späher und Netz",          ziel: "Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", loyalitaet: 5, generation: "Gründergeneration, gealtert" },
+    { id: "harn",  name: "Harn",  rolle: "Metall und Wissen, Haupt des Wissenshauses", ziel: "Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", loyalitaet: 5, generation: "Gründergeneration, gealtert" },
+    { id: "renja", name: "Renja", rolle: "Talvolk",                  ziel: "Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", loyalitaet: 5, generation: "Gründergeneration, gealtert" },
+    { id: "soren", name: "Soren", rolle: "Stimme der Bundesvölker",  ziel: "Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen, im Krieg bestätigt", loyalitaet: 5, generation: "Gründergeneration, gealtert" }
+  ],
+  maechte: [
+    { id: "bund-der-freien", name: "Bund der Freien", typ: "Gemeinschaft eigenständiger freier Völker", rel: "allied",  beziehungLabel: "Verbündet, im Frieden wieder lockerer", beziehungWert: 2, haltung: "Im Krieg geeint, im Frieden sich lockernd" },
+    { id: "lir",             name: "Die Lir",         typ: "Befreundetes freies Volk im Westen",        rel: "allied",  beziehungLabel: "Fester Freund", beziehungWert: 3, haltung: "Befreundet, über eine neue Trasse verbunden" },
+    { id: "drenn",           name: "Die Drenn",       typ: "Bergvolk im Norden, Bundesgenosse",         rel: "allied",  beziehungLabel: "Treu", beziehungWert: 3, haltung: "Treuer Bundesgenosse und Erzquelle über den Erzweg" },
+    { id: "aurelan",         name: "Aurelan",         typ: "Großmacht der weiten Welt im Osten",        rel: "neutral", beziehungLabel: "Wachsamer, respektvoller Friede ohne Handel", beziehungWert: 1, haltung: "Erkannte die Karren als Freie an, die Bedrohung gelöst, aber als Macht weiter vorhanden" },
+    { id: "kontinent",       name: "Der weite Kontinent", typ: "Dünn bekanntes Land vieler Völker",     rel: "unknown", beziehungLabel: "Euer Name strahlt nun über den ganzen Kontinent", beziehungWert: null, haltung: "Weithin unerforscht" }
+  ],
+  besitz: [
+    "Bergfestung mit Wissenshaus und Versammlungsplatz",
+    "Das Korntal",
+    "Eigener tiefer Stollen plus Erzweg von den Drenn",
+    "Die zehn Bundesorte",
+    "Das Arsenal",
+    "Befestigte Pässe und Eichenfurt",
+    "Handel mit den Lir"
+  ],
+  verfassung: "Geschrieben und gereift. Ein Rat mit festen Feldern, der Sprecher als Primus mit Veto und Gefahrvollmacht samt Rechenschaft, die im Krieg genutzt und danach zurückgegeben wurde, was die Rechtsordnung stärkte. Versammlung am Marktplatz, das Wissenshaus vom Rat geleitet und für das Volk geöffnet, eine eigene Stadtverwaltung unter Tova. Darüber der Bund der Freien, eine Gemeinschaft eigenständiger Völker, im Krieg geeint, im Frieden sich lockernd.",
+  historie: [
+    { kapitel: 1, jahre: "Jahr 0 bis 4",  zusammenfassung: "Vom hungernden Häuflein im leeren Kessel über Rat, Verfassung und Bündnis mit dem Talvolk zur geschützten Vasallenschaft unter den Flachlandleuten." },
+    { kapitel: 2, jahre: "Jahr 6 bis 9",  zusammenfassung: "Die Erzfalle durch die Drenn gebrochen, das Tal zurückerobert, einen Bund freier Völker gegründet, den Kriegsherrn Torv zerschlagen, zur führenden freien Macht eines ganzen Landes geworden." },
+    { kapitel: 3, jahre: "Jahr 12 bis 14", current: true, zusammenfassung: "Die Großmacht Aurelan forderte Unterwerfung, Wissen und Tribut. Auf Zeit verhandelt, nichts hergegeben, die Berge zur Festung befestigt, einen Bund der Freien geeint, Aurelans Nachschub gestört und durch Stärke und einen klugen Frieden Aurelans ehrenvollen Rückzug und seine Anerkennung gewonnen. Daneben Rückschläge, tödliche Wegeunglücke, ein zäher Kampf gegen Aberglaube und Furcht, ein eigener tiefer Stollen gegen die Erzschwäche, das Wissenshaus dem Volk geöffnet, Tova als Verwalterin, der Wohlstand als neue Dimension, die Freundschaft mit den Lir." }
+  ],
+  offeneFaeden: [
+    "Was freie Völker im Frieden eint, wenn nicht mehr die gemeinsame Furcht es tut, die Gründungsfrage nun im großen Maßstab.",
+    "Ob aus dem lockernden Lager eine dauerhafte freie Ordnung des Kontinents zu schmieden ist, mit den Karren als Haupt, das führt, ohne zu herrschen.",
+    "Die reifende freie, wissende Gesellschaft und die lange Kulturarbeit, die Schule, der zähe Aberglaube, die Vernunft.",
+    "Die alternde Gründergeneration und die nachwachsende um Tova, die Frage, was über die Gründer hinaus Bestand hat.",
+    "Aurelan als anerkannte, aber weiter vorhandene Großmacht."
+  ],
+  orte: [
+    { id: "die-karren", name: "Die Karren", typ: "Hauptstadt, Bergfestung", richtung: "Mittelpunkt", beziehung: "Heimat", kind: "home" },
+    { id: "korntal", name: "Korntal", typ: "Talregion", richtung: "Süden, darunter", beziehung: "Zweites Standbein" },
+    { id: "drenn-land", name: "Land der Drenn", typ: "Hochland", richtung: "Norden, über den Pass", beziehung: "Bundesgenosse, Erzquelle" },
+    { id: "eichenfurt", name: "Eichenfurt", typ: "Bundesort, Tor zur weiten Welt", richtung: "Osten", beziehung: "Bund, hier wurde Aurelan abgewehrt" },
+    { id: "steinbach", name: "Steinbach", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "nordfels", name: "Nordfels", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "hohenstein", name: "Hohenstein", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "gruenwald", name: "Grünwald", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "sonnenried", name: "Sonnenried", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "bluetenau", name: "Blütenau", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "suedtor", name: "Südtor", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "brunnenried", name: "Brunnenried", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "westmark", name: "Westmark", typ: "Bundesort", richtung: "Föderation", beziehung: "Bund", kind: "fed" },
+    { id: "lir-land", name: "Land der Lir", typ: "Freies Volk", richtung: "Westen", beziehung: "Befreundet, neue Trasse" },
+    { id: "aurelan-reich", name: "Aurelan", typ: "Großmacht", richtung: "Osten, jenseits", beziehung: "Wachsamer Friede" }
+  ]
+};
+
+/* ---------- Helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+const signed = (n) => (n > 0 ? "+" + n : "" + n);
+const STAT_ICONS = { Nahrung: "🌾", Material: "⛏", Wissen: "📜", Bevölkerung: "👥" };
+
+/* ---------- Hero ---------- */
+function renderHero() {
+  $("#h-volk").innerHTML = "Die <em>Karren</em>";
+  $("#h-wesensart").textContent = DATA.volk.wesensart + " · " + DATA.volk.region.name;
+  $("#h-status").textContent = DATA.status.text;
+  const m = DATA.meta;
+  $("#h-meta").innerHTML = [
+    `<span class="chip summer">☀ <b>${m.zeit.jahreszeit}</b> · Jahr ${m.zeit.jahr}</span>`,
+    `<span class="chip">Kapitel <b>${m.kapitel}</b></span>`,
+    `<span class="chip">Ausrichtung <b>${DATA.volk.ausrichtung}</b></span>`
+  ].join("");
+  const st = DATA.status.ansehen.stufe;
+  $("#h-ansehen-stars").textContent = "★".repeat(st) + "☆".repeat(3 - st);
+  $("#h-ansehen-stufe").textContent = st;
+  $("#h-ansehen-label").textContent = DATA.status.ansehen.label;
+  $("#h-weltereignis").textContent = "Bereits " + m.weltereignis;
+  $("#h-rundestatus").textContent = m.rundeOffen ? "Runde offen" : "Runde abgeschlossen";
+}
+
+/* ---------- Stats ---------- */
+function renderStats() {
+  const g = $("#grid-stats"); g.innerHTML = "";
+  const gg = DATA.grundgroessen;
+  const items = [
+    { name: "Nahrung", num: gg.nahrung, unit: "Vorrat" },
+    { name: "Material", num: gg.material, unit: "Vorrat" },
+    { name: "Wissen", num: gg.wissen, unit: "gesammelt, eine Achse" },
+    { name: "Bevölkerung", num: gg.bevoelkerung.zahl, unit: "Karren-Kern, dazu Bund", green: true }
+  ];
+  items.forEach(s => {
+    const c = el("div", "stat" + (s.green ? " green" : ""));
+    c.innerHTML = `<div class="ico">${STAT_ICONS[s.name]}</div><div class="name">${s.name}</div><div class="num">${s.num}</div><div class="unit">${s.unit}</div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Gauges (Skala -2..+3) ---------- */
+function renderGauges() {
+  const g = $("#grid-gauges"); g.innerHTML = "";
+  const MIN = -2, MAX = 3, RANGE = MAX - MIN;
+  const zeroPct = ((0 - MIN) / RANGE) * 100;
+  const lw = DATA.lagewerte;
+  const items = [
+    { name: "Verteidigung", wert: lw.verteidigung, desc: "Die Bergfestung, befestigte Pässe und ein kriegserprobtes Heer." },
+    { name: "Mobilität",    wert: lw.mobilitaet,   desc: "Straßen und Bundeswege tragen, das Hochgebirge bremst." },
+    { name: "Wohlstand",    wert: lw.wohlstand,    desc: "Handel mit den Lir und dem Bund, eine neue Dimension." }
+  ];
+  items.forEach(v => {
+    const cls = v.wert > 0 ? "pos" : (v.wert < 0 ? "neg" : "neu");
+    let fill = "";
+    if (v.wert > 0) {
+      const w = (v.wert / RANGE) * 100;
+      fill = `<div class="fill pos" style="left:${zeroPct}%;width:${w}%"></div>`;
+    } else if (v.wert < 0) {
+      const w = (Math.abs(v.wert) / RANGE) * 100;
+      fill = `<div class="fill neg" style="left:${zeroPct - w}%;width:${w}%"></div>`;
+    }
+    const c = el("div", "gauge");
+    c.innerHTML = `
+      <div class="top"><span class="glabel">${v.name}</span><span class="gval ${cls}">${signed(v.wert)}</span></div>
+      <div class="scale"><div class="zero" style="left:${zeroPct}%"></div>${fill}</div>
+      <div class="scale-ends"><span>−2</span><span>0</span><span>+3</span></div>
+      <div class="desc">${v.desc}</div>`;
+    g.appendChild(c);
+  });
+  const erz = DATA.lagewerte.ausbeuten[0];
+  $("#ausbeute-erz").textContent = signed(erz.value);
+  $("#ausbeute-quelle").textContent = erz.quelle;
+}
+
+/* ---------- Threads ---------- */
+function renderThreads() {
+  const g = $("#grid-threads"); g.innerHTML = "";
+  DATA.offeneFaeden.forEach((t, i) => {
+    const c = el("div", "thread");
+    c.innerHTML = `<span class="idx">${i + 1}</span><p>${t}</p>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Berater ---------- */
+function renderAdvisors() {
+  const g = $("#grid-advisors"); g.innerHTML = "";
+  DATA.berater.forEach(a => {
+    const initial = a.name.trim().charAt(0).toUpperCase();
+    const STEPS = 5;
+    const onCount = Math.max(0, Math.round((a.loyalitaet / 5) * STEPS));
+    let pills = "";
+    for (let i = 1; i <= STEPS; i++) pills += `<span class="pip-l ${i <= onCount ? "on" : ""}"></span>`;
+    const loyCls = a.loyalitaet >= 0 ? "pos" : "neg";
+    const c = el("div", "advisor");
+    c.innerHTML = `
+      <div class="head">
+        <div class="portrait"><span class="initial">${initial}</span></div>
+        <div><h3 class="name">${a.name}</h3><div class="role">${a.rolle}</div></div>
+      </div>
+      <div class="goal">„${a.ziel}“</div>
+      <div class="foot">
+        <div class="loy-row">
+          <span class="loy-label">Loyalität</span>
+          <span class="loy-pills">${pills}</span>
+          <span class="loy-val ${loyCls}">${signed(a.loyalitaet)}</span>
+        </div>
+        <div class="gen">${a.generation}</div>
+      </div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Powers ---------- */
+function renderPowers() {
+  const g = $("#grid-powers"); g.innerHTML = "";
+  DATA.maechte.forEach(m => {
+    const wert = m.beziehungWert != null ? `<span style="font-family:'Fraunces',serif;font-weight:600;color:var(--ink)"> ${signed(m.beziehungWert)}</span>` : "";
+    const c = el("div", "power");
+    c.innerHTML = `
+      <div class="ph">
+        <div><h3 class="pn">${m.name}</h3><div class="type">${m.typ}</div></div>
+        <span class="rel ${m.rel}">${m.rel === "allied" ? "Verbündet" : m.rel === "neutral" ? "Neutral" : "Unbekannt"}</span>
+      </div>
+      <p class="att">${m.haltung}</p>
+      <div class="reltext"><b>Beziehung:</b> ${m.beziehungLabel}${wert}</div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Groups ---------- */
+const SILHOUETTE = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>`;
+function renderGroups() {
+  const g = $("#grid-groups"); g.innerHTML = "";
+  DATA.gruppen.forEach(gr => {
+    const c = el("div", "group");
+    c.innerHTML = `
+      <div class="sil">${SILHOUETTE}</div>
+      <div>
+        <div class="gn">${gr.name}</div>
+        <div class="sp">Sprecher: <b>${gr.sprecher}</b></div>
+        <div class="kp">${gr.kompetenz}</div>
+      </div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Orte ---------- */
+function renderOrte() {
+  const g = $("#grid-orte"); g.innerHTML = "";
+  DATA.orte.forEach(o => {
+    const c = el("div", "ort" + (o.kind ? " " + o.kind : ""));
+    c.innerHTML = `
+      <span class="pin"></span>
+      <div>
+        <div class="on">${o.name}</div>
+        <div class="ot">${o.typ} · ${o.richtung}</div>
+        <div class="od">${o.beziehung}</div>
+      </div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ---------- Timeline ---------- */
+function renderTimeline() {
+  const g = $("#grid-timeline"); g.innerHTML = "";
+  const roman = ["", "I", "II", "III", "IV", "V"];
+  DATA.historie.forEach(k => {
+    const c = el("div", "tl-item" + (k.current ? " current" : ""));
+    c.innerHTML = `<div class="tl-kap">Kapitel ${roman[k.kapitel] || k.kapitel} · ${k.jahre}</div><div class="tl-title">${kapitelTitel(k.kapitel)}</div><p>${k.zusammenfassung}</p>`;
+    g.appendChild(c);
+  });
+}
+function kapitelTitel(n) {
+  return { 1: "Der erste Halt", 2: "Der Bund der Freien", 3: "Sommer der Anerkennung" }[n] || ("Kapitel " + n);
+}
+
+/* ---------- Skills + Besitz + Verfassung ---------- */
+function renderSkills() {
+  const g = $("#grid-skills"); g.innerHTML = "";
+  DATA.faehigkeiten.forEach(f => g.appendChild(el("div", "it", f)));
+}
+const BESITZ_ICONS = ["🏔", "🌾", "⛏", "🏘", "⚔", "🛡", "🛞"];
+function renderBesitz() {
+  const g = $("#grid-besitz"); g.innerHTML = "";
+  DATA.besitz.forEach((b, i) => {
+    const c = el("div", "it");
+    c.innerHTML = `<div class="ic">${BESITZ_ICONS[i % BESITZ_ICONS.length]}</div><div class="nm">${b}</div>`;
+    g.appendChild(c);
+  });
+}
+function renderVerfassung() { $("#grid-verf").textContent = DATA.verfassung; }
+
+/* ---------- Tabs ---------- */
+function initTabs() {
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x => x.setAttribute("aria-selected", "false"));
+    t.setAttribute("aria-selected", "true");
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    $("#view-" + t.dataset.view).classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }));
+}
+
+/* ---------- Init ---------- */
+renderHero();
+renderStats();
+renderGauges();
+renderThreads();
+renderAdvisors();
+renderPowers();
+renderGroups();
+renderOrte();
+renderTimeline();
+renderSkills();
+renderBesitz();
+renderVerfassung();
+initTabs();
+</script>
+</body>
+</html>

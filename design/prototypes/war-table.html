@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RealmCraft, Lagetisch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* --- Grund: tiefes Obsidian / Anthrazit --- */
+  --bg-0:#0a0c10;          /* tiefster Grund */
+  --bg-1:#0f1218;          /* Seitengrund */
+  --panel:#141822;         /* Karten / Panels */
+  --panel-2:#1a1f2b;       /* erhöhte Flächen */
+  --panel-inset:#0c0f15;   /* eingelassene Flächen, Gauges */
+
+  /* --- Tinte --- */
+  --ink:#ece6d6;           /* Haupttext, warmes Elfenbein */
+  --ink-soft:#c9c2b0;
+  --muted:#8d8a7e;         /* Sekundärtext */
+  --faint:#5d5b52;         /* Beschriftungen, sehr dezent */
+
+  /* --- Messing / Amber / Bronze Akzente --- */
+  --brass:#c9a24a;         /* Leitmessing */
+  --brass-bright:#e7c879;  /* Glanzlicht */
+  --brass-deep:#9c7a30;    /* gedämpft */
+  --amber:#e0913f;         /* warmer Amber-Akzent */
+  --bronze:#7a5a32;        /* Bronze-Linien */
+  --bronze-line:#3a2f20;   /* dezente Bronzelinie auf dunkel */
+
+  /* --- Status --- */
+  --ok:#6fa37a;
+  --ok-deep:#3f6e4d;
+  --warn:#c9913f;
+  --danger:#b35248;
+  --danger-deep:#7a332c;
+
+  /* --- Linien & Tiefe --- */
+  --line:#222936;
+  --line-soft:#1a212c;
+  --hairline:rgba(201,162,74,.18);
+  --radius:4px;
+  --radius-lg:8px;
+  --shadow:0 18px 48px rgba(0,0,0,.55);
+  --shadow-soft:0 10px 26px rgba(0,0,0,.4);
+  --glow-brass:0 0 0 1px rgba(201,162,74,.25), 0 0 24px rgba(201,162,74,.08);
+
+  --serif:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --sans:"Inter", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  --maxw:1320px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 18% -8%, rgba(201,162,74,.07), transparent 60%),
+    radial-gradient(1000px 620px at 92% 110%, rgba(224,145,63,.05), transparent 60%),
+    linear-gradient(180deg,#0b0e13 0%, var(--bg-0) 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  line-height:1.55;
+}
+
+/* subtile Maserung über allem, wie geschliffener Stein */
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  opacity:.5;
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.012) 0 2px, transparent 2px 5px),
+    radial-gradient(circle at 50% 40%, transparent 60%, rgba(0,0,0,.35) 100%);
+  mix-blend-mode:screen;
+}
+
+a{color:inherit;text-decoration:none}
+
+/* ===================== Topbar ===================== */
+header.top{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:18px;
+  padding:14px clamp(16px,3vw,40px);
+  background:linear-gradient(180deg, rgba(13,16,22,.96), rgba(13,16,22,.82));
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bronze-line);
+  box-shadow:0 1px 0 rgba(201,162,74,.08), 0 14px 30px rgba(0,0,0,.4);
+}
+.brand{display:flex; align-items:center; gap:13px; min-width:0}
+.brand .sigil{
+  width:38px;height:38px;flex:none;border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%, #1d2230, #0c0f15);
+  border:1px solid rgba(201,162,74,.45);
+  box-shadow:inset 0 0 14px rgba(201,162,74,.12), 0 0 0 4px rgba(201,162,74,.04);
+}
+.brand .sigil svg{width:22px;height:22px}
+.brand .name{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:25px;
+  letter-spacing:.5px;
+  line-height:1;
+  color:var(--ink);
+}
+.brand .name b{color:var(--brass-bright);font-weight:700}
+.brand .sub{
+  font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--faint);margin-top:3px;
+}
+.top .spacer{flex:1}
+.btn{
+  font-family:var(--sans);font-size:12.5px;font-weight:600;letter-spacing:.04em;
+  color:var(--ink-soft);
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px;border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  cursor:pointer;transition:.18s ease;white-space:nowrap;
+}
+.btn svg{width:15px;height:15px;opacity:.85}
+.btn:hover{border-color:rgba(201,162,74,.5);color:var(--ink);box-shadow:var(--glow-brass)}
+.btn.primary{
+  color:#1a1407;
+  background:linear-gradient(180deg,var(--brass-bright),var(--brass));
+  border-color:var(--brass-deep);
+  box-shadow:0 6px 18px rgba(201,162,74,.22);
+}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.primary svg{opacity:.7}
+
+/* ===================== Layout ===================== */
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:clamp(16px,2.4vw,30px)}
+
+/* ===================== Tabs ===================== */
+nav.tabs{
+  display:flex;flex-wrap:wrap;gap:4px;
+  margin:6px 0 22px;
+  padding:5px;
+  border:1px solid var(--bronze-line);
+  border-radius:var(--radius-lg);
+  background:linear-gradient(180deg, rgba(12,15,21,.7), rgba(20,24,34,.5));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02), var(--shadow-soft);
+}
+.tab{
+  appearance:none;border:0;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.05em;
+  color:var(--muted);background:transparent;
+  padding:10px 18px;border-radius:5px;
+  display:inline-flex;align-items:center;gap:9px;
+  transition:.18s ease;position:relative;
+}
+.tab .tnum{
+  font-family:var(--serif);font-size:13px;font-weight:600;
+  color:var(--faint);
+}
+.tab:hover{color:var(--ink-soft)}
+.tab[aria-selected="true"]{
+  color:var(--ink);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:inset 0 0 0 1px rgba(201,162,74,.3), 0 4px 16px rgba(0,0,0,.4);
+}
+.tab[aria-selected="true"] .tnum{color:var(--brass-bright)}
+
+/* ===================== Generic panels ===================== */
+.panel{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-soft);
+  position:relative;
+}
+.panel::before{ /* obere Messing-Haarlinie */
+  content:"";position:absolute;left:14px;right:14px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,162,74,.35),transparent);
+}
+.section-title{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(20px,2.1vw,26px);
+  letter-spacing:.4px;color:var(--ink);
+  margin:0 0 3px;display:flex;align-items:baseline;gap:12px;
+}
+.section-title .kicker{
+  font-family:var(--sans);font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--brass);font-weight:600;
+}
+.section-sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.block-head{
+  display:flex;align-items:center;gap:12px;margin:0 0 14px;
+}
+.block-head h3{
+  font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:.3px;
+  margin:0;color:var(--ink);
+}
+.block-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--bronze-line),transparent)}
+.eyebrow{
+  font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--brass);font-weight:600;
+}
+
+/* ===================== HERO (Lage) ===================== */
+.hero{
+  display:grid;grid-template-columns:1.5fr .9fr;gap:18px;margin-bottom:18px;
+}
+.hero .crest{
+  padding:26px 30px;border-radius:var(--radius-lg);position:relative;overflow:hidden;
+  border:1px solid var(--line);
+  background:
+    radial-gradient(700px 300px at 0% 0%, rgba(201,162,74,.10), transparent 65%),
+    linear-gradient(180deg,#171c27,#10141d);
+  box-shadow:var(--shadow);
+}
+.hero .crest::after{ /* dezenter geätzter Rahmen */
+  content:"";position:absolute;inset:9px;border:1px solid rgba(201,162,74,.12);
+  border-radius:5px;pointer-events:none;
+}
+.crest .badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.realm-name{
+  font-family:var(--serif);font-weight:700;
+  font-size:clamp(36px,5.4vw,58px);line-height:.98;letter-spacing:.5px;
+  margin:2px 0 6px;color:var(--ink);
+}
+.realm-name .the{color:var(--brass);font-weight:500;font-style:italic;display:block;font-size:.42em;letter-spacing:.18em;text-transform:uppercase;margin-bottom:2px}
+.realm-essence{font-size:14.5px;color:var(--brass-bright);font-weight:600;letter-spacing:.02em}
+.realm-desc{color:var(--ink-soft);font-size:13.5px;max-width:54ch;margin-top:12px}
+.crest-meta{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px;padding-top:16px;border-top:1px solid var(--bronze-line)}
+.crest-meta .m{display:flex;flex-direction:column;gap:2px}
+.crest-meta .m .k{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--faint)}
+.crest-meta .m .v{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink)}
+.crest-meta .m .v small{font-family:var(--sans);font-size:11px;color:var(--muted);font-weight:500}
+
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:600;letter-spacing:.05em;
+  padding:5px 11px;border-radius:100px;
+  border:1px solid var(--bronze-line);color:var(--ink-soft);
+  background:rgba(0,0,0,.25);
+}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--brass);box-shadow:0 0 8px var(--brass)}
+.badge.live .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.badge.amber{border-color:rgba(224,145,63,.4);color:var(--amber)}
+.badge.amber .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* Ansehen-Panel */
+.renown{
+  padding:24px;border-radius:var(--radius-lg);
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  background:
+    radial-gradient(400px 220px at 100% 0%, rgba(224,145,63,.12), transparent 60%),
+    linear-gradient(180deg,#171c27,#10141d);
+  box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+}
+.renown .lbl{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.renown .stars{display:flex;gap:6px;margin:14px 0 10px}
+.renown .stars svg{width:26px;height:26px}
+.renown .stars .on{color:var(--brass-bright);filter:drop-shadow(0 0 8px rgba(231,200,121,.4))}
+.renown .stars .off{color:#2a2e38}
+.renown .rstage{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);line-height:1.1}
+.renown .rdesc{color:var(--ink-soft);font-size:13px;margin-top:8px}
+.renown .rfoot{margin-top:auto;padding-top:14px;border-top:1px solid var(--bronze-line);color:var(--muted);font-size:12px}
+
+/* Stat cards (Grundgrößen) */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{
+  padding:18px 18px 16px;border-radius:var(--radius-lg);
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow-soft);transition:.2s ease;
+}
+.stat:hover{border-color:rgba(201,162,74,.4);transform:translateY(-2px)}
+.stat .ico{
+  width:34px;height:34px;border-radius:8px;display:grid;place-items:center;margin-bottom:12px;
+  background:radial-gradient(circle at 35% 30%, #20283a, #0d111a);
+  border:1px solid var(--bronze-line);color:var(--brass);
+}
+.stat .ico svg{width:18px;height:18px}
+.stat .num{font-family:var(--serif);font-size:42px;font-weight:700;line-height:.9;color:var(--ink)}
+.stat .lab{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.stat .note{font-size:11.5px;color:var(--faint);margin-top:5px;line-height:1.4}
+
+/* Lagewerte gauges/bars */
+.lage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px}
+.lagebar{
+  padding:16px 18px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:var(--shadow-soft);
+}
+.lagebar .top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.lagebar .nm{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink)}
+.lagebar .val{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--brass-bright)}
+.lagebar .val.neutral{color:var(--muted)}
+.scale{
+  position:relative;height:12px;border-radius:100px;
+  background:var(--panel-inset);
+  border:1px solid var(--line-soft);overflow:hidden;
+}
+.scale .mid{position:absolute;left:40%;top:-3px;bottom:-3px;width:1px;background:rgba(255,255,255,.14)}
+.scale .fill{
+  position:absolute;top:0;bottom:0;border-radius:100px;
+  background:linear-gradient(90deg,var(--brass-deep),var(--brass-bright));
+  box-shadow:0 0 12px rgba(201,162,74,.4);
+}
+.scale .fill.neg{background:linear-gradient(90deg,var(--danger),#d07a52)}
+.scale-ticks{display:flex;justify-content:space-between;margin-top:7px;font-size:9.5px;color:var(--faint);letter-spacing:.05em}
+.lagebar .gnote{font-size:11px;color:var(--muted);margin-top:9px}
+
+/* Ausbeute pill */
+.yield-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+.yield{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-lg);
+  border:1px solid var(--bronze-line);
+  background:radial-gradient(300px 80px at 0% 0%, rgba(224,145,63,.10), transparent), linear-gradient(180deg,var(--panel-2),var(--panel));
+}
+.yield .amt{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--amber)}
+.yield .yk{font-weight:600;font-size:13px;color:var(--ink)}
+.yield .ysrc{font-size:11.5px;color:var(--muted)}
+
+/* Offene Fäden teaser */
+.threads{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.threads li{
+  display:flex;gap:13px;padding:13px 15px;border-radius:var(--radius);
+  border:1px solid var(--line-soft);background:rgba(0,0,0,.18);
+  font-size:13px;color:var(--ink-soft);line-height:1.5;
+}
+.threads li .marker{
+  flex:none;width:8px;height:8px;border-radius:2px;margin-top:6px;transform:rotate(45deg);
+  background:var(--brass);box-shadow:0 0 8px rgba(201,162,74,.5);
+}
+
+/* ===================== Berater ===================== */
+.advisor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.advisor{
+  padding:20px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow-soft);position:relative;overflow:hidden;transition:.2s ease;
+  display:flex;flex-direction:column;gap:14px;
+}
+.advisor:hover{border-color:rgba(201,162,74,.4);transform:translateY(-2px);box-shadow:var(--shadow)}
+.advisor .head{display:flex;gap:15px;align-items:center}
+.portrait{
+  width:62px;height:62px;flex:none;border-radius:50%;position:relative;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 38% 30%, #232b3d 0%, #12151e 75%);
+  border:1px solid rgba(201,162,74,.4);
+  box-shadow:inset 0 0 16px rgba(0,0,0,.6), 0 0 0 4px rgba(201,162,74,.05);
+}
+.portrait .ini{font-family:var(--serif);font-size:27px;font-weight:600;color:var(--brass-bright);text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.portrait .ring{position:absolute;inset:-1px;border-radius:50%;border:1px solid transparent;
+  background:conic-gradient(from 180deg, var(--brass-bright), var(--bronze), var(--brass-bright)) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:.45}
+.advisor .who .nm{font-family:var(--serif);font-size:23px;font-weight:600;color:var(--ink);line-height:1.05}
+.advisor .who .role{font-size:12px;color:var(--brass);font-weight:600;letter-spacing:.02em;margin-top:3px}
+.advisor .goal{
+  font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--ink-soft);
+  padding:12px 14px;border-radius:var(--radius);position:relative;
+  background:rgba(0,0,0,.22);border-left:2px solid var(--brass-deep);
+}
+.advisor .goal::before{content:"\201C";font-family:var(--serif);color:var(--brass-deep);font-size:30px;line-height:0;position:absolute;left:6px;top:14px;opacity:.5}
+.advisor .goal span{display:block;padding-left:14px}
+.advisor .gen{font-size:11.5px;color:var(--muted);display:flex;gap:7px;align-items:flex-start;line-height:1.4}
+.advisor .gen svg{width:13px;height:13px;flex:none;margin-top:2px;color:var(--faint)}
+/* Loyalität */
+.loy{margin-top:auto;padding-top:14px;border-top:1px solid var(--bronze-line)}
+.loy .lhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.loy .ltitle{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--faint)}
+.loy .lstate{font-size:11.5px;font-weight:600}
+.loy-track{
+  position:relative;height:10px;border-radius:100px;overflow:hidden;
+  background:linear-gradient(90deg,var(--danger-deep),#2a2e38 50%,var(--ok-deep));
+  border:1px solid var(--line-soft);
+}
+.loy-track .marker{
+  position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 35% 30%, #fff, var(--brass-bright));
+  border:2px solid #1a1407;box-shadow:0 0 10px rgba(231,200,121,.7), 0 2px 5px rgba(0,0,0,.6);
+}
+.loy-ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--faint)}
+
+/* ===================== Welt ===================== */
+.power-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.power{
+  padding:20px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:var(--shadow-soft);
+  position:relative;transition:.2s ease;
+}
+.power:hover{border-color:rgba(201,162,74,.35);transform:translateY(-2px)}
+.power .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.power .pname{font-family:var(--serif);font-size:23px;font-weight:600;color:var(--ink);line-height:1.05}
+.power .ptype{font-size:11.5px;color:var(--muted);margin-top:3px;max-width:34ch}
+.power .pdesc{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:10px 0 14px}
+.rel{
+  display:inline-flex;align-items:center;gap:9px;
+  font-size:11.5px;font-weight:600;letter-spacing:.02em;
+  padding:6px 12px;border-radius:100px;border:1px solid var(--bronze-line);
+}
+.rel .pips{display:flex;gap:3px}
+.rel .pips i{width:6px;height:6px;border-radius:50%;background:#2c313d}
+.rel .pips i.on{background:var(--ok);box-shadow:0 0 6px rgba(111,163,122,.6)}
+.rel.warm{color:var(--ok);border-color:rgba(111,163,122,.4)}
+.rel.cool{color:var(--amber);border-color:rgba(224,145,63,.4)}
+.rel.cool .pips i.on{background:var(--amber);box-shadow:0 0 6px rgba(224,145,63,.6)}
+.rel.unknown{color:var(--muted)}
+.power .stance{
+  font-size:12px;color:var(--muted);margin-top:13px;padding-top:12px;border-top:1px solid var(--line-soft);
+  display:flex;gap:8px;align-items:flex-start;line-height:1.45;
+}
+.power .stance svg{width:13px;height:13px;flex:none;margin-top:2px;color:var(--brass-deep)}
+
+/* Gruppen */
+.group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.group{
+  padding:15px 16px;border-radius:var(--radius);border:1px solid var(--line-soft);
+  background:rgba(0,0,0,.2);display:flex;gap:13px;align-items:center;transition:.18s ease;
+}
+.group:hover{border-color:var(--bronze-line);background:rgba(0,0,0,.32)}
+.group .gp{
+  width:42px;height:42px;flex:none;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 38% 30%, #232b3d, #12151e);
+  border:1px solid rgba(201,162,74,.3);
+  font-family:var(--serif);font-size:18px;font-weight:600;color:var(--brass-bright);
+}
+.group .gmeta .gn{font-weight:600;font-size:14px;color:var(--ink)}
+.group .gmeta .gk{font-size:11.5px;color:var(--muted);margin-top:2px}
+.group .gmeta .gsp{font-size:11px;color:var(--brass);margin-top:4px;letter-spacing:.02em}
+.group .gmeta .gsp b{font-weight:600}
+
+/* ===================== Karte ===================== */
+.map-wrap{display:grid;grid-template-columns:1.7fr 1fr;gap:18px}
+.map-frame{
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;min-height:460px;
+  border:1px solid var(--line);box-shadow:var(--shadow);
+  background:
+    radial-gradient(700px 420px at 50% 38%, rgba(201,162,74,.07), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 46px),
+    linear-gradient(160deg,#11151e,#0a0d13);
+}
+.map-frame::after{content:"";position:absolute;inset:14px;border:1px solid rgba(201,162,74,.18);border-radius:6px;pointer-events:none}
+.map-corner{position:absolute;width:26px;height:26px;border:1px solid var(--brass);opacity:.55}
+.map-corner.tl{top:20px;left:20px;border-right:0;border-bottom:0}
+.map-corner.tr{top:20px;right:20px;border-left:0;border-bottom:0}
+.map-corner.bl{bottom:20px;left:20px;border-right:0;border-top:0}
+.map-corner.br{bottom:20px;right:20px;border-left:0;border-top:0}
+.map-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px}
+.map-center .compass{width:108px;height:108px;margin:0 auto 22px;opacity:.85;animation:spin 70s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.map-center .mt{font-family:var(--serif);font-size:27px;font-weight:600;color:var(--ink);letter-spacing:.5px}
+.map-center .ms{font-size:12px;color:var(--muted);margin-top:8px;max-width:42ch}
+.map-center .mbadge{
+  display:inline-flex;align-items:center;gap:8px;margin-top:18px;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);
+  padding:7px 15px;border-radius:100px;border:1px solid rgba(201,162,74,.35);background:rgba(0,0,0,.3);
+}
+.map-center .mbadge .pulse{width:7px;height:7px;border-radius:50%;background:var(--brass);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+/* schwebende Ortspunkte als Andeutung */
+.map-pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--ink-soft);letter-spacing:.04em}
+.map-pin .pp{width:9px;height:9px;border-radius:50%;background:var(--brass);box-shadow:0 0 10px rgba(201,162,74,.6);border:1px solid #1a1407}
+.map-pin.cap .pp{width:13px;height:13px;background:var(--amber);box-shadow:0 0 14px rgba(224,145,63,.7)}
+.map-pin .pl{background:rgba(8,10,14,.7);padding:1px 6px;border-radius:3px;border:1px solid var(--bronze-line)}
+
+.legend{padding:20px;border-radius:var(--radius-lg);border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:var(--shadow-soft)}
+.legend .ll{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:520px;overflow:auto}
+.legend .ll li{display:flex;gap:12px;align-items:flex-start;padding:10px 8px;border-bottom:1px solid var(--line-soft)}
+.legend .ll li:last-child{border-bottom:0}
+.legend .gly{
+  flex:none;width:26px;height:26px;border-radius:6px;display:grid;place-items:center;margin-top:1px;
+  border:1px solid var(--bronze-line);background:rgba(0,0,0,.25);color:var(--brass);
+}
+.legend .gly svg{width:14px;height:14px}
+.legend .gly.cap{color:var(--amber);border-color:rgba(224,145,63,.4)}
+.legend .li-nm{font-weight:600;font-size:13.5px;color:var(--ink)}
+.legend .li-ty{font-size:11px;color:var(--muted)}
+.legend .li-rl{font-size:11px;color:var(--brass);margin-top:3px}
+.legend .li-dir{font-size:10px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;margin-left:auto;white-space:nowrap;padding-top:2px}
+
+/* ===================== Historie ===================== */
+.timeline{position:relative;margin:0 0 8px;padding-left:34px}
+.timeline::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--brass-bright),var(--bronze),transparent)}
+.epoch{position:relative;margin-bottom:22px}
+.epoch:last-child{margin-bottom:0}
+.epoch .node{position:absolute;left:-34px;top:2px;width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#20283a,#0c0f15);
+  border:1px solid var(--brass);box-shadow:0 0 0 4px rgba(201,162,74,.06)}
+.epoch .node b{font-family:var(--serif);font-size:13px;color:var(--brass-bright);font-weight:600}
+.epoch.current .node{background:radial-gradient(circle at 35% 30%,var(--brass-bright),var(--brass-deep));box-shadow:0 0 0 5px rgba(201,162,74,.14),0 0 16px rgba(201,162,74,.4)}
+.epoch.current .node b{color:#1a1407}
+.epoch .ehead{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.epoch .etitle{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--ink)}
+.epoch .eyears{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.epoch .ecur{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(224,145,63,.4);padding:2px 8px;border-radius:100px}
+.epoch .esum{font-size:13.5px;color:var(--ink-soft);line-height:1.6;max-width:80ch}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.list-clean{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.list-clean li{display:flex;gap:11px;font-size:13px;color:var(--ink-soft);line-height:1.5;
+  padding:11px 13px;border-radius:var(--radius);border:1px solid var(--line-soft);background:rgba(0,0,0,.18)}
+.list-clean li svg{width:14px;height:14px;flex:none;margin-top:3px;color:var(--brass)}
+
+/* utility */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mt{margin-top:18px}
+.pad{padding:22px clamp(18px,2.2vw,28px)}
+.tabpanel{display:none;animation:fade .35s ease}
+.tabpanel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===================== Responsive ===================== */
+@media (max-width:1080px){
+  .hero{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .map-wrap{grid-template-columns:1fr}
+  .lage-grid{grid-template-columns:1fr}
+  .two-col,.grid-2{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .stat-grid{grid-template-columns:1fr}
+  .brand .sub{display:none}
+  .top .btn .lbl{display:none}
+}
+footer.foot{position:relative;z-index:1;text-align:center;color:var(--faint);font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;padding:30px 0 40px}
+footer.foot b{color:var(--brass);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ===================== Topbar ===================== -->
+<header class="top">
+  <div class="brand">
+    <div class="sigil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e7c879" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>
+      </svg>
+    </div>
+    <div>
+      <div class="name">Realm<b>Craft</b></div>
+      <div class="sub">Lagetisch des Rates</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+    <span class="lbl">Speicherstand laden</span>
+  </button>
+  <button class="btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="lbl">Einstellungen</span>
+  </button>
+</header>
+
+<div class="wrap">
+
+  <!-- ===================== Tabs ===================== -->
+  <nav class="tabs" role="tablist" aria-label="Ansichten">
+    <button class="tab" role="tab" aria-selected="true" data-tab="lage"><span class="tnum">I</span> Lage</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="berater"><span class="tnum">II</span> Berater</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="welt"><span class="tnum">III</span> Welt</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="karte"><span class="tnum">IV</span> Karte</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="historie"><span class="tnum">V</span> Historie</button>
+  </nav>
+
+  <!-- ===================== I. LAGE ===================== -->
+  <section class="tabpanel active" id="tab-lage" role="tabpanel">
+    <div class="hero">
+      <div class="crest">
+        <div class="badges" id="hero-badges"></div>
+        <div class="realm-name"><span class="the">Das Volk</span><span id="realm-name"></span></div>
+        <div class="realm-essence" id="realm-essence"></div>
+        <p class="realm-desc" id="realm-desc"></p>
+        <div class="crest-meta" id="crest-meta"></div>
+      </div>
+      <div class="renown" id="renown"></div>
+    </div>
+
+    <div class="panel pad mt">
+      <div class="block-head"><h3>Grundgrößen</h3><div class="rule"></div><span class="eyebrow">Getragene Vorräte</span></div>
+      <div class="stat-grid" id="stat-grid"></div>
+    </div>
+
+    <div class="grid-2 mt">
+      <div class="panel pad">
+        <div class="block-head"><h3>Lagewerte</h3><div class="rule"></div><span class="eyebrow">Maßstab -2 bis +3</span></div>
+        <div class="lage-grid" id="lage-grid"></div>
+        <div class="yield-row" id="yield-row"></div>
+      </div>
+      <div class="panel pad">
+        <div class="block-head"><h3>Offene Fäden</h3><div class="rule"></div><span class="eyebrow">Das nächste Kapitel</span></div>
+        <ul class="threads" id="threads"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== II. BERATER ===================== -->
+  <section class="tabpanel" id="tab-berater" role="tabpanel">
+    <div class="section-title"><span class="kicker">Der Rat</span> Berater und Loyalität</div>
+    <p class="section-sub">Jede tragende Gruppe spricht durch einen benannten Charakter mit eigenem Ziel. Loyalität läuft von -5 (am Bruch) bis +5 (ergeben).</p>
+    <div class="advisor-grid" id="advisor-grid"></div>
+  </section>
+
+  <!-- ===================== III. WELT ===================== -->
+  <section class="tabpanel" id="tab-welt" role="tabpanel">
+    <div class="section-title"><span class="kicker">Diplomatie</span> Mächte des Kontinents</div>
+    <p class="section-sub">Nachbarvölker und Großmächte mit Beziehungsstand und Haltung.</p>
+    <div class="power-grid" id="power-grid"></div>
+
+    <div class="panel pad mt">
+      <div class="block-head"><h3>Tragende Gruppen</h3><div class="rule"></div><span class="eyebrow">Bevölkerung und ihre Sprecher</span></div>
+      <div class="group-grid" id="group-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== IV. KARTE ===================== -->
+  <section class="tabpanel" id="tab-karte" role="tabpanel">
+    <div class="section-title"><span class="kicker">Geographie</span> Die bekannte Welt</div>
+    <p class="section-sub">Die Karte wächst mit dem Spiel und zeigt nur, was das Volk kennt.</p>
+    <div class="map-wrap">
+      <div class="map-frame">
+        <span class="map-corner tl"></span><span class="map-corner tr"></span>
+        <span class="map-corner bl"></span><span class="map-corner br"></span>
+        <div class="map-pin cap" style="top:42%;left:48%"><span class="pp"></span><span class="pl">Die Karren</span></div>
+        <div class="map-pin" style="top:66%;left:46%"><span class="pp"></span><span class="pl">Korntal</span></div>
+        <div class="map-pin" style="top:20%;left:54%"><span class="pp"></span><span class="pl">Drenn</span></div>
+        <div class="map-pin" style="top:50%;left:78%"><span class="pp"></span><span class="pl">Eichenfurt</span></div>
+        <div class="map-pin" style="top:55%;left:20%"><span class="pp"></span><span class="pl">Lir</span></div>
+        <div class="map-center">
+          <svg class="compass" viewBox="0 0 100 100" fill="none" stroke="#c9a24a" stroke-width="1">
+            <circle cx="50" cy="50" r="44" stroke-opacity=".5"/>
+            <circle cx="50" cy="50" r="34" stroke-opacity=".25"/>
+            <path d="M50 8 L57 50 L50 92 L43 50 Z" fill="#e7c879" stroke="none" opacity=".85"/>
+            <path d="M8 50 L50 43 L92 50 L50 57 Z" fill="#9c7a30" stroke="none" opacity=".7"/>
+            <circle cx="50" cy="50" r="4" fill="#0a0c10" stroke="#e7c879"/>
+            <text x="50" y="6" text-anchor="middle" font-size="7" fill="#e7c879" font-family="Cormorant Garamond, serif">N</text>
+          </svg>
+          <div class="mt">Lagekarte wird generiert</div>
+          <div class="ms" id="map-style"></div>
+          <div class="mbadge"><span class="pulse"></span> Kartenrender über Stil-Anker</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="block-head"><h3>Orte</h3><div class="rule"></div></div>
+        <ul class="ll" id="map-legend"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== V. HISTORIE ===================== -->
+  <section class="tabpanel" id="tab-historie" role="tabpanel">
+    <div class="section-title"><span class="kicker">Chronik</span> Der Weg der Karren</div>
+    <p class="section-sub">Die wichtigsten Entscheidungen in ihrer Reihenfolge.</p>
+    <div class="panel pad">
+      <div class="timeline" id="timeline"></div>
+    </div>
+    <div class="two-col">
+      <div class="panel pad">
+        <div class="block-head"><h3>Fähigkeiten</h3><div class="rule"></div><span class="eyebrow">Was der Wissensstand beherrscht</span></div>
+        <ul class="list-clean" id="skills"></ul>
+      </div>
+      <div class="panel pad">
+        <div class="block-head"><h3>Besitz</h3><div class="rule"></div><span class="eyebrow">Bauten, Orte, Güter</span></div>
+        <ul class="list-clean" id="holdings"></ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="foot">RealmCraft <b>·</b> Lagetisch-Prototyp <b>·</b> Speicherstand „Die Karren“, Kapitel III</footer>
+
+<script>
+/* ============================================================
+   Daten, wortgetreu aus examples/die-karren-kapitel-3.json
+   ============================================================ */
+const SAVE = {
+  meta:{ spielname:"Die Karren", kapitel:3, zeit:{jahreszeit:"Sommer", jahr:14}, rundeOffen:false, weltereignis:"gewürfelt",
+    mapStyle:"Sauberer, moderner, professioneller Kartenstil, kein Pergament, deutsche Beschriftungen, Kompass und Legende, gedämpfte natürliche Farben." },
+  volk:{ name:"Die Karren", wesensart:"Bergvolk, Ausrichtung Technologie", ausrichtung:"Technologie",
+    erscheinung:"Hartes Bergvolk in funktionaler Wolle und Leder mit feiner Metallarbeit, Werkzeug und Wissensschriften.",
+    region:{ name:"Hochgebirge mit dem Korntal als zweitem Standbein" } },
+  status:{ ansehen:{ stufe:3, label:"Auf nie gekannter Höhe, Leuchtfeuer der Freien" },
+    text:"Berühmte freie Macht, die einer Großmacht standhielt und als freie, eigenständige Macht anerkannt wurde." },
+  grundgroessen:{ nahrung:8, material:5, wissen:16,
+    bevoelkerung:{ zahl:300, label:"Karren-Kern über dreihundert, dazu das Korntal und ein großer Bund vieler Völker" } },
+  lagewerte:{ verteidigung:3, mobilitaet:0, wohlstand:1,
+    ausbeuten:[ {key:"Erz", value:1, quelle:"Drenn über den Erzweg und eigener tiefer Stollen"} ] },
+  faehigkeiten:[
+    "Weidewirtschaft",
+    "Talackerbau, durch die Gilde verbesserter Anbau",
+    "Konservierung",
+    "Meisterliche Metallverarbeitung, Waffen und Rüstung über dem Stand der Gegner, großes Arsenal",
+    "Schrift",
+    "Wissenshaus als berühmter Hort des Wissens, fürs Volk geöffnet, mit einer Schule, die langsam Wurzeln schlägt",
+    "Verfahren zur planvollen Erschließung des Berges, eigener tiefer Stollen, der die Erzschwäche mildert",
+    "Bergfestung und kriegserprobte Verteidigung"
+  ],
+  gruppen:[
+    {id:"hirten", name:"Hirten", sprecherId:"idr", kompetenz:"Weidewirtschaft"},
+    {id:"bauern", name:"Bauern und Talbauern", sprecherId:"renja", kompetenz:"Talackerbau, verbesserter Anbau"},
+    {id:"spaeher", name:"Späher", sprecherId:"yann", kompetenz:"Erkundung und Netz"},
+    {id:"handwerk", name:"Handwerk und Bau", sprecherId:"mell", kompetenz:"Bau, Festungswerk"},
+    {id:"schmiede", name:"Schmiede und Erz", sprecherId:"harn", kompetenz:"Meisterliche Metallverarbeitung"},
+    {id:"heer", name:"Erprobtes Heer", sprecherId:"borka", kompetenz:"Kriegserprobte Verteidigung"},
+    {id:"bundesvoelker", name:"Freie Völker des Bundes", sprecherId:"soren", kompetenz:"Gemeinschaft eigenständiger Völker"}
+  ],
+  berater:[
+    {id:"borka", name:"Borka", rolle:"Sicherheit und Speicher", ziel:"Sicherheit über alles, Vorsicht, die Toten geehrt", loyalitaet:5, generation:"Gründergeneration, gealtert"},
+    {id:"idr", name:"Idr", rolle:"Nahrung und Diplomatie", ziel:"Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", loyalitaet:5, generation:"Gründergeneration, gealtert, einst Geflohene, Verhandlerin des Friedens mit Aurelan"},
+    {id:"mell", name:"Mell", rolle:"Bau", ziel:"Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", loyalitaet:5, generation:"Gründergeneration, gealtert, Erbauer der Festung"},
+    {id:"yann", name:"Yann", rolle:"Späher und Netz", ziel:"Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", loyalitaet:5, generation:"Gründergeneration, gealtert"},
+    {id:"harn", name:"Harn", rolle:"Metall und Wissen, Haupt des Wissenshauses", ziel:"Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", loyalitaet:5, generation:"Gründergeneration, gealtert"},
+    {id:"renja", name:"Renja", rolle:"Talvolk", ziel:"Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", loyalitaet:5, generation:"Gründergeneration, gealtert"},
+    {id:"soren", name:"Soren", rolle:"Stimme der Bundesvölker", ziel:"Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen, im Krieg bestätigt", loyalitaet:5, generation:"Gründergeneration, gealtert"}
+  ],
+  maechte:[
+    {id:"bund-der-freien", name:"Bund der Freien", typ:"Gemeinschaft eigenständiger freier Völker",
+      erscheinung:"Banner vieler verschiedener freier Völker, lose vereint, ohne ein beherrschendes Wappen.",
+      beziehung:{wert:2, label:"Verbündet, im Frieden wieder lockerer"}, haltung:"Im Krieg geeint, im Frieden sich lockernd"},
+    {id:"lir", name:"Die Lir", typ:"Befreundetes freies Volk im Westen",
+      erscheinung:"Freundliches Volk des Westens in heller, gewebter Tracht, Händler und Verbündete.",
+      beziehung:{wert:3, label:"Fester Freund"}, haltung:"Befreundet, über eine neue Trasse verbunden"},
+    {id:"drenn", name:"Die Drenn", typ:"Bergvolk im Norden, Bundesgenosse",
+      erscheinung:"Raues Bergvolk des hohen Nordlands, Bergleute und Erzhändler.",
+      beziehung:{wert:3, label:"Treu"}, haltung:"Treuer Bundesgenosse und Erzquelle über den Erzweg"},
+    {id:"aurelan", name:"Aurelan", typ:"Großmacht der weiten Welt im Osten",
+      erscheinung:"Mächtiges, reiches Reich mit disziplinierten Heeren und feiner Amtskultur, fremdländische Pracht.",
+      beziehung:{wert:1, label:"Wachsamer, respektvoller Friede ohne Handel"}, haltung:"Erkannte die Karren als Freie an, die Bedrohung gelöst, aber als Macht weiter vorhanden"},
+    {id:"kontinent", name:"Der weite Kontinent", typ:"Dünn bekanntes Land vieler Völker",
+      erscheinung:"Weites, kaum kartiertes Land mit vielen unbekannten Völkern an den Rändern.",
+      beziehung:{label:"Euer Name strahlt nun über den ganzen Kontinent"}, haltung:"Weithin unerforscht"}
+  ],
+  besitz:[
+    "Bergfestung mit Wissenshaus und Versammlungsplatz",
+    "Das Korntal",
+    "Eigener tiefer Stollen plus Erzweg von den Drenn",
+    "Die zehn Bundesorte",
+    "Das Arsenal",
+    "Befestigte Pässe und Eichenfurt",
+    "Handel mit den Lir"
+  ],
+  historie:[
+    {kapitel:1, jahre:"Jahr 0 bis 4", zusammenfassung:"Vom hungernden Häuflein im leeren Kessel über Rat, Verfassung und Bündnis mit dem Talvolk zur geschützten Vasallenschaft unter den Flachlandleuten."},
+    {kapitel:2, jahre:"Jahr 6 bis 9", zusammenfassung:"Die Erzfalle durch die Drenn gebrochen, das Tal zurückerobert, einen Bund freier Völker gegründet, den Kriegsherrn Torv zerschlagen, zur führenden freien Macht eines ganzen Landes geworden."},
+    {kapitel:3, jahre:"Jahr 12 bis 14", zusammenfassung:"Die Großmacht Aurelan forderte Unterwerfung, Wissen und Tribut. Auf Zeit verhandelt, nichts hergegeben, die Berge zur Festung befestigt, einen Bund der Freien geeint, Aurelans Nachschub gestört und durch Stärke und einen klugen Frieden Aurelans ehrenvollen Rückzug und seine Anerkennung gewonnen. Daneben Rückschläge, tödliche Wegeunglücke, ein zäher Kampf gegen Aberglaube und Furcht, ein eigener tiefer Stollen gegen die Erzschwäche, das Wissenshaus dem Volk geöffnet, Tova als Verwalterin, der Wohlstand als neue Dimension, die Freundschaft mit den Lir."}
+  ],
+  offeneFaeden:[
+    "Was freie Völker im Frieden eint, wenn nicht mehr die gemeinsame Furcht es tut, die Gründungsfrage nun im großen Maßstab.",
+    "Ob aus dem lockernden Lager eine dauerhafte freie Ordnung des Kontinents zu schmieden ist, mit den Karren als Haupt, das führt, ohne zu herrschen.",
+    "Die reifende freie, wissende Gesellschaft und die lange Kulturarbeit, die Schule, der zähe Aberglaube, die Vernunft.",
+    "Die alternde Gründergeneration und die nachwachsende um Tova, die Frage, was über die Gründer hinaus Bestand hat.",
+    "Aurelan als anerkannte, aber weiter vorhandene Großmacht."
+  ],
+  karte:{ orte:[
+    {id:"die-karren", name:"Die Karren", typ:"Hauptstadt, Bergfestung", richtung:"Mittelpunkt", beziehung:"Heimat"},
+    {id:"korntal", name:"Korntal", typ:"Talregion", richtung:"Süden, darunter", beziehung:"Zweites Standbein"},
+    {id:"drenn-land", name:"Land der Drenn", typ:"Hochland", richtung:"Norden, über den Pass", beziehung:"Bundesgenosse, Erzquelle"},
+    {id:"eichenfurt", name:"Eichenfurt", typ:"Bundesort, Tor zur weiten Welt", richtung:"Osten", beziehung:"Bund, hier wurde Aurelan abgewehrt"},
+    {id:"steinbach", name:"Steinbach", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"nordfels", name:"Nordfels", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"hohenstein", name:"Hohenstein", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"gruenwald", name:"Grünwald", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"sonnenried", name:"Sonnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"bluetenau", name:"Blütenau", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"suedtor", name:"Südtor", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"brunnenried", name:"Brunnenried", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"westmark", name:"Westmark", typ:"Bundesort", richtung:"Föderation", beziehung:"Bund"},
+    {id:"lir-land", name:"Land der Lir", typ:"Freies Volk", richtung:"Westen", beziehung:"Befreundet, neue Trasse"},
+    {id:"aurelan-reich", name:"Aurelan", typ:"Großmacht", richtung:"Osten, jenseits", beziehung:"Wachsamer Friede"}
+  ]},
+  mapStyle:"Sauberer, moderner, professioneller Kartenstil, kein Pergament, deutsche Beschriftungen, Kompass und Legende, gedämpfte natürliche Farben."
+};
+
+/* ---------- kleine Helfer ---------- */
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n;};
+const ICO = {
+  nahrung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 0-5 2.5-5 6 0 4 2 9 5 12 3-3 5-8 5-12 0-3.5-2-6-5-6z"/><path d="M12 9v8"/></svg>',
+  material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>',
+  wissen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 0-2 2z"/><path d="M4 5v14"/><path d="M9 7h6M9 11h6"/></svg>',
+  bevoelkerung:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5a3 3 0 0 1 0 6M18 20c0-2.5-1-4-3-4.6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4M4 4h13l-2 4 2 4H4"/></svg>',
+  gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  stance:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.4 8.4 0 0 1-3.7-.7L3 21l1.8-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>',
+  castle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l3 2V6l3 2V6l3 2 3-2v2l3-2v2l3-2v13z"/><path d="M10 21v-4h4v4"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  star:f=>`<svg viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.2"><path d="M12 2.5l2.95 6.2 6.8.7-5.1 4.6 1.45 6.7L12 18.6 5.9 21.4l1.45-6.7-5.1-4.6 6.8-.7z"/></svg>`
+};
+const initials = n => n.replace(/^Die\s+/,'').trim().slice(0,1).toUpperCase();
+const beraterById = id => SAVE.berater.find(b=>b.id===id);
+
+/* ---------- I. LAGE ---------- */
+function renderLage(){
+  // Badges
+  const ev = SAVE.meta.weltereignis === 'gewürfelt';
+  $('#hero-badges').innerHTML =
+    `<span class="badge"><span class="dot"></span>Kapitel ${roman(SAVE.meta.kapitel)}</span>`+
+    `<span class="badge"><span class="dot"></span>${SAVE.meta.zeit.jahreszeit}, Jahr ${SAVE.meta.zeit.jahr}</span>`+
+    `<span class="badge ${ev?'live':'amber'}"><span class="dot"></span>Weltereignis ${ev?'gewürfelt':'noch offen'}</span>`+
+    `<span class="badge ${SAVE.meta.rundeOffen?'amber':''}"><span class="dot"></span>Runde ${SAVE.meta.rundeOffen?'offen':'geschlossen'}</span>`;
+
+  $('#realm-name').textContent = SAVE.volk.name;
+  $('#realm-essence').textContent = SAVE.volk.wesensart;
+  $('#realm-desc').textContent = SAVE.volk.erscheinung;
+
+  $('#crest-meta').innerHTML =
+    `<div class="m"><span class="k">Ausrichtung</span><span class="v">${SAVE.volk.ausrichtung}</span></div>`+
+    `<div class="m"><span class="k">Heimatregion</span><span class="v" style="font-size:15px">${SAVE.volk.region.name}</span></div>`;
+
+  // Ansehen
+  const st = SAVE.status.ansehen.stufe, max=3;
+  let stars=''; for(let i=1;i<=max;i++) stars+=`<span class="${i<=st?'on':'off'}">${ICO.star(i<=st)}</span>`;
+  $('#renown').innerHTML =
+    `<div class="lbl">Ansehen</div>`+
+    `<div class="stars">${stars}</div>`+
+    `<div class="rstage">Stufe ${st} von ${max}</div>`+
+    `<div class="rdesc">${SAVE.status.ansehen.label}</div>`+
+    `<div class="rfoot">${SAVE.status.text}</div>`;
+
+  // Grundgrößen
+  const g = SAVE.grundgroessen;
+  const cards = [
+    {k:'nahrung', lab:'Nahrung', num:g.nahrung, note:''},
+    {k:'material', lab:'Material', num:g.material, note:''},
+    {k:'wissen', lab:'Wissen', num:g.wissen, note:'Berühmter Hort des Wissens'},
+    {k:'bevoelkerung', lab:'Bevölkerung', num:g.bevoelkerung.zahl, note:g.bevoelkerung.label}
+  ];
+  $('#stat-grid').innerHTML = cards.map(c=>
+    `<div class="stat"><div class="ico">${ICO[c.k]}</div><div class="num">${c.num}</div><div class="lab">${c.lab}</div>${c.note?`<div class="note">${c.note}</div>`:''}</div>`
+  ).join('');
+
+  // Lagewerte als Balken (Skala -2..+3 → 5 Schritte)
+  const lw = SAVE.lagewerte;
+  const bars = [
+    {nm:'Verteidigung', v:lw.verteidigung, note:'Die Festung'},
+    {nm:'Mobilität', v:lw.mobilitaet, note:'Straßen und Bundeswege'},
+    {nm:'Wohlstand', v:lw.wohlstand, note:'Handel'}
+  ];
+  const MIN=-2, MAX=3, SPAN=MAX-MIN;
+  $('#lage-grid').innerHTML = bars.map(b=>{
+    const zeroPct = (0-MIN)/SPAN*100;            // Nullpunkt = 40%
+    const valPct  = (b.v-MIN)/SPAN*100;
+    const neg = b.v<0;
+    const left = neg ? valPct : zeroPct;
+    const width = Math.abs(valPct - zeroPct);
+    return `<div class="lagebar">
+      <div class="top"><span class="nm">${b.nm}</span><span class="val ${b.v===0?'neutral':''}">${b.v>0?'+':''}${b.v}</span></div>
+      <div class="scale"><span class="mid"></span><span class="fill ${neg?'neg':''}" style="left:${left}%;width:${Math.max(width,1.5)}%"></span></div>
+      <div class="scale-ticks"><span>-2</span><span>0</span><span>+3</span></div>
+      <div class="gnote">${b.note}</div>
+    </div>`;
+  }).join('');
+
+  // Ausbeute
+  $('#yield-row').innerHTML = lw.ausbeuten.map(a=>
+    `<div class="yield"><span class="amt">+${a.value}</span><div><div class="yk">Ausbeute ${a.key}</div><div class="ysrc">${a.quelle}</div></div></div>`
+  ).join('');
+
+  // Offene Fäden (Teaser, erste drei)
+  $('#threads').innerHTML = SAVE.offeneFaeden.slice(0,4).map(t=>
+    `<li><span class="marker"></span><span>${t}</span></li>`
+  ).join('');
+}
+
+/* ---------- II. BERATER ---------- */
+function loyMeta(v){
+  if(v>=4) return {state:'ergeben', color:'var(--ok)'};
+  if(v>=1) return {state:'treu', color:'var(--ok)'};
+  if(v===0) return {state:'schwankend', color:'var(--muted)'};
+  if(v>=-3) return {state:'verstimmt', color:'var(--amber)'};
+  return {state:'am Bruch', color:'var(--danger)'};
+}
+function renderBerater(){
+  $('#advisor-grid').innerHTML = SAVE.berater.map(b=>{
+    const lm = loyMeta(b.loyalitaet);
+    const pct = (b.loyalitaet+5)/10*100;  // -5..+5 → 0..100
+    return `<article class="advisor">
+      <div class="head">
+        <div class="portrait"><span class="ring"></span><span class="ini">${initials(b.name)}</span></div>
+        <div class="who"><div class="nm">${b.name}</div><div class="role">${b.rolle}</div></div>
+      </div>
+      <div class="goal"><span>${b.ziel}</span></div>
+      <div class="gen">${ICO.gen}<span>${b.generation}</span></div>
+      <div class="loy">
+        <div class="lhead"><span class="ltitle">Loyalität</span><span class="lstate" style="color:${lm.color}">${b.loyalitaet>0?'+':''}${b.loyalitaet} · ${lm.state}</span></div>
+        <div class="loy-track"><span class="marker" style="left:${pct}%"></span></div>
+        <div class="loy-ticks"><span>-5</span><span>0</span><span>+5</span></div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* ---------- III. WELT ---------- */
+function relMeta(b){
+  if(b.wert==null) return {cls:'unknown', txt:b.label, pips:0};
+  // wert grob -2..+3 → 0..5 pips
+  const pips = Math.max(0, Math.min(5, b.wert+2));
+  const cls = b.wert>=2 ? 'warm' : 'cool';
+  return {cls, txt:b.label, pips};
+}
+function renderWelt(){
+  $('#power-grid').innerHTML = SAVE.maechte.map(m=>{
+    const r = relMeta(m.beziehung);
+    let pips=''; for(let i=0;i<5;i++) pips+=`<i class="${i<r.pips?'on':''}"></i>`;
+    return `<article class="power">
+      <div class="ph"><div><div class="pname">${m.name}</div><div class="ptype">${m.typ}</div></div></div>
+      <div class="pdesc">${m.erscheinung}</div>
+      <span class="rel ${r.cls}">${m.beziehung.wert!=null?`<span class="pips">${pips}</span>`:''}${r.txt}</span>
+      <div class="stance">${ICO.stance}<span>${m.haltung}</span></div>
+    </article>`;
+  }).join('');
+
+  $('#group-grid').innerHTML = SAVE.gruppen.map(gr=>{
+    const sp = beraterById(gr.sprecherId);
+    return `<div class="group">
+      <div class="gp">${initials(gr.name)}</div>
+      <div class="gmeta">
+        <div class="gn">${gr.name}</div>
+        <div class="gk">${gr.kompetenz}</div>
+        <div class="gsp">Sprecher: <b>${sp?sp.name:gr.sprecherId}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- IV. KARTE ---------- */
+function renderKarte(){
+  $('#map-style').textContent = SAVE.mapStyle;
+  $('#map-legend').innerHTML = SAVE.karte.orte.map(o=>{
+    const cap = /Hauptstadt|Bergfestung/.test(o.typ);
+    return `<li>
+      <span class="gly ${cap?'cap':''}">${cap?ICO.castle:ICO.pin}</span>
+      <div>
+        <div class="li-nm">${o.name}</div>
+        <div class="li-ty">${o.typ}</div>
+        <div class="li-rl">${o.beziehung}</div>
+      </div>
+      <span class="li-dir">${o.richtung}</span>
+    </li>`;
+  }).join('');
+}
+
+/* ---------- V. HISTORIE ---------- */
+function renderHistorie(){
+  $('#timeline').innerHTML = SAVE.historie.map(h=>{
+    const cur = h.kapitel===SAVE.meta.kapitel;
+    return `<div class="epoch ${cur?'current':''}">
+      <div class="node"><b>${roman(h.kapitel)}</b></div>
+      <div class="ehead">
+        <span class="etitle">Kapitel ${roman(h.kapitel)}</span>
+        <span class="eyears">${h.jahre}</span>
+        ${cur?'<span class="ecur">Gegenwart</span>':''}
+      </div>
+      <p class="esum">${h.zusammenfassung}</p>
+    </div>`;
+  }).join('');
+
+  $('#skills').innerHTML = SAVE.faehigkeiten.map(f=>`<li>${ICO.spark}<span>${f}</span></li>`).join('');
+  $('#holdings').innerHTML = SAVE.besitz.map(b=>`<li>${ICO.check}<span>${b}</span></li>`).join('');
+}
+
+function roman(n){return ['','I','II','III','IV','V','VI','VII','VIII','IX','X'][n]||n;}
+
+/* ---------- Tabs ---------- */
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.setAttribute('aria-selected', x===t ? 'true':'false'));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}));
+
+/* ---------- Init ---------- */
+renderLage();
+renderBerater();
+renderWelt();
+renderKarte();
+renderHistorie();
+</script>
+</body>
+</html>
