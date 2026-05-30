@@ -5,6 +5,24 @@ import { el, gauge } from '../components/ui.js';
 
 const fmt = (n) => (n > 0 ? `+${n}` : `${n}`);
 
+// Trend-Markierung je Grundgröße (steigend ▲, fallend ▼, gleichbleibend →).
+const TREND = {
+  steigend: { mark: '▲', cls: 'up' },
+  fallend: { mark: '▼', cls: 'down' },
+  gleichbleibend: { mark: '→', cls: 'flat' },
+};
+function trendEl(trends, key) {
+  const t = trends && trends[key];
+  if (!t || !TREND[t.richtung]) return null;
+  const { mark, cls } = TREND[t.richtung];
+  return el('span', {
+    class: `trend trend-${cls}`,
+    'data-testid': `trend-${key}`,
+    title: t.grund || '',
+    text: mark,
+  });
+}
+
 const ICO = {
   nahrung: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 0-5 2.5-5 6 0 4 2 9 5 12 3-3 5-8 5-12 0-3.5-2-6-5-6z"/><path d="M12 9v8"/></svg>',
   material: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>',
@@ -36,6 +54,7 @@ export function renderLage(root, state, opts = {}) {
       el('div', { class: 'stat' }, [
         el('div', { class: 'ico', html: ICO[s.k] || '' }),
         el('div', { class: 'num', 'data-testid': `stat-${s.k}`, text: String(s.val) }),
+        trendEl(state.trends, s.k),
         el('div', { class: 'lab', text: s.lab }),
         s.sub ? el('div', { class: 'note', text: s.sub }) : null,
       ]),
@@ -96,7 +115,56 @@ export function renderLage(root, state, opts = {}) {
     threads,
   ]);
 
-  root.append(grund, el('div', { class: 'grid-2 mt' }, [lage, faeden]));
+  root.append(grund);
+  if (state.runde && (state.runde.aktionen || []).length) {
+    root.append(renderAktionsbrett(state.runde));
+  }
+  root.append(el('div', { class: 'grid-2 mt' }, [lage, faeden]));
+}
+
+// Aktionsbrett der laufenden Runde: Haupt/Neben-Zähler und je Aktion Titel,
+// Kern, Folge, Ziel, Modifikator und Wurf-Hinweis bzw. Ergebnis.
+function renderAktionsbrett(runde) {
+  const haupt = runde.haupt || {};
+  const neben = runde.neben || {};
+  const head = el('div', { class: 'block-head' }, [
+    el('h3', { text: 'Aktionen dieser Runde' }),
+    el('div', { class: 'rule' }),
+    el('span', { class: 'eyebrow', 'data-testid': 'aktion-budget',
+      text: `Haupt ${haupt.used ?? 0}/${haupt.max ?? 0} · Neben ${neben.used ?? 0}/${neben.max ?? 0}` }),
+  ]);
+
+  const rows = (runde.aktionen || []).map((a) => {
+    const modStr = typeof a.mod === 'number' ? (a.mod >= 0 ? `+${a.mod}` : `${a.mod}`) : '';
+    const roll = a.wurf == null
+      ? el('span', { class: 'aktion-cue', text: '▶ 1d10' })
+      : el('span', { class: 'aktion-ergebnis', 'data-testid': 'aktion-ergebnis', text: a.ergebnis || `Wurf ${a.wurf}` });
+    return el('article', {
+      class: `aktion aktion-${a.art}${a.status === 'frei' ? ' frei' : ''}`,
+      'data-testid': 'aktion',
+      'data-id': a.id || '',
+    }, [
+      el('span', { class: 'aktion-art', title: a.art === 'haupt' ? 'Hauptaktion' : 'Nebenaktion',
+        text: a.art === 'haupt' ? 'H' : 'N' }),
+      el('div', { class: 'aktion-body' }, [
+        el('div', { class: 'aktion-top' }, [
+          el('span', { class: 'aktion-titel', 'data-testid': 'aktion-titel', text: a.titel || '' }),
+          a.kern ? el('span', { class: 'aktion-kern', text: `„${a.kern}“` }) : null,
+        ]),
+        a.folge ? el('div', { class: 'aktion-folge', text: a.folge }) : null,
+      ]),
+      el('div', { class: 'aktion-roll' }, [
+        typeof a.ziel === 'number' ? el('span', { class: 'aktion-ziel', text: `Ziel ${a.ziel}` }) : null,
+        modStr ? el('span', { class: 'aktion-mod', text: modStr }) : null,
+        roll,
+      ]),
+    ]);
+  });
+
+  return el('section', { class: 'panel pad aktionsbrett mt', 'data-testid': 'aktionsbrett' }, [
+    head,
+    el('div', { class: 'aktion-list' }, rows),
+  ]);
 }
 
 function blockHead(title, eyebrow) {

@@ -34,6 +34,12 @@
     "wissen": 16,
     "bevoelkerung": { "zahl": 400, "label": "Kern geschätzt etwa vierhundert, mit Korntal und Weilern um die tausend; der genaue Stand folgt mit dem Zensus. Dazu der freie Bund vieler Völker, nicht untertan." }
   },
+  "trends": {
+    "nahrung": { "richtung": "fallend", "grund": "Magerer Bergboden und wachsende Stadt" },
+    "material": { "richtung": "gleichbleibend", "grund": "Eigener Stollen deckt den Bedarf knapp" },
+    "wissen": { "richtung": "steigend", "grund": "Wissenshaus und die junge Schule" },
+    "bevoelkerung": { "richtung": "steigend", "grund": "Frieden und Zuzug" }
+  },
   "lagewerte": {
     "verteidigung": 3,
     "mobilitaet": 0,
@@ -78,17 +84,17 @@
     { "id": "bundesvoelker", "name": "Freie Völker des Bundes", "sprecherId": "soren", "kompetenz": "Gemeinschaft eigenständiger Völker" }
   ],
   "berater": [
-    { "id": "borka", "name": "Borka", "rolle": "Sicherheit und Speicher", "ziel": "Sicherheit über alles, Vorsicht, die Toten geehrt", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Verwittertes, wachsames Gesicht, kräftige Statur, schlichte dunkle Wolle, ein Bund schwerer Schlüssel am Gürtel." },
-    { "id": "idr", "name": "Idr", "rolle": "Nahrung und Diplomatie", "ziel": "Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", "loyalitaet": 5, "generation": "Generation des Lebensabends, Verhandlerin des Friedens mit Aurelan", "erscheinung": "Schlanke Frau mittleren Alters mit ruhigem, klugem Blick, einfacher Reisekleidung und einem diplomatischen Abzeichen." },
-    { "id": "mell", "name": "Mell", "rolle": "Bau", "ziel": "Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", "loyalitaet": 5, "generation": "Generation des Lebensabends, Erbauer der Festung", "erscheinung": "Kräftige Baumeisterhände, lederne Schürze, Zirkel und Senklot, ruhige Beständigkeit." },
-    { "id": "yann", "name": "Yann", "rolle": "Späher und Netz", "ziel": "Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Sehnige Spähergestalt in erdfarbenem Umhang, scharfer Blick, leichte Ausrüstung für lange Wege." },
-    { "id": "harn", "name": "Harn", "rolle": "Metall und Wissen, Haupt des Wissenshauses", "ziel": "Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Älterer Meister mit rußigen Händen und feinem Werkzeug, Schriftrollen und ein Stück gehärteten Stahls, Haupt des Wissenshauses." },
-    { "id": "renja", "name": "Renja", "rolle": "Talvolk", "ziel": "Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Aufrechte Gestalt aus dem Talvolk in gewebter Tracht, würdevoll, von harter Arbeit gezeichnet." },
-    { "id": "soren", "name": "Soren", "rolle": "Stimme der Bundesvölker", "ziel": "Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Besonnener Sprecher der Bundesvölker, gemischte Tracht mehrerer Völker, offener, verbindender Ausdruck." }
+    { "id": "borka", "name": "Borka", "rolle": "Sicherheit und Speicher", "ziel": "Sicherheit über alles, Vorsicht, die Toten geehrt", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Verwittertes, wachsames Gesicht, kräftige Statur, schlichte dunkle Wolle, ein Bund schwerer Schlüssel am Gürtel." },
+    { "id": "idr", "name": "Idr", "rolle": "Nahrung und Diplomatie", "ziel": "Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", "loyalitaet": 5, "generation": "Generation des Lebensabends, Verhandlerin des Friedens mit Aurelan", "lebensstand": "lebensabend", "erscheinung": "Schlanke Frau mittleren Alters mit ruhigem, klugem Blick, einfacher Reisekleidung und einem diplomatischen Abzeichen." },
+    { "id": "mell", "name": "Mell", "rolle": "Bau", "ziel": "Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", "loyalitaet": 5, "generation": "Generation des Lebensabends, Erbauer der Festung", "lebensstand": "lebensabend", "erscheinung": "Kräftige Baumeisterhände, lederne Schürze, Zirkel und Senklot, ruhige Beständigkeit." },
+    { "id": "yann", "name": "Yann", "rolle": "Späher und Netz", "ziel": "Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Sehnige Spähergestalt in erdfarbenem Umhang, scharfer Blick, leichte Ausrüstung für lange Wege." },
+    { "id": "harn", "name": "Harn", "rolle": "Metall und Wissen, Haupt des Wissenshauses", "ziel": "Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Älterer Meister mit rußigen Händen und feinem Werkzeug, Schriftrollen und ein Stück gehärteten Stahls, Haupt des Wissenshauses." },
+    { "id": "renja", "name": "Renja", "rolle": "Talvolk", "ziel": "Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Aufrechte Gestalt aus dem Talvolk in gewebter Tracht, würdevoll, von harter Arbeit gezeichnet." },
+    { "id": "soren", "name": "Soren", "rolle": "Stimme der Bundesvölker", "ziel": "Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Besonnener Sprecher der Bundesvölker, gemischte Tracht mehrerer Völker, offener, verbindender Ausdruck." }
   ],
   "personen": [
-    { "id": "sprecher", "name": "Der Sprecher", "rolle": "Vom Spieler geführter Primus, gefeierter Gründer im Lebensabend; übergibt die Felder an den Rat, behält Veto und Bericht", "erscheinung": "Gealterter, geachteter Anführer mit ruhiger Autorität, schlichter, würdiger Tracht und dem Zeichen des Primus." },
-    { "id": "tova", "name": "Tova", "rolle": "Über die neue Stadtverwaltung und Wissensgilde, heller Kopf der nächsten Generation", "erscheinung": "Junge, wache Gestalt mit Schreibzeug und Verwaltungslisten, schlichte städtische Kleidung, neugieriger Blick." },
+    { "id": "sprecher", "name": "Der Sprecher", "rolle": "Vom Spieler geführter Primus, gefeierter Gründer im Lebensabend; übergibt die Felder an den Rat, behält Veto und Bericht", "lebensstand": "lebensabend", "erscheinung": "Gealterter, geachteter Anführer mit ruhiger Autorität, schlichter, würdiger Tracht und dem Zeichen des Primus." },
+    { "id": "tova", "name": "Tova", "rolle": "Über die neue Stadtverwaltung und Wissensgilde, heller Kopf der nächsten Generation", "lebensstand": "ruestig", "erscheinung": "Junge, wache Gestalt mit Schreibzeug und Verwaltungslisten, schlichte städtische Kleidung, neugieriger Blick." },
     { "id": "veyra", "name": "Veyra", "rolle": "Wortführerin Aurelans, zog mit Respekt ab", "erscheinung": "Würdevolle Gesandte Aurelans in feiner, fremdländischer Amtstracht, respektvoll und kühl." }
   ],
   "maechte": [
@@ -131,6 +137,15 @@
     "Aurelan als anerkannte, aber weiter vorhandene Großmacht.",
     "Offen entschieden, noch nicht ausgewürfelt: die Verwaltung, der Stadtausbau Süd, die Zuzugskampagne."
   ],
+  "runde": {
+    "haupt": { "used": 0, "max": 3 },
+    "neben": { "used": 0, "max": 2 },
+    "aktionen": [
+      { "id": "verwaltung", "art": "haupt", "titel": "Verwaltung", "kern": "Ordnung, Zensus, Schrift", "folge": "Verwandelt den geschätzten Stand in einen genauen Zensus und ordnet das Regiment.", "ziel": 4, "mod": 3, "status": "gewaehlt", "wurf": null, "ergebnis": null },
+      { "id": "stadtausbau-sued", "art": "haupt", "titel": "Stadtausbau Süd", "kern": "Neues Viertel, Süden", "folge": "Schafft Wohnraum für den Zuzug, bindet aber das knappe Material.", "ziel": 5, "mod": 3, "status": "gewaehlt", "wurf": null, "ergebnis": null },
+      { "id": "zuzugskampagne", "art": "neben", "titel": "Zuzugskampagne", "kern": "Werben, Wachstum, Stadt", "folge": "Bringt mehr Hände, drückt aber die Nahrung auf magerem Boden.", "ziel": 4, "mod": 2, "status": "gewaehlt", "wurf": null, "ergebnis": null }
+    ]
+  },
   "setzungen": [
     { "titel": "Lebensstand", "text": "Alternde Charaktere durchlaufen Rüstig, Lebensabend (-1 auf eigene Feldaktionen), Hinfällig (-2), dann Tod. Im Lebensabend und in Hinfällig fällt jeden Winter ein Lebenswurf, ein roher 1d10 plus Modifikatoren. Im Lebensabend gegen 4, darunter eine Stufe hinab; in Hinfällig gegen 5, darunter der Tod. Eine 1 ist immer ein jäher Schlag eine Stufe tiefer (aus Hinfällig der Tod), eine 10 immer ein rüstiges Jahr. Der Sprecher und der Rat gehören zur Generation des Lebensabends." },
     { "titel": "Nachfolge", "text": "Stirbt der Sprecher, wandert die Linse auf einen neuen Kopf, das Spiel läuft weiter. Was dem Volk gehört, bleibt (Grundgrößen, Festung, Arsenal, Wissen, Verfassung). Das Persönliche setzt zurück: das Ansehen auf einen Bruchteil, die Ratsloyalität auf einen niedrigen Grundwert, neu zu verdienen. Ein aufgezogener Erbe und ein benannter Weg ergeben einen ruhigen Übergang, unvorbereitet eine Nachfolgekrise als schweres Weltereignis." },

@@ -138,6 +138,7 @@
           "ziel": { "type": "string" },
           "loyalitaet": { "type": "integer", "minimum": -5, "maximum": 5 },
           "generation": { "type": "string" },
+          "lebensstand": { "$ref": "#/definitions/lebensstand" },
           "erscheinung": { "type": "string" },
           "portrait": { "$ref": "#/definitions/portrait" }
         }
@@ -152,6 +153,7 @@
           "id": { "$ref": "#/definitions/id" },
           "name": { "type": "string" },
           "rolle": { "type": "string" },
+          "lebensstand": { "$ref": "#/definitions/lebensstand" },
           "erscheinung": { "type": "string" },
           "portrait": { "$ref": "#/definitions/portrait" }
         }
@@ -201,6 +203,45 @@
       }
     },
     "offeneFaeden": { "type": "array", "items": { "type": "string" } },
+    "trends": {
+      "type": "object",
+      "description": "Optionaler Trend je Grundgröße (steigend, fallend, gleichbleibend) mit kurzem Grund.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["richtung"],
+        "properties": {
+          "richtung": { "type": "string", "enum": ["steigend", "fallend", "gleichbleibend"] },
+          "grund": { "type": "string" }
+        }
+      }
+    },
+    "runde": {
+      "type": "object",
+      "description": "Optionales Aktionsbrett der laufenden Runde: Haupt- und Nebenaktionen mit Ziel, Modifikator, Status und (nach dem Wurf) Wurf und Ergebnis.",
+      "properties": {
+        "haupt": { "$ref": "#/definitions/aktionsbudget" },
+        "neben": { "$ref": "#/definitions/aktionsbudget" },
+        "aktionen": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["art", "titel"],
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "art": { "type": "string", "enum": ["haupt", "neben"] },
+              "titel": { "type": "string" },
+              "kern": { "type": "string", "description": "Drei-Wort-Kern des Vorhabens." },
+              "folge": { "type": "string", "description": "Klartext-Folge des Vorhabens." },
+              "ziel": { "type": "integer" },
+              "mod": { "type": "integer" },
+              "status": { "type": "string", "enum": ["gewaehlt", "frei"] },
+              "wurf": { "type": ["integer", "null"] },
+              "ergebnis": { "type": ["string", "null"], "description": "Nach dem Wurf: Erfolg/Misserfolg und Folge." }
+            }
+          }
+        }
+      }
+    },
     "setzungen": {
       "type": "array",
       "description": "Optionale Sonderregeln dieses Spiels, ergänzend zur Mechanik (z. B. Lebensstand, Nachfolge, Delegationsregiment).",
@@ -237,6 +278,14 @@
   },
   "definitions": {
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "lebensstand": { "type": "string", "enum": ["ruestig", "lebensabend", "hinfaellig"] },
+    "aktionsbudget": {
+      "type": "object",
+      "properties": {
+        "used": { "type": "integer", "minimum": 0 },
+        "max": { "type": "integer", "minimum": 0 }
+      }
+    },
     "kennwert": {
       "type": "object",
       "required": ["key", "value"],

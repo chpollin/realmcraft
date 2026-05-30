@@ -4,6 +4,8 @@ import { el, loyaltyMeter } from '../components/ui.js';
 
 const initials = (n) => (n || '?').replace(/^Die\s+/, '').trim().slice(0, 1).toUpperCase();
 
+const LEBENSSTAND = { ruestig: 'Rüstig', lebensabend: 'Lebensabend', hinfaellig: 'Hinfällig' };
+
 function loyMeta(v) {
   if (v >= 4) return { state: 'ergeben', cls: 'pos' };
   if (v >= 1) return { state: 'treu', cls: 'pos' };
@@ -40,6 +42,13 @@ export function renderBerater(root, state, handlers = {}) {
           el('div', { class: 'who' }, [
             el('div', { class: 'nm', 'data-testid': 'advisor-name', text: b.name }),
             el('div', { class: 'role', 'data-testid': 'advisor-role', text: b.rolle || '' }),
+            b.lebensstand && LEBENSSTAND[b.lebensstand]
+              ? el('span', {
+                  class: `advisor-lebensstand ls-${b.lebensstand}`,
+                  'data-testid': 'advisor-lebensstand',
+                  text: LEBENSSTAND[b.lebensstand],
+                })
+              : null,
           ]),
         ]),
         b.ziel ? el('div', { class: 'goal', 'data-testid': 'advisor-goal' }, [el('span', { text: b.ziel })]) : el('div', { 'data-testid': 'advisor-goal', hidden: true }),

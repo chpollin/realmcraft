@@ -76,6 +76,8 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 ### Lage (`data-view="lage"`)
 - `[data-testid="realm-name"]` (Text "Die Karren"), `[data-testid="chapter"]`, `[data-testid="season"]`, `[data-testid="worldevent"]`, `[data-testid="ansehen"]`.
 - Delta-Banner (nur nach echtem Laden mit Änderungen, nicht bei Erst-Laden/Auto-Restore): `[data-testid="delta-banner"]` mit `[data-testid="delta-item"]` je Änderung und `[data-testid="delta-dismiss"]` zum Schließen.
+- Trends (optional, je Grundgröße aus `trends`): `[data-testid="trend-<key>"]` (z.B. `trend-nahrung`), Text ▲/▼/→, `title` = Grund. Fehlt `trends`, fehlt das Element.
+- Aktionsbrett (optional, aus `runde`): `[data-testid="aktionsbrett"]` mit `[data-testid="aktion-budget"]` (Text "Haupt u/m · Neben u/m") und je Aktion `[data-testid="aktion"]` mit `[data-testid="aktion-titel"]`; nach dem Wurf `[data-testid="aktion-ergebnis"]`. Fehlt `runde`/leere `aktionen`, fehlt das Brett.
 - Stat-Werte als Text: `[data-testid="stat-nahrung"]`=8, `stat-material`=5, `stat-wissen`=16, `stat-bevoelkerung` (enthält 300).
 - Lagewerte: `[data-testid="lage-verteidigung"]` (enthält "+3"), `lage-mobilitaet` ("0"), `lage-wohlstand` ("+1").
 - `[data-testid="offene-faeden"]` Liste mit ≥1 Eintrag.
@@ -83,6 +85,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 ### Berater (`data-view="berater"`)
 - `[data-testid="advisor-list"]` enthält genau `state.berater.length` × `[data-testid="advisor-card"]`.
 - Pro Card: `[data-testid="advisor-name"]`, `[data-testid="advisor-role"]`, `[data-testid="advisor-goal"]`, `[data-testid="advisor-loyalty"]` (zeigt Zahl/Marke), `[data-testid="advisor-portrait"]` (ein `<img>`), `[data-testid="generate-portrait"]` (Button). Die Card trägt `data-id` = berater.id.
+- Optional `[data-testid="advisor-lebensstand"]` (aus `berater.lebensstand`: Rüstig, Lebensabend, Hinfällig), nur wenn gesetzt.
 
 ### Welt (`data-view="welt"`)
 - `[data-testid="power-card"]` × `state.maechte.length`, je mit `[data-testid="power-name"]`, `power-relation`, `power-stance`.

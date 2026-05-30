@@ -1,6 +1,6 @@
 # Wissensdokument II, Speicherstand "Die Karren", Beginn Kapitel 4
 
-> Hybrider Speicherstand: lesbare Prosa für Mensch und Spielleiter, plus ein kanonischer ```json-Block am Ende für das RealmCraft-Dashboard. Beide tragen denselben Stand.
+> Hybrider Speicherstand: lesbare Prosa für Mensch und Spielleiter, plus ein kanonischer json-Block am Ende für das RealmCraft-Dashboard. Beide tragen denselben Stand.
 
 ## Kapitelstand
 Beginn des vierten Kapitels, nach einem Zeitsprung von fünf Friedensjahren. Am Ende von Kapitel 3 zwang das Volk die Großmacht Aurelan zum ehrenvollen Rückzug und gewann ihre Anerkennung als freie, eigenständige Macht. Sein Ansehen strahlt über den ganzen Kontinent. Kapitel 4 setzt im Frieden ein, der Bund der Freien lockert sich ohne den gemeinsamen Feind, die Gründergeneration ist alt geworden, eine jüngere um Tova wächst heran. Der Sprecher hat das Kapitel mit einer Rede auf dem Platz im Kessel eröffnet und beginnt, die Führung in geordnete Hände zu legen.
@@ -17,8 +17,8 @@ Mittelpunkt die zur Festung ausgebaute Bergstadt Die Karren mit Wissenshaus, Ver
 ## Aktuelle Modifikatoren
 Gelände Verteidigung +2, Erz +1, Nahrung -1, Mobilität -1. Lagebezogen Verteidigung gesamt +3 durch die Festung, Mobilität 0 durch Straßen, Wohlstand +1. Der Sprecher steht im Lebensabend, -1 auf eigene Feldaktionen, ohne Wirkung auf delegierte Vorhaben. Die Gruppen werden von ihren Sprechern geführt, jeder ergebene Berater kann in seinem Feld einen Bonus von +1 geben.
 
-## Grundgrößen
-Nahrung 8, Material 5, Wissen 16. Bevölkerung, Kern geschätzt etwa vierhundert, mit Korntal und Weilern um die tausend, der genaue Stand folgt mit dem Zensus der neuen Verwaltung. Dazu der freie Bund vieler Völker, viele Tausend, aber nicht untertan.
+## Grundgrößen und Trends
+Nahrung 8 (fallend, magerer Bergboden und wachsende Stadt), Material 5 (gleichbleibend, der eigene Stollen deckt den Bedarf knapp), Wissen 16 (steigend, Wissenshaus und die junge Schule). Bevölkerung steigend durch Frieden und Zuzug, Kern geschätzt etwa vierhundert, mit Korntal und Weilern um die tausend, der genaue Stand folgt mit dem Zensus der neuen Verwaltung. Dazu der freie Bund vieler Völker, viele Tausend, aber nicht untertan.
 
 ## Lagebezogene Werte
 Verteidigung +3 durch die Festung, Mobilität 0, Wohlstand +1, Ausbeute Erz +1 über die Drenn und den eigenen tiefen Stollen.
@@ -31,18 +31,18 @@ Gruppen: Hirten, Bauern und Talbauern, Späher unter Yann, Handwerk und Bau unte
 
 Besitz: Bergfestung mit Wissenshaus und Versammlungsplatz, das Korntal, der eigene tiefe Stollen plus Erzweg von den Drenn, der Erzgrund, die Weiler, die zehn Bundesorte, das Arsenal, befestigte Pässe, Eichenfurt, der Handel mit den Lir.
 
-Personen: der Sprecher, vom Spieler geführt, gefeierter Gründer im Lebensabend, der ein hungerndes Häuflein zu einer freien Macht führte und die Gefahrvollmacht nach dem Krieg freiwillig zurückgab. Die sieben Berater, gealtert. Tova, junge Stadtverwalterin aus der Wissensgilde, nun über die neue Verwaltung, heller Kopf der nächsten Generation. Veyra, Wortführerin Aurelans, zog mit Respekt ab.
+Personen: der Sprecher, vom Spieler geführt, gefeierter Gründer im Lebensabend, der ein hungerndes Häuflein zu einer freien Macht führte und die Gefahrvollmacht nach dem Krieg freiwillig zurückgab. Die sieben Berater, gealtert, alle im Lebensabend. Tova, junge Stadtverwalterin aus der Wissensgilde, nun über die neue Verwaltung, heller Kopf der nächsten Generation, rüstig. Veyra, Wortführerin Aurelans, zog mit Respekt ab.
 
 ## Berater, Ziele, Loyalität, Felder
 Der Rat, alle ergeben auf +5, ein über Jahre verdienter Höchststand, im Aurelan-Krieg geprüft und gehalten. Die Kerngruppe ist alt, Generation des Lebensabends.
 
-- Borka, Sicherheit und Speicher. Feld die Wache, die Vorräte, die Festung. Ziel, Sicherheit über alles, Vorsicht, die Toten geehrt. +5.
-- Idr, Nahrung und Diplomatie, einst Geflohene, Verhandlerin des Friedens mit Aurelan. Feld die Ernte und die auswärtigen Bande. Ziel, nie Hunger und Abhängigkeit, Diplomatie vor Gewalt. +5.
-- Mell, Bau, Erbauer der Festung. Feld die Werke und die Bauvorhaben. Ziel, Dauerhaftes bauen, nicht überdehnen. +5.
-- Yann, Späher und Netz. Feld der äußere Späh- und Absicherungsdienst. Ziel, der lange Weg in die Freiheit, der Bund, nie beherrscht. +5.
-- Harn, Metall und Wissen, Haupt des Wissenshauses. Feld Schmieden, Stollen, Wissen, der Vorsprung. Ziel, Wissen und Handwerk mehren und schützen, nie an Fremde abgeben. +5.
-- Renja, Talvolk. Feld das Korntal, die Gleichheit im Innern, die Schule. Ziel, Würde und Freiheit der einst Unterdrückten, kein Herr über Freie. +5.
-- Soren, Stimme der Bundesvölker. Feld der Bund. Ziel, gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen. +5.
+- Borka, Sicherheit und Speicher. Feld die Wache, die Vorräte, die Festung. Ziel, Sicherheit über alles, Vorsicht, die Toten geehrt. +5, Lebensabend.
+- Idr, Nahrung und Diplomatie, einst Geflohene, Verhandlerin des Friedens mit Aurelan. Feld die Ernte und die auswärtigen Bande. Ziel, nie Hunger und Abhängigkeit, Diplomatie vor Gewalt. +5, Lebensabend.
+- Mell, Bau, Erbauer der Festung. Feld die Werke und die Bauvorhaben. Ziel, Dauerhaftes bauen, nicht überdehnen. +5, Lebensabend.
+- Yann, Späher und Netz. Feld der äußere Späh- und Absicherungsdienst. Ziel, der lange Weg in die Freiheit, der Bund, nie beherrscht. +5, Lebensabend.
+- Harn, Metall und Wissen, Haupt des Wissenshauses. Feld Schmieden, Stollen, Wissen, der Vorsprung. Ziel, Wissen und Handwerk mehren und schützen, nie an Fremde abgeben. +5, Lebensabend.
+- Renja, Talvolk. Feld das Korntal, die Gleichheit im Innern, die Schule. Ziel, Würde und Freiheit der einst Unterdrückten, kein Herr über Freie. +5, Lebensabend.
+- Soren, Stimme der Bundesvölker. Feld der Bund. Ziel, gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen. +5, Lebensabend.
 
 ## Verfassung und Regiment
 Geschrieben und gereift. Rat mit festen Feldern, Sprecher als Primus mit Veto und der im Krieg genutzten, danach zurückgegebenen Gefahrvollmacht, was die Rechtsordnung stärkte. Versammlung am Marktplatz, Wissenshaus vom Rat geleitet und für das Volk geöffnet, Stadtverwaltung unter Tova. Neu in diesem Kapitel, der Primus hat die stehende Führung jedes Feldes seinem Ratsmitglied übergeben. Die Berater verwalten, wachen und entscheiden eigenständig in ihren Feldern und berichten Runde für Runde, der Primus behält Veto und das letzte Wort. Darüber der Bund der Freien, eine Gemeinschaft eigenständiger Völker, im Krieg geeint, im Frieden sich lockernd.
@@ -52,6 +52,13 @@ Die freien Völker des Bundes, im Frieden wieder lockerer. Die Lir, fester Freun
 
 ## Beziehungen und Ansehen
 Ansehen auf nie gekannter Höhe, das Volk, das eine Großmacht abwehrte, Leuchtfeuer der Freien. Der Rat geschlossen ergeben. Die Lir fest, die Drenn treu, Aurelan im wachsamen Frieden. Das Lager der Freien lockert sich.
+
+## Aktionen dieser Runde
+Haupt 0 von 3, Neben 0 von 2. Drei Vorhaben sind entschieden, die Würfe stehen aus.
+
+- Verwaltung (Haupt), "Ordnung, Zensus, Schrift". Verwandelt den geschätzten Stand in einen genauen Zensus und ordnet das Regiment. Ziel 4, Modifikator +3.
+- Stadtausbau Süd (Haupt), "Neues Viertel, Süden". Schafft Wohnraum für den Zuzug, bindet aber das knappe Material. Ziel 5, Modifikator +3.
+- Zuzugskampagne (Neben), "Werben, Wachstum, Stadt". Bringt mehr Hände, drückt aber die Nahrung auf magerem Boden. Ziel 4, Modifikator +2.
 
 ## Historie, der Bogen in Kürze
 Kapitel 1, Jahr 0 bis 4. Vom hungernden Häuflein im leeren Kessel über Rat, Verfassung und Bündnis mit dem Talvolk zur geschützten Vasallenschaft unter den Flachlandleuten.
@@ -117,6 +124,12 @@ Bevölkerung. Der unmittelbare Kern bleibt klein und nah, geführt über benannt
     "wissen": 16,
     "bevoelkerung": { "zahl": 400, "label": "Kern geschätzt etwa vierhundert, mit Korntal und Weilern um die tausend; der genaue Stand folgt mit dem Zensus. Dazu der freie Bund vieler Völker, nicht untertan." }
   },
+  "trends": {
+    "nahrung": { "richtung": "fallend", "grund": "Magerer Bergboden und wachsende Stadt" },
+    "material": { "richtung": "gleichbleibend", "grund": "Eigener Stollen deckt den Bedarf knapp" },
+    "wissen": { "richtung": "steigend", "grund": "Wissenshaus und die junge Schule" },
+    "bevoelkerung": { "richtung": "steigend", "grund": "Frieden und Zuzug" }
+  },
   "lagewerte": {
     "verteidigung": 3,
     "mobilitaet": 0,
@@ -161,17 +174,17 @@ Bevölkerung. Der unmittelbare Kern bleibt klein und nah, geführt über benannt
     { "id": "bundesvoelker", "name": "Freie Völker des Bundes", "sprecherId": "soren", "kompetenz": "Gemeinschaft eigenständiger Völker" }
   ],
   "berater": [
-    { "id": "borka", "name": "Borka", "rolle": "Sicherheit und Speicher", "ziel": "Sicherheit über alles, Vorsicht, die Toten geehrt", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Verwittertes, wachsames Gesicht, kräftige Statur, schlichte dunkle Wolle, ein Bund schwerer Schlüssel am Gürtel." },
-    { "id": "idr", "name": "Idr", "rolle": "Nahrung und Diplomatie", "ziel": "Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", "loyalitaet": 5, "generation": "Generation des Lebensabends, Verhandlerin des Friedens mit Aurelan", "erscheinung": "Schlanke Frau mittleren Alters mit ruhigem, klugem Blick, einfacher Reisekleidung und einem diplomatischen Abzeichen." },
-    { "id": "mell", "name": "Mell", "rolle": "Bau", "ziel": "Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", "loyalitaet": 5, "generation": "Generation des Lebensabends, Erbauer der Festung", "erscheinung": "Kräftige Baumeisterhände, lederne Schürze, Zirkel und Senklot, ruhige Beständigkeit." },
-    { "id": "yann", "name": "Yann", "rolle": "Späher und Netz", "ziel": "Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Sehnige Spähergestalt in erdfarbenem Umhang, scharfer Blick, leichte Ausrüstung für lange Wege." },
-    { "id": "harn", "name": "Harn", "rolle": "Metall und Wissen, Haupt des Wissenshauses", "ziel": "Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Älterer Meister mit rußigen Händen und feinem Werkzeug, Schriftrollen und ein Stück gehärteten Stahls, Haupt des Wissenshauses." },
-    { "id": "renja", "name": "Renja", "rolle": "Talvolk", "ziel": "Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Aufrechte Gestalt aus dem Talvolk in gewebter Tracht, würdevoll, von harter Arbeit gezeichnet." },
-    { "id": "soren", "name": "Soren", "rolle": "Stimme der Bundesvölker", "ziel": "Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen", "loyalitaet": 5, "generation": "Generation des Lebensabends", "erscheinung": "Besonnener Sprecher der Bundesvölker, gemischte Tracht mehrerer Völker, offener, verbindender Ausdruck." }
+    { "id": "borka", "name": "Borka", "rolle": "Sicherheit und Speicher", "ziel": "Sicherheit über alles, Vorsicht, die Toten geehrt", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Verwittertes, wachsames Gesicht, kräftige Statur, schlichte dunkle Wolle, ein Bund schwerer Schlüssel am Gürtel." },
+    { "id": "idr", "name": "Idr", "rolle": "Nahrung und Diplomatie", "ziel": "Nie wieder Hunger und Abhängigkeit, Diplomatie vor Gewalt", "loyalitaet": 5, "generation": "Generation des Lebensabends, Verhandlerin des Friedens mit Aurelan", "lebensstand": "lebensabend", "erscheinung": "Schlanke Frau mittleren Alters mit ruhigem, klugem Blick, einfacher Reisekleidung und einem diplomatischen Abzeichen." },
+    { "id": "mell", "name": "Mell", "rolle": "Bau", "ziel": "Dauerhaftes bauen, nicht überdehnen; die Lehre der Wegeunglücke verinnerlicht", "loyalitaet": 5, "generation": "Generation des Lebensabends, Erbauer der Festung", "lebensstand": "lebensabend", "erscheinung": "Kräftige Baumeisterhände, lederne Schürze, Zirkel und Senklot, ruhige Beständigkeit." },
+    { "id": "yann", "name": "Yann", "rolle": "Späher und Netz", "ziel": "Der lange Weg in die Freiheit, der Bund der Freien, nie beherrscht", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Sehnige Spähergestalt in erdfarbenem Umhang, scharfer Blick, leichte Ausrüstung für lange Wege." },
+    { "id": "harn", "name": "Harn", "rolle": "Metall und Wissen, Haupt des Wissenshauses", "ziel": "Wissen und Handwerk mehren und den Vorsprung schützen, nie Wissen an Fremde abgeben", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Älterer Meister mit rußigen Händen und feinem Werkzeug, Schriftrollen und ein Stück gehärteten Stahls, Haupt des Wissenshauses." },
+    { "id": "renja", "name": "Renja", "rolle": "Talvolk", "ziel": "Würde und Freiheit der einst Unterdrückten, kein Herr über Freie", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Aufrechte Gestalt aus dem Talvolk in gewebter Tracht, würdevoll, von harter Arbeit gezeichnet." },
+    { "id": "soren", "name": "Soren", "rolle": "Stimme der Bundesvölker", "ziel": "Gleichberechtigte Freie, kein Reich der Karren, Führen ohne Herrschen", "loyalitaet": 5, "generation": "Generation des Lebensabends", "lebensstand": "lebensabend", "erscheinung": "Besonnener Sprecher der Bundesvölker, gemischte Tracht mehrerer Völker, offener, verbindender Ausdruck." }
   ],
   "personen": [
-    { "id": "sprecher", "name": "Der Sprecher", "rolle": "Vom Spieler geführter Primus, gefeierter Gründer im Lebensabend; übergibt die Felder an den Rat, behält Veto und Bericht", "erscheinung": "Gealterter, geachteter Anführer mit ruhiger Autorität, schlichter, würdiger Tracht und dem Zeichen des Primus." },
-    { "id": "tova", "name": "Tova", "rolle": "Über die neue Stadtverwaltung und Wissensgilde, heller Kopf der nächsten Generation", "erscheinung": "Junge, wache Gestalt mit Schreibzeug und Verwaltungslisten, schlichte städtische Kleidung, neugieriger Blick." },
+    { "id": "sprecher", "name": "Der Sprecher", "rolle": "Vom Spieler geführter Primus, gefeierter Gründer im Lebensabend; übergibt die Felder an den Rat, behält Veto und Bericht", "lebensstand": "lebensabend", "erscheinung": "Gealterter, geachteter Anführer mit ruhiger Autorität, schlichter, würdiger Tracht und dem Zeichen des Primus." },
+    { "id": "tova", "name": "Tova", "rolle": "Über die neue Stadtverwaltung und Wissensgilde, heller Kopf der nächsten Generation", "lebensstand": "ruestig", "erscheinung": "Junge, wache Gestalt mit Schreibzeug und Verwaltungslisten, schlichte städtische Kleidung, neugieriger Blick." },
     { "id": "veyra", "name": "Veyra", "rolle": "Wortführerin Aurelans, zog mit Respekt ab", "erscheinung": "Würdevolle Gesandte Aurelans in feiner, fremdländischer Amtstracht, respektvoll und kühl." }
   ],
   "maechte": [
@@ -214,6 +227,15 @@ Bevölkerung. Der unmittelbare Kern bleibt klein und nah, geführt über benannt
     "Aurelan als anerkannte, aber weiter vorhandene Großmacht.",
     "Offen entschieden, noch nicht ausgewürfelt: die Verwaltung, der Stadtausbau Süd, die Zuzugskampagne."
   ],
+  "runde": {
+    "haupt": { "used": 0, "max": 3 },
+    "neben": { "used": 0, "max": 2 },
+    "aktionen": [
+      { "id": "verwaltung", "art": "haupt", "titel": "Verwaltung", "kern": "Ordnung, Zensus, Schrift", "folge": "Verwandelt den geschätzten Stand in einen genauen Zensus und ordnet das Regiment.", "ziel": 4, "mod": 3, "status": "gewaehlt", "wurf": null, "ergebnis": null },
+      { "id": "stadtausbau-sued", "art": "haupt", "titel": "Stadtausbau Süd", "kern": "Neues Viertel, Süden", "folge": "Schafft Wohnraum für den Zuzug, bindet aber das knappe Material.", "ziel": 5, "mod": 3, "status": "gewaehlt", "wurf": null, "ergebnis": null },
+      { "id": "zuzugskampagne", "art": "neben", "titel": "Zuzugskampagne", "kern": "Werben, Wachstum, Stadt", "folge": "Bringt mehr Hände, drückt aber die Nahrung auf magerem Boden.", "ziel": 4, "mod": 2, "status": "gewaehlt", "wurf": null, "ergebnis": null }
+    ]
+  },
   "setzungen": [
     { "titel": "Lebensstand", "text": "Alternde Charaktere durchlaufen Rüstig, Lebensabend (-1 auf eigene Feldaktionen), Hinfällig (-2), dann Tod. Im Lebensabend und in Hinfällig fällt jeden Winter ein Lebenswurf, ein roher 1d10 plus Modifikatoren. Im Lebensabend gegen 4, darunter eine Stufe hinab; in Hinfällig gegen 5, darunter der Tod. Eine 1 ist immer ein jäher Schlag eine Stufe tiefer (aus Hinfällig der Tod), eine 10 immer ein rüstiges Jahr. Der Sprecher und der Rat gehören zur Generation des Lebensabends." },
     { "titel": "Nachfolge", "text": "Stirbt der Sprecher, wandert die Linse auf einen neuen Kopf, das Spiel läuft weiter. Was dem Volk gehört, bleibt (Grundgrößen, Festung, Arsenal, Wissen, Verfassung). Das Persönliche setzt zurück: das Ansehen auf einen Bruchteil, die Ratsloyalität auf einen niedrigen Grundwert, neu zu verdienen. Ein aufgezogener Erbe und ein benannter Weg ergeben einen ruhigen Übergang, unvorbereitet eine Nachfolgekrise als schweres Weltereignis." },
