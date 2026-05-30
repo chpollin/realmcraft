@@ -3,6 +3,8 @@
 import { parseSavegame } from './parse.js';
 import { setState, getState, subscribe } from './state.js';
 import { el, toast } from './components/ui.js';
+import * as store from './store.js';
+import { diffStates } from './diff.js';
 import { MODELS, generateImage } from './images/gemini.js';
 import { makeKey, cacheGet, cachePut } from './images/cache.js';
 import { renderLage } from './render/overview.js';
@@ -25,6 +27,10 @@ const roman = (n) => ROMAN[n] || String(n);
 // Bildgenerierung lokal ohne manuelle Eingabe, ohne dass der Key ins Repo kommt.
 const envApiKey = () => (typeof window !== 'undefined' && window.__RC_ENV__ && window.__RC_ENV__.GEMINI_API_KEY) || '';
 const getApiKey = () => (localStorage.getItem(LS.apiKey) || envApiKey() || '').trim();
+
+// Update-Loop-Zustand: Delta fuer den naechsten Render, aktuell betrachteter Verlaufsindex.
+let pendingDelta = null;
+let viewIndex = -1;
 
 // --- DOM-Referenzen aus dem Scaffold (index.html) ---
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -123,9 +129,9 @@ function metaItem(k, v) {
   ]);
 }
 
-function renderAll(state) {
+function renderAll(state, delta) {
   renderHero(state);
-  renderLage(els.views.lage, state);
+  renderLage(els.views.lage, state, { delta });
   renderBerater(els.views.berater, state, handlers);
   renderWelt(els.views.welt, state);
   renderKarte(els.views.karte, state, handlers);
@@ -167,7 +173,34 @@ function handleSavegameText(text) {
     toast(res.error || 'Speicherstand konnte nicht gelesen werden.');
     return;
   }
+  // Delta zum vorigen Stand berechnen, neuen Stand in den lokalen Verlauf legen.
+  const prev = getState() || store.loadLast();
+  pendingDelta = diffStates(prev, res.data);
+  store.saveSnapshot(res.data);
+  viewIndex = store.list().length - 1;
   setState(res.data);
+}
+
+// Fuellt die Kapitel-Historie-Auswahl; blendet sie unter zwei Staenden aus.
+function refreshHistorySelect() {
+  const sel = document.querySelector('[data-testid="history-select"]');
+  if (!sel) return;
+  const items = store.list();
+  if (items.length < 2) {
+    sel.hidden = true;
+    sel.replaceChildren();
+    return;
+  }
+  sel.hidden = false;
+  sel.replaceChildren(
+    ...items.map((it) => {
+      const opt = el('option', { value: String(it.index) }, [
+        `Kapitel ${it.kapitel ?? '?'}, ${it.jahreszeit || ''} ${it.jahr ?? ''}`.trim(),
+      ]);
+      if (it.index === viewIndex) opt.selected = true;
+      return opt;
+    }),
+  );
 }
 
 async function handleFile(file) {
@@ -336,9 +369,21 @@ async function onExport() {
 // ---------------------------------------------------------------------------
 function wire() {
   subscribe((state) => {
-    renderAll(state);
+    renderAll(state, pendingDelta);
     applyRoute();
     hydrateImages(state);
+    refreshHistorySelect();
+  });
+
+  // Kapitel-Historie: Umschalten zwischen gespeicherten Staenden (ohne Delta).
+  const histSel = document.querySelector('[data-testid="history-select"]');
+  histSel?.addEventListener('change', () => {
+    const snap = store.getAt(Number(histSel.value));
+    if (snap) {
+      viewIndex = Number(histSel.value);
+      pendingDelta = null;
+      setState(snap);
+    }
   });
 
   window.addEventListener('hashchange', applyRoute);
@@ -383,6 +428,14 @@ function wire() {
       handleSavegameText(text);
     }
   });
+
+  // Auto-Restore: zuletzt geladenen Stand wiederherstellen, ohne Delta-Banner.
+  const restored = store.loadLast();
+  if (restored) {
+    viewIndex = store.list().length - 1;
+    pendingDelta = null;
+    setState(restored);
+  }
 
   applyRoute();
 }

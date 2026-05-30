@@ -12,9 +12,14 @@ const ICO = {
   bevoelkerung: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5a3 3 0 0 1 0 6M18 20c0-2.5-1-4-3-4.6"/></svg>',
 };
 
-export function renderLage(root, state) {
+export function renderLage(root, state, opts = {}) {
   root.replaceChildren();
   if (!state) return;
+
+  // Delta zum zuletzt geladenen Stand, nur nach echtem Laden mit Aenderungen.
+  if (opts.delta && opts.delta.hasChanges) {
+    root.append(renderDeltaBanner(opts.delta));
+  }
 
   const { grundgroessen = {}, lagewerte = {}, offeneFaeden = [] } = state;
 
@@ -100,4 +105,33 @@ function blockHead(title, eyebrow) {
     el('div', { class: 'rule' }),
     eyebrow ? el('span', { class: 'eyebrow', text: eyebrow }) : null,
   ]);
+}
+
+// Banner mit den Aenderungen seit dem zuletzt geladenen Stand.
+function renderDeltaBanner(delta) {
+  const banner = el('section', { class: 'delta-banner panel pad', 'data-testid': 'delta-banner' });
+  banner.append(
+    el('div', { class: 'block-head' }, [
+      el('h3', { text: 'Seit dem letzten Stand' }),
+      el('div', { class: 'rule' }),
+      el('button', {
+        class: 'delta-dismiss', 'data-testid': 'delta-dismiss',
+        text: 'Verstanden', onClick: () => banner.remove(),
+      }),
+    ]),
+  );
+  const list = el('ul', { class: 'delta-list' },
+    (delta.eintraege || []).map((e) => {
+      let txt = e.label;
+      if (typeof e.from === 'number' && typeof e.to === 'number') {
+        const sign = e.delta > 0 ? '+' : '';
+        txt = `${e.label}: ${e.from} → ${e.to} (${sign}${e.delta})`;
+      }
+      return el('li', {
+        class: `delta-item delta-${e.richtung || 'flat'}`, 'data-testid': 'delta-item',
+      }, [el('span', { class: 'delta-mark', text: e.richtung === 'down' ? '▼' : '▲' }), el('span', { text: txt })]);
+    }),
+  );
+  banner.append(list);
+  return banner;
 }

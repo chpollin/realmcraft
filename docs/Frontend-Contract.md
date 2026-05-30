@@ -26,6 +26,17 @@ Implementierer ändern `index.html` NICHT (nur scaffold). Module kommunizieren a
 - `export function getState(): object | null`
 - `export function subscribe(fn): () => void` — fn wird bei jedem setState mit dem neuen State gerufen; Rückgabe entfernt das Abo.
 
+### js/diff.js
+- `export function diffStates(prev, next): { hasChanges, isFirst, eintraege }` — rein, ohne Seiteneffekt. `isFirst:true`, wenn kein Vorgänger existiert (kein Delta). `eintraege[]` mit `{ art, label, from?, to?, delta?, richtung }`; erkannt werden Kapitelwechsel, Grundgrößen, Lagewerte, Ansehen, Loyalität, neue/weggefallene Berater und Orte, neue Setzungen.
+
+### js/store.js
+Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restore und Kapitel-Historie.
+- `export function saveSnapshot(state): number` — hängt an; identischer Stand erzeugt kein Duplikat; gibt den Index zurück.
+- `export function loadLast(): object | null`
+- `export function list(): Array<{ index, spielname, kapitel, jahreszeit, jahr, savedAt }>`
+- `export function getAt(index): object | null`
+- `export function clear(): void`
+
 ### js/render/*.js (jeweils reine Render-Funktion, leert root und baut neu)
 - `overview.js`  → `export function renderLage(root, state): void`
 - `advisors.js`  → `export function renderBerater(root, state, handlers): void` (handlers `{ onGeneratePortrait(beraterId) }`)
@@ -56,7 +67,7 @@ Implementierer ändern `index.html` NICHT (nur scaffold). Module kommunizieren a
 - `export function toast(message): void`
 
 ## DOM-Vertrag (index.html, data-testid)
-- Topbar: `[data-testid="topbar"]`, Titel "RealmCraft", `<button data-testid="load-btn">`, `<input type="file" data-testid="load-input" hidden>`, `<button data-testid="settings-btn">`.
+- Topbar: `[data-testid="topbar"]`, Titel "RealmCraft", `<button data-testid="load-btn">`, `<input type="file" data-testid="load-input" hidden>`, `<select data-testid="history-select" hidden>` (Kapitel-Historie, sichtbar ab zwei gespeicherten Ständen; Auswahl lädt den Stand), `<button data-testid="settings-btn">`.
 - Nav: 5 Buttons `[data-tab="lage|berater|welt|karte|historie"]`; aktiver trägt `aria-current="page"`.
 - Views: `<section data-view="lage">` … `historie`; inaktive haben das Attribut `hidden`.
 - Routing: Hash `#/lage` … `#/historie`; ohne/unbekannt → `#/lage`. Tab-Klick setzt den Hash, `hashchange` schaltet die View.
@@ -64,6 +75,7 @@ Implementierer ändern `index.html` NICHT (nur scaffold). Module kommunizieren a
 
 ### Lage (`data-view="lage"`)
 - `[data-testid="realm-name"]` (Text "Die Karren"), `[data-testid="chapter"]`, `[data-testid="season"]`, `[data-testid="worldevent"]`, `[data-testid="ansehen"]`.
+- Delta-Banner (nur nach echtem Laden mit Änderungen, nicht bei Erst-Laden/Auto-Restore): `[data-testid="delta-banner"]` mit `[data-testid="delta-item"]` je Änderung und `[data-testid="delta-dismiss"]` zum Schließen.
 - Stat-Werte als Text: `[data-testid="stat-nahrung"]`=8, `stat-material`=5, `stat-wissen`=16, `stat-bevoelkerung` (enthält 300).
 - Lagewerte: `[data-testid="lage-verteidigung"]` (enthält "+3"), `lage-mobilitaet` ("0"), `lage-wohlstand` ("+1").
 - `[data-testid="offene-faeden"]` Liste mit ≥1 Eintrag.
@@ -91,6 +103,6 @@ Implementierer ändern `index.html` NICHT (nur scaffold). Module kommunizieren a
 - API-Key aus `localStorage['realmcraft.apiKey']`; ohne Key zeigt der Klick einen `toast` mit Hinweis und öffnet Settings.
 
 ## Test-Hooks
-- Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`.
+- Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`, `rc.history` (Verlauf für Auto-Restore und Kapitel-Historie).
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.
 - Export-Bundle: `[data-testid="export-btn"]` erzeugt einen Download eines JSON-Stands mit eingebetteten `portrait.dataUrl`; Import erkennt `dataUrl` und füllt den Cache (kein API-Call). E2E prüft den Roundtrip über das Cache-Verhalten.

@@ -52,7 +52,8 @@ function installFetch(handler) {
 
 test('MODELS traegt die Vertrags-Modellnamen', () => {
   assert.equal(MODELS.portrait, 'gemini-3.1-flash-image');
-  assert.equal(MODELS.map, 'gemini-3-pro-image');
+  // Karte ebenfalls auf Flash (Nano Banana 2): Pro hat im Free-Tier Kontingent 0.
+  assert.equal(MODELS.map, 'gemini-3.1-flash-image');
 });
 
 test('endpoint(model) baut die generateContent-URL korrekt', () => {
@@ -61,7 +62,7 @@ test('endpoint(model) baut die generateContent-URL korrekt', () => {
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
   );
   assert.equal(
-    endpoint(MODELS.map),
+    endpoint('gemini-3-pro-image'),
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent',
   );
 });
