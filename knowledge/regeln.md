@@ -19,6 +19,8 @@ Weil man mit einem Frontier-Sprachmodell als Spielleiter spielt, ist die Weitere
 
 Leitsatz der Grundmechanik, an dem sich jede Setzung misst: der Kern bleibt klein, die Hebel werden viele. Wenige stabile Grundgrößen, viel Wachstum als Statuswerte, Institutionen und Erzählzustände.
 
+Hinweis zur Mechanik-Fassung. Die drei Setzungen Lebensstand, Delegationsregiment und der Trend je Grundgröße sind in der aktuellen [`docs/Spielmechanik.md`](../docs/Spielmechanik.md) inzwischen Teil der Grundmechanik (Lebenszyklus, Delegation, Ressourcentrends). Diese Partie war ihr Prototyp; sie bleiben hier als gelebte Setzungen verzeichnet, mit ihrer Begründung und ihrem Einführungskapitel. Eigenständig dieser Partie bleibt die Nachfolge-Setzung in ihrer konkreten Ausgestaltung.
+
 ## Setzungen (Stand Kapitel 4)
 
 ### Lebensstand

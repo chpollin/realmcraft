@@ -6,14 +6,22 @@ RealmCraft ist das **System** (Spielmechanik plus Dashboard) und kampagnenunabh�
 
 > Status: einsatzbereit. Mechanik, Speicherstand-Format, JSON-Schema, zwei Beispielstände (Kapitel 3 und Kapitel 4), das vollständige Dashboard und die Tests (Unit, E2E, Visual) liegen vor.
 
+## Zwei Spielweisen
+RealmCraft lässt sich auf zwei gleichwertigen Wegen spielen:
+
+1. **Im Chat.** Mit der Mechanik in [`docs/Spielmechanik.md`](docs/Spielmechanik.md) führt ein Frontier-Sprachmodell als Spielleiter das Spiel. Auf "speichern" gibt es einen hybriden Speicherstand aus; das JSON lädt man ins Dashboard. Das Dashboard ist dafür eigenständig nutzbar, ein Stand pro Projekt, beliebig oft neu hochladbar.
+2. **Im Terminal mit Claude Code.** Claude Code wird über [`CLAUDE.md`](CLAUDE.md) zum Spielleiter, spielt gegen den lokalen Live-Server und schreibt Speicherstand und das verdichtete Partie-Gedächtnis in [`knowledge/`](knowledge/) fort. Der Browser spiegelt den jeweils aktuellen Stand.
+
 ## Wie es zusammenspielt
-1. **Spielen.** Mit der Mechanik in [`docs/Spielmechanik.md`](docs/Spielmechanik.md) führt ein Spielleiter (Sprachmodell) das Spiel.
+1. **Spielen.** Im Chat oder mit Claude Code, geführt von der Mechanik in [`docs/Spielmechanik.md`](docs/Spielmechanik.md).
 2. **Speichern.** Auf "Speichern" gibt der Spielleiter einen hybriden Speicherstand aus, lesbare Prosa plus einen kanonischen JSON-Block (siehe [`docs/Speicherstand-Format.md`](docs/Speicherstand-Format.md)).
-3. **Hochladen.** Den Speicherstand (`.md` oder `.json`) ins Dashboard ziehen.
+3. **Hochladen.** Den Speicherstand (`.md` oder `.json`) ins Dashboard ziehen. Beim zweiten Stand zeigt das Dashboard ein Delta zum letzten Stand und merkt sich die Kapitel-Historie lokal.
 4. **Bilder erzeugen.** Mit einem eigenen Gemini-API-Key (Nano Banana) Portraits und Karte generieren. Der Key bleibt lokal im Browser und wird nie übertragen oder committet.
 
 ## Struktur
 - `docs/` Mechanik und Format-Spezifikation
+- `CLAUDE.md` Spielleiter-Anweisung für den Terminal-Modus (Claude Code)
+- `knowledge/` verdichtetes Partie-Gedächtnis nach Promptotyping (Chronik, Welt, Regeln, Personen)
 - `schema/` JSON-Schema des Speicherstands
 - `examples/` Beispielstand "Die Karren" als Hybrid-Markdown und als reines JSON
 - `index.html`, `css/`, `js/` das Dashboard (Vanilla JS, kein Build-Schritt)
