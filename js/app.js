@@ -217,7 +217,13 @@ async function handleFile(file) {
 // Einstellungen
 // ---------------------------------------------------------------------------
 function openSettings() {
-  els.apiKeyInput.value = getApiKey();
+  // Nur den ausdruecklich gespeicherten Override zeigen, nicht den .env-Fallback.
+  // Sonst friert ein Klick auf "Speichern" den momentanen .env-Key in localStorage
+  // ein, wo er ab da jeden neuen .env-Key ueberschattet (stiller 429/Limit-0-Bug).
+  els.apiKeyInput.value = localStorage.getItem(LS.apiKey) || '';
+  els.apiKeyInput.placeholder = envApiKey()
+    ? 'Schlüssel aus .env aktiv — Feld leer lassen, um ihn zu nutzen'
+    : 'Gemini API-Key (beginnt mit AIza… oder AQ.…)';
   els.modelPortrait.value = localStorage.getItem(LS.modelPortrait) || MODELS.portrait;
   els.modelMap.value = localStorage.getItem(LS.modelMap) || MODELS.map;
   if (typeof els.settingsDialog.showModal === 'function') els.settingsDialog.showModal();
@@ -230,7 +236,11 @@ function closeSettings() {
 }
 
 function saveSettings() {
-  localStorage.setItem(LS.apiKey, els.apiKeyInput.value.trim());
+  // Leeres Feld entfernt den Override, damit der .env-Key (falls vorhanden) wieder
+  // greift, statt einen leeren String zu speichern, der ihn nur zufaellig durchlaesst.
+  const apiKey = els.apiKeyInput.value.trim();
+  if (apiKey) localStorage.setItem(LS.apiKey, apiKey);
+  else localStorage.removeItem(LS.apiKey);
   localStorage.setItem(LS.modelPortrait, els.modelPortrait.value.trim() || MODELS.portrait);
   localStorage.setItem(LS.modelMap, els.modelMap.value.trim() || MODELS.map);
   closeSettings();
