@@ -2,7 +2,7 @@
 // Bevölkerung lebt (über alle Siedlungen) und die einzelnen Siedlungen samt
 // Hauptstadt. Wächst mit: spätere Siedlungen erscheinen als weitere Karten.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Lebenswelt (data-view=lebenswelt)".
-import { el } from '../components/ui.js';
+import { el, bildLeiste } from '../components/ui.js';
 import { signed } from '../format.js';
 
 // Siedlungen aus dem Stand lesen: bevorzugt die neue Liste lebenswelt.siedlungen,
@@ -158,5 +158,6 @@ function siedlungCard(s, handlers, live = {}) {
       text: 'Bild erzeugen',
       onClick: () => handlers.onGenerateSiedlung?.(id),
     }),
+    bildLeiste('siedlung', id, handlers),
   ]);
 }

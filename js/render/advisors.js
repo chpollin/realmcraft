@@ -1,6 +1,6 @@
 // Sicht "Berater": Karten mit Name, Rolle, Ziel, Loyalität und Portrait.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Berater (data-view=berater)".
-import { el, loyaltyMeter } from '../components/ui.js';
+import { el, loyaltyMeter, bildLeiste } from '../components/ui.js';
 import { initials, signed } from '../format.js';
 
 const LEBENSSTAND = { ruestig: 'Rüstig', lebensabend: 'Lebensabend', hinfaellig: 'Hinfällig' };
@@ -67,6 +67,7 @@ export function renderBerater(root, state, handlers = {}) {
           ]),
         ]),
         genBtn,
+        bildLeiste('berater', b.id, handlers),
       ]);
     }),
   );

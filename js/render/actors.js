@@ -1,6 +1,6 @@
 // Sicht "Welt": Mächte (Diplomatie) und tragende Gruppen mit Sprechern.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Welt (data-view=welt)".
-import { el } from '../components/ui.js';
+import { el, bildLeiste } from '../components/ui.js';
 import { initials, signed } from '../format.js';
 
 function relMeta(beziehung = {}) {
@@ -71,6 +71,7 @@ export function renderWelt(root, state, handlers = {}) {
           text: 'Bild erzeugen',
           onClick: () => handlers.onGenerateMacht?.(m.id),
         }),
+        bildLeiste('macht', m.id, handlers),
       ]);
     }),
   );
@@ -109,6 +110,7 @@ export function renderWelt(root, state, handlers = {}) {
           text: 'Bild',
           onClick: () => handlers.onGenerateGruppe?.(gr.id),
         }),
+        bildLeiste('gruppe', gr.id, handlers),
       ]);
     }),
   );

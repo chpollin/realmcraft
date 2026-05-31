@@ -69,6 +69,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 
 ## DOM-Vertrag (index.html, data-testid)
 - Topbar: `[data-testid="topbar"]`, Titel "RealmCraft", `<button data-testid="load-btn">`, `<input type="file" data-testid="load-input" hidden>`, `<select data-testid="history-select" hidden>` (Kapitel-Historie, sichtbar ab zwei gespeicherten Ständen; Auswahl lädt den Stand), `<button data-testid="settings-btn">`.
+- Bild-Versionen: an jedem erzeugbaren Bild (Berater, Armee/Verband, Macht, Gruppe, Siedlung) steht neben dem Erzeugen-Knopf ein `<button data-testid="bild-fortschreiben" data-typ data-id>` ("Bild fortschreiben": leitet aus dem bisherigen Bild + dem aktuellen Stand ein neues ab) und, sobald fortgeschriebene Stände vorliegen, ein `<select data-testid="bild-versionen">` zum Umschalten (Option `__basis` = Ursprung). Die Versionsliste lebt clientseitig (localStorage `rc.imgver`/`rc.imgakt`), nicht im Speicherstand. Die Karte führt davon unabhängig ihre eigene, savegame-getriebene Karten-Chronik (`karte-chronik`).
 - Nav: 5 Buttons `[data-tab="lage|berater|welt|karte|historie"]`; aktiver trägt `aria-current="page"`.
 - Views: `<section data-view="lage">` … `historie`; inaktive haben das Attribut `hidden`.
 - Routing: Hash `#/lage` … `#/historie`; ohne/unbekannt → `#/lage`. Tab-Klick setzt den Hash, `hashchange` schaltet die View.

@@ -1,6 +1,6 @@
 // Sicht "Armee": Gesamtstärke, Verbände, stehende Modifikatoren, Verluste.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Armee (data-view=armee)".
-import { el } from '../components/ui.js';
+import { el, bildLeiste } from '../components/ui.js';
 import { signed } from '../format.js';
 
 export function renderArmee(root, state, handlers = {}) {
@@ -26,6 +26,7 @@ export function renderArmee(root, state, handlers = {}) {
       text: 'Heerschau-Bild erzeugen',
       onClick: () => handlers.onGenerateArmeeBild?.(),
     }),
+    bildLeiste('armee', null, handlers),
   ]));
 
   // Verbände
@@ -52,6 +53,7 @@ export function renderArmee(root, state, handlers = {}) {
       text: 'Avatar erzeugen',
       onClick: () => handlers.onGenerateVerband?.(v.id),
     }),
+    bildLeiste('verband', v.id, handlers),
   ]));
   root.append(el('section', { class: 'panel pad mt armee-verbaende', 'data-testid': 'armee-verbaende' }, [
     el('div', { class: 'block-head' }, [el('h3', { text: 'Verbände' })]),

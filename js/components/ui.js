@@ -292,3 +292,46 @@ export function toast(message) {
   const ms = message && message.length > 120 ? 12000 : 5000;
   setTimeout(() => t.remove(), ms);
 }
+
+// ---------------------------------------------------------------------------
+// bildLeiste(typ, id, handlers)
+// ---------------------------------------------------------------------------
+// Steuerleiste unter einem erzeugbaren Bild: ein Knopf "Bild fortschreiben"
+// (leitet aus dem bisherigen Bild + dem aktuellen Stand der Partie ein neues
+// ab) und, sobald fortgeschriebene Staende vorliegen, ein <select> zum
+// Umschalten durch die Versionen. Daten und Verhalten liefert app.js ueber die
+// handlers: bildVersionen/aktiveBildVersion bzw. onBildFortschreiben/
+// onWaehleBildVersion. data-testid: bild-fortschreiben, bild-versionen.
+// Vertrag: docs/Frontend-Contract.md.
+export function bildLeiste(typ, id, handlers = {}) {
+  const idStr = id == null ? '' : String(id);
+  const versionen = handlers.bildVersionen?.(typ, id) || [];
+  const aktiv = handlers.aktiveBildVersion?.(typ, id) || '__basis';
+
+  const kinder = [
+    el('button', {
+      class: 'btn btn-ghost gen-fortschreiben',
+      type: 'button',
+      'data-testid': 'bild-fortschreiben',
+      dataset: { typ, id: idStr },
+      title: 'Aus dem bisherigen Bild und dem aktuellen Stand der Partie ein neues ableiten',
+      text: 'Bild fortschreiben',
+      onClick: () => handlers.onBildFortschreiben?.(typ, id),
+    }),
+  ];
+
+  if (versionen.length) {
+    kinder.push(el('select', {
+      class: 'bild-versionen',
+      'data-testid': 'bild-versionen',
+      dataset: { typ, id: idStr },
+      'aria-label': 'Bild-Stand wählen',
+      onChange: (e) => handlers.onWaehleBildVersion?.(typ, id, e.target.value),
+    }, [
+      el('option', { value: '__basis', selected: aktiv === '__basis' }, ['Ursprung']),
+      ...versionen.map((v) => el('option', { value: v.key, selected: v.key === aktiv }, [v.label])),
+    ]));
+  }
+
+  return el('div', { class: 'bild-leiste', dataset: { typ, id: idStr } }, kinder);
+}

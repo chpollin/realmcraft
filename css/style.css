@@ -1122,6 +1122,21 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .siedlung .ort-eig b { font-weight: 700; color: var(--ink); margin-left: 2px; font-variant-numeric: tabular-nums; }
 .gen-siedlung { align-self: flex-start; margin: 14px 15px; }
 
+/* Bild fortschreiben + Versions-Umschalter an allen erzeugbaren Bildern.
+   Vertrag: docs/Frontend-Contract.md (Bild-Versionen). */
+.bild-leiste { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.btn.btn-ghost { background: transparent; font-size: 11.5px; padding: 7px 13px; }
+.bild-versionen {
+  appearance: none; -webkit-appearance: none;
+  font: inherit; font-size: 11.5px; color: var(--ink);
+  padding: 6px 26px 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%232a2e35' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+  cursor: pointer;
+}
+.bild-versionen:hover { border-color: var(--ink-faint); }
+
 /* Besitz: was das Volk hat */
 .besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; }
 .besitz-item { display: flex; align-items: baseline; gap: 9px; line-height: 1.5; color: var(--ink-soft); }

@@ -77,6 +77,10 @@ const handlers = {
   onSelectKarteStand,
   onGenerateKarteStand,
   getKarteStandId: () => karteStandId,
+  onBildFortschreiben,
+  onWaehleBildVersion,
+  bildVersionen: (typ, id) => verList(identityOf(typ, id)),
+  aktiveBildVersion: (typ, id) => aktGet(identityOf(typ, id)),
 };
 
 // ---------------------------------------------------------------------------
@@ -233,6 +237,10 @@ function handleSavegameText(text) {
 }
 
 // Fuellt die Kapitel-Historie-Auswahl; blendet sie unter zwei Staenden aus.
+// Die Labels muessen unterscheidbar sein: im Live-Modus speichert der Spielleiter
+// oft mehrmals pro Saison, sonst lesen mehrere Eintraege identisch ("Kapitel II,
+// Winter 3"). Darum Kapitel (roemisch, wie sonst im UI), Saison und ein knapper
+// Zeitstempel aus savedAt; der neueste Stand wird eigens markiert.
 function refreshHistorySelect() {
   const sel = document.querySelector('[data-testid="history-select"]');
   if (!sel) return;
@@ -242,12 +250,23 @@ function refreshHistorySelect() {
     sel.replaceChildren();
     return;
   }
+  const wann = (ms) => {
+    if (!ms) return '';
+    try {
+      return new Date(ms).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+  const neuester = items[items.length - 1].index;
   sel.hidden = false;
   sel.replaceChildren(
     ...items.map((it) => {
-      const opt = el('option', { value: String(it.index) }, [
-        `Kapitel ${it.kapitel ?? '?'}, ${it.jahreszeit || ''} ${it.jahr ?? ''}`.trim(),
-      ]);
+      const kapitel = it.kapitel != null ? `Kapitel ${roman(it.kapitel)}` : 'Kapitel ?';
+      const saison = `${it.jahreszeit || ''} ${it.jahr ?? ''}`.trim();
+      const teile = [kapitel, saison, wann(it.savedAt)].filter(Boolean).join(' · ');
+      const label = it.index === neuester ? `${teile} · neuester` : teile;
+      const opt = el('option', { value: String(it.index) }, [label]);
       if (it.index === viewIndex) opt.selected = true;
       return opt;
     }),
@@ -674,11 +693,188 @@ async function onGenerateSiedlung(id) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Bild fortschreiben: aus dem bisherigen Bild + aktuellem Stand ein neues
+// ableiten und alle Staende behalten (client-seitige Bild-Chronik). Die Karte
+// fuehrt ihre eigene, savegame-getriebene Karten-Chronik; hier geht es um die
+// uebrigen Bilder (Berater, Armee/Verband, Macht, Gruppe, Siedlung). Die
+// Versionsliste lebt in localStorage, nicht im Speicherstand (Claude 0s Lane).
+// ---------------------------------------------------------------------------
+const VER_NS = 'rc.imgver'; // identity -> [{ key, label, savedAt }]
+const AKT_NS = 'rc.imgakt'; // identity -> aktiver Cache-Key
+
+function jsonLS(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const v = JSON.parse(raw);
+    return v == null ? fallback : v;
+  } catch {
+    return fallback;
+  }
+}
+function setLS(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Quota: optional */ }
+}
+function identityOf(typ, id) {
+  return typ === 'armee' ? 'armee' : `${typ}:${id}`;
+}
+function verList(identity) {
+  const all = jsonLS(VER_NS, {});
+  return Array.isArray(all[identity]) ? all[identity] : [];
+}
+function verPush(identity, entry) {
+  const all = jsonLS(VER_NS, {});
+  const list = Array.isArray(all[identity]) ? all[identity] : [];
+  list.push(entry);
+  all[identity] = list;
+  setLS(VER_NS, all);
+  return list;
+}
+function aktGet(identity) {
+  return jsonLS(AKT_NS, {})[identity] || null;
+}
+function aktSet(identity, key) {
+  const all = jsonLS(AKT_NS, {});
+  if (key) all[identity] = key; else delete all[identity];
+  setLS(AKT_NS, all);
+}
+
+// Loest (typ, id) gegen den Stand auf: <img>, Modell, Seitenverhaeltnis, der aus
+// dem aktuellen Stand gebaute Basis-Prompt, der Basis-Cache-Key und die stabile
+// Identitaet. Nutzt dieselben buildX/xKey/xImg wie die Erst-Erzeugung.
+function bildSpec(typ, id, state) {
+  switch (typ) {
+    case 'berater': {
+      const b = (state.berater || []).find((x) => x.id === id);
+      if (!b) return null;
+      return { identity: identityOf(typ, id), img: portraitImg(id), model: portraitModel(), aspectRatio: '4:3', basePrompt: buildPortraitPrompt(b, state), baseKey: portraitKey(b, state) };
+    }
+    case 'armee': {
+      if (!state.armee) return null;
+      return { identity: 'armee', img: armeeBildImg(), model: portraitModel(), aspectRatio: '16:9', basePrompt: buildHeerschauPrompt(state), baseKey: armeeBildKey(state) };
+    }
+    case 'verband': {
+      const v = (state.armee?.verbaende || []).find((x) => x.id === id);
+      if (!v) return null;
+      return { identity: identityOf(typ, id), img: verbandImg(id), model: portraitModel(), aspectRatio: '4:3', basePrompt: buildVerbandPrompt(v, state), baseKey: verbandKey(v, state) };
+    }
+    case 'macht': {
+      const m = (state.maechte || []).find((x) => x.id === id);
+      if (!m) return null;
+      return { identity: identityOf(typ, id), img: machtImg(id), model: portraitModel(), aspectRatio: '4:3', basePrompt: buildMachtPrompt(m, state), baseKey: machtKey(m, state) };
+    }
+    case 'gruppe': {
+      const gr = (state.gruppen || []).find((x) => x.id === id);
+      if (!gr) return null;
+      return { identity: identityOf(typ, id), img: gruppeImg(id), model: portraitModel(), aspectRatio: '4:3', basePrompt: buildGruppePrompt(gr, state), baseKey: gruppeKey(gr, state) };
+    }
+    case 'siedlung': {
+      const s = siedlungenAus(state).find((x) => siedlungId(x) === id);
+      if (!s) return null;
+      return { identity: identityOf(typ, id), img: siedlungImg(id), model: portraitModel(), aspectRatio: '16:9', basePrompt: buildSiedlungPrompt(s, state), baseKey: siedlungKey(s, state) };
+    }
+    default:
+      return null;
+  }
+}
+
+// Der "entwickelte Kontext": Jahreszeit-Stimmung, Jahr und Kapitel. Faerbt den
+// Prompt eines fortgeschriebenen Bildes auf den Zeitpunkt der Partie ein.
+const SAISON_STIMMUNG = {
+  'Frühling': 'Frühling, neues Wachsen', 'Fruehling': 'Frühling, neues Wachsen',
+  'Sommer': 'Hochsommer, volles Licht',
+  'Herbst': 'Herbst, Ernte und fallendes Laub',
+  'Winter': 'Winter, karge und harte Zeit',
+};
+function kontextHauch(state) {
+  const z = state.meta?.zeit || {};
+  const js = (z.jahreszeit || '').trim();
+  const teile = [];
+  if (js) teile.push(SAISON_STIMMUNG[js] || js);
+  if (z.jahr != null) teile.push(`Jahr ${z.jahr}`);
+  if (state.meta?.kapitel != null) teile.push(`Kapitel ${roman(state.meta.kapitel)}`);
+  return teile.length ? `Zeitpunkt der Szene: ${teile.join(', ')}` : '';
+}
+function bildVersLabel(state, vnum) {
+  const z = state.meta?.zeit || {};
+  const saison = `${z.jahreszeit || ''} ${z.jahr ?? ''}`.trim();
+  return `Stand ${vnum}${saison ? ` · ${saison}` : ''}`;
+}
+
+// Setzt, falls vorhanden, die aktive (gewaehlte) Bild-Version ins <img>. true,
+// wenn ein Bild gesetzt wurde — der Aufrufer ueberspringt dann die Basis-/
+// Embed-Logik in hydrateImages.
+async function applyAktiveBild(identity, img) {
+  const key = aktGet(identity);
+  if (!key) return false;
+  const url = await cacheGet(key);
+  if (url) { img.src = url; return true; }
+  return false;
+}
+
+// Manuell ausgeloest: leitet aus dem aktuell gezeigten Bild (Vorlage) und dem
+// aus Stand + Zeitpunkt gebauten Prompt ein neues ab, behaelt es als neue
+// Version und zeigt es an. Neuer, versionsindizierter Key => garantierter
+// Cache-Miss => frische Erzeugung (kein stilles Zurueckfallen aufs alte Bild).
+async function onBildFortschreiben(typ, id) {
+  const state = getState();
+  if (!state) return;
+  const spec = bildSpec(typ, id, state);
+  if (!spec) return;
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    toast(NO_KEY_MSG);
+    openSettings();
+    return;
+  }
+  const liste = verList(spec.identity);
+  const vorlageKey = aktGet(spec.identity) || (liste.length ? liste[liste.length - 1].key : spec.baseKey);
+  const vorlageUrl = (await cacheGet(vorlageKey)) || (spec.img && spec.img.getAttribute('src')) || null;
+  const refImages = vorlageUrl && vorlageUrl.startsWith('data:')
+    ? [vorlageUrl.replace(/^data:[^,]+,/, '')]
+    : undefined;
+  const prompt = [spec.basePrompt, kontextHauch(state)].filter(Boolean).join('. ');
+  const vnum = liste.length + 1;
+  const newKey = makeKey([spec.identity, `v${vnum}`, prompt, spec.model]);
+  try {
+    const { dataUrl } = await generateImage({ apiKey, model: spec.model, prompt, aspectRatio: spec.aspectRatio, refImages });
+    await cachePut(newKey, dataUrl);
+    verPush(spec.identity, { key: newKey, label: bildVersLabel(state, vnum), savedAt: Date.now() });
+    aktSet(spec.identity, newKey);
+    if (spec.img) spec.img.src = dataUrl;
+    renderAll(state);
+    hydrateImages(state);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+// Waehlt eine gespeicherte Bild-Version (oder den Ursprung) und zeigt sie an.
+async function onWaehleBildVersion(typ, id, value) {
+  const state = getState();
+  if (!state) return;
+  const spec = bildSpec(typ, id, state);
+  if (!spec) return;
+  if (!value || value === '__basis') {
+    aktSet(spec.identity, null);
+    const url = await cacheGet(spec.baseKey);
+    if (spec.img && url) spec.img.src = url;
+  } else {
+    aktSet(spec.identity, value);
+    const url = await cacheGet(value);
+    if (spec.img && url) spec.img.src = url;
+  }
+  renderAll(state);
+  hydrateImages(state);
+}
+
 // Befüllt Portraits/Karte aus eingebetteten dataUrls oder dem Cache, ohne API.
 async function hydrateImages(state) {
   for (const b of state.berater || []) {
     const img = portraitImg(b.id);
     if (!img) continue;
+    if (await applyAktiveBild(`berater:${b.id}`, img)) continue;
     const key = portraitKey(b, state);
     if (b.portrait?.dataUrl) {
       img.src = b.portrait.dataUrl;
@@ -714,7 +910,7 @@ async function hydrateImages(state) {
 
   if (state.armee) {
     const aImg = armeeBildImg();
-    if (aImg && !aImg.getAttribute('src')) {
+    if (aImg && !aImg.getAttribute('src') && !(await applyAktiveBild('armee', aImg))) {
       if (state.armee.bild?.dataUrl) {
         aImg.src = state.armee.bild.dataUrl;
         cachePut(armeeBildKey(state), state.armee.bild.dataUrl);
@@ -726,6 +922,7 @@ async function hydrateImages(state) {
     for (const v of state.armee.verbaende || []) {
       const img = verbandImg(v.id);
       if (!img) continue;
+      if (await applyAktiveBild(`verband:${v.id}`, img)) continue;
       const key = verbandKey(v, state);
       if (v.avatar?.dataUrl) {
         img.src = v.avatar.dataUrl;
@@ -741,6 +938,7 @@ async function hydrateImages(state) {
   for (const m of state.maechte || []) {
     const img = machtImg(m.id);
     if (!img) continue;
+    if (await applyAktiveBild(`macht:${m.id}`, img)) continue;
     const key = machtKey(m, state);
     if (m.bild?.dataUrl) {
       img.src = m.bild.dataUrl;
@@ -755,6 +953,7 @@ async function hydrateImages(state) {
   for (const gr of state.gruppen || []) {
     const img = gruppeImg(gr.id);
     if (!img) continue;
+    if (await applyAktiveBild(`gruppe:${gr.id}`, img)) continue;
     const key = gruppeKey(gr, state);
     if (gr.bild?.dataUrl) {
       img.src = gr.bild.dataUrl;
@@ -769,6 +968,7 @@ async function hydrateImages(state) {
   for (const s of siedlungenAus(state)) {
     const img = siedlungImg(siedlungId(s));
     if (!img) continue;
+    if (await applyAktiveBild(`siedlung:${siedlungId(s)}`, img)) continue;
     const key = siedlungKey(s, state);
     if (s.bild?.dataUrl) {
       img.src = s.bild.dataUrl;
