@@ -175,7 +175,7 @@
         <div class="prose">
           <p><strong>Zeit.</strong> Sie rückt nur auf Saison-Turns vor und löst dann genau ein Weltereignis aus (1d10). Im <strong>Winter</strong> fallen die Lebenswürfe — Figuren altern, manche gehen.</p>
           <p><strong>Größen.</strong> Grundgrößen sind Nahrung, Material, Wissen (0–2 niedrig, 3–5 hoch). Lagewerte (Verteidigung, Mobilität, Wohlstand) liegen um null, etwa −2 bis +3. Ansehen reicht von Stufe 0 bis 3.</p>
-          <p><strong>Setzungen.</strong> Auch die Regeln dürfen wachsen. Eigene Sonderregeln hält der Chronist ausdrücklich im Feld <code>setzungen</code> fest — sie erscheinen in der Chronik.</p>
+          <p><strong>Sonderregeln.</strong> Auch die Regeln dürfen wachsen. Eigene, im Lauf der Partie gewachsene Sonderregeln hält der Chronist ausdrücklich im Feld <code>setzungen</code> fest — sie erscheinen in der Chronik.</p>
         </div>
       </div>
     </section>
@@ -192,9 +192,41 @@
         <div class="view-row"><div class="v-num">V</div><div><div class="v-name">Welt</div><div class="v-desc">Die anderen Mächte mit Profil (Stärken und die ausnutzbare Schwäche), Beziehung und Haltung sowie die tragenden Gruppen.</div></div></div>
         <div class="view-row"><div class="v-num">VI</div><div><div class="v-name">Karte</div><div class="v-desc">Eine erzeugbare Lagekarte und die Legende der bekannten Orte — die Karte wächst mit dem Spiel.</div></div></div>
         <div class="view-row"><div class="v-num">VII</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf aus den gespeicherten Ständen und die Fähigkeiten des Volkes.</div></div></div>
-        <div class="view-row"><div class="v-num">+</div><div><div class="v-name">Recht</div><div class="v-desc">Die Verfassung und die Setzungen — die für diese Partie vereinbarten Sonderregeln.</div></div></div>
+        <div class="view-row"><div class="v-num">+</div><div><div class="v-name">Recht</div><div class="v-desc">Die Verfassung und die Sonderregeln — die im Lauf der Partie gewachsenen Zusatzregeln dieser Partie.</div></div></div>
       </div>
       <p class="prose" style="margin-top:14px"><strong>Bilder.</strong> Portraits und Karte entstehen über die Gemini-Bild-API. Hinterlege einmalig einen Schlüssel unter <em>Einstellungen</em> (er bleibt nur lokal im Browser). Mit <em>Exportieren</em> sicherst du einen Stand inklusive eingebetteter Bilder; ein Re-Import füllt den Cache ohne neuen API-Aufruf.</p>
+    </section>
+
+    <!-- ===================== Glossar ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Nachschlagen</span> Glossar der Spielbegriffe</div>
+      <p class="section-sub">Die wiederkehrenden Begriffe der Spielmechanik, kurz erklärt — zum Mitlesen beim Dashboard.</p>
+      <div class="two-col" style="margin-top:0">
+        <div class="prose">
+          <div class="eyebrow" style="margin-bottom:8px">Kernzustand</div>
+          <p><strong>Grundgrößen</strong> — Nahrung, Material, Wissen und Bevölkerung: die materielle Basis des Volkes (0–2 niedrig, 3–5 hoch).</p>
+          <p><strong>Lagewerte</strong> — Verteidigung, Mobilität, Wohlstand: die daraus abgeleitete Lage, als Wert mit Vorzeichen (etwa −2 bis +3).</p>
+          <p><strong>Ansehen</strong> — der Ruf des Volkes nach außen, in Stufen (0 bis 3).</p>
+          <p><strong>Trends</strong> — die Richtung einer Grundgröße über die Zeit: steigend oder fallend.</p>
+          <div class="eyebrow" style="margin:14px 0 8px">Würfeln &amp; Zeit</div>
+          <p><strong>Würfelprobe</strong> — du würfelst selbst 1d10 gegen einen offen genannten Zielwert; ab dem Zielwert gelingt sie. Die 1 ist ein kritischer Rückschlag, die 10 ein kritischer Glücksfall.</p>
+          <p><strong>Modifikator</strong> — Zu- oder Abschlag auf die Probe im Maßstab −2 bis +2, vor dem Wurf offengelegt.</p>
+          <p><strong>Saison-Turn &amp; Weltereignis</strong> — nur auf Saison-Turns rückt die Zeit vor und löst dann genau ein Weltereignis (1d10) aus.</p>
+          <p><strong>Lebensstand &amp; Lebenswürfe</strong> — jede Figur hat eine Lebensphase (rüstig → Lebensabend → hinfällig); im Winter wird gewürfelt, wer das Jahr übersteht.</p>
+        </div>
+        <div class="prose">
+          <div class="eyebrow" style="margin-bottom:8px">Figuren &amp; Mächte</div>
+          <p><strong>Berater</strong> — Vertraute mit eigenen Zielen; sie raten und handeln unter Delegation eigenständig in deinem Namen.</p>
+          <p><strong>Loyalität</strong> — die Treue eines Beraters im Maßstab −5 bis +5; sie verschiebt sich stets mit nachvollziehbarem Grund.</p>
+          <p><strong>Mächte &amp; Machtprofil</strong> — die anderen Kräfte der Welt; das Profil zeigt ihre Stärken (+) und die ausnutzbare Schwäche (−).</p>
+          <p><strong>Gruppen</strong> — Teile der Bevölkerung (Handwerk, Versorger, Späher …) mit je einem Sprecher.</p>
+          <div class="eyebrow" style="margin:14px 0 8px">Regeln, Recht &amp; Welt</div>
+          <p><strong>Sonderregeln</strong> — Zusatzregeln, die im Lauf der Partie gewachsen sind, ergänzend zur allgemeinen Mechanik (im Stand das Feld <code>setzungen</code>).</p>
+          <p><strong>Verfassung</strong> — die Grundordnung des Reiches innerhalb der Geschichte: wer wie regiert.</p>
+          <p><strong>Karte &amp; Karten-Chronik</strong> — die Lagekarte der bekannten Welt; die Chronik hält jeden früheren Karten-Stand als Zeitleiste fest.</p>
+          <p><strong>Vorhaben &amp; Runde</strong> — die wählbaren Aktionen einer Runde (das Aktionsbrett), aus denen du schöpfst.</p>
+        </div>
+      </div>
     </section>
 
     <!-- ===================== Befehle ===================== -->
