@@ -1,83 +1,91 @@
-// Sicht "Karte": Kartenbild (generierbar) und Legende der bekannten Orte.
-// Vertrag: docs/Frontend-Contract.md, Abschnitt "Karte (data-view=karte)".
-import { el } from '../components/ui.js';
+// js/render/map.js — Karte-Reiter: Kartenbild, Karten-Chronik (Zeitleiste der
+// Stände) und Orte-Liste. Ohne karte.chronik verhält sich der Reiter wie bisher
+// (ein Bild aus karte.prompt).
+import { el } from '../format.js';
 
-export function renderKarte(root, state, handlers = {}) {
-  root.replaceChildren();
-  if (!state) return;
+export function renderMap(root, state, handlers = {}) {
+  const k = state.karte || {};
+  const orte = Array.isArray(k.orte) ? k.orte : [];
+  const chronik = Array.isArray(k.chronik) ? k.chronik : [];
+  const selId = (handlers.getKarteStandId && handlers.getKarteStandId()) || k.aktuellerStand;
+  const aktiv = chronik.length
+    ? (chronik.find((e) => e.id === selId) || chronik[chronik.length - 1])
+    : null;
 
-  const karte = state.karte || {};
-  const orte = karte.orte || [];
+  root.innerHTML = '';
 
-  // Datengetriebener Alt-Text: nennt die bekannten Orte, statt einer fixen Floskel.
-  const alt = orte.length
-    ? `Lagekarte mit ${orte.map((o) => o.name).join(', ')}`
-    : 'Lagekarte (noch nicht erzeugt)';
-  const mapImage = el('img', {
+  // Kartenbild mit Erzeugen-Knopf (wie Hero/Heerschau).
+  const figure = el('figure', { class: 'map-figure', 'data-testid': 'map-figure' });
+  const img = el('img', {
     class: 'map-image',
     'data-testid': 'map-image',
-    alt,
+    alt: k.bildAlt || 'Karte der bekannten Welt',
+    loading: 'lazy',
   });
+  figure.appendChild(img);
 
+  // Anlass und Zeit des gezeigten Standes.
+  if (aktiv && (aktiv.zeit || aktiv.anlass)) {
+    const cap = el('figcaption', { class: 'map-stand-info', 'data-testid': 'karte-stand-info' });
+    if (aktiv.zeit) cap.appendChild(el('span', { class: 'map-stand-zeit', text: aktiv.zeit }));
+    if (aktiv.anlass) cap.appendChild(el('span', { class: 'map-stand-anlass', text: aktiv.anlass }));
+    figure.appendChild(cap);
+  }
+
+  // Erzeugen: ohne Chronik wie bisher; mit Chronik den aktiven Stand, und wenn
+  // er auf einem Vorgänger basiert, aus dessen Bild weiterentwickeln.
+  const evolving = !!(aktiv && aktiv.basiertAuf);
   const genBtn = el('button', {
-    class: 'btn primary gen-map',
-    'data-testid': 'generate-map',
+    class: 'btn gen-map',
+    'data-testid': chronik.length ? 'generate-karte-stand' : 'generate-map',
     type: 'button',
-    text: 'Karte erzeugen',
-    onClick: () => handlers.onGenerateMap?.(),
+    text: evolving ? 'Aus der vorigen weiterentwickeln' : 'Karte erzeugen',
   });
-
-  const compass = el('div', { class: 'compass', 'aria-hidden': 'true', html:
-    '<svg viewBox="0 0 100 100" fill="none" stroke="#9aa0a8" stroke-width="1">'
-    + '<circle cx="50" cy="50" r="44" stroke-opacity=".6"/><circle cx="50" cy="50" r="34" stroke-opacity=".3"/>'
-    + '<path d="M50 8 L57 50 L50 92 L43 50 Z" fill="#2a2e35" stroke="none" opacity=".85"/>'
-    + '<path d="M8 50 L50 43 L92 50 L50 57 Z" fill="#9aa0a8" stroke="none" opacity=".7"/>'
-    + '<circle cx="50" cy="50" r="4" fill="#ffffff" stroke="#2a2e35"/></svg>',
+  genBtn.addEventListener('click', () => {
+    if (chronik.length && handlers.onGenerateKarteStand) handlers.onGenerateKarteStand(aktiv.id);
+    else if (handlers.onGenerateMap) handlers.onGenerateMap();
   });
+  figure.appendChild(genBtn);
 
-  const frame = el('div', { class: 'map-frame' }, [
-    mapImage,
-    el('span', { class: 'map-corner tl' }), el('span', { class: 'map-corner tr' }),
-    el('span', { class: 'map-corner bl' }), el('span', { class: 'map-corner br' }),
-    el('div', { class: 'map-center' }, [
-      compass,
-      el('div', { class: 'mt', text: 'Lagekarte' }),
-      el('div', { class: 'ms', text: state.meta?.mapStyle || '' }),
-      genBtn,
-    ]),
-  ]);
+  root.appendChild(figure);
 
-  const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
-  const CASTLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l3 2V6l3 2V6l3 2 3-2v2l3-2v2l3-2v13z"/><path d="M10 21v-4h4v4"/></svg>';
+  // Karten-Chronik: Zeitleiste der Stände, jeder anklickbar; aktiver hervorgehoben.
+  if (chronik.length) {
+    const chronikPanel = el('section', { class: 'panel chronik-panel', 'data-testid': 'chronik-panel' });
+    chronikPanel.appendChild(el('h3', { text: 'Karten-Chronik' }));
+    const leiste = el('div', { class: 'karte-chronik', 'data-testid': 'karte-chronik' });
+    for (const e of chronik) {
+      const istAktiv = aktiv && e.id === aktiv.id;
+      const btn = el('button', {
+        class: `karte-stand${istAktiv ? ' karte-stand-aktiv' : ''}`,
+        'data-testid': istAktiv ? 'karte-stand-aktiv' : 'karte-stand',
+        type: 'button',
+        'aria-pressed': istAktiv ? 'true' : 'false',
+      });
+      if (e.zeit) btn.appendChild(el('span', { class: 'karte-stand-zeit', text: e.zeit }));
+      if (e.anlass) btn.appendChild(el('span', { class: 'karte-stand-anlass', text: e.anlass }));
+      btn.addEventListener('click', () => handlers.onSelectKarteStand && handlers.onSelectKarteStand(e.id));
+      leiste.appendChild(btn);
+    }
+    chronikPanel.appendChild(leiste);
+    root.appendChild(chronikPanel);
+  }
 
-  const legendList = el('ul', { class: 'll', 'data-testid': 'map-legend' },
-    orte.map((o) => {
-      const cap = /Hauptstadt|Bergfestung/.test(o.typ || '');
-      return el('li', { 'data-testid': 'map-place' }, [
-        el('span', { class: `gly${cap ? ' cap' : ''}`, 'aria-hidden': 'true', html: cap ? CASTLE : PIN }),
-        el('div', {}, [
-          el('div', { class: 'li-nm', text: o.name }),
-          o.typ ? el('div', { class: 'li-ty', text: o.typ }) : null,
-          o.beziehung ? el('div', { class: 'li-rl', text: o.beziehung }) : null,
-        ]),
-        o.richtung ? el('span', { class: 'li-dir', text: o.richtung }) : null,
-      ]);
-    }),
-  );
-
-  const legend = el('div', { class: 'legend' }, [
-    el('div', { class: 'block-head' }, [el('h3', { text: 'Orte' }), el('div', { class: 'rule' })]),
-    legendList,
-  ]);
-
-  const head = el('section', {}, [
-    el('div', { class: 'section-title' }, [
-      el('span', { class: 'kicker', text: 'Geographie' }),
-      document.createTextNode(' Die bekannte Welt'),
-    ]),
-    el('p', { class: 'section-sub', text: 'Die Karte wächst mit dem Spiel und zeigt nur, was das Volk kennt.' }),
-    el('div', { class: 'map-wrap' }, [frame, legend]),
-  ]);
-
-  root.append(head);
+  // Orte-Liste (gilt für den aktuellen Stand).
+  const ortePanel = el('section', { class: 'panel orte-panel', 'data-testid': 'orte-panel' });
+  ortePanel.appendChild(el('h3', { text: 'Orte' }));
+  if (orte.length) {
+    const list = el('ul', { class: 'orte-list', 'data-testid': 'orte-list' });
+    for (const o of orte) {
+      const li = el('li', { class: 'ort', 'data-testid': 'ort' });
+      li.appendChild(el('span', { class: 'ort-name', text: o.name || '' }));
+      if (o.art) li.appendChild(el('span', { class: 'ort-art', text: o.art }));
+      if (o.beschreibung) li.appendChild(el('span', { class: 'ort-besch', text: o.beschreibung }));
+      list.appendChild(li);
+    }
+    ortePanel.appendChild(list);
+  } else {
+    ortePanel.appendChild(el('p', { class: 'muted', text: 'Noch keine Orte verzeichnet.' }));
+  }
+  root.appendChild(ortePanel);
 }
