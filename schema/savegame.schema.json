@@ -200,7 +200,16 @@
         "properties": {
           "kapitel": { "type": "integer" },
           "jahre": { "type": "string" },
-          "zusammenfassung": { "type": "string" }
+          "zusammenfassung": { "type": "string" },
+          "bild": {
+            "type": "object",
+            "description": "Optionales Ereignis-Bild der Jahreszeit. Inhalt (anlass, prompt) vom Spielleiter; bildCacheKey und Anzeige vom Frontend.",
+            "properties": {
+              "anlass": { "type": "string" },
+              "prompt": { "type": "string" },
+              "bildCacheKey": { "type": "string" }
+            }
+          }
         }
       }
     },

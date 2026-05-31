@@ -1159,6 +1159,30 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .stat-quellen .qamt { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 .stat-rich.stat-bev .note { font-size: 12px; color: var(--muted); line-height: 1.5; text-align: left; }
 
+/* Historie-Timeline: ein Kapitel-Gruppenkopf, je Eintrag eine Karte mit
+   optionalem Ereignis-Bild. Die alten .node-Punkte entfallen, ein schlanker
+   Punkt am Eintrag bleibt. Vertrag: docs/Frontend-Contract.md (Historie). */
+.timeline-gruppe { margin-bottom: 6px; }
+.timeline-kapitel-titel {
+  font-family: var(--serif); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--rc-anthra); font-weight: 600; margin: 0 0 12px -34px;
+}
+.timeline-gruppe + .timeline-gruppe .timeline-kapitel-titel { margin-top: 20px; }
+.epoch::before {
+  content: ''; position: absolute; left: -34px; top: 4px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--rc-bg-2); border: 2px solid var(--line);
+}
+.epoch.current::before { background: var(--rc-anthra); border-color: var(--rc-anthra); }
+.epoch-bild { margin-top: 10px; }
+.epoch-img {
+  display: block; width: 100%; max-width: 520px; aspect-ratio: 16 / 9; object-fit: cover;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--rc-bg-2);
+}
+.epoch-bild-cap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 7px; }
+.epoch-anlass { font-size: 12px; color: var(--muted); font-style: italic; flex: 1; min-width: 140px; }
+.gen-ereignis { flex: none; }
+
 /* Besitz: was das Volk hat */
 .besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; }
 .besitz-item { display: flex; align-items: baseline; gap: 9px; line-height: 1.5; color: var(--ink-soft); }

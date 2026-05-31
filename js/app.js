@@ -77,6 +77,7 @@ const handlers = {
   onSelectKarteStand,
   onGenerateKarteStand,
   getKarteStandId: () => karteStandId,
+  onGenerateEreignisbild,
   onBildFortschreiben,
   onWaehleBildVersion,
   bildVersionen: (typ, id) => verList(identityOf(typ, id)),
@@ -189,7 +190,7 @@ function renderAll(state, delta) {
   renderArmee(els.views.armee, state, handlers);
   renderWelt(els.views.welt, state, handlers);
   renderKarte(els.views.karte, state, handlers);
-  renderHistorie(els.views.historie, state, { chronik: store.all() });
+  renderHistorie(els.views.historie, state, { ...handlers, chronik: store.all() });
   renderRecht(els.views.recht, state);
 }
 
@@ -693,6 +694,33 @@ async function onGenerateSiedlung(id) {
   });
 }
 
+// --- Ereignis-Bilder der Historie: ein Text-zu-Bild je Jahreszeit-Eintrag.
+// Inhalt und Prompt von historie[].bild gehoeren dem Spielleiter (Claude 0);
+// hier nur Anzeige, Erzeugung und der bildCacheKey.
+function buildEreignisPrompt(entry, state) {
+  return [state.meta?.visualStyle || '', entry.bild?.prompt || '']
+    .map((s) => (s || '').trim()).filter(Boolean).join('. ');
+}
+function ereignisKey(entry, state) {
+  return entry.bild?.bildCacheKey
+    || makeKey(['ereignis', entry.jahre || '', buildEreignisPrompt(entry, state), portraitModel()]);
+}
+function ereignisImg(jahre) {
+  return document.querySelector(`[data-testid="ereignis-bild"][data-jahre="${CSS.escape(jahre || '')}"]`);
+}
+async function onGenerateEreignisbild(index) {
+  const state = getState();
+  const entry = (state?.historie || [])[index];
+  if (!entry?.bild) return;
+  await generateInto({
+    img: ereignisImg(entry.jahre),
+    key: ereignisKey(entry, state),
+    model: portraitModel(),
+    prompt: buildEreignisPrompt(entry, state),
+    aspectRatio: '16:9',
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Bild fortschreiben: aus dem bisherigen Bild + aktuellem Stand ein neues
 // ableiten und alle Staende behalten (client-seitige Bild-Chronik). Die Karte
@@ -977,6 +1005,15 @@ async function hydrateImages(state) {
     }
     if (img.getAttribute('src')) continue;
     const cached = await cacheGet(key);
+    if (cached) img.src = cached;
+  }
+
+  // Ereignis-Bilder der Historie (Text-zu-Bild, keine aktive Version).
+  for (const [, h] of (state.historie || []).entries()) {
+    if (!h.bild) continue;
+    const img = ereignisImg(h.jahre);
+    if (!img || img.getAttribute('src')) continue;
+    const cached = await cacheGet(ereignisKey(h, state));
     if (cached) img.src = cached;
   }
 }
