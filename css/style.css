@@ -203,15 +203,17 @@ header.top {
 .btn.primary:hover { background: var(--rc-anthra-strong); color: #fff; box-shadow: 0 4px 14px rgba(20, 22, 28, .26); }
 .btn.primary svg { opacity: .9; }
 
-/* Kapitel-Historie-Auswahl in der Topbar (als .btn gestylt, aber ein <select>).
-   .btn setzt display:inline-flex und würde [hidden] übersteuern, daher explizit. */
-.history-select { appearance: none; -webkit-appearance: none; padding-right: 28px;
+/* Kapitel-Historie- und Demo-Auswahl in der Topbar (als .btn gestylt, aber ein
+   <select>). .btn setzt display:inline-flex und würde [hidden] übersteuern,
+   daher explizit. */
+.history-select, .demo-select { appearance: none; -webkit-appearance: none; padding-right: 28px;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%232a2e35' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
+  max-width: 220px;
 }
-.history-select[hidden] { display: none; }
+.history-select[hidden], .demo-select[hidden] { display: none; }
 
 /* ----------------------------------------------------------------------------
    Layout — volle Breite mit kleinen, sauberen Seitenabständen

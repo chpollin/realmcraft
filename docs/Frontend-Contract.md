@@ -68,7 +68,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - `export function toast(message): void`
 
 ## DOM-Vertrag (index.html, data-testid)
-- Topbar: `[data-testid="topbar"]`, Titel "RealmCraft", `<button data-testid="load-btn">`, `<input type="file" data-testid="load-input" hidden>`, `<select data-testid="history-select" hidden>` (Kapitel-Historie, sichtbar ab zwei gespeicherten Ständen; Auswahl lädt den Stand), `<button data-testid="settings-btn">`.
+- Topbar: `[data-testid="topbar"]`, Titel "RealmCraft", `<button data-testid="load-btn">`, `<input type="file" data-testid="load-input" hidden>`, `<select data-testid="demo-select" hidden>` (Demo-Picker, sichtbar wenn `examples/demo/manifest.json` erreichbar ist; Auswahl lädt den gewählten Demo-Stand), `<select data-testid="history-select" hidden>` (Kapitel-Historie, sichtbar ab zwei gespeicherten Ständen; Auswahl lädt den Stand), `<button data-testid="settings-btn">`.
 - Bild-Versionen: an jedem erzeugbaren Bild (Berater, Armee/Verband, Macht, Gruppe, Siedlung) steht neben dem Erzeugen-Knopf ein `<button data-testid="bild-fortschreiben" data-typ data-id>` ("Bild fortschreiben": leitet aus dem bisherigen Bild + dem aktuellen Stand ein neues ab) und, sobald fortgeschriebene Stände vorliegen, ein `<select data-testid="bild-versionen">` zum Umschalten (Option `__basis` = Ursprung). Die Versionsliste lebt clientseitig (localStorage `rc.imgver`/`rc.imgakt`), nicht im Speicherstand. Die Karte führt davon unabhängig ihre eigene, savegame-getriebene Karten-Chronik (`karte-chronik`).
 - Nav: 5 Buttons `[data-tab="lage|berater|welt|karte|historie"]`; aktiver trägt `aria-current="page"`.
 - Views: `<section data-view="lage">` … `historie`; inaktive haben das Attribut `hidden`.
@@ -126,6 +126,14 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.
 - Export-Bundle: `[data-testid="export-btn"]` erzeugt einen Download eines JSON-Stands mit eingebetteten `portrait.dataUrl`; Import erkennt `dataUrl` und füllt den Cache (kein API-Call). E2E prüft den Roundtrip über das Cache-Verhalten.
 - Export bettet zusätzlich ein: das jeweils **gewählte** Bild jeder Entität als deren primäres `dataUrl` (Berater `portrait`, Armee `bild`, Verband `avatar`, Macht/Gruppe/Siedlung `bild`), die **Ereignis-Bilder** der Historie (`historie[].bild.dataUrl`) und — als Frontend-eigenes Feld — die volle **Bild-Chronik** unter `bildChronik` (`{ [identity]: { aktiv, versionen: [{ key, label, savedAt, dataUrl }] } }`, identity z. B. `berater:<id>` oder `armee`). Beim Laden spielt `restoreBildChronik` diese Versionen in IndexedDB + die localStorage-Listen zurück, sodass fortgeschriebene Bilder samt allen Ständen auf einem fremden Browser (GitHub Pages) erscheinen und durchblätterbar sind. `bildChronik` gehört dem Frontend (das Schema lässt am Root zusätzliche Felder zu).
+
+## Demo-Stände (GitHub Pages)
+
+Für die veröffentlichte Seite werden Demo-Stände **schlank** ausgeliefert: die Bilder liegen als echte Dateien (`.webp`) statt als eingebettete `data:`-URIs. Das geht ohne Loader-Änderung, weil jedes `img.src = <…>.dataUrl` einen **Pfad genauso wie eine `data:`-URI** akzeptiert — die `dataUrl`-Felder enthalten in einem Demo-Stand also root-relative Pfade (z. B. `examples/demo/<slug>/bilder/<hash>.webp`), und `hydrateImages`/`restoreBildChronik` verarbeiten sie unverändert.
+
+- **Aufbereitung:** `node tools/prepare-demo.mjs <export.json> <slug> ["Titel"]` lagert alle `data:`-URIs eines Export-Bundles als Dateien aus (mit `sharp`: max. 1024 px, WebP q72; inhaltsgleiche Bilder werden dedupliziert), ersetzt sie im JSON durch Pfade und pflegt `examples/demo/manifest.json`.
+- **Manifest** (`examples/demo/manifest.json`): `{ default: <slug>, staende: [{ slug, titel, pfad, bilder, kapitel, jahreszeit, jahr }] }`.
+- **Loader** (`app.js`): `wireDemoPicker()` füllt `[data-testid="demo-select"]` aus dem Manifest und lädt bei Auswahl den jeweiligen `state.json` über denselben Pfad wie ein Upload. `loadDefaultSample()` lädt den `default`-Eintrag, wenn kein Live-Server und kein gespeicherter Stand vorliegt; ohne Manifest fällt es auf den älteren Einzelstand zurück. Fehlt das Manifest (404, Tests, `file://`), bleibt der Picker verborgen und das Verhalten unverändert.
 
 ---
 

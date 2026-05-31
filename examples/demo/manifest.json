@@ -1,0 +1,32 @@
+{
+  "default": "die-gestrandeten",
+  "staende": [
+    {
+      "slug": "die-gestrandeten",
+      "titel": "Die Gestrandeten",
+      "pfad": "examples/demo/die-gestrandeten/state.json",
+      "bilder": 30,
+      "kapitel": 1,
+      "jahreszeit": "Herbst",
+      "jahr": 2
+    },
+    {
+      "slug": "die-karren",
+      "titel": "Die Karren",
+      "pfad": "examples/demo/die-karren/state.json",
+      "bilder": 0,
+      "kapitel": 4,
+      "jahreszeit": "Frühling",
+      "jahr": 19
+    },
+    {
+      "slug": "die-ordnenden",
+      "titel": "Die Ordnenden",
+      "pfad": "examples/demo/die-ordnenden/state.json",
+      "bilder": 0,
+      "kapitel": 1,
+      "jahreszeit": "Winter",
+      "jahr": 1
+    }
+  ]
+}

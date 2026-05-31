@@ -45,6 +45,7 @@ const els = {
   loadBtn: $('[data-testid="load-btn"]'),
   emptyLoadBtn: $('[data-testid="empty-load-btn"]'),
   loadInput: $('[data-testid="load-input"]'),
+  demoSelect: $('[data-testid="demo-select"]'),
   exportBtn: $('[data-testid="export-btn"]'),
   settingsBtn: $('[data-testid="settings-btn"]'),
   settingsDialog: $('[data-testid="settings-dialog"]'),
@@ -1247,15 +1248,88 @@ function wire() {
 
   applyRoute();
 
+  // Demo-Picker: mehrere ausgelagerte Demo-Stände zum Umschalten anbieten
+  // (sofern examples/demo/manifest.json erreichbar ist).
+  wireDemoPicker();
+
   // Live-Modus: gegen den lokalen Server spiegeln, was der Terminal-Spielleiter
   // in savegame.json schreibt. Greift nur, wenn die Datei existiert.
   wireLive();
 }
 
-// Voreingestellter Beispielstand für die veröffentlichte Seite: lädt einmalig
-// examples/die-gestrandeten.json, wenn kein anderer Stand vorliegt. Fehler (404,
-// Netz) werden still verschluckt — dann bleibt der Leerzustand.
+// --- Demo-Picker: mehrere ausgelagerte Demo-Stände aus examples/demo/manifest.json
+// laden und im Dashboard umschalten. Greift auf der veröffentlichten Seite (Pages)
+// wie lokal. Die Stände referenzieren ihre Bilder als Dateien (Pfade statt
+// data:-URIs); der bestehende Bild-Flow (img.src) verarbeitet beides gleich.
+const DEMO_MANIFEST = 'examples/demo/manifest.json';
+let demoManifest = null;
+
+async function ladeDemoManifest() {
+  if (demoManifest) return demoManifest;
+  try {
+    const res = await fetch(DEMO_MANIFEST, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !Array.isArray(data.staende) || !data.staende.length) return null;
+    demoManifest = data;
+    return demoManifest;
+  } catch {
+    return null;
+  }
+}
+
+async function ladeDemoStand(eintrag) {
+  if (!eintrag?.pfad) return false;
+  try {
+    const res = await fetch(eintrag.pfad, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return false;
+    handleSavegameText(await res.text());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Befüllt den Demo-Picker aus dem Manifest und blendet ihn ein (ab einem Stand).
+// Bei Auswahl wird der gewählte Stand geladen. Ohne Manifest bleibt der Picker
+// verborgen, das übrige Verhalten unberührt.
+async function wireDemoPicker() {
+  const sel = els.demoSelect;
+  if (!sel) return null;
+  const manifest = await ladeDemoManifest();
+  if (!manifest) { sel.hidden = true; return null; }
+
+  sel.replaceChildren(
+    ...manifest.staende.map((e) => {
+      const teile = [e.titel || e.slug];
+      if (e.kapitel != null) teile.push(`Kapitel ${roman(e.kapitel)}`);
+      const saison = `${e.jahreszeit || ''} ${e.jahr ?? ''}`.trim();
+      if (saison) teile.push(saison);
+      return el('option', { value: e.slug }, [teile.join(' · ')]);
+    }),
+  );
+  sel.hidden = false;
+
+  sel.addEventListener('change', () => {
+    const eintrag = manifest.staende.find((e) => e.slug === sel.value);
+    if (eintrag) ladeDemoStand(eintrag);
+  });
+  return manifest;
+}
+
+// Voreingestellter Beispielstand für die veröffentlichte Seite: lädt den im
+// Manifest als default markierten Demo-Stand (sonst den ersten), wenn kein anderer
+// Stand vorliegt. Fällt ohne Manifest auf den älteren Einzelstand zurück. Fehler
+// (404, Netz) werden still verschluckt — dann bleibt der Leerzustand.
 async function loadDefaultSample() {
+  const manifest = await ladeDemoManifest();
+  if (manifest) {
+    const eintrag = manifest.staende.find((e) => e.slug === manifest.default) || manifest.staende[0];
+    if (await ladeDemoStand(eintrag)) {
+      if (els.demoSelect) els.demoSelect.value = eintrag.slug;
+      return;
+    }
+  }
   try {
     const res = await fetch('examples/die-gestrandeten.json', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     if (!res.ok) return;
