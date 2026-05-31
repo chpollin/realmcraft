@@ -21,6 +21,14 @@
     .prose strong { color: var(--ink); font-weight: 600; }
     .stack { display: grid; gap: 16px; }
 
+    /* Sprungnavigation auf dieser Seite (an die Dashboard-Pillen angelehnt). */
+    .guide-toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+    .guide-toc a { font-size: 12.5px; color: var(--ink-soft); text-decoration: none;
+      padding: 7px 13px; border: 1px solid var(--line); border-radius: 100px; background: var(--panel);
+      transition: border-color .15s, color .15s; }
+    .guide-toc a:hover { border-color: var(--ink-faint); color: var(--ink); }
+    section[id] { scroll-margin-top: 18px; }
+
     .steps { counter-reset: s; list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 14px; }
     .steps li { position: relative; padding-left: 44px; color: var(--ink-soft); line-height: 1.6; max-width: 74ch; }
     .steps li strong { color: var(--ink); font-weight: 600; }
@@ -93,7 +101,7 @@
 
     <!-- ===================== Intro ===================== -->
     <section class="panel pad guide-hero">
-      <div class="badges crest .badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
         <span class="badge"><span class="dot"></span> Aufbau- und Erzählspiel</span>
         <span class="badge"><span class="dot"></span> Spielleiter-geführt</span>
       </div>
@@ -108,8 +116,18 @@
       </p>
     </section>
 
+    <!-- ===================== Auf dieser Seite (Sprungnavigation) ===================== -->
+    <nav class="guide-toc" aria-label="Auf dieser Seite">
+      <a href="#wege">Zwei Wege</a>
+      <a href="#schnellstart">Schnellstart</a>
+      <a href="#regeln">Regeln in Kürze</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#glossar">Glossar</a>
+      <a href="#befehle">Befehle</a>
+    </nav>
+
     <!-- ===================== Zwei Spielweisen ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="wege">
       <div class="section-title"><span class="kicker">Zwei Wege</span> Wie du spielst</div>
       <p class="section-sub">RealmCraft wird auf zwei gleichwertigen Wegen gespielt — beide enden im selben Speicherstand, den dieses Dashboard liest.</p>
       <div class="two-col" style="margin-top:0">
@@ -135,7 +153,7 @@
     </section>
 
     <!-- ===================== So fängst du an (Chat) + Download ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="schnellstart">
       <div class="section-title"><span class="kicker">Schnellstart</span> So fängst du an (Chat-Modus)</div>
       <p class="section-sub">In fünf Minuten in der ersten Ratssitzung.</p>
       <ol class="steps">
@@ -164,7 +182,7 @@
     </section>
 
     <!-- ===================== Regeln in Kürze ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="regeln">
       <div class="section-title"><span class="kicker">Das Wichtigste</span> Die Regeln in Kürze</div>
       <div class="two-col" style="margin-top:0">
         <div class="prose">
@@ -182,7 +200,7 @@
     </section>
 
     <!-- ===================== Das Dashboard ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="dashboard">
       <div class="section-title"><span class="kicker">Lagetisch</span> Das Dashboard</div>
       <p class="section-sub">Lade einen Speicherstand (hybrides Markdown oder reines JSON) — sieben Sichten zeigen das Lagebild des Rates.</p>
       <div class="views">
@@ -192,14 +210,14 @@
         <div class="view-row"><div class="v-num">IV</div><div><div class="v-name">Armee</div><div class="v-desc">Verbände mit Stärke und Führung, stehende Modifikatoren und das Verluste-Logbuch.</div></div></div>
         <div class="view-row"><div class="v-num">V</div><div><div class="v-name">Welt</div><div class="v-desc">Die anderen Mächte mit Profil (Stärken und die ausnutzbare Schwäche), Beziehung und Haltung sowie die tragenden Gruppen.</div></div></div>
         <div class="view-row"><div class="v-num">VI</div><div><div class="v-name">Karte</div><div class="v-desc">Eine erzeugbare Lagekarte und die Legende der bekannten Orte — die Karte wächst mit dem Spiel.</div></div></div>
-        <div class="view-row"><div class="v-num">VII</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf aus den gespeicherten Ständen und die Fähigkeiten des Volkes.</div></div></div>
+        <div class="view-row"><div class="v-num">VII</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf, Kapitel für Kapitel und Saison für Saison — jede Jahreszeit mit eigenem Ereignis-Bild — und die Fähigkeiten des Volkes.</div></div></div>
         <div class="view-row"><div class="v-num">+</div><div><div class="v-name">Recht</div><div class="v-desc">Die Verfassung und die Sonderregeln — die im Lauf der Partie gewachsenen Zusatzregeln dieser Partie.</div></div></div>
       </div>
-      <p class="prose" style="margin-top:14px"><strong>Bilder.</strong> Portraits und Karte entstehen über die Gemini-Bild-API. Hinterlege einmalig einen Schlüssel unter <em>Einstellungen</em> (er bleibt nur lokal im Browser). Mit <em>Exportieren</em> sicherst du einen Stand inklusive eingebetteter Bilder; ein Re-Import füllt den Cache ohne neuen API-Aufruf.</p>
+      <p class="prose" style="margin-top:14px"><strong>Bilder.</strong> Portraits, Karte, Heerschau, Mächte, Gruppen und Siedlungen entstehen über die Gemini-Bild-API. Hinterlege einmalig einen Schlüssel unter <em>Einstellungen</em> (er bleibt nur lokal im Browser). Jedes Bild lässt sich später mit <em>Bild fortschreiben</em> aus dem bisherigen Bild und dem aktuellen Stand neu ableiten — alle früheren Stände bleiben als Bild-Chronik wählbar. Mit <em>Exportieren</em> sicherst du einen Stand inklusive eingebetteter Bilder; ein Re-Import füllt den Cache ohne neuen API-Aufruf.</p>
     </section>
 
     <!-- ===================== Glossar ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="glossar">
       <div class="section-title"><span class="kicker">Nachschlagen</span> Glossar der Spielbegriffe</div>
       <p class="section-sub">Die wiederkehrenden Begriffe der Spielmechanik, kurz erklärt — zum Mitlesen beim Dashboard.</p>
       <div class="two-col" style="margin-top:0">
@@ -231,7 +249,7 @@
     </section>
 
     <!-- ===================== Befehle ===================== -->
-    <section class="panel pad mt">
+    <section class="panel pad mt" id="befehle">
       <div class="section-title"><span class="kicker">Im Spiel</span> Befehle an den Spielleiter</div>
       <p class="section-sub">Kurzbefehle, die der Chronist versteht (im Chat wie im Terminal).</p>
       <div class="cmd-list">
