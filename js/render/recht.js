@@ -37,8 +37,8 @@ export function renderRecht(root, state) {
   if (setzungen.length) {
     root.append(el('section', { class: 'panel pad mt', 'data-testid': 'setzungen' }, [
       el('div', { class: 'block-head' }, [
-        el('h3', { text: 'Setzungen und Sonderregeln' }),
-        el('span', { class: 'eyebrow', text: 'ergänzend zur Mechanik, für dieses Spiel vereinbart' }),
+        el('h3', { text: 'Sonderregeln' }),
+        el('span', { class: 'eyebrow', text: 'im Lauf der Partie gewachsen, ergänzend zur Mechanik' }),
       ]),
       el('div', { class: 'rules-list' },
         setzungen.map((s) =>
