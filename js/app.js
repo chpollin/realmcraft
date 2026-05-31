@@ -629,8 +629,13 @@ async function hydrateImages(state) {
 
   const mapImg = document.querySelector('[data-testid="map-image"]');
   if (mapImg && state.karte && !mapImg.getAttribute('src')) {
-    const cached = await cacheGet(mapKey(state));
-    if (cached) mapImg.src = cached;
+    if (state.karte.dataUrl) {
+      mapImg.src = state.karte.dataUrl;
+      cachePut(mapKey(state), state.karte.dataUrl);
+    } else {
+      const cached = await cacheGet(mapKey(state));
+      if (cached) mapImg.src = cached;
+    }
   }
 
   if (state.armee) {
