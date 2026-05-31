@@ -629,18 +629,7 @@ async function hydrateImages(state) {
 
   const mapImg = document.querySelector('[data-testid="map-image"]');
   if (mapImg && state.karte && !mapImg.getAttribute('src')) {
-    const entry = aktiverKarteStand(state);
-    if (entry) {
-      const key = karteStandKey(entry);
-      const cached = await cacheGet(key);
-      if (cached) {
-        mapImg.src = cached;
-      } else if (entry.id === state.karte.aktuellerStand && state.karte.dataUrl) {
-        // Das eingebettete Kartenbild gehoert dem aktuellen Stand.
-        mapImg.src = state.karte.dataUrl;
-        cachePut(key, state.karte.dataUrl);
-      }
-    } else if (state.karte.dataUrl) {
+    if (state.karte.dataUrl) {
       mapImg.src = state.karte.dataUrl;
       cachePut(mapKey(state), state.karte.dataUrl);
     } else {
