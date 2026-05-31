@@ -81,6 +81,15 @@ export function getAt(index) {
   return arr[index] ? arr[index].state : null;
 }
 
+/**
+ * Alle gespeicherten Staende in chronologischer Reihenfolge (aeltester zuerst).
+ * Fuer die Chronik: jeder gespeicherte Stand ist ein vergangener Zug.
+ * @returns {object[]}
+ */
+export function all() {
+  return readAll().map((e) => e.state);
+}
+
 /** Loescht den gesamten Verlauf. */
 export function clear() {
   const s = ls();

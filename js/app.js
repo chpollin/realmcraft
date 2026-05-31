@@ -135,7 +135,7 @@ function renderAll(state, delta) {
   renderBerater(els.views.berater, state, handlers);
   renderWelt(els.views.welt, state);
   renderKarte(els.views.karte, state, handlers);
-  renderHistorie(els.views.historie, state);
+  renderHistorie(els.views.historie, state, { chronik: store.all() });
 }
 
 // ---------------------------------------------------------------------------
