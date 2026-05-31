@@ -18,15 +18,6 @@
       "kapitel": 4,
       "jahreszeit": "Frühling",
       "jahr": 19
-    },
-    {
-      "slug": "die-ordnenden",
-      "titel": "Die Ordnenden",
-      "pfad": "examples/demo/die-ordnenden/state.json",
-      "bilder": 0,
-      "kapitel": 1,
-      "jahreszeit": "Winter",
-      "jahr": 1
     }
   ]
 }

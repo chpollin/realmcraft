@@ -769,6 +769,19 @@ function aktSet(identity, key) {
   setLS(AKT_NS, all);
 }
 
+// Setzt den fluechtigen Bild-Versionsstand zurueck: die localStorage-Listen und
+// die einmal-pro-Sitzung-Markierung von restoreBildChronik. Noetig beim Wechsel
+// zwischen Demo-Staenden, sonst zeigt der neue Stand fuer gleich benannte
+// Identitaeten (z. B. berater:<id>) noch das aktive Bild des vorigen Standes
+// (aktGet liest die alte Wahl, applyAktiveBild setzt das alte Bild). Nach dem
+// Reset greift fuer Demo-Staende die direkte Pfad-Anzeige (entity.dataUrl) bzw.
+// die frisch eingespielte bildChronik des neuen Standes.
+function resetBildVersionState() {
+  try { localStorage.removeItem(VER_NS); } catch { /* egal */ }
+  try { localStorage.removeItem(AKT_NS); } catch { /* egal */ }
+  bildChronikRestauriert.clear();
+}
+
 // Loest (typ, id) gegen den Stand auf: <img>, Modell, Seitenverhaeltnis, der aus
 // dem aktuellen Stand gebaute Basis-Prompt, der Basis-Cache-Key und die stabile
 // Identitaet. Nutzt dieselben buildX/xKey/xImg wie die Erst-Erzeugung.
@@ -1283,6 +1296,9 @@ async function ladeDemoStand(eintrag) {
   try {
     const res = await fetch(eintrag.pfad, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) return false;
+    // Vor dem Wechsel den fluechtigen Bild-Versionsstand des vorigen Demo-Standes
+    // verwerfen, damit nichts in den neuen Stand durchblutet (sauberer Wechsel).
+    resetBildVersionState();
     handleSavegameText(await res.text());
     return true;
   } catch {
