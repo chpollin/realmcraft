@@ -194,3 +194,25 @@ test('kaputter Klon: lebenswelt.siedlungen-Eintrag ohne required name', () => {
   data.lebenswelt = { siedlungen: [{ typ: 'Außenposten' }] };
   assert.equal(validate(data), false);
 });
+
+// Karten-Chronik ist optional und abwärtskompatibel: ein vollständiger Verlauf
+// (mit basiertAuf-Verkettung) muss schema-konform sein, eine ungültige id nicht.
+test('Karten-Chronik mit aktuellerStand und verketteten Staenden ist gueltig', () => {
+  const validate = makeValidator();
+  const data = clone();
+  data.karte = data.karte || {};
+  data.karte.aktuellerStand = 'fruehling-j2';
+  data.karte.chronik = [
+    { id: 'gruendung-j1', zeit: 'Fruehling Jahr 1', anlass: 'Landung', basiertAuf: null, prompt: 'Ur-Karte', bildCacheKey: '' },
+    { id: 'fruehling-j2', zeit: 'Fruehling Jahr 2', anlass: 'Sturm droht', basiertAuf: 'gruendung-j1', prompt: 'Entwickle weiter' },
+  ];
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+});
+
+test('kaputter Klon: karte.chronik-Eintrag mit ungueltiger id', () => {
+  const validate = makeValidator();
+  const data = clone();
+  data.karte = data.karte || {};
+  data.karte.chronik = [{ id: 'Hat Leerzeichen', prompt: 'x' }];
+  assert.equal(validate(data), false);
+});

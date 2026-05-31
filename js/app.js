@@ -74,6 +74,9 @@ const handlers = {
   onGenerateMacht,
   onGenerateGruppe,
   onGenerateSiedlung,
+  onSelectKarteStand,
+  onGenerateKarteStand,
+  getKarteStandId: () => karteStandId,
 };
 
 // ---------------------------------------------------------------------------
@@ -499,7 +502,7 @@ function siedlungImg(id) {
 // Reihenfolge ein: ein Cache-Treffer löst keinen Netzaufruf aus; ein fehlender
 // API-Key toastet und öffnet die Einstellungen, ohne zu erzeugen; sonst wird
 // erzeugt, gecacht und ins <img> gesetzt, Fehler werden getoastet.
-async function generateInto({ img, key, model, prompt, aspectRatio }) {
+async function generateInto({ img, key, model, prompt, aspectRatio, refImages }) {
   const cached = await cacheGet(key);
   if (cached) {
     if (img) img.src = cached;
@@ -514,7 +517,7 @@ async function generateInto({ img, key, model, prompt, aspectRatio }) {
   }
 
   try {
-    const { dataUrl } = await generateImage({ apiKey, model, prompt, aspectRatio });
+    const { dataUrl } = await generateImage({ apiKey, model, prompt, aspectRatio, refImages });
     await cachePut(key, dataUrl);
     if (img) img.src = dataUrl;
   } catch (e) {
@@ -540,6 +543,66 @@ async function onGenerateMap() {
     model: mapModel(),
     prompt: state.karte.prompt || '',
     aspectRatio: '16:9',
+  });
+}
+
+// --- Karten-Chronik: Folge von Karten-Ständen, jeder aus dem vorigen entwickelt.
+// karteStandId merkt sich den gewählten Stand (null = aktuellerStand aus dem
+// Speicherstand). Die Chronik ist optional; ohne sie verhält sich der Reiter wie
+// bisher (ein Bild aus karte.prompt).
+let karteStandId = null;
+
+function karteChronik(state) {
+  return Array.isArray(state.karte?.chronik) ? state.karte.chronik : [];
+}
+
+function aktiverKarteStand(state) {
+  const chronik = karteChronik(state);
+  if (!chronik.length) return null;
+  const id = karteStandId || state.karte?.aktuellerStand;
+  return chronik.find((e) => e.id === id) || chronik[chronik.length - 1];
+}
+
+// Stabiler, deterministischer Cache-Key je Stand (bleibt über Sitzungen erhalten).
+function karteStandKey(state, entry) {
+  return entry.bildCacheKey
+    || makeKey(['map', entry.id, entry.prompt || '', state.meta?.mapStyle || '', mapModel()]);
+}
+
+function karteStandPrompt(state, entry) {
+  return [state.meta?.mapStyle || '', entry.prompt || '']
+    .map((s) => (s || '').trim()).filter(Boolean).join('. ');
+}
+
+function onSelectKarteStand(id) {
+  karteStandId = id;
+  const state = getState();
+  if (!state) return;
+  renderAll(state);
+  // Frisch gerendertes Kartenbild (ohne src) mit dem gewählten Stand füllen.
+  hydrateImages(state);
+}
+
+async function onGenerateKarteStand(id) {
+  const state = getState();
+  if (!state || !state.karte) return;
+  const chronik = karteChronik(state);
+  const entry = chronik.find((e) => e.id === id) || aktiverKarteStand(state);
+  if (!entry) { await onGenerateMap(); return; }
+  // Bild-zu-Bild: die vorige Karte als Vorlage, wenn dieser Stand auf ihr aufbaut.
+  let refImages;
+  if (entry.basiertAuf) {
+    const vorg = chronik.find((e) => e.id === entry.basiertAuf);
+    const vorgUrl = vorg ? await cacheGet(karteStandKey(state, vorg)) : null;
+    if (vorgUrl) refImages = [vorgUrl.replace(/^data:[^,]+,/, '')];
+  }
+  await generateInto({
+    img: document.querySelector('[data-testid="map-image"]'),
+    key: karteStandKey(state, entry),
+    model: mapModel(),
+    prompt: karteStandPrompt(state, entry),
+    aspectRatio: '16:9',
+    refImages,
   });
 }
 
@@ -629,7 +692,18 @@ async function hydrateImages(state) {
 
   const mapImg = document.querySelector('[data-testid="map-image"]');
   if (mapImg && state.karte && !mapImg.getAttribute('src')) {
-    if (state.karte.dataUrl) {
+    const entry = aktiverKarteStand(state);
+    if (entry) {
+      const key = karteStandKey(state, entry);
+      const cached = await cacheGet(key);
+      if (cached) {
+        mapImg.src = cached;
+      } else if (entry.id === state.karte.aktuellerStand && state.karte.dataUrl) {
+        // Das eingebettete Kartenbild gehört dem aktuellen Stand.
+        mapImg.src = state.karte.dataUrl;
+        cachePut(key, state.karte.dataUrl);
+      }
+    } else if (state.karte.dataUrl) {
       mapImg.src = state.karte.dataUrl;
       cachePut(mapKey(state), state.karte.dataUrl);
     } else {

@@ -101,6 +101,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 
 ### Karte (`data-view="karte"`)
 - `[data-testid="map-image"]` (`<img>`, anfangs Platzhalter/leer), `[data-testid="generate-map"]` (Button), `[data-testid="map-legend"]` mit `[data-testid="map-place"]` × `state.karte.orte.length`.
+- Karten-Chronik (optional, nur wenn `state.karte.chronik` vorhanden): `[data-testid="chronik-panel"]` mit `[data-testid="karte-chronik"]` als Zeitleiste; je Stand ein Knopf `[data-testid="karte-stand"]` (Zeit + Anlass), der aktive `[data-testid="karte-stand-aktiv"]`. Klick → `handlers.onSelectKarteStand(id)` (wechselt das gezeigte Bild). Der Erzeugen-Knopf nutzt dann `handlers.onGenerateKarteStand(aktiverStand.id)`; trägt der Stand `basiertAuf`, wird das Bild des Vorgängers als `refImages` mitgegeben (Bild-zu-Bild), Label „Aus der vorigen weiterentwickeln". Schlüssel je Stand: `makeKey(['map', entry.id, entry.prompt, mapStyle, model])`. Handlers zusätzlich: `onSelectKarteStand(id)`, `onGenerateKarteStand(id)`, `getKarteStandId()`. Ohne `chronik` Verhalten wie bisher.
 
 ### Historie (`data-view="historie"`)
 - `[data-testid="history-entry"]` × `state.historie.length` (chronologisch), `[data-testid="faehigkeit"]` × n, `[data-testid="besitz"]` × n.
