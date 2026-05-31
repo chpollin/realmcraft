@@ -261,6 +261,24 @@
       "properties": {
         "prompt": { "type": "string" },
         "bildCacheKey": { "type": "string" },
+        "dataUrl": { "type": "string" },
+        "aktuellerStand": { "type": "string" },
+        "chronik": {
+          "type": "array",
+          "description": "Optionale Karten-Chronik: Folge von Karten-Ständen, jeder kann über basiertAuf aus dem vorigen entwickelt werden (Bild-zu-Bild).",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "zeit": { "type": "string" },
+              "anlass": { "type": "string" },
+              "prompt": { "type": "string" },
+              "basiertAuf": { "type": ["string", "null"] },
+              "bildCacheKey": { "type": "string" }
+            }
+          }
+        },
         "orte": {
           "type": "array",
           "items": {

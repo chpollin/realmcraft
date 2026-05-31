@@ -8,6 +8,11 @@ export function renderKarte(root, state, handlers = {}) {
 
   const karte = state.karte || {};
   const orte = karte.orte || [];
+  const chronik = Array.isArray(karte.chronik) ? karte.chronik : [];
+  const selId = (handlers.getKarteStandId && handlers.getKarteStandId()) || karte.aktuellerStand;
+  const aktiv = chronik.length
+    ? (chronik.find((e) => e.id === selId) || chronik[chronik.length - 1])
+    : null;
 
   // Datengetriebener Alt-Text: nennt die bekannten Orte, statt einer fixen Floskel.
   const alt = orte.length
@@ -23,8 +28,11 @@ export function renderKarte(root, state, handlers = {}) {
     class: 'btn primary gen-map',
     'data-testid': 'generate-map',
     type: 'button',
-    text: 'Karte erzeugen',
-    onClick: () => handlers.onGenerateMap?.(),
+    text: aktiv && aktiv.basiertAuf ? 'Aus der vorigen weiterentwickeln' : 'Karte erzeugen',
+    onClick: () => {
+      if (chronik.length) handlers.onGenerateKarteStand?.(aktiv.id);
+      else handlers.onGenerateMap?.();
+    },
   });
 
   const compass = el('div', { class: 'compass', 'aria-hidden': 'true', html:
@@ -70,6 +78,29 @@ export function renderKarte(root, state, handlers = {}) {
     legendList,
   ]);
 
+  // Karten-Chronik: Zeitleiste der Stände, jeder anklickbar; aktiver hervorgehoben.
+  // Bild-zu-Bild über basiertAuf erledigt der Handler. Ohne Chronik bleibt der
+  // Block aus (null), der Reiter sieht aus wie bisher.
+  const chronikBlock = chronik.length
+    ? el('div', { class: 'karte-chronik-wrap', 'data-testid': 'chronik-panel' }, [
+        el('div', { class: 'block-head' }, [el('h3', { text: 'Karten-Chronik' }), el('div', { class: 'rule' })]),
+        el('div', { class: 'karte-chronik', 'data-testid': 'karte-chronik' },
+          chronik.map((e) => {
+            const istAktiv = aktiv && e.id === aktiv.id;
+            return el('button', {
+              class: `karte-stand${istAktiv ? ' karte-stand-aktiv' : ''}`,
+              'data-testid': istAktiv ? 'karte-stand-aktiv' : 'karte-stand',
+              type: 'button',
+              'aria-pressed': istAktiv ? 'true' : 'false',
+              onClick: () => handlers.onSelectKarteStand?.(e.id),
+            }, [
+              e.zeit ? el('span', { class: 'ks-zeit', text: e.zeit }) : null,
+              e.anlass ? el('span', { class: 'ks-anlass', text: e.anlass }) : null,
+            ]);
+          })),
+      ])
+    : null;
+
   const head = el('section', {}, [
     el('div', { class: 'section-title' }, [
       el('span', { class: 'kicker', text: 'Geographie' }),
@@ -77,6 +108,7 @@ export function renderKarte(root, state, handlers = {}) {
     ]),
     el('p', { class: 'section-sub', text: 'Die Karte wächst mit dem Spiel und zeigt nur, was das Volk kennt.' }),
     el('div', { class: 'map-wrap' }, [frame, legend]),
+    chronikBlock,
   ]);
 
   root.append(head);
