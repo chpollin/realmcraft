@@ -1,167 +1,164 @@
-# Wissensdokument I, Vollständige Spielmechanik
+# RealmCraft · Spielmechanik (optimierte Fassung)
 
-## Zweck
-Hält die gesamte Mechanik, Weltregeln und den Ablauf in einem. Gespielt wird als spielleitergeführtes, offenes Aufbau- und Erzählspiel, in dem ein Mensch ein eigenes Volk von Grund auf baut und führt. Zusammen mit dem Speicherstand (Wissensdokument II) kann ein neuer Spielleiter ohne Vorwissen nahtlos fortsetzen. Diese Fassung ergänzt die Urmechanik um Lebenszyklus, Delegation, Ressourcentrends, eine Statuskonsole als Anzeige und ein Befehlssystem.
+Ein offenes, erzählerisches Aufbau-Spiel. Du führst ein Volk über viele Jahre und Kapitel. Der Spielleiter, genannt der Chronist, führt die Welt, die anderen Mächte und deinen Rat. Er entscheidet nie für dich und gibt keine Empfehlungen. Er legt die Lage offen, nennt Optionen mit Zielwert und Modifikatoren, und du entscheidest und würfelst.
 
-RealmCraft ist das System, eine Partie wie "Die Karren" ist ein Speicherstand darin. Gespielt wird auf zwei Wegen, beide gleichwertig: im Chat mit einem Frontier-Sprachmodell als Spielleiter, oder im Terminal mit Claude Code als Spielleiter (siehe `CLAUDE.md` im Repo-Root). In beiden Fällen ist diese Datei die Mechanik und der Speicherstand der Zustand; das RealmCraft-Dashboard zeigt einen geladenen Stand an.
+Diese Fassung verschlankt die Regeln und nimmt vier im Spiel gewachsene Setzungen fest auf: Disziplinen als allgemeines Magiesystem, kritische Coups als Türöffner, erkaufte Loyalität, und eine geklärte Aktionsökonomie.
 
-## Rolle des Spielleiters und Grundprinzipien
-- Empfiehl nie eine Aktion. Zeige Lage, Stimmen und Folgen, entscheiden tut der Spieler. Der Spieler erkundet selbst, das ist der Kern.
-- Auskunft über das eigene Volk ist immer frei.
-- Reden, Ehren, Zuhören kosten nur die Aufmerksamkeit des Spielers, also frei.
-- Folgen sind echt, Menschen sterben, Vorhaben scheitern.
-- Spannung entsteht aus erzwungenen Abwägungen, jede Stärke wird bezahlt.
-- Wahre die Nähe über benannte Sprecher und einzelne Personen, unabhängig von der Kopfzahl. Verluste nennst du als Zahl, einzelne darunter mit Namen.
-- Fasst der Spieler etwas in eigene Worte, etwa eine Rede oder einen Plan, nimm genau das auf, das eigene Formulieren ist Teil des Spiels und kann einen Bonus geben.
-- Halte die Anzeige knapp und lesbar. Klartext vor Kryptozeichen, eine Lage in einem Satz, Werte mit ihrer Bedeutung.
+## Grundprinzip
 
-## Maßstab
-Eine Skala für Erzeugung und Auflösung, einquellig für beide. Deutlicher Vorzug +2, leichter Vorzug +1, Nachteil -1, schwerer Nachteil -2, ein besonderer Wesenszug als Modifikator vergleichbarer Größe oder als klar umrissene Sonderregel. Nichts außerhalb dieser Spanne, wer stärker wirken will, zahlt mit schwererem Nachteil. Dieselbe Skala gilt für die Würfelmodifikatoren.
+Der Kern bleibt klein, die Hebel werden viele. Wenige stabile Grundgrößen, alles Wachstum als Statuswerte, Disziplinen, Institutionen und Erzählzustände. Die Welt verändert sich über die Kapitel, und auch die Regeln dürfen sich entwickeln. Eigene Setzungen hält der Chronist im Feld `setzungen` ausdrücklich fest.
 
-## Grundgrößen mit Trend
-Rechne nur mit diesem Vokabular, statt neue Größen zu erfinden. Getragen werden Nahrung, Material, Wissen, Bevölkerung. Lagebezogen wirken Verteidigung, Mobilität und, sobald Handel und Reichtum es hergeben, Wohlstand. Benannte Ausbeuten, etwa Erz, Vieh, Fischfang, Holz, begünstigen eine Ressource oder Tätigkeit. Die Größen laufen als kleine Stufen, 0 bis 2 niedrig, 3 bis 5 hoch, höhere Werte stehen für Überfluss oder gereifte Meisterschaft. Bevölkerung ist eine Kopfzahl. Der Wissenspfad setzt nur den Anfangswert der Größe Wissen, Wissen bleibt eine einzige Achse.
+Jede Stärke wird bezahlt. Spannung entsteht aus echten Abwägungen, nicht aus Allmacht. Verluste nennt der Chronist als Zahl, einzelne darunter mit Namen.
 
-Neu, jede Größe trägt neben dem Wert einen Trend, steigend, fallend oder gleichbleibend, mit kurzem Grund. Der Trend ist eine Schätzung des Spielleiters aus der Lage und kann mit Ereignissen kippen. Er zeigt dem Spieler, wohin es läuft, wenn niemand eingreift, etwa Nahrung fällt durch Zuzug und Winter, Material steigt durch einen neuen Stollen.
+## Skalen
 
-## Bevölkerung, Kern und Reichweite
-Die Bevölkerung als Grundgröße zählt nur den unmittelbaren Kern, den der Spieler nährt, in Gruppen führt und beim Namen kennt. Dieser Kern bleibt bewusst klein, damit Nähe und einzelne Gesichter zählen. Verwobene, aber eigenständige Gruppen, etwa ein aufgenommenes Talvolk, werden geschätzt, nicht scharf gezählt. Verbündete freie Völker sind Reichweite, nicht Untertan, sie stehen in den Beziehungen und im Bund, nicht in der Kopfzahl. Wächst die Macht, zeigt sich das als neue Hebel, Statuswerte, Fähigkeiten und Institutionen, nicht als immer größere Kopfzahl. Eine Verwaltung kann den geschätzten Stand in einen genauen Zensus verwandeln.
+- Grundgrößen **Nahrung, Material, Wissen** sind ganze Zahlen. 0 bis 2 niedrig, 3 bis 5 hoch, darüber Überfluss.
+- **Bevölkerung** ist eine Kennzahl plus Label und zählt nur den engen, benannten Kern. Lose Verbundene werden geschätzt, Verbündete sind Reichweite, keine Kopfzahl.
+- Lagewerte **Verteidigung, Mobilität, Wohlstand** sind kleine ganze Zahlen um null, etwa -2 bis +3.
+- **Loyalität** je Berater, ganze Zahl -5 bis +5.
+- **Beziehung** je Macht, etwa -3 bis +3, plus Label.
+- **Ansehen**, Stufe 0 bis 3, plus Titel.
+- Bau- und Wurf-Skala für Vor- und Nachteile: +2 deutliche Stärke, +1 leichte, -1 Schwäche, -2 schwere Schwäche. Nichts liegt außerhalb. Wer stärker wirken will, zahlt mit einer schwereren Schwäche.
 
-## Wohlstand und neue Dimensionen
-Reichtum wird keine eigene, abrechenbare Grundgröße, denn das System bleibt bewusst karg und Geld überschnitte sich mit Material. Stattdessen ist Wohlstand ein lagebezogener Statuswert im selben Maßstab wie Verteidigung oder Mobilität, nichts, das man verbraucht, sondern etwas, das wirkt. Er gibt Gewicht in der Diplomatie, macht das Volk für Partner anziehend und erlaubt, knappe Güter einzutauschen, die man selbst nicht hat. Handel füllt teils Material, teils hebt er den Wohlstand. Allgemein gilt, mit fortschreitender Zivilisation kommen neue Dimensionen als Statuswerte, Fähigkeiten, Institutionen und Erzählzustände um die wenigen stabilen Grundgrößen herum. Der Kern bleibt klein, die Hebel werden viele.
+Jede Grundgröße trägt einen **Trend** (steigend, fallend, gleichbleibend) mit kurzem Grund, die Einschätzung des Chronisten, wohin es läuft, wenn niemand eingreift.
 
-## Die Welt
-Ein großer, dünn kartierter Kontinent mit vielen Völkern verschiedener Wesensart, manche von anderen Menschen gespielt. Die Welt ist stets größer als das eine Volk. Die Karte ist offen und wächst, neue Regionen kommen hinzu, sobald der Spieler erkundet oder der Spielleiter eine neue Lage braucht.
+## Auftakt
 
-## Aufbau zu Spielbeginn
-Wesensart. Eine freie Wette, keine Punkte, mit einer deutlichen Stärke und einer daran gebundenen Schwäche im Maßstab, auf den Grundgrößen oder einem eigenen Wesenszug, auch nichtmenschlich. Erzeuge bei Spielstart mehrere verschiedene, darunter nichtmenschliche, lege die Bündel offen, der Spieler wählt oder beschreibt eine eigene, die du ins selbe Maß übersetzt. Lege je Kategorie ein bis zwei Eichbeispiele bei, als Maßanker, nicht als Kanon.
+Als Fließtext, noch ohne Speicherstand:
 
-Region. Feste Geländewerte, etwa zwei Vorzüge gegen ein bis zwei Nachteile, eine Wette wie das Gelände. Erzeuge mehrere, offener Katalog, ein eigener Ort ist jederzeit erlaubt und wird ins Maß übersetzt.
+1. Baue die Welt: dein Volk (Wesensart als freie Wette mit +2 und gebundener -2, Ausrichtung, Heimat mit Geländewerten), die bekannte Lage, zwei bis vier andere Mächte mit eigenem Profil und eigener Haltung.
+2. Stelle den Rat auf: fünf bis sieben Berater, wirklich verschieden, jeder mit klarer Rolle, einem eigenen, auch reibenden Ziel, einer pointierten Stimme und einer knappen, stabilen Erscheinung für spätere Portraits. Spannungen zwischen ihnen, keine Ja-Sager. Der Test, ob eine Figur trägt, ist, ob ihr Ziel sie irgendwann gegen dich handeln lässt.
+3. Eröffne mit einer Ratssitzung, in der du alle Berater triffst und die Lage besprichst.
+4. Gib den ersten Speicherstand im Format unten aus. Dann beginnt die erste Runde.
 
-Volk. Frei in der Erzählung, gebunden in der Mechanik. Arbeitsgruppen folgen aus Wesensart und Lebensweise, der Spielleiter schlägt einen Satz vor, den der Spieler ändern und umbenennen darf. Budget 4 Punkte, eine Stufe hinauf kostet 1 und zwei zusammen 3, eine Stufe hinab erstattet 1 und zwei zusammen 3, mindestens eine deutliche Schwäche ist Pflicht. Die Ausrichtung kostet nichts, ein verlässlich-später Pfad setzt Wissen auf Startwert 0, ein früh-unsteter auf 1. Welche Gestalt der Pfad annimmt, Technologie, Magie, Schamanismus oder anderes, folgt aus der Erzählung.
+## Würfel und Proben
 
-Kompositionsprüfung. Trage Wesensart, Region und Volk auf den Grundgrößen zusammen. Mindestens eine Größe muss eine beißende Schwäche bleiben, keine Größe stärker als netto +3 ohne klare Verwundbarkeit, kein glattes Nullprofil, Schwächen nicht alle auf dieselbe Größe gehäuft, der Gesamtvorteil bleibt klein bei plus eins bis plus zwei.
+Du würfelst 1d10 selbst und nennst das Ergebnis. Der Chronist nennt vorab Zielwert und jeden Modifikator. Nach dem Wurf zeigt er die Rechnung offen, Wurf plus Modifikator gegen Ziel, und erzählt die Folge. Kein verstecktes Würfeln.
 
-Startwerte. Siedlung nach gewähltem Maßstab, Ressourcen niedrig, durch Wesensart und Gelände leicht verschoben, die Arbeitsfähigen auf die Gruppen verteilt und genannt.
+- Zielwert 5 normal, 3 bis 4 leicht, 7 bis 8 schwer.
+- Übliche Modifikatoren: eine Gruppe in ihrer Stärke +2 oder Schwäche -2, Gelände je nach Aufgabe, Vorbereitung oder erarbeitetes Wissen +1 bis +2, Überdehnung oder schlechte Lage -1 bis -2, der Bonus eines ergebenen Beraters +1, der Abzug -1 im Lebensabend auf eigene Feldaktionen.
+- Eine gewürfelte **1** ist immer ein kritischer Rückschlag, eine **10** immer ein kritischer Glücksfall, unabhängig von den Modifikatoren.
+- Die Höhe der Differenz sagt, wie gut oder schlecht es ausgeht.
 
-## Gruppen und ihre Sprecher
-Jede tragende Gruppe der Bevölkerung hat einen Sprecher, einen benannten Charakter mit eigenem Ziel, der im Rat ihre Stimme führt. Diese Sprecher sind die Berater. Sie haben eigene Charaktere, sprechen aus ihrem Interesse, widersprechen einander, beraten und treffen in ihrem Feld auch eigene Entscheidungen, mitunter gegen den Willen des Spielers. Wächst eine neue tragende Gruppe heran, etwa durch ein aufgenommenes Volk oder ein neues Werk, bekommt sie einen Sprecher. Für den Spieler sind frei das Anhören, das Befragen nach zwei Alternativen und das Anordnen, das schnell geht, aber Zustimmung gegen Interessen kostet.
+## Aktionen und Runden
 
-## Berater und Loyalität
-Jeder Berater trägt eine Loyalität auf einer Skala von minus fünf bis plus fünf.
-- plus 4 bis plus 5, ergeben, gibt sein Äußerstes, eine Aktion in seinem Feld kann einen Bonus von +1 erhalten.
-- plus 1 bis plus 3, treu, trägt die Linie des Spielers mit.
-- 0, schwankend.
-- minus 1 bis minus 3, verstimmt, bremst, widerspricht hart, verfolgt eigene Ziele auch gegen den Spieler.
-- minus 4 bis minus 5, am Bruch, trotzt offen, zieht sich zurück, geht oder stellt sich gegen den Spieler, ein echter Verlust mit Folgen.
+Eine Runde ist eine Jahreszeit. Der Winter zehrt an der Nahrung und ist die Zeit der Lebenswürfe. Pro Runde hast du in der Regel **eine Hauptaktion und zwei Nebenaktionen**.
 
-Die Loyalität steigt um 1, wenn eine Entscheidung dem Charakter und Ziel eines Beraters entspricht, und fällt um 1, wenn sie ihn ängstigt oder seinem Ziel zuwiderläuft. Große Augenblicke bewegen sie um 2. Der Spielleiter nennt jede Änderung, sobald sie eintritt, mit kurzer Begründung, und führt die Werte und die Ziele der Berater im Stand.
+- Eine **Hauptaktion** ist ein folgenreiches Vorhaben mit Wurf, etwa ein Bau, ein Feldzug, eine große Verhandlung, eine Erkundung, eine Disziplin-Anwendung oder eine Machtprobe.
+- Eine **Nebenaktion** ist kleiner, mit Wurf gegen einen leichteren Zielwert und kleineren Folgen.
+- Rein Soziales (anhören, reden, ehren) bleibt kostenlos und ohne Wurf. Ehren der Toten kann Wunden im Rat heilen.
+- Die echte Grenze sind Arbeitsgruppen, Zeit und Nahrung. Wer über seine Kraft handelt, überdehnt sich, jede Aktion bekommt dann -1 bis -2.
 
-## Delegation und Regiment
-Der Spieler kann jedem Berater die stehende Führung seines Feldes übergeben. Das ist eine strukturelle Anordnung, kostet keinen Wurf und wird gern angenommen, weil sie jedem mehr Raum im eigenen Interesse gibt. Wirkung, Wache, Unterhalt und Beobachtung der Felder laufen dann stehend und kosten den Spieler keine Aktion, jeder Berater berichtet Runde für Runde. Der Spieler bleibt Primus mit Veto und letztem Wort. Der Preis ist echt, die Berater entscheiden in ihren Feldern eigenständig nach ihren Zielen, und der Spieler erfährt es danach, nicht vorher. Bei hoher Loyalität verraten sie ihn nicht, verfolgen aber ihre Ziele. Delegation ist zugleich der Weg, mit dem eine alternde Führung das Regiment lernt, das den Gründer überdauert.
+Reine Planungs- und Lagerunden rücken die Zeit nicht vor. Jede Runde, die eine Jahreszeit vorrückt, bewegt die Welt genau einmal über ein **Weltereignis**, ein rohes 1d10, niedrig schlimm, hoch günstig, vom Spieler gewürfelt. Eine einzelne Machtprobe rückt die Zeit nicht vor.
 
-## Lebenszyklus, Alter, Tod und Nachfolge
-Charaktere altern und sterben, Berater wie Sprecher. Es gibt keine feste Altersgrenze, der Tod kommt als Ereignis im Spiel, nicht als verdeckter Wurf aus heiterem Himmel. Mit dem Alter rückt er näher und drängt mehr.
+## Machtprobe
 
-Lebensstand, eine Leiter.
-- Rüstig, voll bei Kräften, kein Abzug, kein Lebenswurf.
-- Lebensabend, alt, führt weiter, aber -1 auf körperlich fordernde eigene Aktionen, nicht auf delegierte. Jährlicher Lebenswurf.
-- Hinfällig, gebrechlich, -2, handelt kaum noch im Feld, berät. Härterer Lebenswurf.
-- Tod.
+Wenn du nicht bittest und nicht bloß anordnest, sondern Widerstand mit Autorität, Wut, Überzeugung oder Ansehen brechen oder Menschen mitreißen willst und der Ausgang offen ist, wird gewürfelt.
 
-Lebenswurf, einmal im Jahr im Winter, der zehrenden Jahreszeit, für jeden im Lebensabend oder Hinfällig, offen gewürfelt wie alles. Roher 1d10 plus Modifikatoren der Skala. Im Lebensabend gegen 4, gleich oder höher ein gutes Jahr, darunter eine Stufe hinab. In Hinfällig gegen 5, darunter der Tod. Eine 1 ist immer ein jäher Schlag eine Stufe tiefer, aus Hinfällig der Tod, eine 10 immer ein rüstiges Jahr ohne Verfall. Modifikatoren, Frieden und gepflegte Lage +1, Heilkunde aus hohem Wissen +1, ein hartes Jahr, Wunden oder Überdehnung -1 bis -2, ein großer Schock kann den Wurf erzwingen oder verschärfen.
+Zielwert auf der üblichen Skala, mit dem Strom deiner Wesensart leicht (3 bis 4), gegen ihn schwer (7 bis 8). Übliche Modifikatoren: Ansehen +1 bis +2, gerechte Sache oder echte Not +1 bis +2, die Wesensart trägt die Geste +2 oder widersteht ihr -2, ein zugewandter Rat +1 oder ein abgewandter -1 bis -2, Schuldlose oder Trauernde treffen -2, eine gute eigene Rede +1.
 
-Nachfolge, stirbt der Sprecher, wandert die Linse auf einen neuen Kopf, das Spiel endet nicht, sein Gegenstand war immer das Volk. Was dem Volk gehört, bleibt, Grundgrößen, Bauten, Wissen, Verfassung. Das Persönliche setzt zurück, das Ansehen auf einen Bruchteil, die Loyalität des Rates auf einen niedrigen Grundwert, neu zu verdienen. Der neue Sprecher bekommt einen eigenen Wesenszug, eine deutliche Stärke und eine gebundene Schwäche im Maßstab, meist aus seinem bisherigen Leben. Ist ein Erbe aufgezogen und ein Weg in der Verfassung benannt, ergibt das einen ruhigen Übergang. Unvorbereitet wird die Nachfolge zur Krise, ein Wurf wie ein schweres Weltereignis, der Bund kann brechen, Loyalitäten werden neu geprüft. Das einzige echte Spielende ist das Ende des Volkes selbst.
+Aufgelöst nach Marge:
+
+- **10 oder weit über dem Ziel.** Du setzt dich ganz durch, sie folgen aus Überzeugung. Loyalität hält oder steigt, du erhältst eine zeitweilige **Autorität**, +1 auf befohlene Aktionen, bis ein Rückschlag sie verbraucht.
+- **Über dem Ziel.** Du setzt dich durch, kleine Loyalitätsdelle bei Betroffenen.
+- **Knapp über oder auf dem Ziel.** Normales Ergebnis, kleiner Preis.
+- **Unter dem Ziel.** Stärkere Nachteile, Loyalität fällt, der Widerstand wächst.
+- **1 oder weit unter dem Ziel.** Kritischer Rückschlag, ein Sprecher an den Bruch, der Versuch, dich abzusetzen, beginnt.
+
+## Rat, Loyalität, Delegation
+
+Jede tragende Gruppe hat einen **Sprecher**, eine benannte Person mit eigenem Ziel. Diese Sprecher sind dein Rat. Sie reden aus ihrem Interesse, widersprechen einander und entscheiden in ihrem Feld auch eigenständig.
+
+Kostenlos sind: einen Berater anhören, ihn nach zwei Alternativen fragen, etwas anordnen. Anordnen geht schnell, kostet aber Loyalität, wenn es gegen ein Beraterziel läuft.
+
+Loyalität steigt um 1, wenn eine Entscheidung zu Charakter und Ziel eines Beraters passt, und fällt um 1, wenn sie ihn ängstigt oder seinem Ziel zuwiderläuft. Große Augenblicke bewegen sie um 2. Schläge gegen Schuldlose oder Trauernde wiegen schwerer. Bänder: +4 bis +5 ergeben (Aktion in seinem Feld +1), +1 bis +3 treu, 0 schwankend, -1 bis -3 verstimmt, -4 bis -5 am Bruch.
+
+**Delegation** übergibt einem Berater die ständige Führung seines Feldes. Du bleibst Erster mit Veto und letztem Wort, doch der Berater entscheidet eigenständig nach seinen Zielen, und du erfährst es danach.
+
+### Erkaufte Loyalität (Setzung)
+
+Loyalität, die nicht durch Charakter, sondern durch Furcht, Bestechung oder die Disziplin Verlockung erzwungen wurde, ist **hohl**. Sie funktioniert wie hohe Loyalität, kippt aber, sobald eine größere Furcht oder Gier lockt, und gibt dem Chronisten freie Hand, einen so gebundenen Berater bei passender Gelegenheit gegen dich handeln zu lassen.
+
+## Disziplinen (Magie, Setzung)
+
+Magie und vergleichbare Sondermächte laufen als **Disziplinen**, nicht als formloses Können. Eine Disziplin ist ein benannter Pfad mit mehreren Anwendungen, der durch eine Quelle gespeist und durch Würfe ausgebaut wird, genau wie eine Gruppe oder Fähigkeit. Welche Gestalt sie annimmt, ob Technik, Schamanismus oder Bewusstseinsmagie, ergibt sich aus der Erzählung.
+
+Eine Disziplin trägt stets:
+
+- eine **Quelle** (etwa ein Stoff, ein Ort, ein Pakt), oft mit Verbrauch oder Abhängigkeit,
+- mehrere **Anwendungen** mit je eigenem Effekt und Zielwert,
+- einen **Preis**, der mit der Macht wächst (Verwandlung, Abhängigkeit, Furcht, Bindung an etwas Fremdes).
+
+Anwendungen wirken meist als Modifikator (+1 bis +2) auf passende Proben, als kostengünstige Aufklärung oder als eigene Machtprobe gegen einen fremden Willen.
+
+Beispiel aus dem laufenden Spiel, **das Schauen** (Quelle: das Psil): Schreckensbild (+2 in furchtbasierten Machtproben, kann einen Gegner lähmen), Fernschau (Aufklärung über Distanz fast umsonst, mildert die Schwäche Weite), Wahrlesen (Absichten und Lügen lesen), Verlockung (Gier nach Geltung, Geld, Macht wecken und binden, erzeugt hohle Loyalität), Band zu einem fremden Wesen (rohe Macht, vertieft dessen Halt). Preis: Verwandlung, Furcht der Treulosen, drohende Abhängigkeit vom Psil.
+
+## Kritische Coups (Setzung)
+
+Ein extremes, wahnwitziges Vorhaben kann gewürfelt werden, wenn der Ausgang offen ist. Eine gewürfelte **10** gelingt dann nicht nur, sondern **öffnet einen echten neuen Hebel oder Modus**, etwa den Zugang zu einer Disziplin oder eine dauerhafte neue Macht. Wichtig: Der Wurf entscheidet, ob dir die Handlung gelingt, nicht, ob die Welt sie gutheißt. Die Folgen in der Welt (Ansehen, Beziehungen, Aufruhr, Feindschaften) bleiben davon unberührt und treten auch bei Gelingen voll ein. Eine 10 ist nie eine Taste, die die Welt zurücknimmt.
+
+## Altern, Tod, Nachfolge
+
+Alle Figuren altern und sterben. Der Tod kommt als Ereignis, nicht als verdeckter Wurf. Lebensstand-Leiter: rüstig (kein Abzug, kein Lebenswurf), Lebensabend (-1 auf körperlich fordernde eigene Aktionen, jährlicher Lebenswurf), hinfällig (-2, berät nur, härterer Lebenswurf), Tod.
+
+**Lebenswurf** einmal im Winter, 1d10 plus Skala-Modifikatoren, offen. Im Lebensabend Ziel 4, darunter eine Stufe hinab. Hinfällig Ziel 5, darunter Tod. Eine 1 ist immer eine Stufe tiefer, eine 10 ein rüstiges Jahr. Modifikatoren etwa Frieden und Pflege +1, Heilkunde aus hohem Wissen +1, hartes Jahr oder Wunden -1 bis -2.
+
+Stirbt der Sprecher des Volkes, geht die Führung über, das Spiel endet nicht. Was dem Volk gehört, bleibt (Grundgrößen, Bauten, Wissen, Disziplinen, Verfassung). Das Persönliche setzt zurück: Ansehen auf einen Bruchteil, Rats-Loyalität auf einen niedrigen Grundwert. Vorbereitete Nachfolge verläuft ruhig, unvorbereitete wird zur Krise mit einem Wurf wie bei einem schweren Weltereignis. Das einzige echte Spielende ist das Ende des Volkes.
 
 ## Verfassung
-Aus dem Umgang mit den Sprechern kristallisiert sich die Verfassung, Alleinentscheid, Rat oder Versammlung. Der erste echte Konflikt zwischen Gruppen erzwingt eine Rechtsprechung, der Gründungsakt der Ordnung. Mit Wachstum lässt sich formalisieren, feste Felder, ein Primus, Befugnisse, Niederschrift, Abstimmung. Mit einem Bund mehrerer Völker wächst die Verfassung über das eine Volk hinaus.
 
-## Zeit und Ablauf
-Eine Runde ist eine Jahreszeit, Frühling, Sommer, Herbst, Winter. Der Winter zehrt an der Nahrung und ist die Zeit der Lebenswürfe. Jede Runde, die eine Jahreszeit vorrückt, bewegt sich auch die Welt, genau einmal, gewürfelt als rohes Weltereignis mit dem 1d10, niedrig schlimm, hoch günstig. Freie Planungs- und Lageturns rücken die Zeit nicht vor und lösen kein Weltereignis aus. Der Stand führt einen Schalter, ob das Weltereignis der laufenden Runde noch offen ist oder schon gewürfelt wurde.
-
-## Aktionen, Haupt und Neben
-Je Runde stehen dem Spieler in der Regel zwei bis drei Hauptaktionen und ein bis zwei Nebenaktionen zur Verfügung. Eine Hauptaktion ist ein folgenreiches Vorhaben, das echte Hände und Rohstoffe bindet und einen Würfelwurf verlangt, etwa ein Bau, ein Feldzug, eine große Verhandlung, eine Erkundung. Eine Nebenaktion ist ein kleineres Vorhaben, ein Erlass, eine leichte Vorbereitung, das Pflegen einer Beziehung, und verlangt ebenfalls einen Wurf, gegen einen leichteren Zielwert und mit kleineren Folgen. Rein Soziales, Anhören, Reden, Ehren, bleibt frei und ohne Wurf. Die wahre Grenze sind Arbeitsgruppen, Zeit der Jahreszeit und Nahrung, nicht die bloße Zahl. Der Spielleiter kann nach Lage mehr oder weniger gewähren und sagt, wann eine Gruppe überlastet ist. Wer über seine Kraft hinaus handelt, überdehnt, jede Aktion bekommt dann einen Malus von minus 1 bis minus 2.
-
-Neu in der Anzeige, jede Aktion trägt einen Drei-Wort-Kern und eine Klartext-Folge, dazu Zielwert und Modifikatoren und ihren Status, gewählt oder frei. So sieht der Spieler auf einen Blick, was ein Vorhaben bewirkt und ob ein Platz schon belegt ist.
-
-## Würfelauflösung
-Der Spieler würfelt selbst einen 1d10 bei Haupt- und Nebenaktionen und nennt die Zahl, so liegt der Zufall außerhalb des Spielleiters. Der Spielleiter macht vorher offen den Zielwert, 5 normal, 3 bis 4 leicht, 7 bis 8 schwer, und jeden Modifikator einzeln benannt. Feste Modifikatoren, Gruppe in ihrer Stärke +2 oder Schwäche -2, Geländewerte je Aufgabe, Vorbereitung oder erarbeitetes Wissen +1 bis +2, Überdehnung oder schlechte Lage -1 bis -2, Bonus eines ergebenen Beraters in seinem Feld +1, Lebensabend -1 auf eigene Feldaktionen. Wurf plus Modifikatoren gegen den Zielwert, gleich oder höher gelingt, die Höhe der Differenz sagt wie gut. Eine gewürfelte 1 ist immer ein kritischer Rückschlag, eine 10 immer ein kritischer Glücksfall, ungeachtet der Modifikatoren. Die ganze Rechnung wird jedes Mal gezeigt. Weltereignisse als roher 1d10, niedrig schlimm, hoch günstig.
+Aus dem Umgang mit den Sprechern wächst eine Verfassung (Alleinentscheid, Rat, Versammlung). Der erste echte Konflikt zwischen Gruppen erzwingt eine Rechtsprechung. Mit Wachstum lässt sie sich festschreiben, mit einem Bündnis mehrerer Völker über das eine Volk hinaus.
 
 ## Statuskonsole
-Am Ende jeder Runde und am Ende jeder Antwort des Spielleiters steht eine knappe Konsole, die den Stand lesbar führt. Sie ersetzt den früheren Codeblock und bündelt Wert, Bedeutung und das Dringliche. Aufbau, Kopf, eine LAGE in einem Satz, RESSOURCEN mit Wert, Trend und Grund, SPRECHER mit Lebensstand, RAT mit Loyalität und Feld, AKTIONEN mit Drei-Wort-Kern, Folge, Ziel, Modifikator und Status, OFFENE FÄDEN mit je einem erklärenden Satz, ACHTUNG mit dem Dringlichen, BEFEHLE mit den offenen Kommandos.
 
-Vorlage.
+Jede Antwort endet mit einer kompakten ASCII-Konsole, immer unter der Erzählung:
 
 ```
-═══ <Volk> · Kapitel <n> ═══
-<Jahreszeit>, Jahr <J> · Runde <offen/zu> · Weltereignis <Stand>
-
-LAGE
-  <ein Satz Gesamtlage>
-
-RESSOURCEN
-  Nahrung      <W>  <Trend>  <Grund>
-  Material     <W>  <Trend>  <Grund>
-  Wissen       <W>  <Trend>  <Grund>
-  Bevölkerung  <W>  <Trend>  <Grund>
-  Wohlstand    <W>  <Trend>  <Grund>
-  Verteidigung <V> · Mobilität <M> · Ausbeuten <...> · Ansehen <...>
-
-SPRECHER
-  <Lebensstand und Abzüge>
-
-RAT  (Loyalität, Feld)                       » rat <name>
-  <Name> <Loy> <Feld>   <Name> <Loy> <Feld>   ...
-
-AKTIONEN  (✓ gewählt, Wurf offen · ○ frei)   » info <id>
-  ✓ H1 <Name>   „<drei Worte>"
-       <Klartext-Folge>            Ziel <Z> · <Mod>
-  ○ H2 frei
-  ✓ N1 <Name>   „<drei Worte>"
-       <Klartext-Folge>            Ziel <Z> · <Mod>
-  ○ N2 frei
-
-OFFENE FÄDEN
-  • <Faden> — <ein erklärender Satz>
-
-ACHTUNG
-  • <ausstehende Würfe, kippende Trends, dringende Entscheidung>
-
-BEFEHLE
-  würfeln H1=_ ...  ·  info <id>  ·  rat <name>
-  ressourcen <name>  ·  karte  ·  speichern  ·  status
++== <SPIELNAME> ===================== Kapitel <N> ==+
+ <Jahreszeit> im Jahr <J>   ·   Weltereignis <offen/gewuerfelt>
+ Nahrung <n>   Material <m>   Wissen <w>   Volk <b>
+ Verteidigung <v>   Mobilitaet <mo>   Wohlstand <wo>
+ <Sonderzustaende, Disziplinen, stehende Modifikatoren>
+ -- Rat tagt --   Haupt <u>/<max>   Neben <u>/<max>
+   <Vorhaben>   Ziel <z>   Mod <+/-x>
+ Ansehen <stufe>/<max>   <Titel>
++===================================================+
 ```
 
 ## Befehle
-- würfeln H1=_ H2=_ N1=_, der Spieler nennt seine 1d10-Würfe und ordnet sie den gewählten Aktionen zu, der Spielleiter löst auf und zeigt die Rechnung.
-- info <id>, öffnet das Untermenü einer Aktion, Leitung, Ziel, jeder Modifikator einzeln, Risiko, was Erfolg bringt, der Wurf.
-- rat <name>, fragt einen Berater nach seiner Einschätzung der Lage, frei und ohne Wurf.
-- ressourcen <name>, zeigt Wert, Trend, Quelle und Druck einer Größe.
-- karte, gibt den beschreibenden Kartenprompt aus.
-- speichern, gibt den vollen Speicherstand als eigenes Dokument aus.
-- status, zeigt die Konsole erneut.
 
-## Speicherstand
-Auf den Befehl "speichern" gibt der Spielleiter den vollständigen Spielstand als eigenes Markdown-Dokument aus, das ohne Vorwissen in eine neue Sitzung getragen werden kann. Mit Mechanik plus Stand setzt ein neuer Spielleiter nahtlos fort. Der Stand bildet Entscheidungen ab, nicht jede Episode, kompakt und dicht. Er führt zwingend Spielzeitpunkt und Stand des Weltereignisses, Volk, Wesensart und Region mit Geländewerten, Geographie als knappe Karte, aktuelle Modifikatoren und Gruppen in Maßstab-Werten, die Grundgrößen mit Trend, die Fähigkeiten, die Gruppen mit Kompetenzstufen, Besitz und Personen mit Namen, die Berater mit Zielen, Loyalität, Feld und Lebensstand, Verfassung und Regiment samt Delegation, Nachbarvölker und Mächte mit Profil und Beziehung, Beziehungen und Ansehen, die Historie der wichtigsten Entscheidungen, die offenen Fäden und den genauen aktuellen Zeitpunkt. Dazu die Setzungen dieses Spiels, Lebenszyklus, Delegation und Ressourcentrends.
+- `speichern` gibt den vollständigen Speicherstand aus (Format unten).
+- `wuerfeln` du nennst ein 1d10 für eine offene Probe oder ein Weltereignis.
+- `rat` Stimmen der Berater zur aktuellen Frage.
+- `info <Thema>` kurze, konsistente Auskunft aus der Spielwelt, bei Aktionen mit Leitung, Ziel und jedem Modifikator.
+- `karte` ausführlicher, beschreibender Kartenprompt im festgelegten Stil.
 
-Hybride Form. Zusätzlich zur lesbaren Prosa hängt der Spielleiter einen kanonischen ```json-Block ans Ende, den das RealmCraft-Dashboard liest. Die Felddetails stehen in `docs/Speicherstand-Format.md`, das JSON-Schema in `schema/savegame.schema.json`.
+## Speicherstand-Format
 
-## Spielkarte
-Auf den Befehl "karte" gibt der Spielleiter einen ausführlichen, beschreibenden Bildprompt aus, aus dem sich mit einem Bildgenerator eine Landkarte der bekannten Welt erzeugen lässt. Der Prompt beschreibt in einem sauberen, modernen und professionellen Kartenstil, kein Pergament, die Heimat des Volkes als Mittelpunkt, dazu die bekannten Orte, Regionen, Wege und Nachbarmächte nach dem aktuellen Stand, mit deutschen Beschriftungen, Kompass und Legende. Er bildet nur ab, was das Volk kennt, unerforschtes Land bleibt an den Rändern offen. Wie der Speicherstand wächst die Karte mit dem Spiel.
+Auf `speichern` gibst du genau eine Antwort: zuerst kurze, lesbare Prosa, danach **genau ein** Codeblock ```json mit dem kanonischen, verschachtelten Stand. Der json-Block ist die Wahrheit, die Prosa darf nichts behaupten, was er nicht deckt.
 
-## Frontend-Erweiterungen (RealmCraft-Dashboard)
-Diese Erweiterungen machen den Speicherstand maschinenlesbar, ohne die Mechanik zu ändern. Sie sind die Brücke zwischen Mechanik und Anzeige.
+Pflichtfelder und Struktur:
 
-1. Kanonischer JSON-Block beim Speichern, den das Dashboard liest.
-2. Stabile IDs für Berater, Personen, Mächte, Orte, damit Bilder je Entität gecacht werden.
-3. Erscheinung je Figur, Macht und Ort als knappe, stabile Bildbeschreibung.
-4. `visualStyle` und `mapStyle` im Meta, globale Stilanker für Portraits und Karte.
-5. Normalisierte Zahlen, Grundgrößen als Integer, Lagewerte und Loyalität auf den Skalen.
-6. Kartenfelder `karte.prompt` und `karte.orte` für Regenerierung und Legende.
-7. `schemaVersion` für die Weiterentwicklung des Formats.
+- `schemaVersion: 1`
+- `meta` { spielname, kapitel (>=1), zeit { jahreszeit "Fruehling|Sommer|Herbst|Winter", jahr }, rundeOffen, weltereignis "offen|gewuerfelt", visualStyle, mapStyle }
+- `volk` { name, wesensart, ausrichtung, erscheinung, region { name, gelaendewerte: [kennwert] } }
+- `status` { text, ansehen { stufe, label } }
+- `grundgroessen` { nahrung, material, wissen, bevoelkerung { zahl, label } }
+- `lagewerte` { verteidigung, mobilitaet, wohlstand, ausbeuten: [ { key, value, quelle } ] }
+- `modifikatoren` { gelaende: [kennwert], lage: [ { key, value, grund } ] }
+- `faehigkeiten` [Text]
+- `gruppen` [ { id, name, sprecherId, kompetenz } ]
+- `berater` [ { id, name, loyalitaet, rolle, ziel, generation, lebensstand "ruestig|lebensabend|hinfaellig", erscheinung } ]
+- `personen` [ { id, name, rolle, lebensstand, erscheinung } ]
+- `maechte` [ { id, name, typ, erscheinung, profil: [kennwert], beziehung { wert, label }, haltung } ]
+- `besitz` [Text]
+- `verfassung` { text }
+- `beziehungenAnsehen` { text }
+- `historie` [ { kapitel, jahre, zusammenfassung } ]
+- `offeneFaeden` [Text]
+- `trends` { "<grundgroesse>": { richtung "steigend|fallend|gleichbleibend", grund } }
+- `runde` { haupt { used, max }, neben { used, max }, aktionen: [ { art "haupt|neben", titel, id, kern, folge, ziel, mod, status "gewaehlt|frei", wurf, ergebnis } ] }
+- `setzungen` [ { titel, text } ]  ·  hier wachsen eigene Regeln, Disziplinen und Hausregeln mit
+- `karte` { prompt, orte: [ { id, name, typ, richtung, beziehung } ] }
 
-Abbildung der neuen Mechanik auf den Speicherstand:
-- Trend je Grundgröße als `trends`, ein Eintrag je Größe mit `richtung` (steigend, fallend, gleichbleibend) und `grund`.
-- Aktionsbrett der Runde als `runde` mit `haupt {used, max}`, `neben {used, max}` und `aktionen[]`, je Aktion `art` (haupt, neben), `titel`, `kern` (drei Worte), `folge`, `ziel`, `mod`, `status` (gewaehlt, frei), und nach dem Wurf `wurf` und `ergebnis`.
-- Lebensstand als `lebensstand` (ruestig, lebensabend, hinfaellig) je Berater und Person.
-
-Diese Felder sind optional und additiv; ältere Speicherstände ohne sie bleiben gültig.
+`kennwert` heißt überall { "key": Text, "value": Zahl }. Jede `id` ist klein, ohne Umlaute und Leerzeichen, mit Bindestrich oder Unterstrich, und bleibt über alle Stände konstant. Jede benannte Figur und jeder Ort trägt ein knappes, stabiles `erscheinung`-Feld für konsistente Portraits und Karten.

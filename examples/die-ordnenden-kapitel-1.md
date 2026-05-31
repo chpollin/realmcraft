@@ -1,54 +1,45 @@
-# RealmCraft · Speicherstand · Die Ordnenden, Kapitel 1
+# RealmCraft · Speicherstand · Die Ordnenden von Hochzinn, Kapitel 1
 
-> So lädst du diesen Stand. Beginne eine neue Sitzung mit den **RealmCraft**-Regeln, wähle **Speicherstand laden** und gib diese Datei. Der neue Spielleiter (Chronist) liest die Regeln und diesen Stand und macht nahtlos weiter, beginnend bei der offenen Szene unten. Der kanonische Stand für das Dashboard steht im json-Codeblock am Ende.
+> So lädst du diesen Stand. Beginne eine neue Sitzung mit den **RealmCraft**-Regeln, wähle **Speicherstand laden** und gib diese Datei. Der neue Spielleiter (Chronist) liest die Regeln und diesen Stand und macht nahtlos weiter, beginnend bei der offenen Winterrunde unten. Der kanonische Stand für das Dashboard steht im json-Codeblock am Ende.
 
 ---
 
 ## Zeitpunkt
 
 - **Volk:** die Ordnenden · **Kapitel 1**
-- **Frühling, Jahr 1** · Runde **offen** · Weltereignis **noch nicht gewürfelt**
-- Der Antrittsrat ist gehalten, die Sprecher sitzen am Tisch. Die erste Aktionsrunde beginnt.
+- **Winter, Jahr 1** · Runde **offen** · Weltereignis **noch nicht gewürfelt**
+- Hauptaktion verbraucht, eine Nebenaktion und das Weltereignis stehen noch aus.
 
-## Aktuelle Szene (offener Faden, hier beginnt das Spiel)
+## Aktuelle Lage (hier beginnt das Spiel)
 
-Im jüngsten und tiefsten Stollen, dem **Neunten**, hat ein Trupp der Steigerin **Mirca Stein** dicht an der reichsten Zinober-Tasche etwas gefunden, das dort nicht sein sollte. Eine bleiche, fremdartige Kreatur, kein Tier der Steppe, zusammengerollt im orangen Schein des Erzes. Sie atmet. Sie reagiert, wenn jemand den Glanz nah an sie hält. Ein Teil des Trupps will sie erschlagen, ein Teil ist verstört, **Mirca** spürt etwas, das sie nicht in Worte bringt. Der Stollen liegt still, bis die Erste oder der Erste entscheidet. Niemand hat die Kreatur bisher dem Rat gemeldet.
+Hochzinn steht am Abgrund. Der oder die **Erste** ist durch übermäßigen Psil-Konsum zum **Schauen-Adepten** verwandelt und trägt nun fünf Disziplinen der Bewusstseinsmagie. Der drohende Putsch wurde entkernt, weil **Haldra** und **Resa** durch die Verlockung gebunden sind. Doch nach außen ist alles verloren: das Ansehen liegt auf **Eidbrecher**, das **Quellvolk** schwört Blutrache für die ermordete Gesandte **Nesa**, und die **Blauen Reiter** ziehen über die Steppe heran. **Orsin**, **Yann** und **Mutter Sarn** bleiben in Opposition. Die ermordete Steigerin **Mirca** ist zur Märtyrerin geworden, die Bevölkerung grollt.
 
 ---
 
 ## Volk: die Ordnenden
 
-Selbstname **die Ordnenden**, von anderen **die Kalten** genannt. Humanoide, intelligente Wesen, pragmatisch und kühl, die anderen Völkern wenig Wert beimessen. Sie versklaven nicht, sondern binden in Abhängigkeit und Vasallenschaft, behandeln die Unterworfenen gerade fair genug, dass diese nicht rebellieren, und ziehen Tribut. Über allem steht ihre Verwaltung. Ein eher kleiner Stadtstaat auf einem sehr großen Kontinent.
+Kühle, pragmatische Beherrscher, die andere in Abhängigkeit und Tribut binden. Sie gewinnen Gehorsam, nie Hingabe. Was einst ein kalter Verwaltungsstaat war, kippt unter dem verwandelten Ersten in eine Psil-Herrschaft aus Furcht und Verlockung.
 
 ### Wesensart (freie Wette)
 
-- **Stärke +2, Unterwerfen und Verwalten.** +2 auf Machtproben, die jemanden in Abhängigkeit zwingen, und auf alles, was kühle Ordnung errichtet und hält (Vasallenschaft, Tribut, Verwaltung).
-- **Gebundene Schwäche -2, die Kälte.** -2, wenn ein Erfolg echte Treue, freiwilliges Opfer oder ein Bündnis unter Gleichen verlangt statt eines Hebels. Die Loyalität der eigenen Sprecher läuft kühl und transaktional und springt nicht durch Wärme an. Das Unberechenbare wird beiseitegewischt, bis es trifft.
-
-Die beiden hängen zusammen. Die Kälte ist der Preis der Beherrschung.
+- **Stärke +2, Unterwerfen und Verwalten.** Auf alles, was kühle Ordnung errichtet, hält und in Abhängigkeit zwingt.
+- **Gebundene Schwäche -2, die Kälte.** Wo echte Treue, freiwilliges Opfer oder ein Bündnis unter Gleichen verlangt wird statt eines Hebels.
 
 ### Ausrichtung
 
-Verlässlicher, aber langsamer Weg. **Wissen startet auf 0.** Die Ordnenden sitzen auf der reichsten Zinober-Ader der bekannten Welt, meiden das Schauen aber aus kalter Vernunft und überlassen es einer geduldeten Randgruppe. Die Gestalt der Magie ist bewusstseinsbasiert und weich, ein Schauen in Zeichen, Träume und fremden Sinn, getragen vom Psil.
+Verlässlich, aber langsam, **Wissen-Start 0**. Das Schauen wurde aus kalter Vernunft gemieden — bis das Psil es erzwungen geöffnet hat. Jetzt erstarkt es rasch.
 
 ---
 
-## Region: die Hohe Tafel in der Blauen Steppe
+## Region: die Hohe Tafel
 
-Eine Felstafel, die aus einer weiten, blau überwachsenen Steppe aufragt. Darauf die Stadt **Hochzinn**, dahinter die zinoberreichen Berge. Über die Steppe verstreut liegen einzelne Wälder (dort wachsen die Psil-Pilze) und Oasen.
+Eine Felstafel über der Blauen Steppe, darauf Hochzinn, dahinter die zinoberreichen Berge mit ihren neun Stollen, der tiefste der Neunte.
 
 ### Geländewerte
 
-- **Vorteil +2, Glanzadern.** Reiche Lager des orangen Zinober direkt am Ort. +2 auf Abbau und auf alles, was den Psil nutzt.
-- **Vorteil +1, der hohe Sitz.** Die Tafel überragt das Land. Weite Sicht, schwer zu stürmen. +1 Verteidigung und Übersicht.
-- **Nachteil -2, die Weite.** Die Blaue Steppe ist riesig und offen. Wasser, die Psil-Wälder und jeder lohnende Vasall liegen fern und verstreut. -2 auf Nachschub, Verstärkung und das Halten von allem jenseits der Tafel. Ihr gewinnt Schlachten in der Ferne leichter, als ihr das Eroberte haltet.
-
-### Bekannte Geografie (knappe Karte)
-
-- **Mitte:** Hochzinn auf der Hohen Tafel, dahinter die Zinober-Berge mit den neun Stollen.
-- **Ringsum:** die Blaue Steppe, weit und offen, von Reitern durchzogen.
-- **Verstreut:** Oasen (Wasser, umkämpft) und einzelne Wälder mit den Psil-Pilzen.
-- **Ränder:** unerforscht. Wächst, sobald erkundet wird.
+- **Vorteil +2, Glanzadern.** Reiche Zinober-Lager am Ort.
+- **Vorteil +1, hoher Sitz.** Weite Sicht, schwer zu stürmen.
+- **Nachteil -2, die Weite.** Nachschub, Verstärkung und alles jenseits der Tafel liegen fern und verstreut.
 
 ---
 
@@ -56,104 +47,122 @@ Eine Felstafel, die aus einer weiten, blau überwachsenen Steppe aufragt. Darauf
 
 - Wesensart **+2** Unterwerfen/Verwalten · **-2** die Kälte
 - Region **+2** Glanzadern · **+1** hoher Sitz · **-2** die Weite
+- **Vom Psil verwandelt** — Aufstieg zum Schauen-Adepten.
+- **Schauen als Waffe +2** — Furcht, Visionen, Fernsicht gegen Feinde.
+- **Band zum Wesen** — vertieft sich bei jedem tiefen Gebrauch.
+- **Aufklärung Quellvolk +2** — aus früherer Spähung.
 
 ---
 
 ## Grundgrößen (Wert, Trend, Grund)
 
-- **Nahrung 2** · gleichbleibend · Oasen, Steppenherden, erste Tribute. Solide, kein Polster.
-- **Material 2** · steigend · Zinober-Stollen und Handwerk. (Glanzadern +2 auf Abbau.)
-- **Wissen 0** · gleichbleibend · Ausrichtung verlässlich/langsam. Das Schauen wird gemieden, das Können liegt brach.
-- **Bevölkerung** · gleichbleibend · Kern rund **460** namentlich geführte Arbeitsfähige. Lose verbunden mehrere Tausend in Hochzinn, geschätzt, nicht gezählt.
+- **Nahrung 2** · fallend · der Winter zehrt.
+- **Material 2** · fallend · die Stollen stocken nach der Katastrophe.
+- **Wissen 2** · steigend · das Schauen erstarkt.
+- **Bevölkerung ~400** · fallend · Tote, Flucht, Aufruhr. Ein schrumpfender Kern.
 
 ### Lagebezogen
 
-- **Verteidigung 2** · Mauern der Hohen Tafel, Garde, hoher Sitz.
-- **Mobilität 1** · gedrückt durch die Weite. Reichweite lang und dünn.
-- **Wohlstand 2** · steigend · Zinober-Handel gibt Gewicht und Hebel.
-- **Ansehen 2** · gefürchtet, nicht geliebt.
-- **Ausbeuten:** Zinober (orange, leuchtende Kristalle, Berge der Hohen Tafel) · Psil-Pilze (ferne Steppenwälder, bisher kaum genutzt).
+- **Verteidigung 2** · Mauern, Garde, hoher Sitz.
+- **Mobilität -2** · gebrochen durch die Weite und die nahenden Reiter.
+- **Wohlstand 2** · Zinober gibt noch Gewicht.
+- **Ansehen 0** · Eidbrecher von Hochzinn.
+- **Ausbeuten:** Zinober (Berge der Hohen Tafel) · Psil-Pilze (ferne Steppenwälder, kaum genutzt).
 
 ---
 
 ## Gruppen und Kompetenzen
 
-- **Schreiber / Verwaltung +2** · das Herz ihrer Macht, Tribut und Akten.
-- **Bergleute / Stollen +1** · Zinober-Abbau, gestützt durch die Glanzadern.
-- **Garde / Heer +1** · Schutz, Zwang, Unterwerfung der Vasallen.
-- **Karawanen / Versorgung +1** · Wasser, Oasen, Herden, Handel über die Weite.
-- **Schauende -1** · geduldete Randgruppe, die als Einzige den Psil nutzt. Kein Ratssitz. Latenter Faden.
+- **Schreiber / Verwaltung +2** · Sprecher Orsin Vael (in Opposition).
+- **Bergleute der Stollen +1** · kein Sprecher mehr seit Mircas Tod.
+- **Garde / Heer +1** · Sprecherin Haldra Czerne (gebunden).
+- **Karawanen / Versorgung +1** · Sprecher Yann Brackt (in Opposition).
+- **Die Berührten (Psil-Gefolge) +1** · Sprecher Calcar.
+- **Die Schauenden +1** · Sprecher Calcar.
 
-## Fähigkeiten und Einrichtungen
+## Fähigkeiten
 
-- **Einrichtungen:** Stadtmauern der Hohen Tafel · das Große Archiv (Tribut- und Aktenwesen) · die neun Zinober-Stollen · Zisternen und Speicher · der Tributhof.
-- **Fähigkeiten:** Zinober-Bergbau · Tribut- und Vasallenverwaltung.
-- **Latent, ungenutzt:** das Schauen (Wissen 0), getragen vom Psil.
+- **Weltlich:** Zinober-Bergbau · Tribut- und Vasallenverwaltung · Beobachtungsposten (Frühwarnung).
+- **Das Schauen** (Disziplin, Quelle Psil): Schreckensbild · Fernschau · Wahrlesen · Verlockung · Band zum Wesen.
 
 ## Besitz
 
-Die Stadt Hochzinn, die Stollen samt Zinober-Vorräten, das Große Archiv, Speicher und Zisternen, eine Schatzkammer (Wohlstand 2).
+Die Stadt Hochzinn, die neun Zinober-Stollen samt Vorräten, das Große Archiv, gesicherte Zisternen und Speicher, eine Schatzkammer.
 
 ---
 
-## Personen
+## Rat und Personen
 
-### Der oder die Erste (Spielerfigur)
+Der Rat ist gespalten: die Gebundenen dienen hohl, die Opposition steht ohne Schwertarm.
 
-Gründer und alleinige Spitze der Ordnenden, mit Veto und letztem Wort. **Name beim Start frei zu wählen.** Rüstig.
+**Orsin Vael** — Erster Schreiber, Verwaltung. Ziel: die Ordnung soll jeden Herrscher überdauern; nun in offener Opposition. **Loyalität -4. Lebensabend** (Lebenswurf im Winter).
 
-### Rat (Sprecher mit vollem Berater-Blatt)
+**Yann Brackt** — Karawanenmeister, Handel. Ziel: Loyalität durch Handel binden; gebrochen und in Opposition nach dem Gesandtenmord. **Loyalität -4. Rüstig.**
 
-Hinweis zur Kälte. Alle Start-Loyalitäten laufen kühl und transaktional. Wärme allein hebt sie nicht.
+**Haldra Czerne** — Schwertmeisterin der Garde. Durch die Verlockung an den Ersten gebunden, dient durch ihren Ehrgeiz. **Loyalität +3 (hohl). Rüstig.**
 
-**Orsin Vael** — Feld Verwaltung (Erster Schreiber). Ziel: die Ordnung soll jeden Herrscher überdauern, festgeschrieben in Recht und Archiv. Methode über Präzedenz und Hebel, nie über Gewalt. Reibung mit Haldra. Sonderregel: einmal je Kapitel einen Präzedenzfall aus dem Archiv ziehen, +1 auf eine Handlung der Ordnung. **Loyalität +1. Lebensabend** (jährlicher Lebenswurf, -1 auf körperlich fordernde eigene Aktionen).
+**Resa Tann** — Tributmeisterin. Durch die Verlockung gebunden, dient durch ihren Hunger nach Macht. **Loyalität +3 (hohl). Rüstig.**
 
-**Haldra Czerne** — Feld Garde/Heer (Schwertmeisterin). Ziel: Ausdehnung durch Eroberung, will beweisen, dass Gewalt die wahre Währung ist, und selbst steigen. Methode wagemutig, Gewalt zuerst. Reibung mit Orsin und Yann. Sonderregel: drängt unter Delegation zu aggressiven Optionen, kann eigenmächtig eskalieren. **Loyalität +1. Rüstig.**
+**Calcar** — Deuter, Sprecher der Berührten und Schauenden. Dem verwandelten Ersten ergeben. **Loyalität +2. Rüstig.**
 
-**Mirca Stein** — Feld Bergbau/Zinober (Steigerin der Stollen). Dritte Generation unter Tage, hat heimlich vom Psil gekostet und das Schauen gestreift. Ziel: tiefer graben, mehr Zinober, und insgeheim verstehen, was der Stein wirklich ist. Reibung mit der Verwaltung und den eigenen, die Tiefe fürchtenden Bergleuten. Sonderregel: als Einzige im Rat spürt sie den Psil und das Schauen. **Loyalität +2. Rüstig. Sie hat die Kreatur gefunden.**
+**Mutter Sarn** — Brunnen- und Speichermeisterin. Ziel: Überleben der einfachen Leute; wendet sich angewidert ab. **Loyalität -3. Lebensabend** (Lebenswurf im Winter).
 
-**Yann Brackt** — Feld Versorgung/Handel (Karawanenmeister). Jung, auf der Steppe groß geworden. Ziel: den Zinober-Reichtum in ein Handelsnetz verwandeln, lieber Loyalität kaufen als erobern. Methode reden, handeln, verbinden. Reibung mit Haldra und Orsin. **Loyalität +1. Rüstig, möglicher Erbe.**
+### Tote und Randfiguren
 
-### Feste Beziehungen
-
-- **Orsin** gegen **Haldra:** Verfahren gegen Faust, alter Dauerkonflikt.
-- **Yann** gegen **Haldra:** Kaufen gegen Erobern.
-- **Mirca** gegen die **Verwaltung (Orsin):** Menschen gegen Zahlen.
-- **Mirca** und **Yann:** stille Sympathie, beide sehen über die kalte Ausbeute hinaus.
-- **Orsin** beobachtet **Yann** als geordneten möglichen Nachfolger.
+- **Mirca Stein** — verstorbene Steigerin, als Märtyrerin verehrt.
+- **Nesa** — Wassermutter des Quellvolks, als Gesandte ermordet.
+- **Bohr** — Händler, einziger Lieferant des Quellvolks. Rüstig.
 
 ---
 
 ## Verfassung
 
-Alleinentscheid mit beratendem Rat. Der oder die Erste hat Veto und letztes Wort. Keine kodifizierte Ordnung. **Orsin Vael** drängt auf Kodifizierung. **Delegation:** keine vergeben.
+Vormals Alleinentscheid mit beratendem Rat. Mit dem Gesandtenmord und dem Aufstieg des Ersten zerbrochen. Es bildet sich eine Psil-Herrschaft heraus, getragen von Furcht, Verlockung und den Berührten statt von kalter Ordnung. Keine kodifizierte Verfassung.
 
 ---
 
 ## Nachbarvölker und Mächte
 
-- **Das Quellvolk** — Oasenbewohner der Blauen Steppe, halten das Wasser, von dem die Karawanen abhängen. Zäh, vorsichtig, nicht kriegerisch. Wachsamer Handel, als Vasallen-Kandidat ins Auge gefasst. Noch frei.
-- **Die Waldgänger** — leben an den fernen Steppenwäldern, wo die Psil-Pilze wachsen, und verehren das Schauen. Mystisch, den Ordnenden fremd. Fern, gegenseitiges Unverständnis. Schlüssel zum Psil und vielleicht zur Kreatur.
-- **Die Blauen Reiter** — nomadische Stämme, die die offene Steppe beherrschen, genau dort, wo die Ordnenden mit der Weite schwach sind. Schnell, zahlreich, lose verbündet. Rivalität, latente Bedrohung der Tribut- und Handelswege.
-
-(Der Kontinent ist offen und wächst, sobald erkundet wird.)
+- **Das Quellvolk** — Oasenvolk (Wasser +2, Krieger -1). **Blutfehde (-3):** schwört Rache für die ermordete Wassermutter.
+- **Die Waldgänger** — Waldvolk, Psil-Mystiker (Schauen +2, Wehrhaftigkeit -1). **Misstrauisch (-1):** hören das Raunen vom Erwachen unter Hochzinn.
+- **Die Blauen Reiter** — Steppen-Nomaden (Mobilität +2, Zahl +1). **Feind, im Anmarsch (-3):** wittern Schwäche und ziehen gegen Hochzinn.
 
 ---
 
 ## Ansehen und Autorität
 
-- **Ansehen 2** · gefürchtet bei den Unterworfenen, niedrig bei den freien Völkern.
+- **Ansehen 0** · Eidbrecher von Hochzinn. Nach außen isoliert, der Gesandtenmord hat jede Diplomatie zerstört.
 - **Zeitweilige Autorität:** keine.
 
 ---
 
 ## Offene Fäden
 
-- **Die Kreatur im Neunten Stollen.** Gefunden von Mirca, dem Rat noch nicht gemeldet. Reagiert auf den Glanz.
-- **Das gemiedene Schauen.** Die Ordnenden sitzen auf dem reichsten Psil der Welt und nutzen es nicht. Mirca ist heimlich gezogen.
-- **Orsins Alter.** Lebensabend, drängt auf eine kodifizierte Ordnung, die ihn überdauert.
-- **Die Weite.** Tribut und Handel hängen an langen, dünnen Wegen, beäugt von den Blauen Reitern.
-- **Das Quellvolk.** Erster Kandidat für Tribut und Vasallenschaft.
+- Das Band zum Wesen im Neunten Stollen vertieft sich.
+- Rest-Putsch unter Orsin und Yann, ohne Schwertarm.
+- Die Blauen Reiter im Anmarsch.
+- Blutfehde mit dem Quellvolk.
+- Lebenswurf im Winter für Orsin und Mutter Sarn.
+- Die Berührten als wachsendes Psil-Gefolge.
+- Aufruhr in der Bevölkerung.
+- Drohende Psil-Abhängigkeit des Ersten.
+
+---
+
+## Setzungen dieser Partie
+
+- **Das Schauen als Magiesystem.** Durch Psil geöffnete Bewusstseinsmagie mit fünf Disziplinen (Schreckensbild, Fernschau, Wahrlesen, Verlockung, Band zum Wesen), ausgebaut über Würfe. Preis: Verwandlung, Furcht der Treulosen, drohende Abhängigkeit.
+- **Verwandlung des Ersten.** Die frühere Zerrüttung ist kein Malus mehr, sondern das Tor zum Schauen — doch das Band zum Wesen liegt dauerhaft am Rand des Geistes.
+- **Kühner Coup auf der 10.** Eine gewürfelte 10 bei einem extremen Vorhaben öffnet einen echten neuen Hebel; die Reaktion der Welt bleibt davon unberührt.
+- **Korrupte Loyalität.** Durch Verlockung gebundene Berater dienen hohl und kippen, sobald eine größere Gier lockt.
+
+---
+
+## Die Winterrunde (Stand der Aktionen)
+
+- **H1 ✓ „Mehr Psil essen"** — tiefer ins Schauen. Ziel 6, Mod +1, **Wurf 10 (kritisch):** Verwandlung, Wissen +1, Schauen als Waffe, Band zum Wesen.
+- **N1 ✓ „Die Verlockung auf zwei Berater"** — Gier wecken und binden. Ziel 4, Mod +2, **Wurf 8:** Haldra und Resa gebunden, der Putsch verliert die Garde.
+- **N2 ○ frei** · Weltereignis **offen**.
 
 ---
 
@@ -163,140 +172,152 @@ Alleinentscheid mit beratendem Rat. Der oder die Erste hat Veto und letztes Wort
 {
   "schemaVersion": 1,
   "meta": {
-    "spielname": "Die Ordnenden",
+    "spielname": "Die Ordnenden von Hochzinn",
     "kapitel": 1,
-    "zeit": { "jahreszeit": "Frühling", "jahr": 1 },
+    "zeit": { "jahreszeit": "Winter", "jahr": 1 },
     "rundeOffen": true,
     "weltereignis": "offen",
-    "visualStyle": "Klare, moderne Science-Fantasy-Illustration, kühle Palette mit orangem Zinober-Glanz als Akzent, gedämpftes Licht, halbnahe Charakterportraits, kein Text im Bild.",
-    "mapStyle": "Sauberer, moderner, professioneller Kartenstil, kein Pergament, deutsche Beschriftungen, Kompass und Legende, kühle Steppenfarben mit orangen Zinober-Markierungen."
+    "visualStyle": "kinematische, malerische Konzeptkunst, kuehle Palette aus Schiefergrau, Knochenweiss und Steppenblau mit einem einzigen gluehenden Zinober-Orange, dramatisches Helldunkel, feines Filmkorn",
+    "mapStyle": "elegante moderne Kartografie, kein Pergament, kuehle Blautoene mit Zinober-Akzent, deutsche Beschriftung, Kompass, Legende, Raender in Nebel"
   },
   "volk": {
     "name": "Die Ordnenden",
-    "wesensart": "Kühle, pragmatische Beherrscher, von anderen die Kalten genannt; binden in Abhängigkeit und Vasallenschaft, ziehen Tribut, über allem steht die Verwaltung.",
-    "ausrichtung": "Verlässlich, aber langsam; das Schauen wird aus kalter Vernunft gemieden",
-    "erscheinung": "Kühle, aufrechte humanoide Gestalten in strengen, schmucklosen Gewändern mit Amtszeichen, im orangen Schein des Zinober.",
+    "wesensart": "Kuehle, pragmatische Beherrscher; binden andere in Abhaengigkeit und Tribut. Staerke +2 Unterwerfen und Verwalten, gebundene Schwaeche -2 die Kaelte (gewinnen Gehorsam, nie Hingabe).",
+    "ausrichtung": "Verlaesslich-langsam, Wissen-Start 0; das Schauen wurde gemieden, ist nun durch das Psil erzwungen geoeffnet und erstarkt.",
+    "erscheinung": "kuehle, hochgewachsene Humanoide in strenger schiefergrauer und knochenweisser Amtstracht mit Zinober-Beschlaegen",
     "region": {
-      "name": "Die Hohe Tafel in der Blauen Steppe, Stadt Hochzinn",
+      "name": "Die Hohe Tafel",
       "gelaendewerte": [
         { "key": "Glanzadern", "value": 2 },
-        { "key": "Hoher Sitz", "value": 1 },
-        { "key": "Die Weite", "value": -2 }
+        { "key": "hoher Sitz", "value": 1 },
+        { "key": "die Weite", "value": -2 }
       ]
     }
   },
   "status": {
-    "text": "Ein kleiner, kühler Stadtstaat auf der Hohen Tafel, reich am orangen Zinober. Der Antrittsrat ist gehalten, die Sprecher sitzen am Tisch, die erste Aktionsrunde beginnt. Im tiefsten Stollen, dem Neunten, hat Mircas Trupp eine bleiche, fremdartige Kreatur gefunden, die auf den Glanz reagiert, dem Rat noch nicht gemeldet.",
-    "ansehen": { "stufe": 2, "label": "Gefürchtet, nicht geliebt" }
+    "text": "Hochzinn am Abgrund: der Erste verwandelt, der Putsch entkernt, doch die Reiter nahen, das Quellvolk in Blutfehde, die Stadt im Aufruhr.",
+    "ansehen": { "stufe": 0, "label": "Eidbrecher von Hochzinn" }
   },
   "grundgroessen": {
     "nahrung": 2,
     "material": 2,
-    "wissen": 0,
-    "bevoelkerung": { "zahl": 460, "label": "Kern rund 460 namentlich geführte Arbeitsfähige; lose verbunden mehrere Tausend in Hochzinn, geschätzt, nicht gezählt." }
-  },
-  "trends": {
-    "nahrung": { "richtung": "gleichbleibend", "grund": "Oasen, Steppenherden, erste Tribute. Solide, kein Polster." },
-    "material": { "richtung": "steigend", "grund": "Zinober-Stollen und Handwerk, Glanzadern +2 auf Abbau." },
-    "wissen": { "richtung": "gleichbleibend", "grund": "Das Schauen wird gemieden, das Können liegt brach." },
-    "bevoelkerung": { "richtung": "gleichbleibend", "grund": "Solider Kern, kein Wachstumsdruck." }
+    "wissen": 2,
+    "bevoelkerung": { "zahl": 400, "label": "schrumpfender Kern in Aufruhr" }
   },
   "lagewerte": {
     "verteidigung": 2,
-    "mobilitaet": 1,
+    "mobilitaet": -2,
     "wohlstand": 2,
     "ausbeuten": [
-      { "key": "Zinober", "value": 2, "quelle": "Berge der Hohen Tafel, neun Stollen, Glanzadern +2 auf Abbau" },
-      { "key": "Psil-Pilze", "value": 0, "quelle": "Ferne Steppenwälder, bisher kaum genutzt" }
+      { "key": "Zinober", "value": 2, "quelle": "Berge der Hohen Tafel" },
+      { "key": "Psil-Pilze", "value": 1, "quelle": "ferne Steppenwaelder, kaum genutzt" }
     ]
   },
   "modifikatoren": {
     "gelaende": [
       { "key": "Glanzadern", "value": 2 },
-      { "key": "Hoher Sitz", "value": 1 },
-      { "key": "Die Weite", "value": -2 }
+      { "key": "hoher Sitz", "value": 1 },
+      { "key": "die Weite", "value": -2 }
     ],
     "lage": [
-      { "key": "Unterwerfen und Verwalten", "value": 2, "grund": "Wesensart; kühle Ordnung, Vasallenschaft, Tribut" },
-      { "key": "Die Kälte", "value": -2, "grund": "Wesensart; gilt, wenn echte Treue, Opfer oder ein Bündnis unter Gleichen statt eines Hebels verlangt wird" }
+      { "key": "vom Psil verwandelt", "value": 0, "grund": "Aufstieg zum Schauen-Adepten" },
+      { "key": "Schauen als Waffe", "value": 2, "grund": "Furcht, Visionen, Fernsicht gegen Feinde" },
+      { "key": "Band zum Wesen", "value": 0, "grund": "vertieft sich bei jedem tiefen Gebrauch" },
+      { "key": "Aufklaerung Quellvolk", "value": 2, "grund": "fruehere Spaehung" }
     ]
   },
   "faehigkeiten": [
     "Zinober-Bergbau",
     "Tribut- und Vasallenverwaltung",
-    "Stadtmauern der Hohen Tafel",
-    "Das Große Archiv, Tribut- und Aktenwesen",
-    "Die neun Zinober-Stollen",
-    "Zisternen und Speicher",
-    "Der Tributhof",
-    "Latent und ungenutzt: das Schauen (Wissen 0), getragen vom Psil"
+    "Beobachtungsposten (Fruehwarnung)",
+    "Das Schauen: Schreckensbild",
+    "Das Schauen: Fernschau",
+    "Das Schauen: Wahrlesen",
+    "Das Schauen: Verlockung",
+    "Das Schauen: Band zum Wesen"
   ],
   "gruppen": [
-    { "id": "schreiber", "name": "Schreiber und Verwaltung", "sprecherId": "orsin", "kompetenz": "Das Herz ihrer Macht, Tribut und Akten (+2)" },
-    { "id": "bergleute", "name": "Bergleute und Stollen", "sprecherId": "mirca", "kompetenz": "Zinober-Abbau, gestützt durch die Glanzadern (+1)" },
-    { "id": "garde", "name": "Garde und Heer", "sprecherId": "haldra", "kompetenz": "Schutz, Zwang, Unterwerfung der Vasallen (+1)" },
-    { "id": "karawanen", "name": "Karawanen und Versorgung", "sprecherId": "yann", "kompetenz": "Wasser, Oasen, Herden, Handel über die Weite (+1)" },
-    { "id": "schauende", "name": "Die Schauenden", "kompetenz": "Geduldete Randgruppe, die als Einzige den Psil nutzt; kein Ratssitz, latenter Faden (-1)" }
+    { "id": "verwaltung", "name": "Schreiber und Verwaltung", "sprecherId": "orsin-vael", "kompetenz": "+2" },
+    { "id": "stollen", "name": "Bergleute der Stollen", "kompetenz": "+1" },
+    { "id": "garde", "name": "Garde und Heer", "sprecherId": "haldra-czerne", "kompetenz": "+1" },
+    { "id": "karawanen", "name": "Karawanen und Versorgung", "sprecherId": "yann-brackt", "kompetenz": "+1" },
+    { "id": "beruehrte", "name": "Die Beruehrten (Psil-Gefolge)", "sprecherId": "calcar", "kompetenz": "+1" },
+    { "id": "schauende", "name": "Die Schauenden", "sprecherId": "calcar", "kompetenz": "+1" }
   ],
   "berater": [
-    { "id": "orsin", "name": "Orsin Vael", "rolle": "Verwaltung, Erster Schreiber", "ziel": "Die Ordnung soll jeden einzelnen Herrscher überdauern, festgeschrieben in Recht und Archiv", "loyalitaet": 1, "generation": "Erste Generation, das Alter am Tisch", "lebensstand": "lebensabend", "erscheinung": "Hagerer alter Schreiber in dunkler Amtsrobe, randvolle Aktenmappe, prüfender, müder Blick, tintenfleckige Finger." },
-    { "id": "haldra", "name": "Haldra Czerne", "rolle": "Garde und Heer, Schwertmeisterin", "ziel": "Ausdehnung durch Eroberung; beweisen, dass Gewalt die wahre Währung ist, und dabei selbst steigen", "loyalitaet": 1, "generation": "Erste Generation", "lebensstand": "ruestig", "erscheinung": "Kräftige Schwertmeisterin in vernarbtem Lederpanzer mit Tributzug-Abzeichen, harte, herausfordernde Haltung." },
-    { "id": "mirca", "name": "Mirca Stein", "rolle": "Bergbau und Zinober, Steigerin der Stollen", "ziel": "Tiefer graben, mehr Zinober, und insgeheim verstehen, was der Stein wirklich ist", "loyalitaet": 2, "generation": "Dritte Generation unter Tage", "lebensstand": "ruestig", "erscheinung": "Sehnige Steigerin in staubiger Bergmannskleidung, ein Stück leuchtenden Zinober in der Hand, im Blick ein Schimmer von etwas Anderem." },
-    { "id": "yann", "name": "Yann Brackt", "rolle": "Versorgung und Handel, Karawanenmeister", "ziel": "Den Zinober-Reichtum in ein Handelsnetz verwandeln, lieber Loyalität kaufen als erobern", "loyalitaet": 1, "generation": "Jüngster am Tisch, möglicher Erbe", "lebensstand": "ruestig", "erscheinung": "Junger, gewandter Karawanenmeister in heller Reisekleidung mit Handelszeichen, offenes, verbindliches Gesicht." }
+    { "id": "orsin-vael", "name": "Orsin Vael", "loyalitaet": -4, "rolle": "Erster Schreiber, Verwaltung", "ziel": "Die Ordnung soll jeden Herrscher ueberdauern; nun in offener Opposition.", "generation": "Erste Generation", "lebensstand": "lebensabend", "erscheinung": "hager, kahl, graue Schreiberrobe, tintenfleckige Finger, Schluesselbund aus Archivmarken" },
+    { "id": "yann-brackt", "name": "Yann Brackt", "loyalitaet": -4, "rolle": "Karawanenmeister, Handel", "ziel": "Loyalitaet durch Handel binden; gebrochen und in Opposition nach dem Gesandtenmord.", "generation": "Erste Generation", "lebensstand": "ruestig", "erscheinung": "jung, sonnengegerbt, bunte Karawanenschaerpe, Ringe aus fernem Handel" },
+    { "id": "haldra-czerne", "name": "Haldra Czerne", "loyalitaet": 3, "rolle": "Schwertmeisterin der Garde", "ziel": "Macht und Geltung; durch die Verlockung an den Ersten gebunden, dient durch ihren Ehrgeiz.", "generation": "Erste Generation", "lebensstand": "ruestig", "erscheinung": "breitschultrig, kurzes graues Haar, Narbe uebers Kinn, Lederpanzer mit Zinober-Beschlaegen" },
+    { "id": "resa-tann", "name": "Resa Tann", "loyalitaet": 3, "rolle": "Tributmeisterin", "ziel": "Kontrolle und Ordnung; durch die Verlockung gebunden, dient durch ihren Hunger nach Macht.", "generation": "Erste Generation", "lebensstand": "ruestig", "erscheinung": "schlank, schwarzes Haar streng zurueckgebunden, helle kalte Augen, Mantel mit Tributsiegeln" },
+    { "id": "calcar", "name": "Calcar", "loyalitaet": 2, "rolle": "Deuter, Sprecher der Beruehrten und Schauenden", "ziel": "Das Schauen ins Zentrum holen; dem verwandelten Ersten ergeben.", "generation": "Erste Generation", "lebensstand": "ruestig", "erscheinung": "ausgemergelt, fahle Haut, geweitete Pupillen, verblichener Pilzfilz-Umhang" },
+    { "id": "mutter-sarn", "name": "Mutter Sarn", "loyalitaet": -3, "rolle": "Brunnen- und Speichermeisterin", "ziel": "Ueberleben der einfachen Leute; wendet sich angewidert ab.", "generation": "Erste Generation", "lebensstand": "lebensabend", "erscheinung": "rundlich, mehlbestaeubte Schuerze, grosser Brunnenschluessel, graues Haar unter Tuch" }
   ],
   "personen": [
-    { "id": "erster", "name": "Der oder die Erste", "rolle": "Gründer und alleinige Spitze der Ordnenden, Veto und letztes Wort; vom Spieler geführt, Name beim Start frei zu wählen", "lebensstand": "ruestig", "erscheinung": "Aufrechte Anführerfigur in strenger, kostbarer Amtstracht mit dem Zeichen des Ersten, kühle Autorität, ein Hauch Zinober-Glanz." }
+    { "id": "mirca-stein", "name": "Mirca Stein", "rolle": "Verstorbene Steigerin, zur Maertyrerin geworden", "erscheinung": "kraeftig, Staub in den Falten, Zinober-Splitter an einer Schnur, gluehende Augen" },
+    { "id": "nesa", "name": "Nesa", "rolle": "Wassermutter des Quellvolks, als Gesandte ermordet", "erscheinung": "Greisin, wettergegerbt, Gewaender in Wassertoenen" },
+    { "id": "bohr", "name": "Bohr", "rolle": "Haendler, einziger Lieferant des Quellvolks", "lebensstand": "ruestig", "erscheinung": "beleibter Karawanenhaendler mit gerissenem Blick" }
   ],
   "maechte": [
-    { "id": "quellvolk", "name": "Das Quellvolk", "typ": "Oasenbewohner der Blauen Steppe", "erscheinung": "Zähe, vorsichtige Oasenleute in wassergrünen Tüchern an Brunnen und Zisternen.", "profil": [ { "key": "Zähigkeit", "value": 1 } ], "beziehung": { "wert": 0, "label": "Wachsamer Handel, Vasallen-Kandidat" }, "haltung": "Halten das Wasser, von dem die Karawanen abhängen; nicht kriegerisch, noch frei." },
-    { "id": "waldgaenger", "name": "Die Waldgänger", "typ": "Waldvolk der fernen Steppenwälder", "erscheinung": "Mystisches Waldvolk in Pilz- und Rindenfarben, von Psil-Zeichen gezeichnet, den Ordnenden fremd.", "profil": [ { "key": "Schauen", "value": 1 } ], "beziehung": { "wert": 0, "label": "Fern, gegenseitiges Unverständnis" }, "haltung": "Verehren das Schauen an den Psil-Wäldern; Schlüssel zum Psil und vielleicht zur Kreatur." },
-    { "id": "blaue-reiter", "name": "Die Blauen Reiter", "typ": "Nomadenstämme der offenen Steppe", "erscheinung": "Schnelle, zahlreiche Reiter in blau gefärbtem Leder, lose verbündet, über die Weite verstreut.", "profil": [ { "key": "Schnelligkeit", "value": 2 } ], "beziehung": { "wert": -1, "label": "Rivalität, latente Bedrohung" }, "haltung": "Beherrschen die offene Steppe, genau dort, wo die Ordnenden mit der Weite schwach sind; bedrohen Tribut- und Handelswege." }
+    { "id": "quellvolk", "name": "Das Quellvolk", "typ": "Oasenvolk", "erscheinung": "wettergegerbte Oasenbewohner in Wassertoenen, Schilfschmuck", "profil": [ { "key": "Wasser", "value": 2 }, { "key": "Krieger", "value": -1 } ], "beziehung": { "wert": -3, "label": "Blutfehde" }, "haltung": "Schwoert Rache fuer die ermordete Wassermutter." },
+    { "id": "waldgaenger", "name": "Die Waldgaenger", "typ": "Waldvolk, Psil-Mystiker", "erscheinung": "stille Mystiker in pilz- und moosfarbenen Gewaendern, vom Psil getruebte Augen", "profil": [ { "key": "Schauen", "value": 2 }, { "key": "Wehrhaftigkeit", "value": -1 } ], "beziehung": { "wert": -1, "label": "misstrauisch" }, "haltung": "Hoeren das Raunen vom Erwachen unter Hochzinn." },
+    { "id": "blaue-reiter", "name": "Die Blauen Reiter", "typ": "Steppen-Nomaden", "erscheinung": "behende Reiter in blau gefaerbten Fellen auf zaehen Steppenpferden", "profil": [ { "key": "Mobilitaet", "value": 2 }, { "key": "Zahl", "value": 1 } ], "beziehung": { "wert": -3, "label": "Feind, im Anmarsch" }, "haltung": "Wittern Schwaeche und ziehen gegen Hochzinn." }
   ],
   "besitz": [
     "Die Stadt Hochzinn auf der Hohen Tafel",
-    "Die neun Zinober-Stollen samt Vorräten",
-    "Das Große Archiv",
-    "Speicher und Zisternen",
-    "Eine Schatzkammer"
+    "Die neun Zinober-Stollen samt Vorraeten",
+    "Das Grosse Archiv",
+    "Zisternen und Speicher (gesichert)",
+    "Schatzkammer"
   ],
   "verfassung": {
-    "text": "Alleinentscheid mit beratendem Rat. Der oder die Erste hat Veto und letztes Wort. Keine kodifizierte Ordnung; Orsin Vael drängt auf Kodifizierung. Delegation: keine vergeben."
+    "text": "Vormals Alleinentscheid mit beratendem Rat. Mit dem Gesandtenmord und dem Aufstieg des Ersten zerbrochen. Es bildet sich eine Psil-Herrschaft heraus, getragen von Furcht, Verlockung und den Beruehrten statt von kalter Ordnung. Keine kodifizierte Verfassung."
   },
   "beziehungenAnsehen": {
-    "text": "Ansehen 2, gefürchtet bei den Unterworfenen, niedrig bei den freien Völkern. Zeitweilige Autorität: keine."
+    "text": "Ansehen null, Eidbrecher. Nach aussen isoliert, denn der Mord an einer Gesandten hat jede Diplomatie zerstoert. Nach innen herrscht der Erste durch das Schauen und durch korrumpierte Werkzeuge."
   },
   "historie": [
-    { "kapitel": 1, "jahre": "Jahr 1", "zusammenfassung": "Die Ordnenden gründen ihren kühlen Stadtstaat auf der Hohen Tafel über der reichsten Zinober-Ader der bekannten Welt. Der Antrittsrat wird gehalten, Orsin, Haldra, Mirca und Yann nehmen am Tisch Platz, die Schauenden bleiben geduldete Randgruppe ohne Sitz. Die erste Aktionsrunde beginnt, während im Neunten Stollen eine fremdartige Kreatur entdeckt wird." }
+    { "kapitel": 1, "jahre": "Jahr 1", "zusammenfassung": "Aufstieg als kuehler Stadtstaat auf der Hohen Tafel. Eine Kreatur im Neunten Stollen, ein katastrophaler Massen-Abstieg mit dreissig Toten, dann der Mord an Steigerin Mirca und Gesandtin Nesa, der den Ersten zum Eidbrecher machte und den Rat zerbrach. Durch uebermaessigen Psil-Konsum stieg der Erste zum Schauen-Adepten auf und band Haldra und Resa durch Verlockung, womit der Putsch entkernt wurde. Orsin, Yann und Sarn bleiben in Opposition, die Blauen Reiter nahen, das Quellvolk schwoert Blutrache." }
   ],
   "offeneFaeden": [
-    "Die Kreatur im Neunten Stollen, gefunden von Mirca, dem Rat noch nicht gemeldet, reagiert auf den Glanz.",
-    "Das gemiedene Schauen: die Ordnenden sitzen auf dem reichsten Psil der Welt und nutzen es nicht; Mirca ist heimlich gezogen.",
-    "Orsins Alter: Lebensabend, drängt auf eine kodifizierte Ordnung, die ihn überdauert.",
-    "Die Weite: Tribut und Handel hängen an langen, dünnen Wegen, beäugt von den Blauen Reitern.",
-    "Das Quellvolk: erster Kandidat für Tribut und Vasallenschaft."
+    "Das Band zum Wesen im Neunten Stollen vertieft sich",
+    "Rest-Putsch unter Orsin und Yann, ohne Schwertarm",
+    "Die Blauen Reiter im Anmarsch",
+    "Blutfehde mit dem Quellvolk",
+    "Lebenswurf im Winter fuer Orsin und Mutter Sarn",
+    "Die Beruehrten als wachsendes Psil-Gefolge",
+    "Aufruhr in der Bevoelkerung",
+    "Drohende Psil-Abhaengigkeit des Ersten"
   ],
+  "trends": {
+    "nahrung": { "richtung": "fallend", "grund": "Winter zehrt" },
+    "material": { "richtung": "fallend", "grund": "Stollen stocken nach der Katastrophe" },
+    "wissen": { "richtung": "steigend", "grund": "das Schauen erstarkt" },
+    "bevoelkerung": { "richtung": "fallend", "grund": "Tote, Flucht, Aufruhr" }
+  },
   "runde": {
-    "haupt": { "used": 0, "max": 1 },
-    "neben": { "used": 0, "max": 2 },
-    "aktionen": []
+    "haupt": { "used": 1, "max": 1 },
+    "neben": { "used": 1, "max": 2 },
+    "aktionen": [
+      { "art": "haupt", "titel": "Mehr Psil essen", "id": "psil-essen", "kern": "tiefer ins Schauen", "folge": "Aufstieg zum Schauen-Adepten", "ziel": 6, "mod": 1, "status": "gewaehlt", "wurf": 10, "ergebnis": "Kritisch. Verwandlung, Wissen +1, Schauen als Waffe, Band zum Wesen." },
+      { "art": "neben", "titel": "Die Verlockung auf zwei Berater", "id": "verlockung-rat", "kern": "Gier wecken und binden", "folge": "Haldra und Resa korrumpiert", "ziel": 4, "mod": 2, "status": "gewaehlt", "wurf": 8, "ergebnis": "Beide gebunden (Haldra Ziel 4, Resa Ziel 6). Der Putsch verliert die Garde." }
+    ]
   },
   "setzungen": [
-    { "titel": "Wesensart, die Ordnenden", "text": "Stärke +2 auf Machtproben, die jemanden in Abhängigkeit zwingen, und auf alles, was kühle Ordnung errichtet und hält (Vasallenschaft, Tribut, Verwaltung). Gebundene Schwäche -2, die Kälte: gilt, wenn ein Erfolg echte Treue, freiwilliges Opfer oder ein Bündnis unter Gleichen verlangt statt eines Hebels. Die beiden hängen zusammen, die Kälte ist der Preis der Beherrschung." },
-    { "titel": "Die kühle Loyalität", "text": "Alle Start-Loyalitäten der Sprecher laufen kühl und transaktional; Wärme allein hebt sie nicht. Loyalität springt über Berechenbarkeit, Hebel und gemeinsame Interessen an, nicht über Gefühl." },
-    { "titel": "Das gemiedene Schauen", "text": "Wissen startet auf 0. Die Ordnenden meiden das Schauen aus kalter Vernunft und überlassen den Psil den Schauenden, einer geduldeten Randgruppe ohne Ratssitz. Magie ist bewusstseinsbasiert und weich, ein Schauen in Zeichen, Träume und fremden Sinn, getragen vom Psil." },
-    { "titel": "Orsins Präzedenz", "text": "Orsin Vael kann einmal je Kapitel einen Präzedenzfall aus dem Großen Archiv ziehen, +1 auf eine Handlung der Ordnung." },
-    { "titel": "Haldras Drang", "text": "Haldra Czerne drängt unter Delegation zu aggressiven Optionen und kann eigenmächtig eskalieren." }
+    { "titel": "Das Schauen als Magiesystem", "text": "Durch Psil geoeffnete Bewusstseinsmagie. Disziplinen: Schreckensbild (+2 in furchtbasierten Machtproben, kann einen Gegner laehmen), Fernschau (Aufklaerung ueber die Weite fast kostenlos), Wahrlesen (Absichten und Luegen lesen), Verlockung (Gier nach Geltung, Geld, Macht wecken und binden), Band zum Wesen (rohe Macht, vertieft dessen Halt). Ausbau ueber Wuerfe wie jede Faehigkeit. Preis: tiefere Verwandlung, Furcht der Treulosen, drohende Psil-Abhaengigkeit." },
+    { "titel": "Verwandlung des Ersten", "text": "Der Erste ist vom Psil verwandelt. Die fruehere Zerruettung ist kein Malus mehr, sondern das Tor zum Schauen, doch das Band zum Wesen liegt dauerhaft am Rand des Geistes." },
+    { "titel": "Kuehner Coup auf der 10", "text": "Eine gewuerfelte 10 bei einem extremen Vorhaben gelingt nicht nur, sondern oeffnet einen echten neuen Hebel oder Modus. Die Reaktion der Welt bleibt davon unberuehrt und real." },
+    { "titel": "Korrupte Loyalitaet", "text": "Durch Verlockung gebundene Berater dienen durch ihr Laster, nicht aus Treue. Ihre Loyalitaet ist hoch, aber hohl, und kippt, sobald eine groessere Gier lockt." }
   ],
   "karte": {
-    "prompt": "Saubere, moderne Landkarte einer weiten, blau überwachsenen Steppe auf einem fremden Planeten, kein Pergament. Mittelpunkt eine aufragende Felstafel, die Hohe Tafel, darauf die ummauerte Stadt Hochzinn, dahinter die zinoberreichen Berge mit neun Stollen, der tiefste der Neunte, orange leuchtend markiert. Ringsum die Blaue Steppe, weit und offen, von Reiterspuren durchzogen. Verstreut einzelne Oasen (Wasser, vom Quellvolk gehalten) und ferne Wälder mit Psil-Pilzen (Waldgänger). Im offenen Land die Blauen Reiter. Karawanenwege als dünne, lange Linien. Ränder unerforscht. Deutsche Beschriftungen, Kompass und Legende, kühle Steppenfarben mit orangen Zinober-Markierungen.",
+    "prompt": "Elegante moderne Fantasy-Landkarte, kein Pergament. Mitte: Hochzinn auf der Hohen Tafel, dahinter Zinober-Berge (orange Adern) mit dem Neunten Stollen. Ringsum die Blaue Steppe in Indigo und Schiefer, vereinzelte Psil-Waelder und Oasen. Beschriftet: Hochzinn, Hohe Tafel, Blaue Steppe, Tiefbrunn, Psil-Waelder, Reviere der Blauen Reiter. Feine Typografie, Kompass, Legende, Raender in Nebel. Palette kuehles Blau, Knochenweiss, ein Zinober-Akzent.",
     "orte": [
-      { "id": "hochzinn", "name": "Hochzinn", "typ": "Hauptstadt auf der Hohen Tafel", "richtung": "Mittelpunkt", "beziehung": "Heimat" },
-      { "id": "zinober-berge", "name": "Die Zinober-Berge", "typ": "Bergland mit neun Stollen", "richtung": "hinter Hochzinn", "beziehung": "Eigen, Quelle des Zinober" },
-      { "id": "neunter-stollen", "name": "Der Neunte Stollen", "typ": "Tiefster, jüngster Stollen", "richtung": "in den Bergen, tief", "beziehung": "Eigen; Fund der Kreatur" },
-      { "id": "blaue-steppe", "name": "Die Blaue Steppe", "typ": "Weite, offene Steppe", "richtung": "ringsum", "beziehung": "Offen, von Reitern durchzogen" },
-      { "id": "oasen", "name": "Die Oasen", "typ": "Verstreute Wasserstellen", "richtung": "verstreut in der Steppe", "beziehung": "Quellvolk, umkämpftes Wasser" },
-      { "id": "psil-waelder", "name": "Die Psil-Wälder", "typ": "Ferne Steppenwälder", "richtung": "fern, verstreut", "beziehung": "Waldgänger, Quelle des Psil" },
-      { "id": "reiter-weite", "name": "Land der Blauen Reiter", "typ": "Offenes Nomadenland", "richtung": "in der weiten Steppe", "beziehung": "Rivalen, bedrohen die Wege" }
+      { "id": "hochzinn", "name": "Hochzinn", "typ": "Stadt", "richtung": "Mitte", "beziehung": "Heimat" },
+      { "id": "hohe-tafel", "name": "Die Hohe Tafel", "typ": "Hochebene", "richtung": "Mitte", "beziehung": "Heimatregion" },
+      { "id": "neunter-stollen", "name": "Der Neunte Stollen", "typ": "Mine", "richtung": "unter den Bergen", "beziehung": "Ort des Wesens" },
+      { "id": "blaue-steppe", "name": "Die Blaue Steppe", "typ": "Steppe", "richtung": "ringsum", "beziehung": "umgebendes Land" },
+      { "id": "tiefbrunn", "name": "Tiefbrunn", "typ": "Oase", "richtung": "Steppe", "beziehung": "Quellvolk, Blutfehde" },
+      { "id": "psil-waelder", "name": "Psil-Waelder", "typ": "Wald", "richtung": "ferne Raender", "beziehung": "Waldgaenger, Psil-Pilze" },
+      { "id": "reiter-reviere", "name": "Reviere der Blauen Reiter", "typ": "Steppenrand", "richtung": "Rand", "beziehung": "Feind im Anmarsch" }
     ]
   }
 }
