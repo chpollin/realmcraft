@@ -224,10 +224,20 @@ function applyRoute() {
 // ---------------------------------------------------------------------------
 // Datei laden
 // ---------------------------------------------------------------------------
-function handleSavegameText(text) {
+// opts.demo: ein Demo-Stand (Picker) wird "ephemer" geladen — KEIN Delta-Banner
+// und KEIN Eintrag in den lokalen Verlauf. Sonst rechnet das Dashboard den
+// Unterschied zwischen zwei verschiedenen Partien aus (z. B. Karren Kap. 4 ->
+// Gestrandete Kap. 1) und das Delta-Banner zeigt eine sinnlose Vermischung
+// (alle Berater getauscht, "Kapitel 4 -> 1", "Ort entfallen: Die Karren").
+function handleSavegameText(text, { demo = false } = {}) {
   const res = parseSavegame(text);
   if (!res.ok) {
     toast(res.error || 'Speicherstand konnte nicht gelesen werden.');
+    return;
+  }
+  if (demo) {
+    pendingDelta = null;
+    setState(res.data);
     return;
   }
   // Delta zum vorigen Stand berechnen, neuen Stand in den lokalen Verlauf legen.
@@ -1299,7 +1309,7 @@ async function ladeDemoStand(eintrag) {
     // Vor dem Wechsel den fluechtigen Bild-Versionsstand des vorigen Demo-Standes
     // verwerfen, damit nichts in den neuen Stand durchblutet (sauberer Wechsel).
     resetBildVersionState();
-    handleSavegameText(await res.text());
+    handleSavegameText(await res.text(), { demo: true });
     return true;
   } catch {
     return false;
