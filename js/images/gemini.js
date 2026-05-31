@@ -26,6 +26,7 @@ export async function generateImage({
   prompt,
   refImages = [],
   aspectRatio,
+  timeoutMs = 60000,
 } = {}) {
   if (!apiKey) {
     throw new Error('Kein API-Key: generateImage benoetigt einen apiKey.');
@@ -48,6 +49,16 @@ export async function generateImage({
     generationConfig,
   });
 
+  // Harte Obergrenze fuer einen haengenden Aufruf: ohne Timeout blockiert ein
+  // nie antwortender Request den Generieren-Flow unbegrenzt. Manueller Controller
+  // statt AbortSignal.timeout, damit der Timer im finally sicher geloescht wird
+  // (kein lingernder Timer, der z. B. den Unit-Test-Prozess offen haelt).
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('Zeitueberschreitung', 'TimeoutError')),
+    timeoutMs,
+  );
+
   let response;
   try {
     response = await fetch(endpoint(model), {
@@ -57,9 +68,15 @@ export async function generateImage({
         'Content-Type': 'application/json',
       },
       body,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      throw new Error('Bild-API hat nicht rechtzeitig geantwortet (Zeitueberschreitung).');
+    }
     throw new Error(`Bild-API nicht erreichbar: ${err.message}`);
+  } finally {
+    clearTimeout(timer);
   }
 
   if (!response.ok) {

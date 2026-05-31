@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealmCraft, Anleitung</title>
+  <meta name="description" content="Wie man RealmCraft spielt: die zwei Spielweisen, die Regeln in Kürze, das Dashboard und der herunterladbare System-Prompt für den Chat-Modus." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Seiten-eigene Prosa-Stile. css/style.css bleibt unangetastet (Scaffold);
+       hier nur das, was die Anleitungs-Seite zusätzlich braucht. */
+    .guide { padding-bottom: 8px; }
+    .guide-hero { margin-bottom: 16px; }
+    .guide-hero .realm-name { margin-top: 4px; }
+    .lead { font-size: 15px; color: var(--ink-soft); max-width: 72ch; line-height: 1.7; margin: 10px 0 0; }
+    .prose p { color: var(--ink-soft); line-height: 1.7; max-width: 74ch; margin: 0 0 12px; }
+    .prose p:last-child { margin-bottom: 0; }
+    .prose strong { color: var(--ink); font-weight: 600; }
+    .stack { display: grid; gap: 16px; }
+
+    .steps { counter-reset: s; list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 14px; }
+    .steps li { position: relative; padding-left: 44px; color: var(--ink-soft); line-height: 1.6; max-width: 74ch; }
+    .steps li strong { color: var(--ink); font-weight: 600; }
+    .steps li::before {
+      counter-increment: s; content: counter(s);
+      position: absolute; left: 0; top: -1px; width: 28px; height: 28px; border-radius: 8px;
+      background: var(--rc-anthra); color: #fff;
+      font-family: var(--serif); font-weight: 600; font-size: 14px;
+      display: grid; place-items: center;
+    }
+
+    .cmd-list { display: grid; gap: 0; margin-top: 4px; }
+    .cmd { display: grid; grid-template-columns: 190px 1fr; gap: 16px; align-items: baseline;
+      padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+    .cmd:last-child { border-bottom: 0; }
+    .cmd .c-name { font-size: 13px; }
+    .cmd .c-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+
+    .views { display: grid; gap: 10px; margin-top: 4px; }
+    .view-row { display: grid; grid-template-columns: 30px 1fr; gap: 14px; align-items: baseline;
+      padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+    .view-row:last-child { border-bottom: 0; }
+    .view-row .v-num { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--rc-anthra); }
+    .view-row .v-name { font-weight: 600; color: var(--ink); font-size: 14px; }
+    .view-row .v-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
+
+    .dl-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+    .dl-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+
+    .keyline { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; }
+    .keyline .kv { display: flex; flex-direction: column; gap: 2px; }
+    .keyline .kv .k { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+    .keyline .kv .v { font-size: 13.5px; color: var(--ink); font-weight: 600; }
+
+    @media (max-width: 560px) {
+      .cmd { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== Topbar ===================== -->
+  <header class="top">
+    <div class="brand">
+      <div class="sigil" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="name">Realm<b>Craft</b></div>
+        <div class="sub">Anleitung</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <a class="btn primary" href="docs/Spielstart-Prompt.md" download="RealmCraft-System-Prompt.md">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      <span class="lbl">System-Prompt</span>
+    </a>
+
+    <a class="btn" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+      <span class="lbl">Zum Dashboard</span>
+    </a>
+  </header>
+
+  <main class="wrap guide">
+
+    <!-- ===================== Intro ===================== -->
+    <section class="panel pad guide-hero">
+      <div class="badges crest .badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="badge"><span class="dot"></span> Aufbau- und Erzählspiel</span>
+        <span class="badge"><span class="dot"></span> Spielleiter-geführt</span>
+      </div>
+      <div class="realm-name"><span class="the">So spielt man</span>RealmCraft</div>
+      <p class="lead">
+        RealmCraft ist ein offenes, erzählerisches Aufbau-Spiel. Du führst ein Volk über viele Jahre
+        und Kapitel. Ein Spielleiter — der <strong>Chronist</strong> — führt die Welt, die anderen Mächte
+        und deinen Rat. Er empfiehlt nie und entscheidet nie für dich: Er legt die Lage offen, nennt
+        Optionen mit Zielwert und Modifikatoren, und <strong>du entscheidest und würfelst</strong>.
+        Dieses Dashboard zeigt jederzeit das aktuelle Lagebild.
+      </p>
+    </section>
+
+    <!-- ===================== Zwei Spielweisen ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Zwei Wege</span> Wie du spielst</div>
+      <p class="section-sub">RealmCraft wird auf zwei gleichwertigen Wegen gespielt — beide enden im selben Speicherstand, den dieses Dashboard liest.</p>
+      <div class="two-col" style="margin-top:0">
+        <div class="prose">
+          <div class="eyebrow" style="margin-bottom:8px">1 · Im Chat</div>
+          <p>
+            Du spielst mit einem Frontier-Sprachmodell (ChatGPT, Claude oder Claude Code) als Spielleiter.
+            Du fügst den <strong>System-Prompt</strong> in eine frische Chat-Sitzung ein, spielst, lässt dir
+            auf „speichern" einen hybriden Speicherstand ausgeben und lädst dessen <code>json</code>-Block
+            hier ins Dashboard. Das Dashboard ist dafür eigenständig nutzbar.
+          </p>
+        </div>
+        <div class="prose">
+          <div class="eyebrow" style="margin-bottom:8px">2 · Im Terminal</div>
+          <p>
+            Du spielst mit Claude Code als Spielleiter gegen den lokal laufenden Server. Claude führt das
+            Spiel und schreibt den Stand fort; das Dashboard im Browser <strong>spiegelt jeden Zug live</strong>
+            (Live-Reload). Setup: <code>npm run serve</code> läuft, Browser auf <code>localhost:4173</code>,
+            gespielt wird im Terminal.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== So fängst du an (Chat) + Download ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Schnellstart</span> So fängst du an (Chat-Modus)</div>
+      <p class="section-sub">In fünf Minuten in der ersten Ratssitzung.</p>
+      <ol class="steps">
+        <li><strong>System-Prompt herunterladen.</strong> Der Block unten macht jedes fähige Sprachmodell zum Spielleiter.</li>
+        <li><strong>In eine frische Chat-Sitzung einfügen.</strong> Optional einen Setting-Keim ergänzen (ein paar Stichworte zu Volk, Welt, Ton) — oder das Modell erfindet etwas Eigenes.</li>
+        <li><strong>Das Modell baut Welt und Rat</strong>, eröffnet mit einer Ratssitzung und gibt am Ende den ersten Speicherstand aus: einen hybriden Markdown-Block mit kanonischem <code>json</code>.</li>
+        <li><strong>Spielen.</strong> Du würfelst 1d10 selbst und nennst die Zahl; sag jederzeit „speichern", um den aktuellen Stand zu erhalten.</li>
+        <li><strong>Stand ins Dashboard laden.</strong> Im Dashboard auf <em>Speicherstand laden</em>, den <code>json</code>-Block (oder das ganze Markdown) einfügen — Lage, Berater, Welt, Karte und Chronik erscheinen.</li>
+      </ol>
+
+      <div class="dl-row">
+        <a class="btn primary" href="docs/Spielstart-Prompt.md" download="RealmCraft-System-Prompt.md">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span>System-Prompt herunterladen</span>
+        </a>
+        <button class="btn" type="button" data-copy>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>In die Zwischenablage kopieren</span>
+        </button>
+        <a class="btn" href="docs/Spielstart-Prompt.md" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
+          <span>Im Browser öffnen</span>
+        </a>
+      </div>
+      <p class="dl-note">Lädt <code>docs/Spielstart-Prompt.md</code> — den paste-fertigen Spielleiter-Prompt mit Feldreferenz und einem gegen das Schema validierten Beispielstand.</p>
+    </section>
+
+    <!-- ===================== Regeln in Kürze ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Das Wichtigste</span> Die Regeln in Kürze</div>
+      <div class="two-col" style="margin-top:0">
+        <div class="prose">
+          <p><strong>Würfel &amp; Proben.</strong> Du würfelst <strong>1d10 selbst</strong> und nennst das Ergebnis. Der Chronist macht Zielwert und jeden Modifikator vorher offen und zeigt nach dem Wurf die ganze Rechnung. Eine <strong>1</strong> ist immer ein kritischer Rückschlag, eine <strong>10</strong> immer ein kritischer Glücksfall.</p>
+          <p><strong>Maßstab.</strong> Modifikatoren bleiben klein: +2 deutliche Stärke, +1 leichte, −1 Schwäche, −2 schwere. Zielwert 5 ist normal, 3–4 leicht, 7–8 schwer. Jede Stärke wird bezahlt — wer stärker wirkt, trägt eine schwerere Schwäche.</p>
+          <p><strong>Berater.</strong> Dein Rat sind 5–7 eigenständige Figuren mit eigenen Zielen. Sie handeln unter Delegation selbst; ihre Loyalität (−5..+5) verschiebt sich mit Grund.</p>
+        </div>
+        <div class="prose">
+          <p><strong>Zeit.</strong> Sie rückt nur auf Saison-Turns vor und löst dann genau ein Weltereignis aus (1d10). Im <strong>Winter</strong> fallen die Lebenswürfe — Figuren altern, manche gehen.</p>
+          <p><strong>Größen.</strong> Grundgrößen sind Nahrung, Material, Wissen (0–2 niedrig, 3–5 hoch). Lagewerte (Verteidigung, Mobilität, Wohlstand) liegen um null, etwa −2 bis +3. Ansehen reicht von Stufe 0 bis 3.</p>
+          <p><strong>Setzungen.</strong> Auch die Regeln dürfen wachsen. Eigene Sonderregeln hält der Chronist ausdrücklich im Feld <code>setzungen</code> fest — sie erscheinen in der Chronik.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== Das Dashboard ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Lagetisch</span> Das Dashboard</div>
+      <p class="section-sub">Lade einen Speicherstand (hybrides Markdown oder reines JSON) — fünf Sichten zeigen das Lagebild des Rates.</p>
+      <div class="views">
+        <div class="view-row"><div class="v-num">I</div><div><div class="v-name">Lage</div><div class="v-desc">Volk, Kapitel und Saison, Grundgrößen mit Trends, Lagewerte, das Aktionsbrett der laufenden Runde und die offenen Fäden.</div></div></div>
+        <div class="view-row"><div class="v-num">II</div><div><div class="v-name">Berater</div><div class="v-desc">Der Rat mit Rolle, eigenem Ziel, Loyalität und Lebensstand — pro Berater ein KI-Portrait erzeugbar.</div></div></div>
+        <div class="view-row"><div class="v-num">III</div><div><div class="v-name">Welt</div><div class="v-desc">Die anderen Mächte mit Beziehung und Haltung sowie die tragenden Gruppen mit ihren Sprechern.</div></div></div>
+        <div class="view-row"><div class="v-num">IV</div><div><div class="v-name">Karte</div><div class="v-desc">Eine erzeugbare Lagekarte und die Legende der bekannten Orte — die Karte wächst mit dem Spiel.</div></div></div>
+        <div class="view-row"><div class="v-num">V</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf aus den gespeicherten Ständen, Setzungen, Fähigkeiten und Besitz.</div></div></div>
+      </div>
+      <p class="prose" style="margin-top:14px"><strong>Bilder.</strong> Portraits und Karte entstehen über die Gemini-Bild-API. Hinterlege einmalig einen Schlüssel unter <em>Einstellungen</em> (er bleibt nur lokal im Browser). Mit <em>Exportieren</em> sicherst du einen Stand inklusive eingebetteter Bilder; ein Re-Import füllt den Cache ohne neuen API-Aufruf.</p>
+    </section>
+
+    <!-- ===================== Befehle ===================== -->
+    <section class="panel pad mt">
+      <div class="section-title"><span class="kicker">Im Spiel</span> Befehle an den Spielleiter</div>
+      <p class="section-sub">Kurzbefehle, die der Chronist versteht (im Chat wie im Terminal).</p>
+      <div class="cmd-list">
+        <div class="cmd"><div class="c-name"><code>würfeln</code></div><div class="c-desc">Die nächste offene Probe aufrufen — Zielwert und Modifikatoren werden vorher offengelegt.</div></div>
+        <div class="cmd"><div class="c-name"><code>info &lt;id&gt;</code></div><div class="c-desc">Details zu einem Berater, einer Macht, einem Ort oder einer Sache nachschlagen.</div></div>
+        <div class="cmd"><div class="c-name"><code>rat &lt;name&gt;</code></div><div class="c-desc">Einen Berater um seine Stimme bitten — er spricht aus seinem eigenen Ziel heraus.</div></div>
+        <div class="cmd"><div class="c-name"><code>ressourcen &lt;name&gt;</code></div><div class="c-desc">Mittel und Reichweite einer Gruppe oder Macht auflisten.</div></div>
+        <div class="cmd"><div class="c-name"><code>karte</code></div><div class="c-desc">Die bekannte Lage und die Orte beschreiben.</div></div>
+        <div class="cmd"><div class="c-name"><code>speichern</code></div><div class="c-desc">Den aktuellen Stand als hybriden Speicherstand ausgeben (Prosa plus <code>json</code>-Block).</div></div>
+        <div class="cmd"><div class="c-name"><code>status</code></div><div class="c-desc">Die Statuskonsole anzeigen — die verdichtete Lage in einer Zeile.</div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="foot-line">
+      RealmCraft <b>&middot;</b> ein
+      <a href="https://dhcraft.org/Promptotyping/" target="_blank" rel="noopener">Promptotyping</a>-Projekt von
+      <a href="https://dhcraft.org" target="_blank" rel="noopener">Christopher Pollin</a>
+    </div>
+    <div class="foot-line foot-sub">
+      <a href="index.html">Zum Dashboard</a> <b>&middot;</b>
+      <a href="https://github.com/chpollin/realmcraft" target="_blank" rel="noopener">github.com/chpollin/realmcraft</a>
+    </div>
+  </footer>
+
+  <script>
+    // System-Prompt in die Zwischenablage kopieren (führendes YAML-Frontmatter entfernt).
+    // Fällt ohne Clipboard-Rechte auf "im Browser öffnen" zurück.
+    (function () {
+      var SRC = 'docs/Spielstart-Prompt.md';
+      var btn = document.querySelector('[data-copy]');
+      if (!btn) return;
+      btn.addEventListener('click', async function () {
+        var label = btn.querySelector('span');
+        var original = label ? label.textContent : '';
+        try {
+          var res = await fetch(SRC, { cache: 'no-store' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          var txt = (await res.text()).replace(/^---\n[\s\S]*?\n---\n/, '').trim();
+          await navigator.clipboard.writeText(txt);
+          if (label) { label.textContent = 'Kopiert ✓'; setTimeout(function () { label.textContent = original; }, 1600); }
+        } catch (e) {
+          window.open(SRC, '_blank', 'noopener');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

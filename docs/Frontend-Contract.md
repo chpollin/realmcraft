@@ -35,17 +35,18 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - `export function loadLast(): object | null`
 - `export function list(): Array<{ index, spielname, kapitel, jahreszeit, jahr, savedAt }>`
 - `export function getAt(index): object | null`
+- `export function all(): object[]` — alle gespeicherten Stände in chronologischer Reihenfolge (für den erzählten Verlauf der Historie-Sicht).
 - `export function clear(): void`
 
 ### js/render/*.js (jeweils reine Render-Funktion, leert root und baut neu)
-- `overview.js`  → `export function renderLage(root, state): void`
+- `overview.js`  → `export function renderLage(root, state, opts): void` (opts optional `{ delta }` fürs Delta-Banner)
 - `advisors.js`  → `export function renderBerater(root, state, handlers): void` (handlers `{ onGeneratePortrait(beraterId) }`)
 - `actors.js`    → `export function renderWelt(root, state): void`
 - `map.js`       → `export function renderKarte(root, state, handlers): void` (handlers `{ onGenerateMap() }`)
-- `history.js`   → `export function renderHistorie(root, state): void`
+- `history.js`   → `export function renderHistorie(root, state, opts): void` (opts optional `{ chronik }` für den erzählten Verlauf)
 
 ### js/images/gemini.js
-- `export const MODELS = { portrait: 'gemini-3.1-flash-image', map: 'gemini-3-pro-image' }`
+- `export const MODELS = { portrait: 'gemini-3.1-flash-image', map: 'gemini-3.1-flash-image' }` — die Karte läuft standardmäßig auf dem Flash-Bildmodell (Nano Banana 2), weil `gemini-3-pro-image` im Gemini-Free-Tier ein Kontingent von 0 hat; Pro bleibt in den Einstellungen wählbar (mit Billing).
 - `export function endpoint(model): string` → `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
 - `export async function generateImage({ apiKey, model, prompt, refImages = [], aspectRatio }): Promise<{ dataUrl: string, mimeType: string }>`
   - POST via `fetch(endpoint(model), { method:'POST', headers:{ 'x-goog-api-key': apiKey, 'Content-Type':'application/json' }, body })`.
@@ -87,7 +88,14 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Pro Card: `[data-testid="advisor-name"]`, `[data-testid="advisor-role"]`, `[data-testid="advisor-goal"]`, `[data-testid="advisor-loyalty"]` (zeigt Zahl/Marke), `[data-testid="advisor-portrait"]` (ein `<img>`), `[data-testid="generate-portrait"]` (Button). Die Card trägt `data-id` = berater.id.
 - Optional `[data-testid="advisor-lebensstand"]` (aus `berater.lebensstand`: Rüstig, Lebensabend, Hinfällig), nur wenn gesetzt.
 
+### Armee (`data-view="armee"`)
+- Kopf `[data-testid="armee-kopf"]` mit `[data-testid="armee-gesamt"]` (Kampffähig-Zahl), optionaler Moral-Zeile, optionalem Heerschau-Bild `[data-testid="armee-bild"]` (`<img>`) und `[data-testid="generate-armee-bild"]` (Button → `onGenerateArmeeBild()`).
+- Verbände-Panel `[data-testid="armee-verbaende"]` mit Karten `[data-testid="verband"]` (dataset.id). Je Karte: `[data-testid="verband-name"]`, `[data-testid="verband-staerke"]`, optional Typ, Führung (`fuehrungId`→Berater), Verfassung, Ausrüstung, Hinweis, ein Avatar `[data-testid="verband-avatar"]` (`<img>`) und `[data-testid="generate-verband"]` (Button → `onGenerateVerband(verbandId)`).
+- Optional `[data-testid="armee-verluste"]` (Verluste-Logbuch) und ein Panel mit stehenden Modifikatoren.
+- `armee` ist optional: ohne das Feld rendert die View leer (Kampffähig 0), ohne Fehler. Bildstil aus `meta.armeeStyle` (Rückfall `meta.visualStyle`).
+
 ### Welt (`data-view="welt"`)
+- Optional `[data-testid="beziehungen-ansehen"]` (erzählender Lagesatz aus `state.beziehungenAnsehen.text`), nur wenn gesetzt.
 - `[data-testid="power-card"]` × `state.maechte.length`, je mit `[data-testid="power-name"]`, `power-relation`, `power-stance`.
 - `[data-testid="group-row"]` × `state.gruppen.length`, je mit Gruppenname und Sprechername (aus `berater` via `sprecherId`).
 

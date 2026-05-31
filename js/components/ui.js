@@ -108,7 +108,7 @@ function clamp(v, lo, hi) {
 //     <span class="mid"></span>           Nullpunkt-Markierung
 //     <span class="fill pos|neg"></span>  gefüllter Anteil
 //   </div>
-export function gauge(value, min = -2, max = 3) {
+export function gauge(value, min = -2, max = 3, { label, valueText } = {}) {
   const span = (max - min) || 1;
   const v = clamp(value, min, max);
 
@@ -143,6 +143,10 @@ export function gauge(value, min = -2, max = 3) {
     'aria-valuenow': String(v),
     'aria-valuemin': String(min),
     'aria-valuemax': String(max),
+    // Optionaler zugänglicher Name und Vorlese-Text (z. B. "+3"), damit das
+    // Vorzeichen einer reinen Zahl für Screenreader nicht verlorengeht.
+    'aria-label': label || null,
+    'aria-valuetext': valueText || null,
   }, [mid, fill]);
 }
 
@@ -157,7 +161,7 @@ export function gauge(value, min = -2, max = 3) {
 //   <div class="loy-track" role="meter" ...>
 //     <span class="marker" style="left: NN%"></span>
 //   </div>
-export function loyaltyMeter(value) {
+export function loyaltyMeter(value, { label, valueText } = {}) {
   const MIN = -5, MAX = 5;
   const v = clamp(value, MIN, MAX);
   const pct = ((v - MIN) / (MAX - MIN)) * 100;
@@ -171,6 +175,10 @@ export function loyaltyMeter(value) {
     'aria-valuenow': String(v),
     'aria-valuemin': String(MIN),
     'aria-valuemax': String(MAX),
+    // Optionaler Name (z. B. "Loyalität von Borka") und Vorlese-Text mit dem
+    // Wortzustand ("+2 · treu"), den eine reine Zahl nicht trägt.
+    'aria-label': label || null,
+    'aria-valuetext': valueText || null,
   }, [marker]);
 }
 
@@ -257,20 +265,24 @@ export function modal({ title, body, actions = [] } = {}) {
 export function toast(message) {
   let host = document.querySelector('[data-testid="toast-host"]');
   if (!host) {
+    // Eine einzige Live-Region am Host (aria-atomic, damit die ganze Meldung als
+    // Einheit angesagt wird). Die einzelnen Toasts tragen KEIN eigenes role=status
+    // mehr, sonst verschachteln sich Live-Regionen und Ansagen doppeln/entfallen.
     host = el('div', {
       class: 'toast-host',
       dataset: { testid: 'toast-host' },
       'aria-live': 'polite',
+      'aria-atomic': 'true',
     });
     document.body.append(host);
   }
 
+  // Der Schließen-Hinweis steht sichtbar als CSS-::after; ein zusätzliches
+  // title-Attribut wäre für Screenreader nur redundant.
   const t = el('div', {
     class: 'toast',
     dataset: { testid: 'toast' },
-    role: 'status',
     text: message,
-    title: 'Klick zum Schliessen',
     onClick: () => t.remove(),
   });
   host.append(t);

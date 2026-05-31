@@ -9,18 +9,20 @@ import { MODELS, generateImage } from './images/gemini.js';
 import { makeKey, cacheGet, cachePut } from './images/cache.js';
 import { renderLage } from './render/overview.js';
 import { renderBerater } from './render/advisors.js';
+import { renderArmee } from './render/armee.js';
 import { renderWelt } from './render/actors.js';
 import { renderKarte } from './render/map.js';
 import { renderHistorie } from './render/history.js';
+import { roman } from './format.js';
 
-const VIEWS = ['lage', 'berater', 'welt', 'karte', 'historie'];
+const VIEWS = ['lage', 'berater', 'armee', 'welt', 'karte', 'historie'];
 const LS = {
   apiKey: 'realmcraft.apiKey',
   modelPortrait: 'realmcraft.model.portrait',
   modelMap: 'realmcraft.model.map',
 };
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-const roman = (n) => ROMAN[n] || String(n);
+// Toast-Text, wenn ein Bild ohne hinterlegten API-Key erzeugt werden soll.
+const NO_KEY_MSG = 'Kein API-Key. Bitte in den Einstellungen einen Gemini-Key hinterlegen.';
 
 // API-Key: bevorzugt der vom Nutzer gespeicherte; sonst ein Laufzeit-Key aus
 // .env (über serve.mjs als window.__RC_ENV__ eingespeist). So funktioniert die
@@ -65,11 +67,60 @@ if (els.nav && els.nav.parentNode) {
 const handlers = {
   onGeneratePortrait,
   onGenerateMap,
+  onGenerateArmeeBild,
+  onGenerateVerband,
 };
 
 // ---------------------------------------------------------------------------
 // Rendern
 // ---------------------------------------------------------------------------
+
+// Kompakte Kernzustand-Leiste im Hero: Grundgrößen und Lagewerte als Icon+Zahl,
+// damit der Kernstand von jeder Sicht aus in einem Blick lesbar ist. Icons als
+// inline-SVG im Stil der Lage-Stat-Cards.
+const HERO_ICONS = {
+  nahrung: '<path d="M12 2C8 2 5 5 5 9c0 5 4 11 7 13 3-2 7-8 7-13 0-4-3-7-7-7z"/>',
+  material: '<path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/>',
+  wissen: '<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h8M8 11h6"/>',
+  bevoelkerung: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  verteidigung: '<path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/>',
+  mobilitaet: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  wohlstand: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
+};
+
+function coreStat(iconKey, value, label, testid) {
+  return el('div', { class: 'core-stat', 'data-testid': testid, title: label }, [
+    el('span', {
+      class: 'core-ico',
+      html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${HERO_ICONS[iconKey] || ''}</svg>`,
+    }),
+    el('span', { class: 'core-val', text: value }),
+  ]);
+}
+
+function coreStrip(state) {
+  const gg = state.grundgroessen || {};
+  const lw = state.lagewerte || {};
+  const bev = gg.bevoelkerung && typeof gg.bevoelkerung === 'object' ? gg.bevoelkerung.zahl : gg.bevoelkerung;
+  const num = (v) => (typeof v === 'number' ? String(v) : '–');
+  const sval = (v) => (typeof v === 'number' ? signed(v) : '–');
+
+  return el('div', { class: 'core-strip', 'data-testid': 'core-strip' }, [
+    el('div', { class: 'core-group' }, [
+      coreStat('nahrung', num(gg.nahrung), 'Nahrung', 'core-nahrung'),
+      coreStat('material', num(gg.material), 'Material', 'core-material'),
+      coreStat('wissen', num(gg.wissen), 'Wissen', 'core-wissen'),
+      coreStat('bevoelkerung', num(bev), 'Bevölkerung', 'core-bevoelkerung'),
+    ]),
+    el('div', { class: 'core-sep' }),
+    el('div', { class: 'core-group' }, [
+      coreStat('verteidigung', sval(lw.verteidigung), 'Verteidigung', 'core-verteidigung'),
+      coreStat('mobilitaet', sval(lw.mobilitaet), 'Mobilität', 'core-mobilitaet'),
+      coreStat('wohlstand', sval(lw.wohlstand), 'Wohlstand', 'core-wohlstand'),
+    ]),
+  ]);
+}
+
 function renderHero(state) {
   hero.replaceChildren();
   if (!state) return;
@@ -89,20 +140,13 @@ function renderHero(state) {
     ]),
   ]);
 
-  const crestMeta = el('div', { class: 'crest-meta' }, [
-    volk.ausrichtung ? metaItem('Ausrichtung', volk.ausrichtung) : null,
-    volk.region?.name ? metaItem('Heimatregion', volk.region.name) : null,
-  ]);
-
   const crest = el('div', { class: 'crest' }, [
     badges,
     el('h1', { class: 'realm-name' }, [
       el('span', { class: 'the', text: 'Das Volk' }),
       el('span', { 'data-testid': 'realm-name', text: volk.name || '' }),
     ]),
-    volk.wesensart ? el('div', { class: 'realm-essence', text: volk.wesensart }) : null,
-    volk.erscheinung ? el('p', { class: 'realm-desc', text: volk.erscheinung }) : null,
-    crestMeta,
+    coreStrip(state),
   ]);
 
   // Ansehen
@@ -116,23 +160,16 @@ function renderHero(state) {
     stars,
     el('div', { class: 'rstage', text: `Stufe ${ansehen.stufe ?? '–'} von ${max}` }),
     ansehen.label ? el('div', { class: 'rdesc', text: ansehen.label }) : null,
-    status.text ? el('div', { class: 'rfoot', text: status.text }) : null,
   ]);
 
   hero.append(crest, renown);
-}
-
-function metaItem(k, v) {
-  return el('div', { class: 'm' }, [
-    el('span', { class: 'k', text: k }),
-    el('span', { class: 'v', text: v }),
-  ]);
 }
 
 function renderAll(state, delta) {
   renderHero(state);
   renderLage(els.views.lage, state, { delta });
   renderBerater(els.views.berater, state, handlers);
+  renderArmee(els.views.armee, state, handlers);
   renderWelt(els.views.welt, state);
   renderKarte(els.views.karte, state, handlers);
   renderHistorie(els.views.historie, state, { chronik: store.all() });
@@ -252,8 +289,40 @@ function saveSettings() {
 const portraitModel = () => localStorage.getItem(LS.modelPortrait) || MODELS.portrait;
 const mapModel = () => localStorage.getItem(LS.modelMap) || MODELS.map;
 
+// Baut den Portrait-Prompt in fester, wirksamer Reihenfolge. Der Stil (Medium,
+// Kunstrichtung) kommt aus meta.visualStyle — das ist der vom Spielleiter aus dem
+// Setting abgeleitete Teil. Das Geruest hier (Komposition, Welt-Anker, Ausschluss
+// der KI-Tells) ist settingunabhaengig und hebt jedes Bild aus dem Default-Look.
+// Reihenfolge zaehlt: Bildmodelle gewichten den Anfang am staerksten, darum steht
+// das Medium zuerst und die negativen Vorgaben am Ende.
+function buildPortraitPrompt(b, state) {
+  const style = (state.meta?.visualStyle || '').trim();
+  const region = (state.volk?.region?.name || state.volk?.name || '').trim();
+  const wer = [b.name, b.rolle].filter(Boolean).join(', ');
+  const look = (b.erscheinung || '').trim();
+
+  return [
+    // 1. Medium/Kunstrichtung zuerst (aus dem Spielkontext abgeleitet)
+    style,
+    // 2. feste Komposition gegen die zentrierte KI-Heldenpose
+    'Brustbild im Dreiviertelprofil, eine einzelne Figur, leicht aus der Mitte, auf Augenhoehe, schlichter zurueckhaltender Hintergrund, natuerliche Asymmetrie',
+    // 3. die Figur selbst
+    [wer, look].filter(Boolean).join('. '),
+    // 4. Welt-Anker, damit alle Portraits aus einer Welt stammen
+    region ? `aus ${region}` : '',
+    // 5. die typischen KI-Tells ausschliessen
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, keine symmetrische Heldenpose, keine moderne Kleidung, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+// Cache-Schluessel ueber den fertigen Prompt: aendert sich Stil oder Prompt-Logik,
+// invalidiert der Cache von selbst. id bleibt drin, damit zwei Berater mit
+// gleicher Beschreibung dennoch getrennte Bilder behalten.
 function portraitKey(b, state) {
-  return makeKey([b.id, b.erscheinung || '', state.meta?.visualStyle || '', portraitModel()]);
+  return makeKey([b.id, buildPortraitPrompt(b, state), portraitModel()]);
 }
 function mapKey(state) {
   return makeKey(['map', state.karte?.prompt || '', state.meta?.mapStyle || '', mapModel()]);
@@ -262,14 +331,74 @@ function portraitImg(id) {
   return document.querySelector(`[data-testid="advisor-card"][data-id="${id}"] [data-testid="advisor-portrait"]`);
 }
 
-async function onGeneratePortrait(beraterId) {
-  const state = getState();
-  if (!state) return;
-  const b = (state.berater || []).find((x) => x.id === beraterId);
-  if (!b) return;
-  const img = portraitImg(beraterId);
-  const key = portraitKey(b, state);
+// Armee-Bilder folgen demselben Muster wie die Portraits: Medium/Stil zuerst (aus
+// meta.armeeStyle, mit visualStyle als Rueckfall), dann Komposition, dann der aus
+// dem Stand abgeleitete Inhalt, dann der Welt-Anker, dann die KI-Tells als
+// Ausschluss. armeeStyle ist der vom Spielleiter aus dem Setting abgeleitete Teil.
+function armeeStyle(state) {
+  return (state.meta?.armeeStyle || state.meta?.visualStyle || '').trim();
+}
 
+// Heerschau: ein breites Gesamtbild der Streitmacht, aus Verbaenden und Moral.
+function buildHeerschauPrompt(state) {
+  const a = state.armee || {};
+  const region = (state.volk?.region?.name || state.volk?.name || '').trim();
+  const truppen = (a.verbaende || [])
+    .map((v) => [v.name, v.typ].filter(Boolean).join(' ('))
+    .map((s) => (s.includes('(') ? `${s})` : s))
+    .join(', ');
+  return [
+    armeeStyle(state),
+    'weite Heerschau, eine aufgestellte Streitmacht in der Landschaft, mehrere Gruppen, dokumentarische Totale, kein einzelner Held',
+    truppen ? `die Verbaende: ${truppen}` : '',
+    a.moral ? `Stimmung: ${a.moral}` : '',
+    (state.volk?.erscheinung || '').trim(),
+    region ? `aus ${region}` : '',
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+// Verband-Avatar: ein Truppenteil als Gruppe, Wappen-/Banneranmutung statt Einzelportrait.
+function buildVerbandPrompt(v, state) {
+  const beraterById = Object.fromEntries((state.berater || []).map((b) => [b.id, b]));
+  const fuehrer = v.fuehrungId && beraterById[v.fuehrungId] ? beraterById[v.fuehrungId].name : '';
+  const region = (state.volk?.region?.name || state.volk?.name || '').trim();
+  return [
+    armeeStyle(state),
+    'eine kleine Gruppe Krieger desselben Verbandes, Dreiviertelansicht, dokumentarisch, leicht aus der Mitte, schlichter Hintergrund, natuerliche Asymmetrie',
+    [v.name, v.typ].filter(Boolean).join(', '),
+    v.ausruestung ? `Ausruestung: ${v.ausruestung}` : '',
+    v.verfassung ? `Verfassung: ${v.verfassung}` : '',
+    fuehrer ? `gefuehrt von ${fuehrer}` : '',
+    region ? `aus ${region}` : '',
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, keine symmetrische Heldenpose, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+function armeeBildKey(state) {
+  return makeKey(['armee', buildHeerschauPrompt(state), portraitModel()]);
+}
+function verbandKey(v, state) {
+  return makeKey(['verband', v.id || '', buildVerbandPrompt(v, state), portraitModel()]);
+}
+function armeeBildImg() {
+  return document.querySelector('[data-testid="armee-bild"]');
+}
+function verbandImg(id) {
+  return document.querySelector(`[data-testid="verband"][data-id="${id}"] [data-testid="verband-avatar"]`);
+}
+
+// Gemeinsamer Bild-Flow für Portrait und Karte. Hält die in E2E gepinnte
+// Reihenfolge ein: ein Cache-Treffer löst keinen Netzaufruf aus; ein fehlender
+// API-Key toastet und öffnet die Einstellungen, ohne zu erzeugen; sonst wird
+// erzeugt, gecacht und ins <img> gesetzt, Fehler werden getoastet.
+async function generateInto({ img, key, model, prompt, aspectRatio }) {
   const cached = await cacheGet(key);
   if (cached) {
     if (img) img.src = cached;
@@ -278,14 +407,13 @@ async function onGeneratePortrait(beraterId) {
 
   const apiKey = getApiKey();
   if (!apiKey) {
-    toast('Kein API-Key. Bitte in den Einstellungen einen Gemini-Key hinterlegen.');
+    toast(NO_KEY_MSG);
     openSettings();
     return;
   }
 
-  const prompt = `${state.meta?.visualStyle || ''} Portrait von ${b.name}, ${b.rolle || ''}. ${b.erscheinung || ''}`.trim();
   try {
-    const { dataUrl } = await generateImage({ apiKey, model: portraitModel(), prompt });
+    const { dataUrl } = await generateImage({ apiKey, model, prompt, aspectRatio });
     await cachePut(key, dataUrl);
     if (img) img.src = dataUrl;
   } catch (e) {
@@ -293,34 +421,51 @@ async function onGeneratePortrait(beraterId) {
   }
 }
 
+async function onGeneratePortrait(beraterId) {
+  const state = getState();
+  if (!state) return;
+  const b = (state.berater || []).find((x) => x.id === beraterId);
+  if (!b) return;
+  const prompt = buildPortraitPrompt(b, state);
+  await generateInto({ img: portraitImg(beraterId), key: portraitKey(b, state), model: portraitModel(), prompt, aspectRatio: '4:3' });
+}
+
 async function onGenerateMap() {
   const state = getState();
   if (!state || !state.karte) return;
-  const img = document.querySelector('[data-testid="map-image"]');
-  const key = mapKey(state);
+  await generateInto({
+    img: document.querySelector('[data-testid="map-image"]'),
+    key: mapKey(state),
+    model: mapModel(),
+    prompt: state.karte.prompt || '',
+    aspectRatio: '16:9',
+  });
+}
 
-  const cached = await cacheGet(key);
-  if (cached) {
-    if (img) img.src = cached;
-    return;
-  }
+async function onGenerateArmeeBild() {
+  const state = getState();
+  if (!state || !state.armee) return;
+  await generateInto({
+    img: armeeBildImg(),
+    key: armeeBildKey(state),
+    model: portraitModel(),
+    prompt: buildHeerschauPrompt(state),
+    aspectRatio: '16:9',
+  });
+}
 
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    toast('Kein API-Key. Bitte in den Einstellungen einen Gemini-Key hinterlegen.');
-    openSettings();
-    return;
-  }
-
-  try {
-    const { dataUrl } = await generateImage({
-      apiKey, model: mapModel(), prompt: state.karte.prompt || '', aspectRatio: '16:9',
-    });
-    await cachePut(key, dataUrl);
-    if (img) img.src = dataUrl;
-  } catch (e) {
-    toast(e.message);
-  }
+async function onGenerateVerband(verbandId) {
+  const state = getState();
+  if (!state || !state.armee) return;
+  const v = (state.armee.verbaende || []).find((x) => x.id === verbandId);
+  if (!v) return;
+  await generateInto({
+    img: verbandImg(verbandId),
+    key: verbandKey(v, state),
+    model: portraitModel(),
+    prompt: buildVerbandPrompt(v, state),
+    aspectRatio: '4:3',
+  });
 }
 
 // Befüllt Portraits/Karte aus eingebetteten dataUrls oder dem Cache, ohne API.
@@ -344,6 +489,32 @@ async function hydrateImages(state) {
     const cached = await cacheGet(mapKey(state));
     if (cached) mapImg.src = cached;
   }
+
+  if (state.armee) {
+    const aImg = armeeBildImg();
+    if (aImg && !aImg.getAttribute('src')) {
+      if (state.armee.bild?.dataUrl) {
+        aImg.src = state.armee.bild.dataUrl;
+        cachePut(armeeBildKey(state), state.armee.bild.dataUrl);
+      } else {
+        const cached = await cacheGet(armeeBildKey(state));
+        if (cached) aImg.src = cached;
+      }
+    }
+    for (const v of state.armee.verbaende || []) {
+      const img = verbandImg(v.id);
+      if (!img) continue;
+      const key = verbandKey(v, state);
+      if (v.avatar?.dataUrl) {
+        img.src = v.avatar.dataUrl;
+        cachePut(key, v.avatar.dataUrl);
+        continue;
+      }
+      if (img.getAttribute('src')) continue;
+      const cached = await cacheGet(key);
+      if (cached) img.src = cached;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +535,15 @@ async function onExport() {
   const mapCached = await cacheGet(mapKey(state));
   if (mapCached && bundle.karte) bundle.karte.dataUrl = mapCached;
 
+  if (bundle.armee && state.armee) {
+    const aCached = await cacheGet(armeeBildKey(state));
+    if (aCached) bundle.armee.bild = { ...(bundle.armee.bild || {}), dataUrl: aCached };
+    for (const v of bundle.armee.verbaende || []) {
+      const vCached = await cacheGet(verbandKey(v, state));
+      if (vCached) v.avatar = { ...(v.avatar || {}), dataUrl: vCached };
+    }
+  }
+
   const name = (state.meta?.spielname || 'stand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -379,7 +559,11 @@ async function onExport() {
 // ---------------------------------------------------------------------------
 function wire() {
   subscribe((state) => {
-    renderAll(state, pendingDelta);
+    // Delta einmalig verbrauchen: ein Banner erscheint genau einmal pro Last und
+    // kann nicht in einen späteren, unverwandten Render durchsickern.
+    const delta = pendingDelta;
+    pendingDelta = null;
+    renderAll(state, delta);
     applyRoute();
     hydrateImages(state);
     refreshHistorySelect();
@@ -462,7 +646,8 @@ async function wireLive() {
 
   const loadLive = async () => {
     try {
-      const res = await fetch('savegame.json', { cache: 'no-store' });
+      // Timeout, damit eine stockende Antwort die Spiegelung nicht still aufhängt.
+      const res = await fetch('savegame.json', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
       if (!res.ok) return false;
       handleSavegameText(await res.text());
       return true;
@@ -475,12 +660,26 @@ async function wireLive() {
   if (!present) return; // kein Live-Spielstand: kein SSE öffnen
 
   toast('Live-Modus: savegame.json wird gespiegelt.');
-  try {
-    const es = new EventSource('events');
+
+  // SSE-Verbindung, die sich nach endgültigem Schließen (z. B. Serverneustart)
+  // einmalig mit kurzem Backoff neu aufbaut. Transiente Aussetzer reconnectet
+  // EventSource selbst, daher nur bei readyState === CLOSED eingreifen.
+  const connect = () => {
+    let es;
+    try {
+      es = new EventSource('events');
+    } catch {
+      return; // EventSource nicht verfügbar: einmaliges Laden genügt.
+    }
     es.addEventListener('savegame', () => loadLive());
-  } catch {
-    // EventSource nicht verfügbar: einmaliges Laden genügt.
-  }
+    es.addEventListener('error', () => {
+      if (es.readyState === EventSource.CLOSED) {
+        es.close();
+        setTimeout(connect, 2000);
+      }
+    });
+  };
+  connect();
 }
 
 if (document.readyState === 'loading') {

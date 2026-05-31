@@ -1,8 +1,7 @@
 // Sicht "Welt": Mächte (Diplomatie) und tragende Gruppen mit Sprechern.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Welt (data-view=welt)".
 import { el } from '../components/ui.js';
-
-const initials = (n) => (n || '?').replace(/^Die\s+/, '').trim().slice(0, 1).toUpperCase();
+import { initials } from '../format.js';
 
 function relMeta(beziehung = {}) {
   const w = beziehung.wert;

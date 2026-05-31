@@ -35,7 +35,35 @@
       "Bash(pwd)",
       "Bash(which:*)",
       "Bash(mkdir:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(PORT=4173 node serve.mjs)",
+      "Bash(set +e)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4173 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { \"LISTENING auf 4173 \\(PID $\\($c.OwningProcess\\)\\)\" } else { \"NICHTS hoert auf 4173\" }; Get-Process node -ErrorAction SilentlyContinue | Select-Object Id, StartTime | Format-Table -AutoSize | Out-String)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:4173/savegame.json\" -Headers @{'Cache-Control'='no-cache'} -UseBasicParsing; $j = $r.Content | ConvertFrom-Json; \"Server liefert spielname: '$\\($j.meta.spielname\\)'  |  Kapitel $\\($j.meta.kapitel\\)  |  $\\($j.meta.zeit.jahreszeit\\) Jahr $\\($j.meta.zeit.jahr\\)  |  Volk: $\\($j.volk.name\\)\")",
+      "Bash(tasklist)",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const txt = await readFile\\('./savegame.json','utf8'\\); const r = parseSavegame\\(txt\\); if \\(r.ok\\) { console.log\\('OK - Dashboard kann den Stand laden. spielname:', r.data.meta.spielname, '| Jahreszeit:', r.data.meta.zeit.jahreszeit\\); } else { console.log\\('FEHLER:', r.error\\); }\")",
+      "PowerShell(Write-Output \"=== node-Prozesse mit Kommandozeile ===\"; Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | ForEach-Object { \"PID {0}: {1}\" -f $_.ProcessId, $_.CommandLine }; Write-Output \"\"; Write-Output \"=== Wer lauscht auf 4173? ===\"; Get-NetTCPConnection -LocalPort 4173 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess | Format-Table -AutoSize)",
+      "PowerShell($c = Get-Content -Path \"js\\\\app.js\" -Encoding UTF8; Write-Output \\(\"Total lines: \" + $c.Count\\); $c[249..329] | ForEach-Object { $i=250 } { \"{0,3}: {1}\" -f $i,$_; $i++ })",
+      "PowerShell($c = Get-Content -Path \"js\\\\images\\\\cache.js\" -Encoding UTF8; Write-Output \\(\"Total: \" + $c.Count\\); $c | Select-String -Pattern \"export function makeKey\" -Context 0,10)",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK � Nahrung',d.grundgroessen.nahrung,'Verteidigung',d.lagewerte.verteidigung,'Mobilitaet',d.lagewerte.mobilitaet,'| Loyalitaet:',d.berater.map\\(b=>b.name.split\\(' '\\)[0]+' '+b.loyalitaet\\).join\\(', '\\)\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK �',d.meta.zeit.jahreszeit,'Jahr',d.meta.zeit.jahr,'� Weltereignis',d.meta.weltereignis,'| Nahrung',d.grundgroessen.nahrung,'Volk',d.grundgroessen.bevoelkerung.zahl,'Verteidigung',d.lagewerte.verteidigung,'| Runde Haupt',d.runde.haupt.used+'/'+d.runde.haupt.max,'Neben',d.runde.neben.used+'/'+d.runde.neben.max,'| historie',d.historie.length\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const a=r.data.armee;console.log\\('OK � armee.gesamt',a.gesamt,'� Verbaende:',a.verbaende.map\\(v=>v.name.replace\\('die ',''\\)+' '+v.staerke\\).join\\(', '\\)\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell($c = Get-Content -Path \"js\\\\app.js\" -Encoding UTF8; Write-Output \\(\"Total lines: \" + $c.Count\\); $c[185..$\\($c.Count-1\\)] | ForEach-Object { $i=186 } { \"{0,3}: {1}\" -f $i,$_; $i++ })",
+      "Bash(git show *)",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK �',d.meta.zeit.jahreszeit,'| Nahrung',d.grundgroessen.nahrung,'Verteidigung',d.lagewerte.verteidigung,'| Loyalitaet:',d.berater.map\\(b=>b.name.split\\(' '\\)[0]+' '+b.loyalitaet\\).join\\(', '\\),'| Armee-Wall-Mod',d.armee.stehendeModifikatoren[0].value\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell($d = git diff --stat -- schema/savegame.schema.json; Write-Output \"DIFF:$d\"; $s = git status --short -- schema/savegame.schema.json; Write-Output \"STATUS:$s\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK �',d.meta.zeit.jahreszeit,'Jahr',d.meta.zeit.jahr,'| Nahrung',d.grundgroessen.nahrung,'Volk',d.grundgroessen.bevoelkerung.zahl,'Verteidigung',d.lagewerte.verteidigung,'| Armee',d.armee.gesamt,'| Schaedelklans',d.maechte.find\\(m=>m.id==='schaedelklans'\\).beziehung.wert,'| Loy:',d.berater.map\\(b=>b.name.split\\(' '\\)[0]+' '+b.loyalitaet\\).join\\(', '\\),'| Runde',d.runde.haupt.used+'/'+d.runde.haupt.max\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK �',d.meta.zeit.jahreszeit,'| N',d.grundgroessen.nahrung,'M',d.grundgroessen.material,'W',d.grundgroessen.wissen,'Volk',d.grundgroessen.bevoelkerung.zahl,'| Vert',d.lagewerte.verteidigung,'Mob',d.lagewerte.mobilitaet,'Wohl',d.lagewerte.wohlstand,'| Stillen',d.maechte.find\\(m=>m.id==='die-stillen'\\).beziehung.wert,'Klan',d.maechte.find\\(m=>m.id==='schaedelklans'\\).beziehung.wert,'| Armee',d.armee.gesamt\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(Select-String -Path js\\\\app.js -Pattern 'renownStars|function metaItem' | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK � Ansehen',d.status.ansehen.stufe,d.status.ansehen.label,'| Loy:',d.berater.map\\(b=>b.name.split\\(' '\\)[0]+' '+b.loyalitaet\\).join\\(', '\\),'| Setzungen:',d.setzungen.length,'| Moral:',d.armee.moral\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const d=r.data;console.log\\('OK �',d.meta.zeit.jahreszeit,'Jahr',d.meta.zeit.jahr,'WE',d.meta.weltereignis,'| N',d.grundgroessen.nahrung,'Volk',d.grundgroessen.bevoelkerung.zahl,'Vert',d.lagewerte.verteidigung,'Armee',d.armee.gesamt,'| Runde',d.runde.haupt.used+'/'+d.runde.haupt.max,'| Ansehen',d.status.ansehen.stufe\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "PowerShell(node --input-type=module -e \"import { readFile } from 'node:fs/promises'; const { parseSavegame } = await import\\('./js/parse.js'\\); const r = parseSavegame\\(await readFile\\('./savegame.json','utf8'\\)\\); if\\(r.ok\\){const s=r.data.siedlung;console.log\\('OK � siedlung:',s.name,'|',s.typ,'| Bauten:',s.bauten.length,'| Prompt vorhanden:',!!s.prompt\\);}else{console.log\\('FEHLER:',r.error\\);}\")",
+      "Bash(ls -la _tmp_chronik.png)",
+      "Bash(ls -la tools/)",
+      "Bash(grep -nE \"savegame|scheduled_tasks|_tmp|\\\\.lock|tools\" .gitignore)",
+      "Bash(find tools *)",
+      "Bash(ls -la .claude/scheduled_tasks.lock)",
+      "Bash(git status *)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -43,6 +71,9 @@
       "Bash(git push -f:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

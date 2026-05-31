@@ -1,8 +1,7 @@
 // Sicht "Berater": Karten mit Name, Rolle, Ziel, Loyalität und Portrait.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Berater (data-view=berater)".
 import { el, loyaltyMeter } from '../components/ui.js';
-
-const initials = (n) => (n || '?').replace(/^Die\s+/, '').trim().slice(0, 1).toUpperCase();
+import { initials, signed } from '../format.js';
 
 const LEBENSSTAND = { ruestig: 'Rüstig', lebensabend: 'Lebensabend', hinfaellig: 'Hinfällig' };
 
@@ -59,10 +58,10 @@ export function renderBerater(root, state, handlers = {}) {
             el('span', {
               class: `lstate ${lm.cls}`,
               'data-testid': 'advisor-loyalty',
-              text: `${b.loyalitaet > 0 ? '+' : ''}${b.loyalitaet} · ${lm.state}`,
+              text: `${signed(b.loyalitaet)} · ${lm.state}`,
             }),
           ]),
-          loyaltyMeter(b.loyalitaet),
+          loyaltyMeter(b.loyalitaet, { label: `Loyalität von ${b.name}`, valueText: `${signed(b.loyalitaet)} · ${lm.state}` }),
           el('div', { class: 'loy-ticks' }, [
             el('span', { text: '-5' }), el('span', { text: '0' }), el('span', { text: '+5' }),
           ]),

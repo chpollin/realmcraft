@@ -2,9 +2,9 @@
 
 Ein Lagebild-Dashboard für ein spielleitergeführtes, offenes Aufbau- und Erzählspiel. Man spielt das Spiel im Gespräch mit einem Sprachmodell als Spielleiter, lässt sich auf den Befehl "Speichern" einen Speicherstand ausgeben und lädt ihn hier hoch. RealmCraft rendert die aktuelle Lage auf einen Blick: Berater mit KI-Portraits, Grundgrößen, Lagewerte, Akteure und eine KI-generierte Karte.
 
-RealmCraft ist das **System** (Spielmechanik plus Dashboard) und kampagnenunabhängig. Jeder regelkonforme Speicherstand lässt sich laden. "Die Karren" ist der erste Beispielstand.
+RealmCraft ist das **System** (Spielmechanik plus Dashboard) und kampagnenunabhängig. Jeder regelkonforme Speicherstand lässt sich laden. "Die Karren" ist die erste Beispielkampagne, "Die Ordnenden" eine zweite.
 
-> Status: einsatzbereit. Mechanik, Speicherstand-Format, JSON-Schema, zwei Beispielstände (Kapitel 3 und Kapitel 4), das vollständige Dashboard und die Tests (Unit, E2E, Visual) liegen vor.
+> Status: einsatzbereit. Mechanik, Speicherstand-Format, JSON-Schema, drei Beispielstände in zwei Kampagnen (Die Karren, Kapitel 3 und 4; Die Ordnenden, Kapitel 1), das vollständige Dashboard und die Tests (Unit, E2E, Visual) liegen vor.
 
 ## Zwei Spielweisen
 RealmCraft lässt sich auf zwei gleichwertigen Wegen spielen:
@@ -23,7 +23,7 @@ RealmCraft lässt sich auf zwei gleichwertigen Wegen spielen:
 - `CLAUDE.md` Spielleiter-Anweisung für den Terminal-Modus (Claude Code)
 - `knowledge/` verdichtetes Partie-Gedächtnis nach Promptotyping (Chronik, Welt, Regeln, Personen)
 - `schema/` JSON-Schema des Speicherstands
-- `examples/` Beispielstand "Die Karren" als Hybrid-Markdown und als reines JSON
+- `examples/` Beispielstände als Hybrid-Markdown und als reines JSON ("Die Karren" Kapitel 3 und 4, "Die Ordnenden" Kapitel 1)
 - `index.html`, `css/`, `js/` das Dashboard (Vanilla JS, kein Build-Schritt)
 - `tests/` Unit-Tests (node:test) und E2E/Visual-Tests (Playwright)
 - `serve.mjs` kleiner lokaler Static-Server

@@ -10,6 +10,10 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT) || 4173;
+// Standardmaessig nur an Loopback binden: der Dev-Server reicht den lokalen
+// Gemini-Key ueber /env.js durch und soll nicht im LAN erreichbar sein. Ueber
+// HOST=0.0.0.0 bewusst aufmachbar. http://localhost bleibt erreichbar.
+const HOST = process.env.HOST || '127.0.0.1';
 
 // Live-Reload: the file the terminal game-master (Claude Code) writes. Changes
 // are pushed to open dashboards via Server-Sent-Events on /events.
@@ -48,7 +52,7 @@ async function readEnvFile() {
     const out = {};
     for (const line of raw.split(/\r?\n/)) {
       const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-      if (m && !line.trimStart().startsWith('#')) out[m[1]] = m[2].replace(/^["']|["']$/g, '');
+      if (m && !line.trimStart().startsWith('#')) out[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
     }
     return out;
   } catch {
@@ -100,6 +104,16 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    // Punktdateien/-ordner (.env, .git, …) nie ausliefern. Auf der URL-Pfad-Ebene
+    // geprüft (immer Vorwärts-Slashes), unabhängig vom OS-Pfadtrenner. Der
+    // Gemini-Key in .env wird ausschliesslich kontrolliert über /env.js (oben)
+    // durchgereicht — /env.js erreicht diesen Block ohnehin nicht.
+    if (pathname.split('/').some((seg) => seg.startsWith('.'))) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('404 Not Found');
+      return;
+    }
+
     if (pathname === '/' || pathname.endsWith('/')) pathname += 'index.html';
 
     const filePath = normalize(join(ROOT, pathname));
@@ -123,6 +137,6 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`RealmCraft dev server: http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`RealmCraft dev server: http://localhost:${PORT} (gebunden an ${HOST})`);
 });

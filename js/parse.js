@@ -49,7 +49,10 @@ export function parseSavegame(text) {
 
 /**
  * Leichte strukturelle Prüfung gemäß Vertrag. Kein vollständiges JSON-Schema,
- * nur die für das Dashboard verlässlichen Felder.
+ * nur die für das Dashboard verlässlichen Felder. Die strenge Prüfung (Integer
+ * statt nur Zahl, Enums, alle required-Felder) ist bewusst an
+ * `schema/savegame.schema.json` delegiert, das in den Unit-Tests per Ajv läuft;
+ * dieser Laufzeit-Check hält nur die Felder fest, auf die das Dashboard baut.
  * @returns {{ valid: boolean, errors: string[] }}
  */
 export function validateSavegame(data) {

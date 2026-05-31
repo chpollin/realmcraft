@@ -2,8 +2,7 @@
 // (Realm-Identität und Ansehen rendert app.js in die persistente Hero-Leiste.)
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Lage (data-view=lage)".
 import { el, gauge } from '../components/ui.js';
-
-const fmt = (n) => (n > 0 ? `+${n}` : `${n}`);
+import { signed, signedZeroPlus } from '../format.js';
 
 // Trend-Markierung je Grundgröße (steigend ▲, fallend ▼, gleichbleibend →).
 const TREND = {
@@ -52,7 +51,7 @@ export function renderLage(root, state, opts = {}) {
   const statGrid = el('div', { class: 'stat-grid' },
     stats.map((s) =>
       el('div', { class: 'stat' }, [
-        el('div', { class: 'ico', html: ICO[s.k] || '' }),
+        el('div', { class: 'ico', 'aria-hidden': 'true', html: ICO[s.k] || '' }),
         el('div', { class: 'num', 'data-testid': `stat-${s.k}`, text: String(s.val) }),
         trendEl(state.trends, s.k),
         el('div', { class: 'lab', text: s.lab }),
@@ -79,10 +78,10 @@ export function renderLage(root, state, opts = {}) {
           el('span', {
             class: `val${b.v === 0 ? ' neutral' : ''}${b.v < 0 ? ' neg' : ''}`,
             'data-testid': `lage-${b.k}`,
-            text: fmt(b.v),
+            text: signed(b.v),
           }),
         ]),
-        gauge(b.v, -2, 3),
+        gauge(b.v, -2, 3, { label: b.nm, valueText: signed(b.v) }),
         el('div', { class: 'scale-ticks' }, [
           el('span', { text: '-2' }), el('span', { text: '0' }), el('span', { text: '+3' }),
         ]),
@@ -91,7 +90,7 @@ export function renderLage(root, state, opts = {}) {
   );
   const yields = (lagewerte.ausbeuten || []).map((a) =>
     el('div', { class: 'yield' }, [
-      el('span', { class: 'amt', text: fmt(a.value) }),
+      el('span', { class: 'amt', text: signed(a.value) }),
       el('div', {}, [
         el('div', { class: 'yk', text: `Ausbeute ${a.key}` }),
         a.quelle ? el('div', { class: 'ysrc', text: a.quelle }) : null,
@@ -135,7 +134,7 @@ function renderAktionsbrett(runde) {
   ]);
 
   const rows = (runde.aktionen || []).map((a) => {
-    const modStr = typeof a.mod === 'number' ? (a.mod >= 0 ? `+${a.mod}` : `${a.mod}`) : '';
+    const modStr = typeof a.mod === 'number' ? signedZeroPlus(a.mod) : '';
     const roll = a.wurf == null
       ? el('span', { class: 'aktion-cue', text: '▶ 1d10' })
       : el('span', { class: 'aktion-ergebnis', 'data-testid': 'aktion-ergebnis', text: a.ergebnis || `Wurf ${a.wurf}` });
@@ -192,8 +191,7 @@ function renderDeltaBanner(delta) {
     (delta.eintraege || []).map((e) => {
       let txt = e.label;
       if (typeof e.from === 'number' && typeof e.to === 'number') {
-        const sign = e.delta > 0 ? '+' : '';
-        txt = `${e.label}: ${e.from} → ${e.to} (${sign}${e.delta})`;
+        txt = `${e.label}: ${e.from} → ${e.to} (${signed(e.delta)})`;
       }
       return el('li', {
         class: `delta-item delta-${e.richtung || 'flat'}`, 'data-testid': 'delta-item',

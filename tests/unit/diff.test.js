@@ -57,3 +57,31 @@ test('identische Staende ergeben kein Delta', () => {
   assert.equal(r.hasChanges, false);
   assert.equal(r.eintraege.length, 0);
 });
+
+test('Lagewert-Delta wird erkannt', () => {
+  const prev = { lagewerte: { verteidigung: 2, mobilitaet: 0, wohlstand: 1 } };
+  const next = { lagewerte: { verteidigung: 4, mobilitaet: 0, wohlstand: 1 } };
+  const e = diffStates(prev, next).eintraege.find((x) => x.art === 'lagewert' && x.key === 'verteidigung');
+  assert.ok(e);
+  assert.equal(e.delta, 2);
+  assert.equal(e.richtung, 'up');
+});
+
+test('Ansehen-Stufenwechsel wird erkannt', () => {
+  const prev = { status: { ansehen: { stufe: 1 } } };
+  const next = { status: { ansehen: { stufe: 2 } } };
+  const e = diffStates(prev, next).eintraege.find((x) => x.art === 'ansehen');
+  assert.ok(e);
+  assert.equal(e.from, 1);
+  assert.equal(e.to, 2);
+  assert.equal(e.richtung, 'up');
+});
+
+test('weggefallener Ort wird erkannt', () => {
+  const prev = { karte: { orte: [{ id: 'a', name: 'Altdorf' }, { id: 'b', name: 'Brunnen' }] } };
+  const next = { karte: { orte: [{ id: 'a', name: 'Altdorf' }] } };
+  const e = diffStates(prev, next).eintraege.find((x) => x.art === 'ort-weg');
+  assert.ok(e);
+  assert.ok(e.label.includes('Brunnen'));
+  assert.equal(e.richtung, 'down');
+});

@@ -1,9 +1,7 @@
 // Sicht "Historie": Chronik der Kapitel, Fähigkeiten und Besitz.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Historie (data-view=historie)".
 import { el } from '../components/ui.js';
-
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-const roman = (n) => ROMAN[n] || String(n);
+import { roman } from '../format.js';
 
 // Baut den erzählten Verlauf aus den gespeicherten Ständen (ältester zuerst).
 // Jeder Stand ist ein Zug: Zeitpunkt, Lage in einem Satz, ausgewürfelte Vorhaben.

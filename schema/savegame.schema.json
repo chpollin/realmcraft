@@ -274,6 +274,47 @@
           }
         }
       }
+    },
+    "armee": {
+      "type": "object",
+      "description": "Optionale Streitmacht: Verbände, stehende Modifikatoren, Verluste.",
+      "properties": {
+        "gesamt": { "type": "integer" },
+        "moral": { "type": "string" },
+        "bild": { "$ref": "#/definitions/portrait" },
+        "verbaende": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "name": { "type": "string" },
+              "typ": { "type": "string" },
+              "fuehrungId": { "type": "string" },
+              "staerke": { "type": "integer" },
+              "verfassung": { "type": "string" },
+              "ausruestung": { "type": "string" },
+              "hinweis": { "type": "string" },
+              "avatar": { "$ref": "#/definitions/portrait" }
+            }
+          }
+        },
+        "stehendeModifikatoren": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/kennwert" }
+        },
+        "verluste": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "zeit": { "type": "string" },
+              "zahl": { "type": "integer" },
+              "anlass": { "type": "string" }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {

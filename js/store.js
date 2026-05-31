@@ -36,6 +36,18 @@ function writeAll(arr) {
   }
 }
 
+// Stabile Serialisierung nur fuer den Duplikat-Vergleich: Objekt-Schluessel werden
+// rekursiv sortiert, die Array-Reihenfolge bleibt erhalten (sie ist
+// bedeutungstragend). So zaehlt ein inhaltlich gleicher Stand mit nur
+// umgestellten Schluesseln nicht faelschlich als neuer Verlaufseintrag.
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 /**
  * Legt den Stand als neuen Verlaufseintrag ab. Ist er mit dem letzten Eintrag
  * identisch (z.B. erneutes Laden derselben Datei), wird kein Duplikat erzeugt.
@@ -45,7 +57,7 @@ export function saveSnapshot(state) {
   if (!state) return -1;
   const arr = readAll();
   const last = arr[arr.length - 1];
-  if (last && JSON.stringify(last.state) === JSON.stringify(state)) {
+  if (last && stableStringify(last.state) === stableStringify(state)) {
     return arr.length - 1;
   }
   arr.push({ savedAt: Date.now(), state });

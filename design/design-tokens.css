@@ -1,46 +1,43 @@
 /*
- * RealmCraft Design-Tokens, Richtung "Anthrazit" (gewaehlt 2026-05-30).
+ * RealmCraft Design-Tokens, Richtung "Anthrazit-Licht" (gewaehlt 2026-05-31).
  * Kanonische Quelle fuer css/style.css.
- * Sachlich-neutrales Dashboard auf Anthrazit und Schwarz. Leitakzent ein
- * kraeftiges, kultiviertes Blau; ein Orange-nach-Rot-Verlauf (--rc-flame) ist
- * die wiederkehrende Signatur. Space Grotesk ueber Inter.
+ * Monochromes, editorial-ruhiges Dashboard: nur Weiss, leichte Grautoene und
+ * Anthrazit als Kernfarbe (der Akzent ist der staerkste Ton der Grauskala).
+ * Kein Bunt-Akzent. Status spricht ohne Farbe ueber Richtungs-Glyphen, Vor-
+ * zeichen, Position und Tonwert. Volle Breite, kleine Seitenabstaende.
+ * Space Grotesk als einziger Display-Akzent ueber Inter.
  */
 :root {
-  /* Grund: Anthrazit und Schwarz, neutral */
-  --rc-bg: #0b0c0e;
-  --rc-bg-2: #101216;
-  --rc-panel: #15171c;
-  --rc-panel-2: #1c1f25;
-  --rc-inset: #0e0f12;
+  color-scheme: light;
 
-  /* Tinte, neutral-kuehl */
-  --rc-ink: #eceef2;
-  --rc-ink-dim: #a3a8b0;
-  --rc-ink-faint: #6a6f77;
+  /* Grund: Weiss und leichte Grautoene (graue Seite, weisse Karten = Tiefe) */
+  --rc-bg: #f3f3f4;
+  --rc-bg-2: #ebebed;
+  --rc-panel: #ffffff;
+  --rc-panel-2: #fafafa;
+  --rc-inset: #ececed;
 
-  /* Leitakzent: kraeftiges, kultiviertes Blau */
-  --rc-blue: #3a86ff;
-  --rc-blue-bright: #6aa6ff;
-  --rc-blue-deep: #1f63e6;
+  /* Tinte: Anthrazit-Abstufungen */
+  --rc-ink: #1d2026;
+  --rc-ink-dim: #5c606a;
+  --rc-ink-faint: #8c909a;
 
-  /* Signatur: Orange nach Rot */
-  --rc-orange: #ff7a18;
-  --rc-orange-bright: #ff9b45;
-  --rc-red: #ff3b2f;
-  --rc-red-deep: #d81f28;
-  --rc-flame: linear-gradient(118deg, #ff9b45 0%, #ff6a1a 45%, #ff2f3d 100%);
+  /* Kernfarbe Anthrazit (der Akzent ist der staerkste Ton der Grauskala) */
+  --rc-anthra: #2a2e35;
+  --rc-anthra-strong: #20242b;
+  --rc-anthra-deep: #15181d;
 
-  /* Status / Skalen */
-  --rc-pos: #3ecf8e;
-  --rc-warn: #ff9b45;
-  --rc-neg: #ff5347;
+  /* Status rein tonal — Glyphe/Vorzeichen/Position tragen die Bedeutung */
+  --rc-pos: #1d2026;
+  --rc-warn: #5c606a;
+  --rc-neg: #1d2026;
 
-  /* Linien und Schatten */
-  --rc-line: #23262c;
-  --rc-line-soft: #181b20;
-  --rc-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --rc-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --rc-glow-blue: 0 0 18px rgba(58, 134, 255, 0.22);
+  /* Linien und Schatten (kuehles Schiefer-Grau, nie reines Schwarz) */
+  --rc-line: #e3e3e6;
+  --rc-line-soft: #eeeeef;
+  --rc-shadow-1: 0 1px 2px rgba(20, 22, 28, .05);
+  --rc-shadow-2: 0 4px 14px rgba(20, 22, 28, .08);
+  --rc-glow-blue: 0 0 0 3px rgba(20, 22, 28, .08);
 
   /* Typografie */
   --rc-font-display: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -49,14 +46,15 @@
   /* Radius, Raster, Bewegung */
   --rc-radius: 6px;
   --rc-radius-lg: 10px;
-  --rc-gap: 16px;
-  --rc-gap-lg: 24px;
-  --rc-maxw: 1320px;
+  --rc-gap: 14px;
+  --rc-gap-lg: 22px;
+  --rc-maxw: 100%;
+  --pad-x: clamp(20px, 2.2vw, 36px);
   --rc-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --rc-dur: 0.2s;
+  --rc-dur: 0.18s;
 
-  /* Loyalitaets-/Beziehungs-Skala (rot -> neutral -> gruen) */
-  --rc-scale-neg: var(--rc-neg);
-  --rc-scale-mid: var(--rc-blue);
-  --rc-scale-pos: var(--rc-pos);
+  /* Loyalitaets-/Beziehungs-Skala (tonal: schwach -> stark) */
+  --rc-scale-neg: var(--rc-line);
+  --rc-scale-mid: var(--rc-ink-faint);
+  --rc-scale-pos: var(--rc-anthra);
 }

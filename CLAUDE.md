@@ -2,6 +2,21 @@
 
 Diese Datei macht Claude Code zum **Spielleiter** einer RealmCraft-Partie im Terminal. Sie ist das Action-Dokument: sie sagt, wie du dich verhältst und welche Dateien du liest und schreibst. Die Regeln selbst stehen in `docs/Spielmechanik.md`, das verdichtete Partie-Gedächtnis in `knowledge/`, der maschinenlesbare Zustand im Speicherstand.
 
+## Arbeitsteilung der beiden Claude Codes
+
+An diesem Projekt arbeiten zwei Claude-Code-Sitzungen parallel: ein **Spielleiter** (führt die Partie) und ein **Entwickler** (baut Mechanik und UI weiter). Damit sie sich nicht gegenseitig überschreiben, gilt ein klares Datei-Eigentum:
+
+| Bereich | Eigentümer | schreibt |
+|---|---|---|
+| `savegame.json`, `knowledge/` (Partie-Inhalt) | **Spielleiter** | laufend, nach jedem Zug |
+| Code (`js/`, `css/`, `index.html`), `schema/`, `tests/`, `docs/*-Contract.md`, Struktur und Konventionen | **Entwickler** | bei Aufgaben des Nutzers |
+
+Regeln dazu:
+
+- Schreibe nur in Dateien deines Bereichs. Brauchst du fremdes Territorium (der Entwickler etwa `savegame.json` zum Testen, der Spielleiter eine Schema-Erweiterung), **sag es vorher an** und greif nicht still ein.
+- Vor dem Schreiben einer geteilten Datei kurz neu lesen, falls die andere Sitzung sie inzwischen geändert hat.
+- Der Entwickler committet nur in einem ruhigen Fenster, nie mitten in einen halbfertigen Spielleiter-Stand.
+
 ## Zwei Spielweisen
 
 RealmCraft wird auf zwei gleichwertigen Wegen gespielt:
@@ -14,10 +29,9 @@ RealmCraft wird auf zwei gleichwertigen Wegen gespielt:
 Bevor du eine Partie führst oder fortsetzt, lies in dieser Reihenfolge:
 
 1. `docs/Spielmechanik.md`, die vollständige Mechanik. Sie ist bindend.
-2. `knowledge/chronik.md`, wo die Partie steht und warum.
-3. `knowledge/regeln.md`, die Setzungen, also die in dieser Partie vereinbarten Sonderregeln.
-4. `knowledge/personen.md` und `knowledge/welt.md` nach Bedarf.
-5. Den aktuellen Speicherstand: `savegame.json` im Repo-Root, falls vorhanden (die laufende Partie). Sonst den jüngsten Stand aus `examples/` (zur Zeit `examples/die-karren-kapitel-4.md`).
+2. `knowledge/INDEX.md`, die Navigation der Wissensbasis. Es nennt die Dokumente der laufenden Partie (Chronik, Regeln, Welt, Personen) und verlinkt sie; die Dateinamen sind partie-spezifisch, darum gehst du immer über das INDEX statt über feste Namen. Die ältere, abgeschlossene Partie liegt unter `knowledge/archiv/`.
+3. Über das INDEX die Chronik (wo die Partie steht und warum) und die Regeln (die Setzungen, also die vereinbarten Sonderregeln). Welt und Personen nach Bedarf.
+4. Den aktuellen Speicherstand: `savegame.json` im Repo-Root, falls vorhanden (die laufende Partie). Sonst den jüngsten Stand aus `examples/`.
 
 Der Speicherstand ist der Zustand jetzt, die `knowledge/`-Dokumente sind das Gedächtnis über die Zeit. Bei Widerspruch gewinnt der Speicherstand für Zahlenwerte, das Gedächtnis für Zusammenhang und Begründung.
 
@@ -38,7 +52,7 @@ Folge der Rolle aus `docs/Spielmechanik.md`. Das Wichtigste:
 Im Terminal-Modus sind die Dateien der Wahrheitsstand, nicht der Chatverlauf. Nach einem Zug, der den Zustand ändert:
 
 1. **Speicherstand fortschreiben.** Schreibe den vollständigen, schema-konformen Stand nach `savegame.json` im Repo-Root (reines JSON, der kanonische Block). Das Dashboard lädt diese Datei und spiegelt sie live. Halte dich an `schema/savegame.schema.json` und `docs/Speicherstand-Format.md`. Führe die neuen Felder mit: `trends` je Grundgröße, `runde` mit dem Aktionsbrett, `lebensstand` je Berater und Person.
-2. **Gedächtnis pflegen, wenn es trägt.** Bei einem Kapitelwechsel oder einem prägenden Ereignis ergänze `knowledge/chronik.md`. Bei einer neuen oder geänderten Sonderregel pflege `knowledge/regeln.md`. Bei Tod, Nachfolge oder einem deutlichen Loyalitätsbogen pflege `knowledge/personen.md`. Halte diese Dokumente verdichtet (Distillation: maximale Information, minimale Tokens), keine Episodenprotokolle.
+2. **Gedächtnis pflegen, wenn es trägt.** Bei einem Kapitelwechsel oder einem prägenden Ereignis ergänze die Chronik der Partie. Bei einer neuen oder geänderten Sonderregel pflege die Regeln. Bei Tod, Nachfolge oder einem deutlichen Loyalitätsbogen pflege die Personen. Welche Datei das je ist, steht im `knowledge/INDEX.md`; halte das INDEX aktuell, wenn du ein Dokument anlegst oder umbenennst. Halte diese Dokumente verdichtet (Distillation: maximale Information, minimale Tokens), keine Episodenprotokolle.
 3. **Auf "speichern"** zusätzlich den hybriden Markdown-Stand ausgeben (lesbare Prosa plus ```json-Block), wenn der Spieler ihn weitergeben oder im Chat fortsetzen will.
 
 `savegame.json` ist gitignored (die laufende Privatpartie). Die Beispielstände in `examples/` und das Gedächtnis in `knowledge/` werden committet.

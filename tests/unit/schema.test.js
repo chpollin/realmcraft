@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import Ajv from 'ajv';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -35,6 +35,29 @@ test('Schema kompiliert und akzeptiert die kanonische Fixture', () => {
   const validate = makeValidator();
   const ok = validate(validData);
   assert.equal(ok, true, JSON.stringify(validate.errors));
+});
+
+// Jeder committete Beispielstand muss schema-konform bleiben, nicht nur Kapitel 3.
+// So sind auch die neueren Felder (runde, trends, setzungen, lebensstand) in
+// kapitel-4 und die-ordnenden-kapitel-1 abgedeckt.
+const exampleDir = join(repoRoot, 'examples');
+for (const file of readdirSync(exampleDir).filter((f) => f.endsWith('.json'))) {
+  test(`Beispielstand ${file} ist schema-konform`, () => {
+    const validate = makeValidator();
+    const data = JSON.parse(readFileSync(join(exampleDir, file), 'utf8'));
+    assert.equal(validate(data), true, JSON.stringify(validate.errors));
+  });
+}
+
+// Der live geschriebene Stand (gitignoriert) wird mitgeprueft, falls vorhanden —
+// CLAUDE.md verlangt Schema-Konformitaet fuer den Terminal-Stand. Ohne laufende
+// Partie ist nichts zu pruefen, daher sauberes Ueberspringen.
+test('savegame.json (falls vorhanden) ist schema-konform', () => {
+  const p = join(repoRoot, 'savegame.json');
+  if (!existsSync(p)) return;
+  const validate = makeValidator();
+  const data = JSON.parse(readFileSync(p, 'utf8'));
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
 });
 
 test('kaputter Klon: loyalitaet 7 ueberschreitet maximum 5', () => {

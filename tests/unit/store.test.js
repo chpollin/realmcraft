@@ -59,3 +59,34 @@ test('clear leert den Verlauf', () => {
   store.clear();
   assert.equal(store.loadLast(), null);
 });
+
+test('Verlauf wird auf MAX=50 Eintraege getrimmt (aelteste fallen weg)', () => {
+  for (let i = 1; i <= 55; i++) store.saveSnapshot({ meta: { kapitel: i } });
+  const items = store.list();
+  assert.equal(items.length, 50);
+  // Behalten werden die letzten 50: Kapitel 6..55.
+  assert.equal(items[0].kapitel, 6);
+  assert.equal(items[49].kapitel, 55);
+});
+
+test('all() gibt alle Staende in chronologischer Reihenfolge', () => {
+  store.saveSnapshot({ meta: { kapitel: 3 } });
+  store.saveSnapshot({ meta: { kapitel: 4 } });
+  const arr = store.all();
+  assert.equal(arr.length, 2);
+  assert.equal(arr[0].meta.kapitel, 3);
+  assert.equal(arr[1].meta.kapitel, 4);
+});
+
+test('getAt ausserhalb des Bereichs liefert null', () => {
+  store.saveSnapshot({ meta: { kapitel: 4 } });
+  assert.equal(store.getAt(-1), null);
+  assert.equal(store.getAt(999), null);
+});
+
+test('identischer Stand mit umgestellten Schluesseln zaehlt nicht als neu', () => {
+  store.saveSnapshot({ meta: { kapitel: 4 }, grundgroessen: { nahrung: 8, wissen: 16 } });
+  // Gleicher Inhalt, andere Schluesselreihenfolge: kein neuer Verlaufseintrag.
+  store.saveSnapshot({ grundgroessen: { wissen: 16, nahrung: 8 }, meta: { kapitel: 4 } });
+  assert.equal(store.list().length, 1);
+});

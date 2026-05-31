@@ -9,10 +9,14 @@ export function renderKarte(root, state, handlers = {}) {
   const karte = state.karte || {};
   const orte = karte.orte || [];
 
+  // Datengetriebener Alt-Text: nennt die bekannten Orte, statt einer fixen Floskel.
+  const alt = orte.length
+    ? `Lagekarte mit ${orte.map((o) => o.name).join(', ')}`
+    : 'Lagekarte (noch nicht erzeugt)';
   const mapImage = el('img', {
     class: 'map-image',
     'data-testid': 'map-image',
-    alt: 'Generierte Lagekarte',
+    alt,
   });
 
   const genBtn = el('button', {
@@ -23,12 +27,12 @@ export function renderKarte(root, state, handlers = {}) {
     onClick: () => handlers.onGenerateMap?.(),
   });
 
-  const compass = el('div', { class: 'compass', html:
-    '<svg viewBox="0 0 100 100" fill="none" stroke="#c9a24a" stroke-width="1">'
-    + '<circle cx="50" cy="50" r="44" stroke-opacity=".5"/><circle cx="50" cy="50" r="34" stroke-opacity=".25"/>'
-    + '<path d="M50 8 L57 50 L50 92 L43 50 Z" fill="#e7c879" stroke="none" opacity=".85"/>'
-    + '<path d="M8 50 L50 43 L92 50 L50 57 Z" fill="#9c7a30" stroke="none" opacity=".7"/>'
-    + '<circle cx="50" cy="50" r="4" fill="#0a0c10" stroke="#e7c879"/></svg>',
+  const compass = el('div', { class: 'compass', 'aria-hidden': 'true', html:
+    '<svg viewBox="0 0 100 100" fill="none" stroke="#9aa0a8" stroke-width="1">'
+    + '<circle cx="50" cy="50" r="44" stroke-opacity=".6"/><circle cx="50" cy="50" r="34" stroke-opacity=".3"/>'
+    + '<path d="M50 8 L57 50 L50 92 L43 50 Z" fill="#2a2e35" stroke="none" opacity=".85"/>'
+    + '<path d="M8 50 L50 43 L92 50 L50 57 Z" fill="#9aa0a8" stroke="none" opacity=".7"/>'
+    + '<circle cx="50" cy="50" r="4" fill="#ffffff" stroke="#2a2e35"/></svg>',
   });
 
   const frame = el('div', { class: 'map-frame' }, [
@@ -50,7 +54,7 @@ export function renderKarte(root, state, handlers = {}) {
     orte.map((o) => {
       const cap = /Hauptstadt|Bergfestung/.test(o.typ || '');
       return el('li', { 'data-testid': 'map-place' }, [
-        el('span', { class: `gly${cap ? ' cap' : ''}`, html: cap ? CASTLE : PIN }),
+        el('span', { class: `gly${cap ? ' cap' : ''}`, 'aria-hidden': 'true', html: cap ? CASTLE : PIN }),
         el('div', {}, [
           el('div', { class: 'li-nm', text: o.name }),
           o.typ ? el('div', { class: 'li-ty', text: o.typ }) : null,
