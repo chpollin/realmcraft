@@ -39,6 +39,13 @@
   --rc-warn: #5c606a;    /* gedämpfter Hinweis */
   --rc-neg: #1d2026;     /* am Bruch / negativ (durch -/▼ markiert) */
 
+  /* Richtungsfarbe: dosierter Akzent fuer Auf/Ab und Plus/Minus. Die Basis bleibt
+     anthrazit; nur die Richtung einer Veraenderung wird farbig (gedaempftes Gruen
+     bzw. Rot, kulturell ruhig, nicht grell), damit gut/schlecht auf einen Blick
+     lesbar ist. */
+  --rc-up: #2f7d54;      /* steigend / positiv */
+  --rc-down: #b04a3a;    /* fallend / negativ */
+
   /* Linien und Schatten (kühles Schiefer-Grau, nie reines Schwarz) */
   --rc-line: #e3e3e6;
   --rc-line-soft: #eeeeef;
@@ -236,19 +243,17 @@ nav.tabs {
   display: inline-flex; align-items: center; gap: 9px;
   transition: var(--rc-dur) var(--rc-ease); position: relative;
 }
-.tab .tnum {
-  font-family: var(--serif); font-size: 13px; font-weight: 600;
-  color: var(--faint);
-}
+.tab .ticon { display: inline-grid; place-items: center; color: var(--faint); transition: color var(--rc-dur) var(--rc-ease); }
+.tab .ticon svg { width: 16px; height: 16px; display: block; }
 .tab:hover { color: var(--ink); background: var(--rc-bg-2); }
+.tab:hover .ticon { color: var(--rc-anthra); }
 .tab:focus-visible { outline: 2px solid var(--rc-anthra); outline-offset: 2px; }
 .tab[aria-current="page"] {
-  color: var(--ink);
-  background: var(--rc-bg-2);
-  box-shadow: inset 0 0 0 1px rgba(20, 22, 28, .14);
+  color: #fff;
+  background: var(--rc-anthra);
+  box-shadow: 0 2px 8px rgba(20, 22, 28, .18);
 }
-.tab[aria-current="page"] .tnum { color: var(--ink); }
-.tab[aria-current="page"]::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 3px; height: 2px; border-radius: 2px; background: var(--rc-anthra); }
+.tab[aria-current="page"] .ticon { color: #fff; }
 
 /* ----------------------------------------------------------------------------
    Views  section.view[data-view]
@@ -362,6 +367,9 @@ nav.tabs {
 }
 .core-ico svg { width: 15px; height: 15px; }
 .core-val { font-family: var(--serif); font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1; }
+.core-val.up { color: var(--rc-up); }
+.core-val.down { color: var(--rc-down); }
+.core-val.flat { color: var(--ink-faint); }
 @media (max-width: 560px) { .core-sep { display: none; } }
 .crest-meta {
   display: flex; flex-wrap: wrap; gap: 24px; margin-top: 18px; padding-top: 16px;
@@ -436,9 +444,9 @@ nav.tabs {
 }
 .lagebar .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
 .lagebar .nm { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink); }
-.lagebar .val { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); }
+.lagebar .val { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--rc-up); }
 .lagebar .val.neutral { color: var(--faint); }
-.lagebar .val.neg { color: var(--muted); }
+.lagebar .val.neg { color: var(--rc-down); }
 
 /* Schiene mit Nullmarke bei 40 % (Nullpunkt der Skala -2..+3)
    Positiver Wert füllt anthrazit (stark), negativer grau (schwächer). */
@@ -455,12 +463,12 @@ nav.tabs {
   position: absolute; top: 0; bottom: 0; border-radius: 100px;
   background: var(--rc-anthra);
 }
-/* positiver Wert: füllt vom Nullpunkt (40 %) nach rechts */
-.scale .fill.pos, .gauge .fill.pos { left: 40%; }
-/* negativer Wert: füllt vom Nullpunkt (40 %) nach links, grau (Defizit) */
+/* positiver Wert: füllt vom Nullpunkt (40 %) nach rechts, gedaempftes Gruen */
+.scale .fill.pos, .gauge .fill.pos { left: 40%; background: var(--rc-up); }
+/* negativer Wert: füllt vom Nullpunkt (40 %) nach links, gedaempftes Rot (Defizit) */
 .scale .fill.neg, .gauge .fill.neg {
   right: 60%;
-  background: var(--rc-ink-faint);
+  background: var(--rc-down);
 }
 .scale-ticks, .gauge-ticks {
   display: flex; justify-content: space-between; margin-top: 7px;
@@ -583,6 +591,17 @@ nav.tabs {
   position: relative; transition: var(--rc-dur) var(--rc-ease);
 }
 .power:hover { border-color: var(--ink-faint); box-shadow: var(--shadow); }
+
+/* Macht-Bild: erst sichtbar, wenn ein Bild gesetzt ist. */
+.power-portrait { display: none; }
+.power-portrait:has(img[src]:not([src=""])) {
+  display: block; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--line); margin-bottom: 12px;
+}
+.power-portrait img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.power-portrait img:not([src]), .power-portrait img[src=""] { display: none; }
+.gen-macht { margin-top: 13px; font-size: 11.5px; padding: 7px 13px; }
+
 .power .ph { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
 .power .pname { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.05; }
 .power .ptype { font-size: 11.5px; color: var(--muted); margin-top: 3px; max-width: 34ch; }
@@ -616,11 +635,29 @@ nav.tabs {
 .group:hover { border-color: var(--line); background: #fff; }
 .group .gp {
   width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center;
-  background: #fff;
+  background: #fff; overflow: hidden;
   border: 1px solid var(--line);
   font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--rc-anthra);
 }
+.group .gp .gp-ini { display: block; }
+.group .gp .gp-img { display: none; width: 100%; height: 100%; object-fit: cover; }
+.group .gp:has(.gp-img[src]:not([src=""])) .gp-ini { display: none; }
+.group .gp:has(.gp-img[src]:not([src=""])) .gp-img { display: block; }
+.group .gmeta { flex: 1; min-width: 0; }
+.group .gen-gruppe { flex: none; font-size: 11px; padding: 6px 11px; align-self: center; }
 .group .gmeta .gn { font-weight: 600; font-size: 14px; color: var(--ink); }
+
+/* Sobald ein Gruppenbild gesetzt ist, wird die Zeile zur Karte mit grossem Bild
+   oben (analog zu den Berater-Karten), damit man die Gruppe wirklich erkennt. */
+.group:has(.gp-img[src]:not([src=""])) {
+  flex-direction: column; align-items: stretch; gap: 10px;
+  padding: 0; overflow: hidden; background: var(--panel);
+}
+.group:has(.gp-img[src]:not([src=""])) .gp {
+  width: 100%; height: 180px; border-radius: 0; border: 0; border-bottom: 1px solid var(--line);
+}
+.group:has(.gp-img[src]:not([src=""])) .gmeta { padding: 0 15px; }
+.group:has(.gp-img[src]:not([src=""])) .gen-gruppe { margin: 0 15px 14px; align-self: flex-start; }
 .group .gmeta .gk { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 .group .gmeta .gsp { font-size: 11px; color: var(--ink-soft); margin-top: 4px; letter-spacing: .01em; }
 .group .gmeta .gsp b { font-weight: 600; color: var(--ink); }
@@ -719,15 +756,20 @@ nav.tabs {
 
 /* Chronik-Verlauf: erzählte Folge der gespeicherten Stände */
 .chronik-flow { margin-top: 20px; }
+.chronik-kapitel { margin-top: 22px; }
+.chronik-kapitel:first-child { margin-top: 0; }
+.chronik-kapitel-titel {
+  font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--rc-anthra); margin-bottom: 2px;
+}
 .chronik-entry { padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
-.chronik-entry:last-child { border-bottom: 0; padding-bottom: 0; }
-.chronik-entry:first-child { padding-top: 0; }
+.chronik-kapitel .chronik-entry:last-child { border-bottom: 0; padding-bottom: 0; }
+.chronik-kapitel .chronik-entry:first-child { padding-top: 8px; }
 .chronik-when {
   font-family: var(--serif); font-size: 14.5px; font-weight: 600; color: var(--ink);
   letter-spacing: .01em; margin-bottom: 5px;
 }
 .chronik-text { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; max-width: 92ch; }
-.chronik-event { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; }
 .chronik-acts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; }
 .chronik-acts li {
   font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
@@ -738,6 +780,7 @@ nav.tabs {
   border-radius: 2px; transform: rotate(45deg); background: var(--rc-anthra);
 }
 .chronik-act-titel { font-weight: 600; color: var(--ink); }
+.list-empty { margin: 0; font-size: 13px; color: var(--muted); font-style: italic; }
 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 .list-clean { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
@@ -841,6 +884,7 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
   color: var(--ink); margin-bottom: 4px;
 }
 .rule-text { margin: 0; color: var(--ink-soft); line-height: 1.6; }
+.verfassung-text { margin: 0; color: var(--ink-soft); line-height: 1.65; }
 
 /* ----------------------------------------------------------------------------
    Delta-Banner (Lage): Änderungen seit dem zuletzt geladenen Stand
@@ -848,27 +892,30 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
    ---------------------------------------------------------------------------- */
 .delta-banner { margin-bottom: var(--rc-gap-lg); border-left: 3px solid var(--rc-anthra); }
 .delta-banner .block-head { align-items: center; }
-.delta-dismiss {
-  margin-left: auto; font-family: var(--sans); font-size: 12px; font-weight: 600;
-  letter-spacing: .02em; color: var(--ink-soft); cursor: pointer;
-  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 5px 12px; transition: var(--rc-dur) var(--rc-ease);
+.delta-groups { display: grid; gap: 14px; margin-top: 12px; }
+.delta-group-titel {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
 }
-.delta-dismiss:hover { border-color: var(--ink-faint); color: var(--ink); }
-.delta-list { list-style: none; margin: 12px 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 18px; }
-.delta-item { display: flex; align-items: baseline; gap: 8px; color: var(--ink-soft); font-size: 14px; }
+.delta-list { list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 18px; }
+.delta-item { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 14px; }
+.delta-ico { width: 15px; height: 15px; flex: none; color: var(--ink-faint); }
+.delta-ico svg { width: 100%; height: 100%; display: block; }
+.delta-label { min-width: 0; }
+.delta-amount { display: inline-flex; align-items: baseline; gap: 3px; margin-left: auto;
+  font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .delta-mark { font-size: 11px; line-height: 1; }
-.delta-up .delta-mark { color: var(--ink); }
-.delta-down .delta-mark { color: var(--muted); }
+.delta-up .delta-mark, .delta-up .delta-amount { color: var(--rc-up); }
+.delta-down .delta-mark, .delta-down .delta-amount { color: var(--rc-down); }
 .delta-flat .delta-mark { color: var(--ink-faint); }
 
 /* ----------------------------------------------------------------------------
    Trend-Markierung an den Grundgrößen (Richtung über die Glyphe ▲▼—)
    ---------------------------------------------------------------------------- */
 .trend { font-size: 12px; line-height: 1; margin-top: 2px; letter-spacing: 0; cursor: help; }
-.trend-up { color: var(--ink); }
-.trend-down { color: var(--muted); }
+.trend-up { color: var(--rc-up); }
+.trend-down { color: var(--rc-down); }
 .trend-flat { color: var(--ink-faint); }
 
 /* ----------------------------------------------------------------------------
@@ -876,10 +923,11 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
    ---------------------------------------------------------------------------- */
 .aktion-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .aktion {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 16rem); gap: 14px; align-items: start;
   padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--rc-bg-2);
 }
+.aktion-body { min-width: 0; }
 .aktion.frei { opacity: .55; }
 .aktion-art {
   width: 26px; height: 26px; flex: none; display: grid; place-items: center;
@@ -891,7 +939,9 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .aktion-titel { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink); }
 .aktion-kern { font-size: 12.5px; color: var(--ink-faint); font-style: italic; }
 .aktion-folge { margin-top: 3px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
-.aktion-roll { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.aktion-roll { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
+.aktion-ziel, .aktion-mod, .aktion-cue { white-space: nowrap; }
+.aktion-ergebnis { line-height: 1.45; }
 .aktion-ziel { font-size: 12.5px; color: var(--ink-soft); }
 .aktion-mod {
   font-size: 12.5px; font-weight: 600; color: var(--ink);
@@ -977,6 +1027,87 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .armee-verlust-anlass { color: var(--muted); }
 
 /* ----------------------------------------------------------------------------
+   Lebenswelt (data-view=lebenswelt): die Bevölkerung und die Siedlungen
+   ---------------------------------------------------------------------------- */
+/* Die Bevölkerung: wie sie leben (Label-Wert-Liste) */
+.leben-grid { display: flex; flex-direction: column; }
+.leben-zeile {
+  display: grid; grid-template-columns: 140px 1fr; gap: 14px;
+  padding: 10px 0; border-bottom: 1px solid var(--line-soft);
+}
+.leben-zeile:last-child { border-bottom: 0; }
+.leben-lbl {
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  padding-top: 2px;
+}
+.leben-wert { line-height: 1.55; color: var(--ink-soft); }
+
+.brauch-row { display: grid; grid-template-columns: 140px 1fr; gap: 14px; margin-top: 14px; }
+.brauch-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.brauch {
+  font-size: 12.5px; color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: 100px; padding: 6px 13px; background: var(--rc-bg-2);
+}
+
+/* Die Siedlungen: eine Karte je Ort, Hauptstadt zuerst */
+.siedlung-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
+}
+.siedlung {
+  border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
+  background: var(--rc-bg-2); display: flex; flex-direction: column;
+  transition: var(--rc-dur) var(--rc-ease);
+}
+.siedlung:hover { border-color: var(--ink-faint); box-shadow: var(--shadow-soft); }
+
+/* Siedlungsbild: 16:9-Banner oben, nur sichtbar mit Bild. */
+.siedlung-bild-frame:not(:has(img[src]:not([src=""]))) { display: none; }
+.siedlung-bild-frame { border-bottom: 1px solid var(--line); background: var(--soft); }
+.siedlung-bild-frame img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.siedlung-bild-frame img:not([src]), .siedlung-bild-frame img[src=""] { display: none; }
+
+.siedlung-head {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding: 14px 15px 0;
+}
+.siedlung-name { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--ink); margin: 0; }
+.siedlung-haupt {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink); background: var(--soft);
+  border: 1px solid var(--ink-faint); border-radius: 100px; padding: 3px 9px;
+}
+.siedlung-lage { color: var(--muted); font-size: 12.5px; padding: 4px 15px 0; line-height: 1.5; }
+.siedlung-live { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 15px 0; }
+.siedlung-kennzahl {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 5px 11px; border-radius: 100px; background: var(--soft); border: 1px solid var(--line);
+}
+.siedlung-kennzahl .leben-lbl { padding-top: 0; }
+.siedlung-kennzahl b { font-family: var(--serif); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.siedlung .ort-erscheinung { padding: 0 15px; margin: 8px 0; }
+.siedlung-zeile {
+  display: grid; grid-template-columns: 110px 1fr; gap: 10px;
+  padding: 7px 15px; border-top: 1px solid var(--line-soft);
+}
+.siedlung-bauten { padding: 9px 15px; border-top: 1px solid var(--line-soft); }
+.bau-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.bau {
+  font-size: 12px; color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: 100px; padding: 4px 11px; background: var(--panel);
+}
+.siedlung .ort-eig-row { padding: 0 15px; margin: 10px 0 0; }
+.siedlung .ort-eig {
+  font-size: 12.5px; color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: 100px; padding: 6px 13px; background: var(--panel);
+}
+.siedlung .ort-eig b { font-weight: 700; color: var(--ink); margin-left: 2px; font-variant-numeric: tabular-nums; }
+.gen-siedlung { align-self: flex-start; margin: 14px 15px; }
+
+/* Besitz: was das Volk hat */
+.besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; }
+.besitz-item { display: flex; align-items: baseline; gap: 9px; line-height: 1.5; color: var(--ink-soft); }
+.besitz-item .marker { flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint); transform: translateY(-2px); }
+
+/* ----------------------------------------------------------------------------
    Responsiv
    ---------------------------------------------------------------------------- */
 @media (max-width: 1080px) {
@@ -993,6 +1124,8 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
   .map-frame { min-height: 340px; }
   .aktion { grid-template-columns: auto 1fr; }
   .aktion-roll { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+  .leben-zeile, .brauch-row, .siedlung-zeile { grid-template-columns: 1fr; gap: 3px; }
+  .siedlung-grid { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

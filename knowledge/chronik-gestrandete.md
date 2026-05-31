@@ -40,7 +40,13 @@ Reste dreier Völker, vor dem Finsteren von Khar geflohen, stranden auf einer un
 
 **Die Rede vom Feuer in der Nacht (Herbst, Machtprobe).** Im ersten Schnee nimmt die oder der Erste die Furcht der Menschen vor dem Wald und richtet sie um: Nicht der Wald, sondern das Finstere über der See ist der wahre Feind — und die Gestrandeten sind das Feuer, das nicht erlischt. Die Machtprobe gelingt (Wurf 6 +3 = 9 gegen 7, Marge +2). Das Volk wird zu einem Feuer mit einem Feind geschmiedet: neue Setzung **Das Feuer in der Nacht** (+1 auf einende Machtproben gegen das Finstere); Ansehen 0→1, die Leute nennen die/den Ersten **Funke im Schnee**; Grask glüht (+1). Der Preis: Alde sieht Trauer zur Waffe werden und tritt innerlich zurück (−1), und das Volk ist nun auf einen Feind eingeschworen, den es noch lange nicht schlagen kann.
 
-**Ein ruhiger Winter (Winter, Weltereignis 6).** Der tiefe Frost schenkt die erste Atempause seit der Landung: Der Krieg liegt im Schnee, die Feinde ziehen sich zurück, volle Speicher und Mauern tragen das Volk warm und satt durch. Versprengte finden zum Tor (Volk 214→220), die Wehr erholt sich (77→80). Und Alde, im Lebensabend, übersteht ihren ersten Lebenswurf (7 gegen 4) — der ruhige Winter pflegt sie, auch wenn der Riss seit der Rede bleibt. So endet das erste Jahr: ein verschanztes, geeintes, gezeichnetes Volk, ein Feuer gegen das Finstere, mit zwei Feinden vor den Toren und einer langen Aufgabe vor sich.
+**Ein ruhiger Winter (Winter, Weltereignis 6).** Der tiefe Frost schenkt die erste Atempause seit der Landung: Der Krieg liegt im Schnee, die Feinde ziehen sich zurück, volle Speicher und Mauern tragen das Volk warm und satt durch. Versprengte finden zum Tor (Volk 214→220), die Wehr erholt sich (77→80). Und Alde, im Lebensabend, übersteht ihren ersten Lebenswurf (7 gegen 4) — der ruhige Winter pflegt sie, auch wenn der Riss seit der Rede bleibt.
+
+**Der Winter, genutzt (Winter, Aktionen).** Die erste Atempause füllt das Volk klug — aber die Würfel sind hart. Mara streckt mit kluger Zehrung die vollen Speicher ohne einen Hungertoten durch den Winter und legt eine Reserve fürs Saatkorn zurück (klarer Erfolg). Der große Wurf aber misslingt: Vesks Späher dringen tief ins Feindgebiet, doch der gewarnte Klan hält seine Lager verborgen und sammelt im Nebel die zersplitterten Banden — kein Hebel gefunden, der Frühlingssturm droht größer (Fehlschlag). Und der Versuch, Eisen und Zauber zu sichten, zerbricht am alten Streit Borin gegen Yssa und legt den Riss offen vor dem Rat (Fehlschlag).
+
+**Die zwei Lichter (Winter, Machtprobe und Mehrheitsbescheid).** Statt den Riss per Dekret zu schließen, lässt die oder der Erste die beiden ihr Licht beweisen: welches hilft jetzt? Die Machtprobe gelingt (Wurf 8 +2 = 10 gegen 7), und aus Feindschaft wird Respekt. Borin legt Wurfmaschinen auf die Türme vor (Erz aus den Klippen, der Wall wird zur Waffe), Yssa das Ferne Sehen, das findet, was die Späher nicht fanden — beides nebeneinander, jedes in seiner Kraft, das eine zielt das andere. Der Rat nimmt einstimmig (6:0) den Pfad **Die zwei Lichter** an: Eisen und Zauber wirken fortan Hand in Hand (+1, wenn sie zusammenwirken), ohne die Stummen Ringe zu wecken. Zwei lange Ferne rücken näher — Yssa und Alde, deren Riss zur oder zum Ersten sich löst. So endet das erste Jahr: nicht im Triumph, aber zum ersten Mal geeint, ein Feuer gegen das Finstere, mit zwei Feinden vor den Toren und einer langen Aufgabe vor sich.
+
+**Frühling, Jahr 2 (laufend).** Das Eis bricht, und das Volk tritt zum ersten Mal vorbereitet in eine neue Jahreszeit: satt, geeint, mit einem Plan — die Erzklippen erschließen, Wurfmaschinen bauen, das verborgene Klan-Lager ersehen, damit auch Grask seinen zugesagten Hieb zielen kann. Das Weltereignis des Frühlings steht noch aus.
 
 ## Logbuch der Weltereignisse
 
@@ -52,13 +58,12 @@ Jeder Saison-Wechsel bewegt die Welt genau einmal über ein Weltereignis (1d10, 
 | Herbst, Jahr 1 | 1 | Katastrophe | **Sturm des größeren Klans.** Frühwarnung + Steinwall halten — die Bande wird blutig zurückgeworfen. Gefallene Krieger (Volk 226→218, Armee 85→77), Belagerungsvorrat halb verzehrt (Nahrung 2→1). Der Stille steht weisend bei den Feinden. Schädelklan-Krieg offen (−3). |
 | Winter, Jahr 1 | 6 | Ruhig | **Ruhiger Winter.** Der Frost legt den Krieg auf Eis; Klan und Stillen ziehen sich zurück. Volle Speicher und Mauern tragen das Volk durch, Wunden heilen, Versprengte werden aufgenommen (Volk 214→220, Armee 77→80). Lebenswurf: Alde übersteht (7 gegen 4), bleibt im Lebensabend. |
 
-## Offene Fäden (Stand Sommer Jahr 1)
+## Offene Fäden (Stand Frühling Jahr 2)
 
-- Eisen gegen Zauber (Borin / Yssa) — der Pfad des Volkes ist offen.
-- Grask sieht sich durch den Überfall bestätigt und drängt zur Gewalt.
-- Die Schädelklans: eine Bande ist Feind, die anderen zerstritten — Rache, Abschreckung oder Bündnis?
-- Der Stille ist fort; was er war und in wessen Auftrag, ist ungeklärt.
-- Die Stillen und ihr Grenzmal, noch unberührt.
-- Die Stummen Ringe, unberührt — Yssas Pfad zur Magie.
-- Das Finstere über der See; war der Überfall sein erster langer Schatten?
-- Der wiederkehrende Hunger, bis die Saat reift.
+- **Der Klan kehrt wieder, größer.** Geschlagen, nicht gebrochen, sammelt der große Schädelklan im Nebel die zersplitterten Banden (−3); sein Lager bleibt verborgen, Grasks zugesagter Frühlingshieb hat noch kein Ziel.
+- **Der Plan „Die zwei Lichter".** Erzklippen erschließen (löst das knappe Material), Wurfmaschinen bauen, Yssas Fernes Sehen das Lager finden — Eisen und Zauber Hand in Hand.
+- **Die Stillen, erzürnt.** Das gekreuzte Grenzmal hat sie zum zweiten Feind gemacht (−2). Sühne, Rücksicht oder Krieg?
+- **Der harte Weg bleibt offen.** Zauber *im* Eisen (gegen die Wesensart, −2) und die Stummen Ringe als gefürchtete Quelle starken Zaubers — für später, wenn das Volk tiefe Einigkeit findet.
+- **Der Stille** steht bei den Feinden und weist sie; in wessen tieferem Auftrag?
+- **Das Finstere** über der See, fern und geduldig — der erklärte Feind, für den das Volk noch viel zu schwach ist.
+- **Alde im Lebensabend.** Sie überstand den ersten Lebenswurf (7 gegen 4) und ist der oder dem Ersten wieder nah (Loyalität 2); jeder Winter bringt den nächsten Wurf.

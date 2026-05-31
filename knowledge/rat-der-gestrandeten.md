@@ -67,3 +67,17 @@ Alle Bilder sind im selben Stil gedacht: Tuschelavierung und Kohle auf getöntem
 - **Der Stille**: die Horror- und Verrats-Saat. Alde und Vesk stehen am nächsten daran, ihn aufzudecken; was er ist, kann ein ganzes Kapitel tragen.
 - **Generationen**: Alde (alt, bald sterblich), die Mitte (Grask, Borin, Mara), die Jugend (Vesk) und das Kind Tila. Nachfolge und Wandel sind von Anfang an Thema.
 - **Die Logik der Eigendynamik**: Unter dem Mehrheitsbescheid und der Charaktermechanik wird jeder Berater irgendwann gegen die oder den Ersten handeln, wenn sein Ziel es verlangt — Grask durch Gewalt, Yssa durch den Bund mit einer Macht, die sie nicht rufen sollte, Mara durch ihr Nein, Borin durch Eifer. Das ist kein Defekt, das ist der Motor der Partie.
+
+---
+
+## Stand der Bögen (Frühling Jahr 2)
+
+Wo die Porträts oben Möglichkeit sind, hält dieser Abschnitt fest, was die Partie bis hierher eingelöst hat. Die Zahlen führt der Speicherstand; hier steht die Richtung.
+
+- **Grask** ist durch die Rede „Feuer in der Nacht" eingebunden und glüht; er hielt den Wall im Herbst und hat den „Hieb im Frühling" zugesagt. Sein Bogen läuft nun auf die Frage zu, ob der kommende Klan-Sturm sein Reifen oder sein Sturz wird.
+- **Yssa** rückte vom Rand zur Mitte (Loyalität fern → nah). Im Wettstreit der Lichter geehrt, ist ihr Fernes Sehen fester Teil des Plans „Die zwei Lichter"; zu den Stummen Ringen muss sie vorerst nicht. Der Disziplin-Bogen wartet weiter — jetzt als bewusst gemiedener „harter Weg".
+- **Borin** bekam Erz und Maschinen; das Schisma mit Yssa kühlte zu Respekt, nicht Sieg. Baumeister oder spröder Eiferer bleibt offen — aber er duldet nun den Zauber neben sich.
+- **Mara** wurde durch ihren klaren Winter-Erfolg (die Zehrung) zur bewährten Stimme des Überlebens. Ihr Scharnier kommt im Frühling: die erste Aussaat des Saatkorns.
+- **Vesk**: seine Winter-Kundschaft scheiterte am gewarnten Klan — der erste Riss in seiner Kompetenz, ein Fehlschlag, den sein Reifungsbogen verarbeiten muss.
+- **Alde**: der Riss zur oder zum Ersten seit der Rede ist geheilt — sie billigte den maßvollen Pfad und rückte näher (Loyalität fern → nah). Sie überstand den ersten Lebenswurf (7); ihr Sterblichkeitsbogen läuft weiter, doch sie ist nun Verbündete statt Mahnerin auf Distanz.
+- **Das Schisma Eisen↔Zauber** wandelte sich von offener Feindschaft zu „Hand in Hand" (Setzung „Die zwei Lichter"), die positive Form der Vielfalt. Der „harte Weg" — Verschmelzung, die Ringe — bleibt als künftiger Konflikt offen.

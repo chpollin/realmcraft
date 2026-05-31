@@ -148,3 +148,49 @@ test('kaputter Klon: leeres Objekt erfuellt keine required-Felder', () => {
   const validate = makeValidator();
   assert.equal(validate({}), false);
 });
+
+// Lebenswelt ist optional und bricht einen bestehenden Stand nicht; ein
+// vollständiger Lebenswelt-Block (Bevölkerung + Siedlungen) muss schema-konform
+// sein. Lebenswelt ist der Oberbegriff: die Bevölkerung und mehrere Siedlungen.
+test('Lebenswelt fehlt: Klon bleibt gueltig', () => {
+  const validate = makeValidator();
+  const data = clone();
+  delete data.lebenswelt;
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+});
+
+test('Lebenswelt mit Bevoelkerung und mehreren Siedlungen ist gueltig', () => {
+  const validate = makeValidator();
+  const data = clone();
+  data.lebenswelt = {
+    leben: {
+      stimmung: 'angespannt, aber entschlossen',
+      nahrung: 'Fisch und Strandgut',
+      trinken: 'Quellwasser aus den Klippen',
+      glaube: 'die Meeresgeister besänftigen',
+      alltag: 'Bergung und Wiederaufbau',
+      braeuche: ['Totenwache am Strand'],
+    },
+    siedlungen: [
+      {
+        name: 'Strandlager',
+        hauptstadt: true,
+        typ: 'Hauptstadt',
+        lage: 'an einer windigen Bucht',
+        beschreibung: 'Hütten aus Treibholz.',
+        bauten: ['Notunterkünfte', 'Feuerstelle'],
+        eigenschaften: [{ key: 'Schutz', value: -1 }],
+        bild: { cacheKey: 's1' },
+      },
+      { name: 'Klippenposten', typ: 'Außenposten' },
+    ],
+  };
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+});
+
+test('kaputter Klon: lebenswelt.siedlungen-Eintrag ohne required name', () => {
+  const validate = makeValidator();
+  const data = clone();
+  data.lebenswelt = { siedlungen: [{ typ: 'Außenposten' }] };
+  assert.equal(validate(data), false);
+});

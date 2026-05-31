@@ -76,7 +76,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 
 ### Lage (`data-view="lage"`)
 - `[data-testid="realm-name"]` (Text "Die Karren"), `[data-testid="chapter"]`, `[data-testid="season"]`, `[data-testid="worldevent"]`, `[data-testid="ansehen"]`.
-- Delta-Banner (nur nach echtem Laden mit Änderungen, nicht bei Erst-Laden/Auto-Restore): `[data-testid="delta-banner"]` mit `[data-testid="delta-item"]` je Änderung und `[data-testid="delta-dismiss"]` zum Schließen.
+- Delta-Banner (nur nach echtem Laden mit Änderungen, nicht bei Erst-Laden/Auto-Restore): `[data-testid="delta-banner"]` mit `[data-testid="delta-item"]` je Änderung. Die Einträge sind nach Bereichen gruppiert (Grundgrößen, Lagewerte, Rat, Welt & Stand), tragen ein Bereichs-Icon und das Delta als richtungsgefärbte Marke. Das Banner wird beim nächsten Laden neu aufgebaut; es gibt keinen Schließen-Knopf mehr.
 - Trends (optional, je Grundgröße aus `trends`): `[data-testid="trend-<key>"]` (z.B. `trend-nahrung`), Text ▲/▼/→, `title` = Grund. Fehlt `trends`, fehlt das Element.
 - Aktionsbrett (optional, aus `runde`): `[data-testid="aktionsbrett"]` mit `[data-testid="aktion-budget"]` (Text "Haupt u/m · Neben u/m") und je Aktion `[data-testid="aktion"]` mit `[data-testid="aktion-titel"]`; nach dem Wurf `[data-testid="aktion-ergebnis"]`. Fehlt `runde`/leere `aktionen`, fehlt das Brett.
 - Stat-Werte als Text: `[data-testid="stat-nahrung"]`=8, `stat-material`=5, `stat-wissen`=16, `stat-bevoelkerung` (enthält 300).
@@ -96,14 +96,15 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 
 ### Welt (`data-view="welt"`)
 - Optional `[data-testid="beziehungen-ansehen"]` (erzählender Lagesatz aus `state.beziehungenAnsehen.text`), nur wenn gesetzt.
-- `[data-testid="power-card"]` × `state.maechte.length`, je mit `[data-testid="power-name"]`, `power-relation`, `power-stance`.
-- `[data-testid="group-row"]` × `state.gruppen.length`, je mit Gruppenname und Sprechername (aus `berater` via `sprecherId`).
+- `[data-testid="power-card"]` × `state.maechte.length`, je mit `[data-testid="power-name"]`, `power-relation`, `power-stance`, einem Bild `[data-testid="power-bild"]` (`<img>`) und `[data-testid="generate-macht"]` (Button → `onGenerateMacht(machtId)`). Optionales Cache-Feld `maechte[].bild`.
+- `[data-testid="group-row"]` × `state.gruppen.length`, je mit Gruppenname und Sprechername (aus `berater`/`personen` via `sprecherId`), einem Bild `[data-testid="gruppe-bild"]` (`<img>`) und `[data-testid="generate-gruppe"]` (Button → `onGenerateGruppe(gruppeId)`). Optionales Cache-Feld `gruppen[].bild`. Bildstil aus `meta.armeeStyle` (Rückfall `meta.visualStyle`).
 
 ### Karte (`data-view="karte"`)
 - `[data-testid="map-image"]` (`<img>`, anfangs Platzhalter/leer), `[data-testid="generate-map"]` (Button), `[data-testid="map-legend"]` mit `[data-testid="map-place"]` × `state.karte.orte.length`.
 
 ### Historie (`data-view="historie"`)
 - `[data-testid="history-entry"]` × `state.historie.length` (chronologisch), `[data-testid="faehigkeit"]` × n, `[data-testid="besitz"]` × n.
+- Erzählter Verlauf (optional, nur ab zwei gespeicherten Ständen aus `opts.chronik`): `[data-testid="chronik-flow"]` mit `[data-testid="chronik-entry"]` je verdichtetem Zug. Pro Zug eine knappe Lage (`.chronik-text`, erster Satz des Statustexts, gegen den Vorgänger entdupliziert), die abgeschlossenen Vorhaben (`.chronik-acts`) und bei Weltereignis (`meta.weltereignis === "gewürfelt"`) `.chronik-event`. Inhaltsleere Stände entfallen, und aufeinanderfolgende Stände mit identischer Signatur (Zeit, Lage, Weltereignis, Vorhaben) fallen zu einem Eintrag zusammen — mehrfaches Speichern desselben Zuges erscheint also nur einmal.
 
 ### Settings
 - `[data-testid="settings-dialog"]` (per `settings-btn` geöffnet), `[data-testid="api-key-input"]`, `[data-testid="model-portrait"]`, `[data-testid="model-map"]`, `[data-testid="save-settings"]`.
@@ -122,3 +123,30 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`, `rc.history` (Verlauf für Auto-Restore und Kapitel-Historie).
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.
 - Export-Bundle: `[data-testid="export-btn"]` erzeugt einen Download eines JSON-Stands mit eingebetteten `portrait.dataUrl`; Import erkennt `dataUrl` und füllt den Cache (kein API-Call). E2E prüft den Roundtrip über das Cache-Verhalten.
+
+---
+
+## Sicht „Lebenswelt" (`data-view=lebenswelt`)
+
+Die Sicht rendert `js/render/lebenswelt.js`. Reihenfolge der Blöcke: Der Ort, Was hier steht (Gebäude), Wie sie leben. Liest `state.lebenswelt` (optional) und spiegelt die Bevölkerungszahl aus `state.grundgroessen.bevoelkerung`. Ist nichts erfasst, zeigt sie nur `lebenswelt-leer` mit einem Hinweis.
+
+### Der Ort
+
+- `lw-ort` — Panel des Startorts.
+- `ort-name` — Name des Ortes (`lebenswelt.ort.name`), Typ als Eyebrow.
+- `ort-bild` — `<img>` des Ortes (16:9), Rahmen `.ort-bild-frame` (nur sichtbar mit Bild). Knopf `generate-ort` erzeugt es über `handlers.onGenerateOrt`.
+- `ort.eigenschaften` werden als kennwert-Chips (`.ort-eig`, signiert) gezeigt.
+
+### Gebäude
+
+- `lw-gebaeude` — Panel, nur wenn `lebenswelt.gebaeude` Einträge hat.
+- `gebaeude` — eine Karte je Anlage: Name, Zustand-Chip, optionaler Hinweis.
+
+### Wie sie leben
+
+- `lw-leben` — Panel mit Bevölkerung (gespiegelt aus `grundgroessen.bevoelkerung`), Stimmung, Nahrung, Trinken, Glaube, Alltag und Bräuchen. Nur befüllte Zeilen erscheinen.
+
+### app.js / Bild-Pipeline
+
+- `handlers.onGenerateOrt` erzeugt das Ortsbild über `generateInto` (16:9, `portraitModel`), Cache-Schlüssel `ortKey(state)` über `buildOrtPrompt(state)`.
+- `hydrateImages` lädt das Ortsbild aus `lebenswelt.ort.bild.dataUrl` oder dem Cache; `onExport` bettet es ins Bundle ein.

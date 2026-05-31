@@ -8,14 +8,16 @@ import { diffStates } from './diff.js';
 import { MODELS, generateImage } from './images/gemini.js';
 import { makeKey, cacheGet, cachePut } from './images/cache.js';
 import { renderLage } from './render/overview.js';
+import { renderLebenswelt } from './render/lebenswelt.js';
 import { renderBerater } from './render/advisors.js';
 import { renderArmee } from './render/armee.js';
 import { renderWelt } from './render/actors.js';
 import { renderKarte } from './render/map.js';
 import { renderHistorie } from './render/history.js';
-import { roman } from './format.js';
+import { renderRecht } from './render/recht.js';
+import { roman, signed } from './format.js';
 
-const VIEWS = ['lage', 'berater', 'armee', 'welt', 'karte', 'historie'];
+const VIEWS = ['lage', 'lebenswelt', 'berater', 'armee', 'welt', 'karte', 'historie', 'recht'];
 const LS = {
   apiKey: 'realmcraft.apiKey',
   modelPortrait: 'realmcraft.model.portrait',
@@ -69,6 +71,9 @@ const handlers = {
   onGenerateMap,
   onGenerateArmeeBild,
   onGenerateVerband,
+  onGenerateMacht,
+  onGenerateGruppe,
+  onGenerateSiedlung,
 };
 
 // ---------------------------------------------------------------------------
@@ -88,13 +93,17 @@ const HERO_ICONS = {
   wohlstand: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
 };
 
-function coreStat(iconKey, value, label, testid) {
+// dir (optional): numerischer Wert, der die Richtungsfarbe der Zahl steuert
+// (>0 grün, <0 rot, 0 neutral). Nur für Lagewerte gesetzt; Grundgrößen bleiben
+// neutral, da sie keine Auf/Ab-Bedeutung tragen.
+function coreStat(iconKey, value, label, testid, dir) {
+  const dirCls = dir == null ? '' : dir > 0 ? ' up' : dir < 0 ? ' down' : ' flat';
   return el('div', { class: 'core-stat', 'data-testid': testid, title: label }, [
     el('span', {
       class: 'core-ico',
       html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${HERO_ICONS[iconKey] || ''}</svg>`,
     }),
-    el('span', { class: 'core-val', text: value }),
+    el('span', { class: `core-val${dirCls}`, text: value }),
   ]);
 }
 
@@ -114,9 +123,9 @@ function coreStrip(state) {
     ]),
     el('div', { class: 'core-sep' }),
     el('div', { class: 'core-group' }, [
-      coreStat('verteidigung', sval(lw.verteidigung), 'Verteidigung', 'core-verteidigung'),
-      coreStat('mobilitaet', sval(lw.mobilitaet), 'Mobilität', 'core-mobilitaet'),
-      coreStat('wohlstand', sval(lw.wohlstand), 'Wohlstand', 'core-wohlstand'),
+      coreStat('verteidigung', sval(lw.verteidigung), 'Verteidigung', 'core-verteidigung', lw.verteidigung),
+      coreStat('mobilitaet', sval(lw.mobilitaet), 'Mobilität', 'core-mobilitaet', lw.mobilitaet),
+      coreStat('wohlstand', sval(lw.wohlstand), 'Wohlstand', 'core-wohlstand', lw.wohlstand),
     ]),
   ]);
 }
@@ -168,11 +177,13 @@ function renderHero(state) {
 function renderAll(state, delta) {
   renderHero(state);
   renderLage(els.views.lage, state, { delta });
+  renderLebenswelt(els.views.lebenswelt, state, handlers);
   renderBerater(els.views.berater, state, handlers);
   renderArmee(els.views.armee, state, handlers);
-  renderWelt(els.views.welt, state);
+  renderWelt(els.views.welt, state, handlers);
   renderKarte(els.views.karte, state, handlers);
   renderHistorie(els.views.historie, state, { chronik: store.all() });
+  renderRecht(els.views.recht, state);
 }
 
 // ---------------------------------------------------------------------------
@@ -394,6 +405,96 @@ function verbandImg(id) {
   return document.querySelector(`[data-testid="verband"][data-id="${id}"] [data-testid="verband-avatar"]`);
 }
 
+// Macht-Bild: eine fremde Macht als Szene/Wesen, nicht als Held. erscheinung
+// fuehrt (das Finstere ist gesichtslos, der Prompt erzwingt also kein Portrait).
+function buildMachtPrompt(m, state) {
+  return [
+    armeeStyle(state),
+    'ein eindringliches Bild dieser fremden Macht, Szene oder Wesen wie beschrieben, atmosphaerisch, dokumentarisch, kein heroisches Posing',
+    [m.name, m.typ].filter(Boolean).join(', '),
+    (m.erscheinung || '').trim(),
+    m.haltung ? `Haltung: ${m.haltung}` : '',
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+// Gruppen-Bild: die tragende Gruppe als Personengruppe bei ihrer Kompetenz,
+// gefuehrt von ihrem Sprecher (Berater oder Person).
+function buildGruppePrompt(gr, state) {
+  const sp = (state.berater || []).find((b) => b.id === gr.sprecherId)
+    || (state.personen || []).find((p) => p.id === gr.sprecherId);
+  const region = (state.volk?.region?.name || state.volk?.name || '').trim();
+  return [
+    armeeStyle(state),
+    'eine kleine Gruppe Menschen bei ihrem Handwerk, dokumentarisch, Dreiviertelansicht, schlichter Hintergrund, natuerliche Asymmetrie, kein Held im Zentrum',
+    gr.name || '',
+    gr.kompetenz ? `Wirken: ${gr.kompetenz}` : '',
+    sp ? `Sprecher: ${sp.name}` : '',
+    region ? `aus ${region}` : '',
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, keine symmetrische Heldenpose, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+function machtKey(m, state) {
+  return makeKey(['macht', m.id || '', buildMachtPrompt(m, state), portraitModel()]);
+}
+function gruppeKey(gr, state) {
+  return makeKey(['gruppe', gr.id || '', buildGruppePrompt(gr, state), portraitModel()]);
+}
+function machtImg(id) {
+  return document.querySelector(`[data-testid="power-card"][data-id="${id}"] [data-testid="power-bild"]`);
+}
+function gruppeImg(id) {
+  return document.querySelector(`[data-testid="group-row"][data-id="${id}"] [data-testid="gruppe-bild"]`);
+}
+
+// Siedlungen aus dem Stand lesen — gleiche Logik wie render/lebenswelt.js: die
+// neue Liste lebenswelt.siedlungen, sonst das ältere Einzelobjekt state.siedlung.
+// id-Fallback (id || name) muss zum Render übereinstimmen, sonst findet das <img>
+// seinen Schlüssel nicht.
+function siedlungenAus(state) {
+  const list = Array.isArray(state.lebenswelt?.siedlungen) ? state.lebenswelt.siedlungen : [];
+  if (list.length) return list;
+  if (state.siedlung && state.siedlung.name) return [{ ...state.siedlung, hauptstadt: true }];
+  return [];
+}
+function siedlungId(s) {
+  return s.id || s.name || '';
+}
+
+// Siedlungsbild: ein weiter Blick auf die Siedlung, dokumentarische Totale aus dem
+// Alltag, kein einzelner Held. Nutzt einen vorhandenen s.prompt, sonst aus den
+// Feldern gebaut. Stil aus armeeStyle (mit visualStyle als Rueckfall), damit die
+// Siedlung aus derselben Welt stammt wie Portraits und Heerschau.
+function buildSiedlungPrompt(s, state) {
+  if (s.prompt && s.prompt.trim()) return s.prompt.trim();
+  const region = (state.volk?.region?.name || state.volk?.name || '').trim();
+  return [
+    armeeStyle(state),
+    'ein weiter Blick auf die Siedlung eines Volkes, dokumentarische Totale, Behausungen und Menschen im Alltag, kein einzelner Held, kein heroisches Posing',
+    [s.name, s.typ].filter(Boolean).join(', '),
+    (s.beschreibung || s.lage || '').trim(),
+    region ? `aus ${region}` : '',
+    'kein glaenzendes 3D-Rendering, keine Airbrush-Glaette, kein Videospiel-Splashart, kein Text, kein Wasserzeichen, kein Rahmen',
+  ]
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .join('. ');
+}
+
+function siedlungKey(s, state) {
+  return makeKey(['siedlung', siedlungId(s), buildSiedlungPrompt(s, state), portraitModel()]);
+}
+function siedlungImg(id) {
+  return document.querySelector(`[data-testid="siedlung"][data-id="${id}"] [data-testid="siedlung-bild"]`);
+}
+
 // Gemeinsamer Bild-Flow für Portrait und Karte. Hält die in E2E gepinnte
 // Reihenfolge ein: ein Cache-Treffer löst keinen Netzaufruf aus; ein fehlender
 // API-Key toastet und öffnet die Einstellungen, ohne zu erzeugen; sonst wird
@@ -468,6 +569,48 @@ async function onGenerateVerband(verbandId) {
   });
 }
 
+async function onGenerateMacht(machtId) {
+  const state = getState();
+  if (!state) return;
+  const m = (state.maechte || []).find((x) => x.id === machtId);
+  if (!m) return;
+  await generateInto({
+    img: machtImg(machtId),
+    key: machtKey(m, state),
+    model: portraitModel(),
+    prompt: buildMachtPrompt(m, state),
+    aspectRatio: '4:3',
+  });
+}
+
+async function onGenerateGruppe(gruppeId) {
+  const state = getState();
+  if (!state) return;
+  const gr = (state.gruppen || []).find((x) => x.id === gruppeId);
+  if (!gr) return;
+  await generateInto({
+    img: gruppeImg(gruppeId),
+    key: gruppeKey(gr, state),
+    model: portraitModel(),
+    prompt: buildGruppePrompt(gr, state),
+    aspectRatio: '4:3',
+  });
+}
+
+async function onGenerateSiedlung(id) {
+  const state = getState();
+  if (!state) return;
+  const s = siedlungenAus(state).find((x) => siedlungId(x) === id);
+  if (!s) return;
+  await generateInto({
+    img: siedlungImg(id),
+    key: siedlungKey(s, state),
+    model: portraitModel(),
+    prompt: buildSiedlungPrompt(s, state),
+    aspectRatio: '16:9',
+  });
+}
+
 // Befüllt Portraits/Karte aus eingebetteten dataUrls oder dem Cache, ohne API.
 async function hydrateImages(state) {
   for (const b of state.berater || []) {
@@ -515,6 +658,48 @@ async function hydrateImages(state) {
       if (cached) img.src = cached;
     }
   }
+
+  for (const m of state.maechte || []) {
+    const img = machtImg(m.id);
+    if (!img) continue;
+    const key = machtKey(m, state);
+    if (m.bild?.dataUrl) {
+      img.src = m.bild.dataUrl;
+      cachePut(key, m.bild.dataUrl);
+      continue;
+    }
+    if (img.getAttribute('src')) continue;
+    const cached = await cacheGet(key);
+    if (cached) img.src = cached;
+  }
+
+  for (const gr of state.gruppen || []) {
+    const img = gruppeImg(gr.id);
+    if (!img) continue;
+    const key = gruppeKey(gr, state);
+    if (gr.bild?.dataUrl) {
+      img.src = gr.bild.dataUrl;
+      cachePut(key, gr.bild.dataUrl);
+      continue;
+    }
+    if (img.getAttribute('src')) continue;
+    const cached = await cacheGet(key);
+    if (cached) img.src = cached;
+  }
+
+  for (const s of siedlungenAus(state)) {
+    const img = siedlungImg(siedlungId(s));
+    if (!img) continue;
+    const key = siedlungKey(s, state);
+    if (s.bild?.dataUrl) {
+      img.src = s.bild.dataUrl;
+      cachePut(key, s.bild.dataUrl);
+      continue;
+    }
+    if (img.getAttribute('src')) continue;
+    const cached = await cacheGet(key);
+    if (cached) img.src = cached;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -542,6 +727,24 @@ async function onExport() {
       const vCached = await cacheGet(verbandKey(v, state));
       if (vCached) v.avatar = { ...(v.avatar || {}), dataUrl: vCached };
     }
+  }
+  for (const m of bundle.maechte || []) {
+    const cached = await cacheGet(machtKey(m, state));
+    if (cached) m.bild = { ...(m.bild || {}), dataUrl: cached };
+  }
+  for (const gr of bundle.gruppen || []) {
+    const cached = await cacheGet(gruppeKey(gr, state));
+    if (cached) gr.bild = { ...(gr.bild || {}), dataUrl: cached };
+  }
+  // Siedlungsbilder einbetten — sowohl in der neuen Liste als auch im älteren
+  // siedlung-Einzelobjekt, je nachdem, was der Stand führt.
+  for (const s of bundle.lebenswelt?.siedlungen || []) {
+    const cached = await cacheGet(siedlungKey(s, state));
+    if (cached) s.bild = { ...(s.bild || {}), dataUrl: cached };
+  }
+  if (bundle.siedlung && state.siedlung && !(bundle.lebenswelt?.siedlungen || []).length) {
+    const cached = await cacheGet(siedlungKey({ ...state.siedlung, hauptstadt: true }, state));
+    if (cached) bundle.siedlung.bild = { ...(bundle.siedlung.bild || {}), dataUrl: cached };
   }
 
   const name = (state.meta?.spielname || 'stand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -638,6 +841,19 @@ function wire() {
   wireLive();
 }
 
+// Voreingestellter Beispielstand für die veröffentlichte Seite: lädt einmalig
+// examples/die-gestrandeten.json, wenn kein anderer Stand vorliegt. Fehler (404,
+// Netz) werden still verschluckt — dann bleibt der Leerzustand.
+async function loadDefaultSample() {
+  try {
+    const res = await fetch('examples/die-gestrandeten.json', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return;
+    handleSavegameText(await res.text());
+  } catch {
+    // still: ohne Beispielstand bleibt der Leerzustand mit Lade-Aufforderung.
+  }
+}
+
 // Lädt savegame.json vom Server (Terminal-Modus) und abonniert Änderungen per
 // SSE. Ohne Datei (404), ohne http (file://) oder ohne Server-Unterstützung ein
 // No-op, damit Chat-Modus und Tests unberührt bleiben.
@@ -657,7 +873,15 @@ async function wireLive() {
   };
 
   const present = await loadLive();
-  if (!present) return; // kein Live-Spielstand: kein SSE öffnen
+  if (!present) {
+    // Kein Live-Server (z. B. auf der veröffentlichten GitHub-Pages-Seite): den
+    // voreingestellten Beispielstand laden, falls noch kein Stand da ist. So ist
+    // die Seite nicht leer; ein eigener Stand lässt sich darüberladen. Greift
+    // nicht im Terminal-Modus (savegame.json vorhanden) und nicht, wenn ein
+    // gespeicherter Stand wiederhergestellt wurde.
+    if (!getState()) await loadDefaultSample();
+    return; // ohne Live-Server kein SSE
+  }
 
   toast('Live-Modus: savegame.json wird gespiegelt.');
 
@@ -672,6 +896,9 @@ async function wireLive() {
       return; // EventSource nicht verfügbar: einmaliges Laden genügt.
     }
     es.addEventListener('savegame', () => loadLive());
+    // Code-Änderung am Dev-Server: ganze Seite neu laden, damit ein offener Tab
+    // nicht auf altem JS/HTML/CSS hängen bleibt (siehe serve.mjs, reload-Event).
+    es.addEventListener('reload', () => location.reload());
     es.addEventListener('error', () => {
       if (es.readyState === EventSource.CLOSED) {
         es.close();

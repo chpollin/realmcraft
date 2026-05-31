@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RealmCraft, Anleitung</title>
-  <meta name="description" content="Wie man RealmCraft spielt: die zwei Spielweisen, die Regeln in Kürze, das Dashboard und der herunterladbare System-Prompt für den Chat-Modus." />
+  <title>RealmCraft, Anleitung — Erzählendes Strategie-Rollenspiel mit einem Sprachmodell als Spielleiter</title>
+  <meta name="description" content="RealmCraft ist ein erzählendes Strategie-Rollenspiel mit einem Sprachmodell als Spielleiter. Anleitung: die zwei Spielweisen, die Regeln in Kürze, das Dashboard und der herunterladbare System-Prompt für den Chat-Modus." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -99,11 +99,12 @@
       </div>
       <div class="realm-name"><span class="the">So spielt man</span>RealmCraft</div>
       <p class="lead">
-        RealmCraft ist ein offenes, erzählerisches Aufbau-Spiel. Du führst ein Volk über viele Jahre
-        und Kapitel. Ein Spielleiter — der <strong>Chronist</strong> — führt die Welt, die anderen Mächte
-        und deinen Rat. Er empfiehlt nie und entscheidet nie für dich: Er legt die Lage offen, nennt
-        Optionen mit Zielwert und Modifikatoren, und <strong>du entscheidest und würfelst</strong>.
-        Dieses Dashboard zeigt jederzeit das aktuelle Lagebild.
+        <strong>Erzählendes Strategie-Rollenspiel mit einem Sprachmodell als Spielleiter.</strong>
+        Du führst ein Volk über viele Jahre und Kapitel. Ein Spielleiter — der <strong>Chronist</strong> —
+        führt die Welt, die anderen Mächte und deinen Rat. Er empfiehlt nie und entscheidet nie für dich:
+        Er legt die Lage offen, nennt Optionen mit Zielwert und Modifikatoren, und
+        <strong>du entscheidest und würfelst 1d10 selbst</strong>.
+        Dieses Dashboard („Lagetisch des Rates") zeigt jederzeit das aktuelle Lagebild.
       </p>
     </section>
 
@@ -182,13 +183,16 @@
     <!-- ===================== Das Dashboard ===================== -->
     <section class="panel pad mt">
       <div class="section-title"><span class="kicker">Lagetisch</span> Das Dashboard</div>
-      <p class="section-sub">Lade einen Speicherstand (hybrides Markdown oder reines JSON) — fünf Sichten zeigen das Lagebild des Rates.</p>
+      <p class="section-sub">Lade einen Speicherstand (hybrides Markdown oder reines JSON) — sieben Sichten zeigen das Lagebild des Rates.</p>
       <div class="views">
         <div class="view-row"><div class="v-num">I</div><div><div class="v-name">Lage</div><div class="v-desc">Volk, Kapitel und Saison, Grundgrößen mit Trends, Lagewerte, das Aktionsbrett der laufenden Runde und die offenen Fäden.</div></div></div>
-        <div class="view-row"><div class="v-num">II</div><div><div class="v-name">Berater</div><div class="v-desc">Der Rat mit Rolle, eigenem Ziel, Loyalität und Lebensstand — pro Berater ein KI-Portrait erzeugbar.</div></div></div>
-        <div class="view-row"><div class="v-num">III</div><div><div class="v-name">Welt</div><div class="v-desc">Die anderen Mächte mit Beziehung und Haltung sowie die tragenden Gruppen mit ihren Sprechern.</div></div></div>
-        <div class="view-row"><div class="v-num">IV</div><div><div class="v-name">Karte</div><div class="v-desc">Eine erzeugbare Lagekarte und die Legende der bekannten Orte — die Karte wächst mit dem Spiel.</div></div></div>
-        <div class="view-row"><div class="v-num">V</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf aus den gespeicherten Ständen, Setzungen, Fähigkeiten und Besitz.</div></div></div>
+        <div class="view-row"><div class="v-num">II</div><div><div class="v-name">Lebenswelt</div><div class="v-desc">Wie das Volk lebt (Stimmung, Nahrung, Glaube, Bräuche), seine Siedlungen mit der Hauptstadt samt erzeugbarem Bild, dazu der Besitz.</div></div></div>
+        <div class="view-row"><div class="v-num">III</div><div><div class="v-name">Berater</div><div class="v-desc">Der Rat mit Rolle, eigenem Ziel, Loyalität und Lebensstand — pro Berater ein KI-Portrait erzeugbar.</div></div></div>
+        <div class="view-row"><div class="v-num">IV</div><div><div class="v-name">Armee</div><div class="v-desc">Verbände mit Stärke und Führung, stehende Modifikatoren und das Verluste-Logbuch.</div></div></div>
+        <div class="view-row"><div class="v-num">V</div><div><div class="v-name">Welt</div><div class="v-desc">Die anderen Mächte mit Profil (Stärken und die ausnutzbare Schwäche), Beziehung und Haltung sowie die tragenden Gruppen.</div></div></div>
+        <div class="view-row"><div class="v-num">VI</div><div><div class="v-name">Karte</div><div class="v-desc">Eine erzeugbare Lagekarte und die Legende der bekannten Orte — die Karte wächst mit dem Spiel.</div></div></div>
+        <div class="view-row"><div class="v-num">VII</div><div><div class="v-name">Chronik</div><div class="v-desc">Der erzählte Verlauf aus den gespeicherten Ständen und die Fähigkeiten des Volkes.</div></div></div>
+        <div class="view-row"><div class="v-num">+</div><div><div class="v-name">Recht</div><div class="v-desc">Die Verfassung und die Setzungen — die für diese Partie vereinbarten Sonderregeln.</div></div></div>
       </div>
       <p class="prose" style="margin-top:14px"><strong>Bilder.</strong> Portraits und Karte entstehen über die Gemini-Bild-API. Hinterlege einmalig einen Schlüssel unter <em>Einstellungen</em> (er bleibt nur lokal im Browser). Mit <em>Exportieren</em> sicherst du einen Stand inklusive eingebetteter Bilder; ein Re-Import füllt den Cache ohne neuen API-Aufruf.</p>
     </section>

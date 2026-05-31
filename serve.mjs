@@ -20,10 +20,12 @@ const HOST = process.env.HOST || '127.0.0.1';
 const LIVE_FILE = 'savegame.json';
 const sseClients = new Set();
 
-function broadcastReload() {
+// event: 'savegame' -> Dashboard spiegelt nur den Spielstand neu.
+// event: 'reload'   -> Dashboard lädt die ganze Seite neu (Code hat sich geändert).
+function broadcast(event) {
   for (const res of sseClients) {
     try {
-      res.write('event: savegame\ndata: reload\n\n');
+      res.write(`event: ${event}\ndata: changed\n\n`);
     } catch {
       sseClients.delete(res);
     }
@@ -32,12 +34,29 @@ function broadcastReload() {
 
 // Watch the directory, not the file directly: atomic rename-writes would kill a
 // file watch. Debounce multiple events per write.
+//
+// Eine rekursive Beobachtung der ROOT meldet sowohl Spielstand- als auch
+// Code-Änderungen: ist die geänderte Datei der Spielstand, spiegelt der Browser
+// den Stand; ist es Code (js/css/html), lädt er komplett neu. Ohne diesen
+// Code-Reload bliebe ein offener Tab nach Code-Änderungen auf altem JS hängen
+// (z. B. ein neuer Reiter erscheint erst nach manuellem Refresh).
+const CODE_RE = /\.(?:js|mjs|css|html)$/i;
 let liveDebounce = null;
+let reloadDebounce = null;
 try {
-  watch(ROOT, (_event, filename) => {
-    if (filename !== LIVE_FILE) return;
-    if (liveDebounce) clearTimeout(liveDebounce);
-    liveDebounce = setTimeout(broadcastReload, 120);
+  watch(ROOT, { recursive: true }, (_event, filename) => {
+    if (!filename) return;
+    const name = String(filename).replace(/\\/g, '/');
+    if (name === LIVE_FILE) {
+      if (liveDebounce) clearTimeout(liveDebounce);
+      liveDebounce = setTimeout(() => broadcast('savegame'), 120);
+      return;
+    }
+    // Code-Dateien, aber nicht versteckte Ordner (.git) oder node_modules.
+    if (CODE_RE.test(name) && !name.split('/').some((s) => s.startsWith('.') || s === 'node_modules')) {
+      if (reloadDebounce) clearTimeout(reloadDebounce);
+      reloadDebounce = setTimeout(() => broadcast('reload'), 150);
+    }
   });
 } catch {
   // Without watch the server still runs, just without live reload.

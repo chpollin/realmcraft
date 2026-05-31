@@ -32,6 +32,11 @@
   --rc-warn: #5c606a;
   --rc-neg: #1d2026;
 
+  /* Richtungsfarbe: dosierter Akzent fuer Auf/Ab und Plus/Minus (gedaempftes
+     Gruen bzw. Rot), damit gut/schlecht auf einen Blick lesbar ist. */
+  --rc-up: #2f7d54;
+  --rc-down: #b04a3a;
+
   /* Linien und Schatten (kuehles Schiefer-Grau, nie reines Schwarz) */
   --rc-line: #e3e3e6;
   --rc-line-soft: #eeeeef;

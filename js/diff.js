@@ -6,9 +6,9 @@ const LABELS = {
   nahrung: 'Nahrung',
   material: 'Material',
   wissen: 'Wissen',
-  bevoelkerung: 'Bevoelkerung',
+  bevoelkerung: 'Bevölkerung',
   verteidigung: 'Verteidigung',
-  mobilitaet: 'Mobilitaet',
+  mobilitaet: 'Mobilität',
   wohlstand: 'Wohlstand',
 };
 
@@ -71,7 +71,7 @@ export function diffStates(prev, next) {
       const a = pB.get(id).loyalitaet;
       const c = b.loyalitaet;
       if (typeof a === 'number' && typeof c === 'number' && a !== c) {
-        eintraege.push({ art: 'loyalitaet', label: `Loyalitaet ${b.name}`, from: a, to: c, delta: c - a, richtung: c > a ? 'up' : 'down' });
+        eintraege.push({ art: 'loyalitaet', label: `Loyalität ${b.name}`, from: a, to: c, delta: c - a, richtung: c > a ? 'up' : 'down' });
       }
     }
   }

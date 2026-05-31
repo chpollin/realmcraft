@@ -24,7 +24,7 @@ Eine unbekannte Insel, neblig und still, der Wald landeinwärts dicht und beobac
 
 ## Orte
 
-- **Graulandung**, das Lager am Strand, Zentrum an der Küste: drei beschädigte Boote am grauen Kies, ein Wall aus Wrackholz.
+- **Graulandung**, das Lager am Strand, Zentrum an der Küste: drei beschädigte Boote am grauen Kies; aus dem Wall aus Wrackholz ist eine Festungssiedlung geworden — Steinwall mit Graben, schweres Torhaus, Spähtürme, volle Speicher (Verteidigung 3).
 - **Der Nebelwald**, Urwald landeinwärts im Westen: dicht und dämmrig, Reich der Stillen und der Schädelklans.
 - **Die Erzklippen**, Steilküste im Norden: schroffe Klippen mit Erzadern, Schutz und Material.
 - **Die Stummen Ringe**, alte Ruinen im Höhenland des Südens: Steinkreise einer toten Macht, Zauber und Gefahr. Yssas möglicher Pfad zur ersten Disziplin.
@@ -33,10 +33,10 @@ Eine unbekannte Insel, neblig und still, der Wald landeinwärts dicht und beobac
 
 ## Mächte und Beziehungen
 
-- **Das Finstere**, Schattenmacht über See. Todfeind, noch fern (−3). Frisst Khar, greift langsam über die See, sucht, was entkommen ist. Kein Heer, das man schlägt, sondern ein wachsender Schrecken.
-- **Die Stillen**, altes Elfenvolk der Region. Misstrauisch, gebietsstreng (−1). Wachen über die alten Orte, dulden keine Eisenleute, beobachten die Fremden.
-- **Die Schädelklans**, wilde Inselorks. Feind, Blut ist geflossen (−2). Eine vertriebene Bande überfiel das Lager; zersplittert, doch jede für sich gefährlich.
-- **Das Eisenkonkordat**, Festland-Techmacht. Fern, ahnungslos voneinander (0). Expandiert über See, sucht Erz und Brückenköpfe, verachtet Zauber.
+- **Das Finstere**, Schattenmacht über See. Todfeind, noch fern (−3). Frisst Khar, greift langsam über die See, sucht, was entkommen ist. Kein Heer, das man schlägt, sondern ein wachsender Schrecken. *Profil:* Reichweite +3, Hunger +3, doch kaum zu treffen (Gestalt zum Schlagen −2).
+- **Die Stillen**, altes Elfenvolk der Region. Erzürnt, eine Warnung in Blut (−2). Holzfäller der Gestrandeten kreuzten ihr Grenzmal; die Stillen töteten sie lautlos und dulden nun keinen Fuß mehr in ihrem Gebiet. *Profil:* Magie +3, Wissen der Insel +2, doch wenige (Zahl −2).
+- **Die Schädelklans**, wilde Inselorks. Offener Krieg (−3). Eine vertriebene Bande überfiel das Lager (Sommer J1), dann stürmte der große Klan in voller Zahl und wurde am Steinwall blutig zurückgeworfen (Herbst J1); geschlagen, nicht gebrochen, sammelt er sich nun gewarnt im Nebel zum Frühlingssturm. *Profil:* Wildheit +2, Zahl +1, doch zersplittert (Ordnung −2).
+- **Das Eisenkonkordat**, Festland-Techmacht. Fern, ahnungslos voneinander (0). Expandiert über See, sucht Erz und Brückenköpfe, verachtet Zauber. *Profil:* Technik +3, Heer +2, doch blind für Zauber (Magie −2).
 
 Die Beziehungswerte führt der Speicherstand mit grobem Zahlenanker; die Haltung kann sich von Runde zu Runde verschieben.
 

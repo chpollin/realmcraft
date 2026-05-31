@@ -29,6 +29,28 @@ const ICO = {
   bevoelkerung: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5a3 3 0 0 1 0 6M18 20c0-2.5-1-4-3-4.6"/></svg>',
 };
 
+// Icons für das Delta-Banner, ergänzend zu ICO (Grundgrößen). Schlüssel sind die
+// `key`/`art`-Werte aus diff.js. Gleicher Strich-Stil wie ICO.
+const DELTA_ICO = {
+  verteidigung: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>',
+  mobilitaet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h12"/><path d="M12 6l6 6-6 6"/></svg>',
+  wohlstand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/><path d="M5 11.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg>',
+  ansehen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 17.9 6.7 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>',
+  loyalitaet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/></svg>',
+  'berater-neu': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/></svg>',
+  'berater-weg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/></svg>',
+  'ort-neu': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>',
+  'ort-weg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>',
+  'setzung-neu': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9.5 14.5l1.8 1.8 3.2-3.6"/></svg>',
+  kapitel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.5L7 20z"/></svg>',
+};
+
+// Wählt das Icon eines Delta-Eintrags: Grundgrößen über ICO[key], Lagewerte über
+// DELTA_ICO[key], alles andere über DELTA_ICO[art]. Ohne Treffer kein Icon.
+function deltaIcon(e) {
+  return ICO[e.key] || DELTA_ICO[e.key] || DELTA_ICO[e.art] || '';
+}
+
 export function renderLage(root, state, opts = {}) {
   root.replaceChildren();
   if (!state) return;
@@ -174,30 +196,64 @@ function blockHead(title, eyebrow) {
   ]);
 }
 
-// Banner mit den Aenderungen seit dem zuletzt geladenen Stand.
+// Banner mit den Aenderungen seit dem zuletzt geladenen Stand. Nach Bereichen
+// gruppiert (Grundgrößen, Lagewerte, Rat, Welt & Stand), damit auf einen Blick
+// lesbar ist, wo sich etwas bewegt hat; jedes Delta trägt sein Vorzeichen als
+// hervorgehobene, richtungsgefärbte Marke (Einbußen rot, Zugewinne grün).
+const DELTA_GRUPPEN = [
+  { titel: 'Grundgrößen', arten: ['grundgroesse'] },
+  { titel: 'Lagewerte', arten: ['lagewert'] },
+  { titel: 'Rat', arten: ['loyalitaet', 'berater-neu', 'berater-weg'] },
+  { titel: 'Welt & Stand', arten: ['kapitel', 'ansehen', 'ort-neu', 'ort-weg', 'setzung-neu'] },
+];
+
+function deltaItem(e) {
+  const numerisch = typeof e.from === 'number' && typeof e.to === 'number';
+  const mark = e.richtung === 'down' ? '▼' : '▲';
+  const ico = deltaIcon(e);
+  const kinder = [
+    ico ? el('span', { class: 'delta-ico', 'aria-hidden': 'true', html: ico }) : null,
+    el('span', { class: 'delta-label', text: numerisch ? `${e.label}: ${e.from} → ${e.to}` : e.label }),
+    numerisch
+      ? el('span', { class: 'delta-amount' }, [
+          el('span', { class: 'delta-mark', text: mark }),
+          document.createTextNode(` ${signed(e.delta)}`),
+        ])
+      : el('span', { class: 'delta-mark', text: mark }),
+  ];
+  return el('li', {
+    class: `delta-item delta-${e.richtung || 'flat'}`, 'data-testid': 'delta-item',
+  }, kinder);
+}
+
 function renderDeltaBanner(delta) {
   const banner = el('section', { class: 'delta-banner panel pad', 'data-testid': 'delta-banner' });
   banner.append(
     el('div', { class: 'block-head' }, [
       el('h3', { text: 'Seit dem letzten Stand' }),
       el('div', { class: 'rule' }),
-      el('button', {
-        class: 'delta-dismiss', 'data-testid': 'delta-dismiss',
-        text: 'Verstanden', onClick: () => banner.remove(),
-      }),
     ]),
   );
-  const list = el('ul', { class: 'delta-list' },
-    (delta.eintraege || []).map((e) => {
-      let txt = e.label;
-      if (typeof e.from === 'number' && typeof e.to === 'number') {
-        txt = `${e.label}: ${e.from} → ${e.to} (${signed(e.delta)})`;
-      }
-      return el('li', {
-        class: `delta-item delta-${e.richtung || 'flat'}`, 'data-testid': 'delta-item',
-      }, [el('span', { class: 'delta-mark', text: e.richtung === 'down' ? '▼' : '▲' }), el('span', { text: txt })]);
-    }),
-  );
-  banner.append(list);
+
+  const eintraege = delta.eintraege || [];
+  const gruppen = el('div', { class: 'delta-groups' });
+  DELTA_GRUPPEN.forEach((g) => {
+    const teil = eintraege.filter((e) => g.arten.includes(e.art));
+    if (!teil.length) return;
+    gruppen.append(el('section', { class: 'delta-group' }, [
+      el('div', { class: 'delta-group-titel', text: g.titel }),
+      el('ul', { class: 'delta-list' }, teil.map(deltaItem)),
+    ]));
+  });
+
+  // Unbekannte Arten (Fallback) ungruppiert anhängen, damit nie ein Delta verschwindet.
+  const rest = eintraege.filter((e) => !DELTA_GRUPPEN.some((g) => g.arten.includes(e.art)));
+  if (rest.length) {
+    gruppen.append(el('section', { class: 'delta-group' }, [
+      el('ul', { class: 'delta-list' }, rest.map(deltaItem)),
+    ]));
+  }
+
+  banner.append(gruppen);
   return banner;
 }

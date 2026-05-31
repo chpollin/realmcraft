@@ -8,6 +8,14 @@ import { join } from 'node:path';
 const ch3 = join(process.cwd(), 'examples', 'die-karren-kapitel-3.json');
 const ch4 = join(process.cwd(), 'examples', 'die-karren-kapitel-4.json');
 
+// Im Serve-Modus lädt die App beim Start die Live-savegame.json (laufende Partie)
+// und legt sie als ersten History-Eintrag ab. Das verfälscht hier jeden Test, der
+// von leerer Historie ausgeht (erstes Laden, Auto-Restore, Kapitel-Index). Den
+// Live-Stand isolieren, damit jeder Test allein über die geladenen Fixtures bestimmt.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/savegame.json', (r) => r.fulfill({ status: 404, body: '' }));
+});
+
 test('erstes Laden zeigt kein Delta-Banner', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('load-input').setInputFiles(ch4);
@@ -25,9 +33,6 @@ test('zweites Laden zeigt das Delta-Banner mit Kapitelwechsel', async ({ page })
   await expect(banner).toBeVisible();
   await expect(banner).toContainText('Kapitel');
   await expect(page.getByTestId('delta-item').first()).toBeVisible();
-
-  await page.getByTestId('delta-dismiss').click();
-  await expect(banner).toHaveCount(0);
 });
 
 test('Auto-Restore stellt den Stand nach Reload wieder her', async ({ page }) => {

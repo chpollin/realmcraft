@@ -34,3 +34,18 @@ export function signed(n) {
 export function signedZeroPlus(n) {
   return n >= 0 ? `+${n}` : `${n}`;
 }
+
+/**
+ * Erster Satz eines Textes als knappe Lage-Zeile. Schneidet am ersten Satzende
+ * (. ! ?) ab; fehlt eines, der ganze getrimmte Text. Über `max` Zeichen wird
+ * hart mit Auslassungszeichen gekappt. Hält die Chronik knapp, statt einen
+ * kumulativen Statusabsatz pro Zug zu wiederholen.
+ */
+export function firstSentence(text, max = 180) {
+  const t = (text || '').replace(/\s+/g, ' ').trim();
+  if (!t) return '';
+  const m = t.match(/^.*?[.!?](?=\s|$)/);
+  let s = m ? m[0] : t;
+  if (s.length > max) s = `${s.slice(0, max - 1).trimEnd()}…`;
+  return s;
+}

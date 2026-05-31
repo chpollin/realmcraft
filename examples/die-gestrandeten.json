@@ -1,0 +1,582 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "spielname": "Die Gestrandeten",
+    "kapitel": 1,
+    "zeit": {
+      "jahreszeit": "Frühling",
+      "jahr": 2
+    },
+    "rundeOffen": true,
+    "weltereignis": "gewürfelt",
+    "visualStyle": "Tuschelavierung und Kohle auf getoentem, geborgenem Papier; eine Feldskizze aus dem Tagebuch eines ueberlebenden Chronisten; sichtbare Papiernarbe, Wasser- und Stockflecken, abgegriffene Raender; sparsame, sichere Linienfuehrung; monochromes Asche- und Eisengrau mit einem einzigen gedaempften Erdton als Akzent; ruhig, dokumentarisch, von Hand festgehalten",
+    "mapStyle": "alte handgezeichnete Seekarte, vergilbtes Pergament, Nebelraender, unerforschte Insel mit weissen Flecken, Kompassrose, Seeungeheuer am Kartenrand"
+  },
+  "volk": {
+    "name": "die Gestrandeten",
+    "wesensart": "Aus Vielen geschmiedet: +2 wo Vielfalt der Talente, Improvisation und Anpassung ans Unbekannte zaehlen; -2 wo tiefe Einigkeit, Tradition oder einmuetiges, geschlossenes Handeln gefragt ist (kein gewachsener Stamm).",
+    "ausrichtung": "Ueberleben und Aufbau aus dem Nichts; seit der Rede im Schnee geeint als 'das Feuer in der Nacht' gegen das Finstere. Ob Eisen oder Zauber sie traegt, bleibt offen.",
+    "erscheinung": "ein zerschlagener Treck aus Orks, Elfen, Humanoiden und Menschen; geflickte Ruestungen, gerettete Werkzeuge, abgekaempfte Gesichter unter grauem Himmel",
+    "region": {
+      "name": "die unbekannte Insel (Lager: Graulandung)",
+      "gelaendewerte": [
+        {
+          "key": "Steilkueste als Schutz",
+          "value": 1
+        },
+        {
+          "key": "Nebel und Zwielicht (Sicht)",
+          "value": -1
+        },
+        {
+          "key": "Erz in den Klippen",
+          "value": 1
+        },
+        {
+          "key": "alte Ruinen (Zauber und Gefahr)",
+          "value": 0
+        }
+      ]
+    }
+  },
+  "status": {
+    "text": "Fruehling, Jahr 2. Die Auskundschaftung der Erzklippen schlug boese fehl (kritischer Rueckschlag, natuerliche 1). Vesks Spaeher pirschten an, Yssa reichte mit dem Fernen Sehen voraus - doch der Stille, der nun den Klan-Wachen dient, spuerte den Zauber und liess die Spaeher stellen: zwei kamen nicht zurueck (Wehr 78), und kein Bild von Staerke oder Plan des Feindes wurde gewonnen. Der Vortrupp an den Klippen ist jetzt voll alarmiert, das Erz weiter hinter Speeren, das Volk weiter blind. Schlimmer noch: als Yssas Auge den Stillen streifte, blickte hinter ihm etwas Kaltes und Fernes zurueck - sie kam bleich und zitternd zu sich und schweigt seither darueber, was sie beruehrt hat. Ein Schatten weiss nun vielleicht, wohin er schauen muss. Dem Volk bleiben in diesem Fruehling noch zwei kleinere Zuege - und eine schwerere Lage als am Morgen.",
+    "ansehen": {
+      "stufe": 1,
+      "label": "Funke im Schnee"
+    }
+  },
+  "grundgroessen": {
+    "nahrung": 2,
+    "material": 1,
+    "wissen": 1,
+    "bevoelkerung": {
+      "zahl": 217,
+      "label": "Ueberlebende dreier Voelker; ein Vortrupp ging im Fruehling an den Erzklippen verloren"
+    }
+  },
+  "lagewerte": {
+    "verteidigung": 3,
+    "mobilitaet": 1,
+    "wohlstand": -1,
+    "ausbeuten": [
+      {
+        "key": "Nahrung",
+        "value": 1,
+        "quelle": "Fischgruende und Wildwechsel, im Sommer erschlossen"
+      }
+    ]
+  },
+  "modifikatoren": {
+    "gelaende": [
+      {
+        "key": "Steilkueste als Schutz",
+        "value": 1
+      },
+      {
+        "key": "Nebel und Zwielicht (Sicht)",
+        "value": -1
+      },
+      {
+        "key": "Erz in den Klippen",
+        "value": 1
+      },
+      {
+        "key": "alte Ruinen (Zauber und Gefahr)",
+        "value": 0
+      }
+    ],
+    "lage": [
+      {
+        "key": "unbekanntes Inselinnere",
+        "value": -1,
+        "grund": "die nahe Kueste ist kartiert; Wald, Hoehen und die Ringe bleiben dunkel"
+      },
+      {
+        "key": "Spaehposten, Fruehwarnung",
+        "value": 1,
+        "grund": "stehende Augen an den Zugaengen und auf der Hoehe; kein Ueberfall im Schlaf mehr"
+      }
+    ]
+  },
+  "faehigkeiten": [
+    "Schmiedekunst und Mechanik der Zunftleute",
+    "schwacher Zauber des Zirkels (Disziplin im Keim)",
+    "Kriegskunst und Sturmtaktik der Orkschar",
+    "Seefahrt und das Lesen von Wetter und Tide"
+  ],
+  "gruppen": [
+    {
+      "id": "orkschar",
+      "name": "die Orkschar",
+      "sprecherId": "grask",
+      "kompetenz": "Krieg, rohe Kraft, Sturm und Wehr"
+    },
+    {
+      "id": "zirkel",
+      "name": "der Zirkel",
+      "sprecherId": "yssa",
+      "kompetenz": "schwache Magie, das Alte lesen, Wahrnehmung"
+    },
+    {
+      "id": "zunftleute",
+      "name": "die Zunftleute",
+      "sprecherId": "borin",
+      "kompetenz": "Schmiede, Bau, Werkzeug, Technik"
+    },
+    {
+      "id": "versorger",
+      "name": "die Versorger",
+      "sprecherId": "mara",
+      "kompetenz": "Fischfang, Ackerbau, Vorraete, Heilung des Leibes"
+    },
+    {
+      "id": "spaeher",
+      "name": "die Spaeher",
+      "sprecherId": "vesk",
+      "kompetenz": "Kundschaft, Pfade, Jagd, Fruehwarnung"
+    },
+    {
+      "id": "zivilen",
+      "name": "die Zivilen",
+      "sprecherId": "alde",
+      "kompetenz": "Gedaechtnis, Heilkunde, Sitte, Zusammenhalt der Schwachen"
+    }
+  ],
+  "armee": {
+    "gesamt": 78,
+    "moral": "entflammt, doch gezeichnet; der Verlust an den Klippen und Yssas Schrecken druecken",
+    "verbaende": [
+      {
+        "id": "orkschar",
+        "name": "die Orkschar",
+        "typ": "Sturmtruppe",
+        "fuehrungId": "grask",
+        "staerke": 31,
+        "verfassung": "kampferprobt, hielt den Wall; weitere Verluste",
+        "ausruestung": "geflickte Ruestung, gerettete Waffen aus Khar",
+        "hinweis": "Rueckgrat im offenen Kampf; 6 am Wall gefallen"
+      },
+      {
+        "id": "spaeher",
+        "name": "die Spaeher",
+        "typ": "Kundschafter",
+        "fuehrungId": "vesk",
+        "staerke": 10,
+        "verfassung": "erschuettert; an den Erzklippen gestellt, zwei verloren",
+        "ausruestung": "Kurzboegen, Messer, Tarnmaentel",
+        "hinweis": "Augen und Nadelstiche; vom Stillen erspaeht und gestellt"
+      },
+      {
+        "id": "miliz",
+        "name": "die Miliz",
+        "typ": "Aufgebot",
+        "fuehrungId": "borin",
+        "staerke": 37,
+        "verfassung": "blutig bewaehrt; im Winter durch Versprengte verstaerkt",
+        "ausruestung": "Speere und Aexte aus der Schmiede",
+        "hinweis": "haelt einen Wall, gewinnt kein Feldgefecht"
+      }
+    ],
+    "stehendeModifikatoren": [
+      {
+        "key": "hinter Steinwall, Graben und Tor",
+        "value": 3
+      },
+      {
+        "key": "Fruehwarnung durch Spaehposten",
+        "value": 1
+      },
+      {
+        "key": "im offenen Wald",
+        "value": -1
+      }
+    ],
+    "verluste": [
+      {
+        "zeit": "Sommer Jahr 1",
+        "zahl": 6,
+        "anlass": "Schaedelklan-Ueberfall am Wall"
+      },
+      {
+        "zeit": "Herbst Jahr 1",
+        "zahl": 8,
+        "anlass": "Sturm des grossen Klans; gehalten am Steinwall"
+      },
+      {
+        "zeit": "Fruehling Jahr 2",
+        "zahl": 2,
+        "anlass": "Spaeher an den Erzklippen vom Stillen erspaeht und gestellt"
+      }
+    ]
+  },
+  "berater": [
+    {
+      "id": "grask",
+      "name": "Grask Eisenzahn",
+      "loyalitaet": 3,
+      "rolle": "Krieg und Wehr (die Orkschar)",
+      "ziel": "Staerke ueber alles; die Insel mit Gewalt nehmen, keine Schwaeche zeigen; Verachtung fuer Zauber und Zaudern",
+      "generation": "die kriegerische Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "hochgewachsener Ork, graugruene Haut voller alter Narben, ein eiserner Zahn, zerbeulter Plattenharnisch, gekerbte Axt"
+    },
+    {
+      "id": "yssa",
+      "name": "Yssa Daemmerlied",
+      "loyalitaet": 2,
+      "rolle": "Zauber und das Alte (der Zirkel)",
+      "ziel": "die schwache Magie hueten und mehren, mit den alten Maechten der Insel sprechen; misstraut dem Eisen, das den Zauber ertoetet",
+      "generation": "die lange lebende",
+      "lebensstand": "ruestig",
+      "erscheinung": "schlanke Elfe, aschblondes Haar, blasse silbrige Augen, verblichener Sternenmantel, Finger voll Zauberzeichen"
+    },
+    {
+      "id": "borin",
+      "name": "Borin Zunfthand",
+      "loyalitaet": 3,
+      "rolle": "Werk und Eisen (die Zunftleute)",
+      "ziel": "durch Technik und Bau ueberleben; Magie ist unzuverlaessig und gefaehrlich; Festungen, Werkzeug, Maschinen",
+      "generation": "die schaffende Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "gedrungener Humanoid, russiger Lederschurz, brandnarbige Haende, Guertel voll Werkzeug, ein messingnes Augenglas"
+    },
+    {
+      "id": "mara",
+      "name": "Mara Tiden",
+      "loyalitaet": 3,
+      "rolle": "Nahrung und Versorgung (die Versorger)",
+      "ziel": "nie wieder Hunger; sichern, saeen, fischen; siedeln statt erobern; Vorsicht vor allem Wagnis",
+      "generation": "die schaffende Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "hagere Frau, salzweisses Haar im Zopf, Netz und Sichel am Guertel, ruhige muede Augen"
+    },
+    {
+      "id": "vesk",
+      "name": "Vesk",
+      "loyalitaet": 3,
+      "rolle": "Kundschaft und Pfade (die Spaeher)",
+      "ziel": "die Insel kennen, Gefahren frueh sehen; rastlos, draengt zu Erkundung und Ausgriff",
+      "generation": "die junge",
+      "lebensstand": "ruestig",
+      "erscheinung": "drahtiger Humanoid, fleckiger Tarnmantel, Kurzbogen, Augen die nie ruhen, eine Kette aus Tierzaehnen"
+    },
+    {
+      "id": "alde",
+      "name": "Alde Graumahl",
+      "loyalitaet": 2,
+      "rolle": "Gedaechtnis, Heilkunde und die Toten (die Zivilen)",
+      "ziel": "bewahren, warum sie flohen; das Volk menschlich halten; die Schwachen und Trauernden schuetzen; Mahnerin gegen Haerte",
+      "generation": "die alte",
+      "lebensstand": "lebensabend",
+      "erscheinung": "alte Frau, gebeugt, grauer Umhang voll Amulette, ein Stab, milchiges linkes Auge, an der Huefte ein Buch aus Khar"
+    }
+  ],
+  "personen": [
+    {
+      "id": "still-einer",
+      "name": "der Stille (namenlos)",
+      "rolle": "verschwand in der Nacht des Schaedelklan-Ueberfalls, hinaus zu den Raeubern; Verraeter, Opfer oder Werkzeug des Finsteren - offen",
+      "lebensstand": "ruestig",
+      "erscheinung": "hagerer Mann, nie ganz wach wirkend, die Augen einen Hauch zu dunkel, spricht kaum, friert nie; nun fort"
+    },
+    {
+      "id": "tila",
+      "name": "Tila",
+      "rolle": "Kind des Lagers, Liebling vieler, flink und neugierig",
+      "lebensstand": "ruestig",
+      "erscheinung": "halbwuechsiges Maedchen, eine Schramme ueber der Braue, immer in Bewegung"
+    }
+  ],
+  "maechte": [
+    {
+      "id": "das-finstere",
+      "name": "das Finstere",
+      "typ": "Schattenmacht ueber See",
+      "erscheinung": "kein Gesicht, nur Zeichen: erloeschende Feuer, schwarze Fahrten am Horizont, Menschen die mit leeren Augen wiederkommen",
+      "profil": [
+        {
+          "key": "Reichweite",
+          "value": 3
+        },
+        {
+          "key": "Hunger",
+          "value": 3
+        },
+        {
+          "key": "Gestalt zum Schlagen",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": -3,
+        "label": "Todfeind, noch fern"
+      },
+      "haltung": "frisst Khar, greift langsam ueber die See; sucht, was entkommen ist"
+    },
+    {
+      "id": "eisenkonkordat",
+      "name": "das Eisenkonkordat",
+      "typ": "Festland-Techmacht",
+      "erscheinung": "rauchende Hafenfestungen, Maenner in genieteten Harnischen, Dampf und Zahnrad, Banner mit dem schwarzen Amboss",
+      "profil": [
+        {
+          "key": "Technik",
+          "value": 3
+        },
+        {
+          "key": "Heer",
+          "value": 2
+        },
+        {
+          "key": "Magie",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": 0,
+        "label": "fern, ahnungslos voneinander"
+      },
+      "haltung": "expandiert ueber See, sucht Erz und Brueckenkoepfe; verachtet Zauber"
+    },
+    {
+      "id": "die-stillen",
+      "name": "die Stillen",
+      "typ": "altes Elfenvolk der Region",
+      "erscheinung": "selten gesehen, Lichter im Nebelwald, Steinkreise, lautlose Boote aus Rinde",
+      "profil": [
+        {
+          "key": "Magie",
+          "value": 3
+        },
+        {
+          "key": "Zahl",
+          "value": -2
+        },
+        {
+          "key": "Wissen der Insel",
+          "value": 2
+        }
+      ],
+      "beziehung": {
+        "wert": -2,
+        "label": "erzuernt, eine Warnung in Blut"
+      },
+      "haltung": "die Holzfaeller der Gestrandeten kreuzten das Grenzmal; die Stillen toeteten sie lautlos als Warnung und dulden nun keinen Fuss mehr in ihrem Gebiet"
+    },
+    {
+      "id": "schaedelklans",
+      "name": "die Schaedelklans",
+      "typ": "wilde Inselorks",
+      "erscheinung": "bemalte Wilde mit Knochenschmuck, Trommeln im Nebel, Pfahlschaedel an den Pfaden",
+      "profil": [
+        {
+          "key": "Wildheit",
+          "value": 2
+        },
+        {
+          "key": "Zahl",
+          "value": 1
+        },
+        {
+          "key": "Ordnung",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": -3,
+        "label": "offener Krieg"
+      },
+      "haltung": "der groessere Klan stuermte Graulandung und wurde am Steinwall zurueckgeworfen; geschlagen, nicht gebrochen, und nun gewarnt"
+    }
+  ],
+  "besitz": [
+    "drei gestrandete Langboote, beschaedigt",
+    "die Werkzeuge und Esse der Zunft",
+    "wenige Schriftrollen und ein Buch aus Khar",
+    "die Waffen und Ruestungen der Orkschar",
+    "ein Buendel Saatkorn, fast die letzte Hoffnung der Versorger"
+  ],
+  "verfassung": {
+    "text": "Eine Versammlungsordnung im Werden. Die Gestrandeten entscheiden folgenreiche Fragen durch Mehrheitsbescheid des Rates. Der oder die Erste stellt die Frage, stimmt mit und gibt bei Gleichstand den Ausschlag; ein Veto gegen die Mehrheit bleibt moeglich, kostet aber Loyalitaet. Aus dem bruechigen Treck dreier Voelker wird so ein Volk mit gemeinsamem Recht."
+  },
+  "beziehungenAnsehen": {
+    "text": "Ansehen 1: nach der Rede im Schnee nennen die Leute die oder den Ersten 'Funke im Schnee', die Hand, die das Volk zu einem Feuer entzuendete. Nach aussen bleiben die Gestrandeten unbekannt."
+  },
+  "historie": [
+    {
+      "kapitel": 1,
+      "jahre": "vor Jahr 1",
+      "zusammenfassung": "Die Flucht von Khar: als das Finstere die Heimat verschlang, brachen Reste dreier Voelker - Orks, Elfen, Humanoide und Menschen - gemeinsam ueber die Schwarze See auf. Stuerme und Verluste; von vielen Booten erreichten drei eine unbekannte, neblige Insel. Hier beginnt alles neu."
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Fruehling-Sommer",
+      "zusammenfassung": "Landung in Graulandung. Der Treck gibt sich den Mehrheitsbescheid als erste Ordnung. Erste Tat: die Insel erkundet, ein Wall aus Wrackholz, der Hunger gebremst; entdeckt werden die zersplitterten Schaedelklans, das wachende Volk der Stillen und naechtliche Spuren des Stillen. Zum Sommer faellt der erste Schlag: ein Schaedelklan-Ueberfall, vom Wall gebremst, doch mit Toten und verbrannten Speichern - und der Stille verschwindet zu den Raeubern."
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Herbst-Winter",
+      "zusammenfassung": "Statt zurueckzuschlagen graebt sich das Volk ein: Steinwall, Graben, Tor und ein stehendes Spaehnetz. Der Lohn zeigt sich, als der grosse Klan in voller Zahl stuermt - gewarnt und verschanzt wirft Graulandung ihn blutig zurueck (Volk und Armee bluten, Vorrat halb verzehrt), und Grask haelt endlich seinen Kampf. Doch beim Materialholen kreuzen Holzfaeller das Grenzmal der Stillen; vier sterben lautlos, und die bisher nur Wachenden werden zum zweiten Feind. Im ersten Schnee schmiedet die oder der Erste das Volk mit einer Rede zu einem Feuer gegen das Finstere - 'Funke im Schnee' - und der Winter mit seinen Lebenswuerfen beginnt."
+    }
+  ],
+  "offeneFaeden": [
+    "Eisen und Zauber, Hand in Hand: der Rat beschloss einstimmig den Pfad 'Die zwei Lichter' (Setzung). Beide wirken nun nebeneinander, der Riss ist zur Staerke geworden (+1, wenn sie zusammenwirken). Offen bleibt der harte Weg - Zauber IM Eisen, gegen die Wesensart (-2) -, den man spaeter gehen koennte, wenn das Volk tiefe Einigkeit findet; und die Stummen Ringe als ungenutzte, gefuerchtete Quelle starken Zaubers.",
+    "Grask glueht: das Volk will nun kaempfen, sein Drang findet endlich Widerhall.",
+    "Der grosse Schaedelklan greift aus: ein Vortrupp hat im Fruehling die Erzklippen besetzt und das Erz fuer Borins Wurfmaschinen hinter Speere gelegt (Volk 217). Der Haupttross sammelt sich weiter im Nebel, sein Ort noch verborgen - Yssas Fernes Sehen koennte ihn finden. Endlich ein greifbares Ziel fuer Grasks zugesagten Hieb, aber der sichere erste Zug, das Erz, ist nun umkaempft - und nach der entdeckten Kundschaft ist der Vortrupp voll alarmiert und erwartet einen Stoss aufs Erz.",
+    "Der Stille dient den Klan-Wachen als Auge gegen den Zauber: er spuerte Yssas Fernes Sehen und liess die Spaeher stellen. Gegenspieler der zwei Lichter - und vielleicht der Faden, an dem etwas Kaltes und Fernes (das Finstere?) nun zurueckblickt. Yssa schweigt darueber, was sie beruehrt hat.",
+    "Die Stillen sind provoziert: das gekreuzte Grenzmal hat sie zum zweiten Feind gemacht - Suehne, Ruecksicht oder Krieg?",
+    "Die Stummen Ringe sind unberuehrt; Yssas Pfad zur Magie wartet - und sie fuerchtet, man habe das Falsche geweckt.",
+    "Das Finstere ist nun der erklaerte Feind des Volkes (Setzung 'Das Feuer in der Nacht') - eine Sache, fuer die man noch viel zu schwach ist.",
+    "Knappes Material: die Tuerme haben den Vorrat verbraucht, und der Nachschub aus dem Wald ist nun zu gefaehrlich.",
+    "Alde sah Trauer zur Waffe werden und ist innerlich auf Distanz (Loyalitaet 1) - das Gewissen des Volkes mahnt.",
+    "Eine winterliche Atempause: der Krieg liegt im Frost, Alde lebt (Lebenswurf 7). Im Fruehling kommen die Feinde wieder - die Zeit jetzt ist die einzige, sie zu nutzen."
+  ],
+  "trends": {
+    "nahrung": {
+      "richtung": "steigend",
+      "grund": "Maras klare Winterzehrung legte ohne Verlust eine Reserve fuers Saatkorn zurueck; satt und gesund in den Fruehling"
+    },
+    "material": {
+      "richtung": "gleichbleibend",
+      "grund": "Erz in den Klippen, Holz im Wald, noch kaum gefoerdert"
+    },
+    "wissen": {
+      "richtung": "steigend",
+      "grund": "die Insel gibt ihre Naehe preis; die Spaeher bringen Wissen heim"
+    }
+  },
+  "runde": {
+    "haupt": {
+      "used": 1,
+      "max": 1
+    },
+    "neben": {
+      "used": 0,
+      "max": 2
+    },
+    "aktionen": [
+      {
+        "id": "klippen-auskundschaften",
+        "art": "haupt",
+        "titel": "Den Feind auskundschaften",
+        "kern": "Auge, Spaeher, Klippen",
+        "folge": "Vesks Spaeher pirschen an die Erzklippen, Yssas Fernes Sehen reicht, wohin keine Fuesse koennen: Staerke des Vortrupps, Ort und Absicht des Haupttrosses - dann entscheidet der Rat nach der Lage.",
+        "ziel": 6,
+        "mod": 2,
+        "status": "gewaehlt",
+        "wurf": 1,
+        "ergebnis": "Kritischer Rueckschlag (natuerliche 1): Der Stille bei den Klan-Wachen spuerte Yssas Sehen und liess die Spaeher an den Klippen stellen - zwei gefallen (Wehr 78), kein verwertbares Bild von Staerke oder Plan. Schlimmer: Yssas Auge streifte durch den Stillen etwas Kaltes und Fernes, das zurueckblickte. Der Vortrupp ist nun voll alarmiert."
+      }
+    ]
+  },
+  "setzungen": [
+    {
+      "titel": "Wesensart: Aus Vielen geschmiedet",
+      "text": "+2, wo Vielfalt der Talente, Improvisation und Anpassung ans Unbekannte zaehlen. -2, wo tiefe Einigkeit, Tradition oder einmuetiges, geschlossenes Handeln gefragt ist - der Treck ist kein gewachsener Stamm."
+    },
+    {
+      "titel": "Eisen gegen Zauber",
+      "text": "Diese Welt kennt schwache Magie (gefuehrt als Disziplinen) und aufstrebende Technik. Beide stehen in Spannung; Eisen ertoetet nach altem Glauben den Zauber. Welcher Pfad das Volk traegt, ist offen und wird im Spiel entschieden."
+    },
+    {
+      "titel": "Das Finstere",
+      "text": "Ueber der See verschlingt eine gesichtslose Schattenmacht das Festland Khar und greift langsam aus. Sie ist kein Heer, das man schlaegt, sondern ein wachsender Schrecken; Beruehrte kommen veraendert zurueck. Der grosse ferne Schatten ueber der ganzen Partie."
+    },
+    {
+      "titel": "Der Mehrheitsbescheid",
+      "text": "Eingefuehrt in Kapitel 1, Fruehling Jahr 1. Die Gestrandeten entscheiden gemeinsam: jede folgenreiche Frage wird im Rat zur Abstimmung gestellt, es entscheidet die Mehrheit. Der oder die Erste stellt die Frage, stimmt mit und gibt bei Gleichstand den Ausschlag. Ein Veto gegen die Mehrheit bleibt moeglich, kostet aber Loyalitaet, denn es bricht die vereinbarte Ordnung. Zweck: aus dem bruechigen Treck ein Volk mit gemeinsamem Recht machen und jeder Stimme echtes Gewicht geben."
+    },
+    {
+      "titel": "Das Feuer in der Nacht",
+      "text": "Eingefuehrt in Kapitel 1, Herbst Jahr 1, durch die Rede der oder des Ersten im Schnee. Die Gestrandeten verstehen sich als ein Feuer gegen das Finstere: drei Voelker, ein Feind, ein Licht in der Dunkelheit. Wirkung: +1 auf Machtproben, die das Volk gegen das Finstere einen oder zur gemeinsamen Wehr aufrufen. Preis: das Volk ist auf einen Feind eingeschworen, den es noch lange nicht schlagen kann, und Trauer wurde zu Zorn geschmiedet, eine Sorge Aldes."
+    },
+    {
+      "titel": "Die zwei Lichter",
+      "text": "Eingefuehrt in Kapitel 1, am Ende des Winters Jahr 1, per Mehrheitsbescheid (6:0), nach dem Wettstreit der Lichter. Eisen und Zauber wirken bei den Gestrandeten nebeneinander, jedes in seiner Staerke, statt zu streiten oder sich zu verschmelzen: Borins Hand baut, Yssas Auge sieht, und das eine zielt das andere. Wirkung: +1, wenn Eisen und Zauber in einer Sache zusammenwirken (etwa Yssas Fernes Sehen, das Borins Wurfmaschinen oder Grasks Hieb ein Ziel gibt). Der harte Weg - Zauber IM Eisen, gegen die Wesensart (-2) - bleibt fuer spaeter offen, wenn das Volk je tiefe Einigkeit findet. Zweck: aus der Spannung Eisen gegen Zauber eine Staerke machen, ohne die Stummen Ringe zu wecken."
+    }
+  ],
+  "lebenswelt": {
+    "leben": {
+      "stimmung": "entflammt und trotzig, 'ein Feuer in der Nacht'; erschoepft, doch satt und zum ersten Mal geeint",
+      "nahrung": "geraeucherter Fisch, Doerrwild, Wurzeln und Muscheln; seit dem Winter eine Reserve fuers Saatkorn",
+      "trinken": "Quellwasser und Schmelzschnee, heisse Bruehe, sauer Beergebraeu",
+      "glaube": "drei Voelker, drei alte Glauben, die sich am gemeinsamen Feuer mischen; aus der Rede im Schnee wuchs ein neuer, geteilter: das Feuer in der Nacht gegen das Finstere",
+      "alltag": "bei Tag Wall, Esse, Netze und Felder; abends mischen sich am grossen Feuer die Lieder der Voelker",
+      "braeuche": [
+        "das grosse Feuer darf nie ausgehen",
+        "Totenwache und Aldes Gedaechtnis der Geflohenen",
+        "folgenreiche Fragen fallen im Mehrheitsbescheid des Rates"
+      ]
+    },
+    "siedlungen": [
+      {
+        "name": "Graulandung",
+        "hauptstadt": true,
+        "typ": "Hauptstadt",
+        "gegruendet": "Kapitel 1, Jahr 1",
+        "prompt": "Eine Feldskizze in Tusche und Kohle: die kleine Festungssiedlung Graulandung in einer grauen Kieselbucht im Schnee. Ein niedriger Steinwall mit Wallgraben und schwerem Torhaus, an den Ecken hoelzerne Spaehtuerme; dahinter eng gedraengte, halb eingegrabene Huetten aus Torf, Stein und Bootsplanken, Rauch aus den Daechern. Am Kiesstrand drei halb ausgeschlachtete Langboote. Im Norden steile schwarze Erzklippen, im Westen die Wand des Nebelwaldes, im Osten die dunkle See mit Eisraendern. Gedaempftes Asche- und Eisengrau, ein warmer Erdton im Feuerschein.",
+        "lage": "graue Kieselbucht; Erzklippen im Norden, Nebelwald im Westen, die Schwarze See im Osten",
+        "bauten": [
+          "Steinwall mit Wallgraben",
+          "schweres Torhaus",
+          "Spaehtuerme",
+          "volle Speicher",
+          "die Ratshalle",
+          "Borins Esse",
+          "Huetten aus Torf, Stein und Bootsplanken"
+        ],
+        "versorgung": "geraeucherter Fisch, Doerrwild, Wurzeln, Muscheln; Wasser, Schmelzschnee, heisse Bruehe, sauer Beergebraeu",
+        "stimmung": "entflammt, 'Feuer in der Nacht'; eng, kalt, von Feinden umstellt, doch satt und geeint",
+        "beschreibung": "Arm, eng und kalt, von Feinden umstellt - und doch zum ersten Mal ein Ort, an dem Menschen dreier Voelker satt am selben Feuer sitzen und sich ein Volk nennen. Orks am Tor, Zunftleute an der Esse, Versorger an den Netzen, der kleine Zirkel der Elfen abseits bei den Klippen; abends mischen sich am grossen Feuer ihre Lieder. Seit der Rede im Schnee traegt das Lager einen trotzigen Stolz: ein Feuer in der Nacht."
+      }
+    ]
+  },
+  "karte": {
+    "prompt": "Alte, vergilbte Seekarte einer unerforschten Insel im grimdunklen Stil, Tusche und Kohle auf Pergament, Nebelraender und weisse unerforschte Flecken. Im Zentrum der Kuestenstreifen Graulandung mit drei gestrandeten Langbooten. Landeinwaerts der dichte, daemmrige Nebelwald (Reich der Stillen und der Schaedelklans). Im Norden schroffe Erzklippen. Im Sueden, im Hoehenland, die Stummen Ringe, alte Steinkreise einer toten Macht. Im Osten, ueber der Schwarzen See, der Horizont gen Khar, aus dem das Finstere kommt: erloeschende Feuer und schwarze Segel. Kompassrose, Seeungeheuer am Kartenrand, gedaempfte Asche- und Eisentoene.",
+    "orte": [
+      {
+        "id": "graulandung",
+        "name": "Graulandung",
+        "typ": "Lager am Strand",
+        "richtung": "Zentrum, Kueste",
+        "beziehung": "das Lager der Gestrandeten, drei beschaedigte Boote am Kies"
+      },
+      {
+        "id": "nebelwald",
+        "name": "der Nebelwald",
+        "typ": "Urwald",
+        "richtung": "landeinwaerts, Westen",
+        "beziehung": "dicht und daemmrig, Reich der Stillen und der Schaedelklans"
+      },
+      {
+        "id": "erzklippen",
+        "name": "die Erzklippen",
+        "typ": "Steilkueste",
+        "richtung": "Norden",
+        "beziehung": "schroffe Klippen mit Erzadern, Schutz und Material"
+      },
+      {
+        "id": "stumme-ringe",
+        "name": "die Stummen Ringe",
+        "typ": "alte Ruinen",
+        "richtung": "Hoehenland, Sueden",
+        "beziehung": "Steinkreise einer toten Macht, Zauber und Gefahr"
+      },
+      {
+        "id": "schwarze-see",
+        "name": "die Schwarze See gen Khar",
+        "typ": "Meer",
+        "richtung": "Osten, ueber See",
+        "beziehung": "der Weg, den sie kamen; von dort kommt das Finstere"
+      },
+      {
+        "id": "grenzmal",
+        "name": "das Grenzmal der Stillen",
+        "typ": "Steinmal",
+        "richtung": "Waldrand, Westen",
+        "beziehung": "ein gesetzter Stein, an dem das Gebiet der Stillen beginnt; Vesk fand ihn frisch gepflegt"
+      }
+    ]
+  }
+}

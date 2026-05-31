@@ -122,7 +122,8 @@
           "id": { "$ref": "#/definitions/id" },
           "name": { "type": "string" },
           "sprecherId": { "type": "string" },
-          "kompetenz": { "type": "string" }
+          "kompetenz": { "type": "string" },
+          "bild": { "$ref": "#/definitions/portrait" }
         }
       }
     },
@@ -177,7 +178,8 @@
               "label": { "type": "string" }
             }
           },
-          "haltung": { "type": "string" }
+          "haltung": { "type": "string" },
+          "bild": { "$ref": "#/definitions/portrait" }
         }
       }
     },
@@ -311,6 +313,47 @@
               "zeit": { "type": "string" },
               "zahl": { "type": "integer" },
               "anlass": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "lebenswelt": {
+      "type": "object",
+      "description": "Die Lebenswelt des Volkes als Oberbegriff: wie die Bevölkerung lebt (über alle Siedlungen) und die einzelnen Siedlungen samt Hauptstadt. Wächst mit: spätere Siedlungen kommen als weitere Einträge in 'siedlungen' hinzu. Die Bevölkerungszahl bleibt in grundgroessen.bevoelkerung; hier wird sie nur gespiegelt.",
+      "properties": {
+        "leben": {
+          "type": "object",
+          "description": "Wie das Volk lebt, über alle Siedlungen hinweg: kurze Stichzeilen, keine Episodenprotokolle.",
+          "properties": {
+            "stimmung": { "type": "string" },
+            "nahrung": { "type": "string" },
+            "trinken": { "type": "string" },
+            "glaube": { "type": "string", "description": "Religion, Glaube, Weltbild der Bevölkerung." },
+            "alltag": { "type": "string" },
+            "braeuche": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "siedlungen": {
+          "type": "array",
+          "description": "Die Siedlungen des Volkes. Genau eine sollte 'hauptstadt': true tragen. Feldnamen sind mit dem älteren 'siedlung'-Objekt kompatibel.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "name": { "type": "string" },
+              "typ": { "type": "string", "description": "Art der Siedlung, z. B. 'Hauptstadt', 'Lager am Strand', 'Außenposten'." },
+              "hauptstadt": { "type": "boolean" },
+              "gegruendet": { "type": "string" },
+              "lage": { "type": "string", "description": "Geografische Lage in einem Satz." },
+              "beschreibung": { "type": "string", "description": "Stimmungsabsatz: wie die Siedlung aussieht und wirkt." },
+              "stimmung": { "type": "string" },
+              "versorgung": { "type": "string", "description": "Was man hier isst und trinkt." },
+              "bauten": { "type": "array", "items": { "type": "string" }, "description": "Gebäude und Anlagen als knappe Liste." },
+              "eigenschaften": { "type": "array", "items": { "$ref": "#/definitions/kennwert" } },
+              "prompt": { "type": "string", "description": "Optionaler Bild-Prompt; sonst wird er aus den Feldern gebaut." },
+              "bild": { "$ref": "#/definitions/portrait" }
             }
           }
         }
