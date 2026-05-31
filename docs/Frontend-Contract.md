@@ -125,6 +125,7 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`, `rc.history` (Verlauf für Auto-Restore und Kapitel-Historie).
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.
 - Export-Bundle: `[data-testid="export-btn"]` erzeugt einen Download eines JSON-Stands mit eingebetteten `portrait.dataUrl`; Import erkennt `dataUrl` und füllt den Cache (kein API-Call). E2E prüft den Roundtrip über das Cache-Verhalten.
+- Export bettet zusätzlich ein: das jeweils **gewählte** Bild jeder Entität als deren primäres `dataUrl` (Berater `portrait`, Armee `bild`, Verband `avatar`, Macht/Gruppe/Siedlung `bild`), die **Ereignis-Bilder** der Historie (`historie[].bild.dataUrl`) und — als Frontend-eigenes Feld — die volle **Bild-Chronik** unter `bildChronik` (`{ [identity]: { aktiv, versionen: [{ key, label, savedAt, dataUrl }] } }`, identity z. B. `berater:<id>` oder `armee`). Beim Laden spielt `restoreBildChronik` diese Versionen in IndexedDB + die localStorage-Listen zurück, sodass fortgeschriebene Bilder samt allen Ständen auf einem fremden Browser (GitHub Pages) erscheinen und durchblätterbar sind. `bildChronik` gehört dem Frontend (das Schema lässt am Root zusätzliche Felder zu).
 
 ---
 

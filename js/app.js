@@ -1008,13 +1008,51 @@ async function hydrateImages(state) {
     if (cached) img.src = cached;
   }
 
-  // Ereignis-Bilder der Historie (Text-zu-Bild, keine aktive Version).
-  for (const [, h] of (state.historie || []).entries()) {
+  // Ereignis-Bilder der Historie (Text-zu-Bild, keine aktive Version). Auf einem
+  // fremden Browser (Pages-Besucher) liegt nichts im Cache; dann das im Stand
+  // eingebettete h.bild.dataUrl nehmen und in den Cache spiegeln.
+  for (const h of state.historie || []) {
     if (!h.bild) continue;
     const img = ereignisImg(h.jahre);
     if (!img || img.getAttribute('src')) continue;
-    const cached = await cacheGet(ereignisKey(h, state));
-    if (cached) img.src = cached;
+    const key = ereignisKey(h, state);
+    const cached = await cacheGet(key);
+    if (cached) {
+      img.src = cached;
+    } else if (h.bild.dataUrl) {
+      img.src = h.bild.dataUrl;
+      cachePut(key, h.bild.dataUrl);
+    }
+  }
+}
+
+// Spielt eine im Stand eingebettete Bild-Chronik (Export-Bundle, Feld
+// bildChronik) in den lokalen Cache und die localStorage-Listen zurück, damit
+// fortgeschriebene Bilder samt allen Versionen auch auf einem fremden Browser
+// (GitHub Pages) erscheinen und durchblätterbar sind. Idempotent und nur je
+// Identität einmal pro Sitzung, damit der Live-Modus es nicht bei jedem Render
+// wiederholt. bildChronik gehört dem Frontend (additionalProperties offen).
+const bildChronikRestauriert = new Set();
+async function restoreBildChronik(state) {
+  const chronik = state && state.bildChronik;
+  if (!chronik || typeof chronik !== 'object') return;
+  for (const [identity, eintrag] of Object.entries(chronik)) {
+    if (bildChronikRestauriert.has(identity)) continue;
+    const versionen = Array.isArray(eintrag?.versionen) ? eintrag.versionen : [];
+    if (!versionen.length) continue;
+    bildChronikRestauriert.add(identity);
+
+    const liste = verList(identity);
+    const bekannt = new Set(liste.map((v) => v.key));
+    for (const v of versionen) {
+      if (!v || !v.key) continue;
+      if (v.dataUrl) await cachePut(v.key, v.dataUrl);
+      if (!bekannt.has(v.key)) {
+        verPush(identity, { key: v.key, label: v.label || 'Stand', savedAt: v.savedAt || 0 });
+        bekannt.add(v.key);
+      }
+    }
+    if (eintrag.aktiv && !aktGet(identity)) aktSet(identity, eintrag.aktiv);
   }
 }
 
@@ -1063,6 +1101,62 @@ async function onExport() {
     if (cached) bundle.siedlung.bild = { ...(bundle.siedlung.bild || {}), dataUrl: cached };
   }
 
+  // Ereignis-Bilder der Historie einbetten (Text-zu-Bild je Jahreszeit).
+  for (const h of bundle.historie || []) {
+    if (!h.bild) continue;
+    const cached = await cacheGet(ereignisKey(h, state));
+    if (cached) h.bild = { ...h.bild, dataUrl: cached };
+  }
+
+  // Fortgeschriebene Bilder: die volle Bild-Chronik je Identität einbetten
+  // (alle Versionen mit dataUrl + die aktive Wahl), damit sie auf einem fremden
+  // Browser (Pages) durchblätterbar sind. Zusätzlich das gewählte Bild als
+  // primäres dataUrl der Entität setzen, damit es auch ohne Restore sofort zeigt.
+  const bildChronik = {};
+  const alleVersionen = jsonLS(VER_NS, {});
+  for (const [identity, liste] of Object.entries(alleVersionen)) {
+    if (!Array.isArray(liste) || !liste.length) continue;
+    const aktiv = aktGet(identity);
+    const versionen = [];
+    for (const v of liste) {
+      const dataUrl = await cacheGet(v.key);
+      versionen.push({ key: v.key, label: v.label, savedAt: v.savedAt, ...(dataUrl ? { dataUrl } : {}) });
+    }
+    bildChronik[identity] = { aktiv: aktiv || null, versionen };
+  }
+  if (Object.keys(bildChronik).length) bundle.bildChronik = bildChronik;
+
+  // Das jeweils gewählte (aktive) Bild als primäres dataUrl der Entität ablegen,
+  // damit ein Pages-Besucher ohne lokalen Restore sofort die aktuelle Wahl sieht.
+  const aktivUrl = async (identity) => {
+    const k = aktGet(identity);
+    return k ? cacheGet(k) : null;
+  };
+  for (const b of bundle.berater || []) {
+    const u = await aktivUrl(`berater:${b.id}`);
+    if (u) b.portrait = { ...(b.portrait || {}), dataUrl: u };
+  }
+  if (bundle.armee) {
+    const u = await aktivUrl('armee');
+    if (u) bundle.armee.bild = { ...(bundle.armee.bild || {}), dataUrl: u };
+    for (const v of bundle.armee.verbaende || []) {
+      const vu = await aktivUrl(`verband:${v.id}`);
+      if (vu) v.avatar = { ...(v.avatar || {}), dataUrl: vu };
+    }
+  }
+  for (const m of bundle.maechte || []) {
+    const u = await aktivUrl(`macht:${m.id}`);
+    if (u) m.bild = { ...(m.bild || {}), dataUrl: u };
+  }
+  for (const gr of bundle.gruppen || []) {
+    const u = await aktivUrl(`gruppe:${gr.id}`);
+    if (u) gr.bild = { ...(gr.bild || {}), dataUrl: u };
+  }
+  for (const s of bundle.lebenswelt?.siedlungen || []) {
+    const u = await aktivUrl(`siedlung:${siedlungId(s)}`);
+    if (u) s.bild = { ...(s.bild || {}), dataUrl: u };
+  }
+
   const name = (state.meta?.spielname || 'stand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1084,6 +1178,7 @@ function wire() {
     pendingDelta = null;
     renderAll(state, delta);
     applyRoute();
+    restoreBildChronik(state).then(() => hydrateImages(state));
     hydrateImages(state);
     refreshHistorySelect();
   });
