@@ -55,7 +55,8 @@ Konstitutive Begriffe dieser Partie und des Systems. Wo eine Skala genannt ist, 
 - **Der Mehrheitsbescheid**: die Verfassung dieser Partie. Folgenreiche Fragen entscheidet die Mehrheit des Rates; der oder die Erste stellt die Frage, stimmt mit, gibt bei Gleichstand den Ausschlag; ein Veto kostet Loyalität.
 - **Runde / Weltereignis**: die Zeiteinheit; zu ihrem Beginn wird ein Weltereignis gewürfelt. "Runde offen, Weltereignis offen" heißt: noch nicht gewürfelt.
 - **Kapitel**: ein größerer Erzählbogen über mehrere Jahre. Die Partie steht in Kapitel 1.
-- **Disziplin**: eine erschlossene Form der schwachen Magie, ein echter Hebel mit Preis. Noch keine erschlossen; Yssas Pfad zu den Stummen Ringen wartet.
-- **Das Finstere**: die gesichtslose Schattenmacht über See, die Khar verschlang. Der große ferne Schatten der Partie. Siehe [regeln-gestrandete.md](regeln-gestrandete.md).
-- **Khar**: das verlorene Festland jenseits der Schwarzen See, die alte Heimat, vom Finsteren verschlungen.
-- **Generation / Lebensstand**: Alter als Spielgröße. Rüstig, Lebensabend (−1 auf eigene Feldaktionen), Hinfällig (−2), Tod. Nur Alde Graumahl steht im Lebensabend.
+- **Disziplin**: eine erschlossene Form der schwachen Magie, ein echter Hebel mit Preis. Erste erschlossen: **Das Verhüllen** (Frühling J2, schirmende Magie aus Aldes Buch aus Khar, nicht den Ringen). Yssas Pfad zu den Stummen Ringen — der „harte Weg" — bleibt bewusst gemieden.
+- **Das Finstere**: die gesichtslose Schattenmacht über See, die Khar verschlang. Der große ferne Schatten der Partie — seit Frühling J2 **nicht mehr blind** (es erblickte durch den verbrannten Stillen die Insel; Henk ist der erste Berührte). Siehe [regeln-gestrandete.md](regeln-gestrandete.md).
+- **Die zwei Feuer**: die Identitätsachse seit Jahr 2. **Das reinigende Feuer** (Härte, +Eifer/−Gnade gegen das Finstere) gegen **Das Feuer, das wärmt** (Mut und Zusammenhalt). Beide gelten als Setzung; das Volk wählt von Fall zu Fall. Siehe [regeln-gestrandete.md](regeln-gestrandete.md).
+- **Khar**: das verlorene Festland jenseits der Schwarzen See, die alte Heimat, vom Finsteren verschlungen. Der Bewahrer **Eskil Buchwart** kam mit dem vierten Boot (Sommer J2) von dort, ein Augenzeuge des Falls.
+- **Generation / Lebensstand**: Alter als Spielgröße. Rüstig, Lebensabend (−1 auf eigene Feldaktionen), Hinfällig (−2), Tod. Im Lebensabend stehen Alde Graumahl und der neu gelandete Eskil Buchwart.

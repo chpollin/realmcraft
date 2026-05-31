@@ -60,24 +60,31 @@ Alle Bilder sind im selben Stil gedacht: Tuschelavierung und Kohle auf getöntem
 
 ---
 
+## Neben dem Rat: Eskil Buchwart — Bewahrer aus Khar
+
+**Das Bild.** Mit dem vierten Boot gelandet (Sommer J2), ein hagerer alter Mann, vom Hunger gezeichnet, in derselben Tusche-und-Kohle-Skizze wie die Übrigen — doch um ihn liegt etwas Salzwasserzerstörtes, als hätte die See ihn beinahe behalten. Die schwere ledergebundene Truhe voll geretteter Schriften presst er an die Brust; sie ist sein Glanzpunkt und sein Erdton-Akzent (abgegriffenes Leder, wie bei Aldes Buch). Wache, traurige Augen.
+
+**Der Bogen.** Eskil ist kein Sprecher des Rates, aber das vielleicht folgenreichste neue Gewicht: der **Einzige, der das Finstere aus eigener Anschauung kennt**, weil er sah, wie es Khar nahm. Seine These — Khar wurde dem gleich, wovor es floh; das Finstere kommt durch Furcht und Härte, nicht über die Mauer — gebar die Setzung „Das Feuer, das wärmt" und stellt sich damit gegen das reinigende Feuer. Sein Wissen (die Truhe) ist ein ungehobener Hebel auf **Wissen** und gegen den Feind, besonders jetzt, da mit Henk der erste Berührte im Lager ist. Als alter Gefährte Aldes ist er zugleich ihr Trost und die Stimme, die ihrer Mahnung Autorität gibt. Mögliche Enden: der Lehrer, der dem Volk beibringt, den Feind zu überleben, ohne ihm zu gleichen — oder der Unglücksbote, dessen Wissen zu spät kommt, und der (im Lebensabend wie Alde) stirbt, ehe die Truhe ganz gelesen ist.
+
 ## Das Ensemble: woran die Bögen sich entzünden
 
 - **Eisen gegen Zauber** (Borin / Yssa): das ideologische Schisma, das der Mehrheitsbescheid immer wieder zur Abstimmung zwingt. An ihnen entscheidet sich die Ausrichtung — wovon das Volk glaubt, dass es es rettet.
 - **Gewalt gegen Vorsicht** (Grask gegen Mara und Alde): die Überlebens-Ethik. Zuschlagen oder sichern, erobern oder siedeln.
-- **Der Stille**: die Horror- und Verrats-Saat. Alde und Vesk stehen am nächsten daran, ihn aufzudecken; was er ist, kann ein ganzes Kapitel tragen.
+- **Der Berührte** (vormals „der Stille"): die Horror-Saat. Der erste Stille ist geklärt und verbrannt — doch durch ihn sieht das Finstere nun die Insel, und mit Henk steht der erste eigene Berührte im Lager. Was mit den Berührten geschieht, trägt das Kapitel und schärft die zwei Feuer.
 - **Generationen**: Alde (alt, bald sterblich), die Mitte (Grask, Borin, Mara), die Jugend (Vesk) und das Kind Tila. Nachfolge und Wandel sind von Anfang an Thema.
 - **Die Logik der Eigendynamik**: Unter dem Mehrheitsbescheid und der Charaktermechanik wird jeder Berater irgendwann gegen die oder den Ersten handeln, wenn sein Ziel es verlangt — Grask durch Gewalt, Yssa durch den Bund mit einer Macht, die sie nicht rufen sollte, Mara durch ihr Nein, Borin durch Eifer. Das ist kein Defekt, das ist der Motor der Partie.
 
 ---
 
-## Stand der Bögen (Frühling Jahr 2)
+## Stand der Bögen (Herbst Jahr 2)
 
 Wo die Porträts oben Möglichkeit sind, hält dieser Abschnitt fest, was die Partie bis hierher eingelöst hat. Die Zahlen führt der Speicherstand; hier steht die Richtung.
 
-- **Grask** ist durch die Rede „Feuer in der Nacht" eingebunden und glüht; er hielt den Wall im Herbst und hat den „Hieb im Frühling" zugesagt. Sein Bogen läuft nun auf die Frage zu, ob der kommende Klan-Sturm sein Reifen oder sein Sturz wird.
-- **Yssa** rückte vom Rand zur Mitte (Loyalität fern → nah). Im Wettstreit der Lichter geehrt, ist ihr Fernes Sehen fester Teil des Plans „Die zwei Lichter"; zu den Stummen Ringen muss sie vorerst nicht. Der Disziplin-Bogen wartet weiter — jetzt als bewusst gemiedener „harter Weg".
-- **Borin** bekam Erz und Maschinen; das Schisma mit Yssa kühlte zu Respekt, nicht Sieg. Baumeister oder spröder Eiferer bleibt offen — aber er duldet nun den Zauber neben sich.
-- **Mara** wurde durch ihren klaren Winter-Erfolg (die Zehrung) zur bewährten Stimme des Überlebens. Ihr Scharnier kommt im Frühling: die erste Aussaat des Saatkorns.
-- **Vesk**: seine Winter-Kundschaft scheiterte am gewarnten Klan — der erste Riss in seiner Kompetenz, ein Fehlschlag, den sein Reifungsbogen verarbeiten muss.
-- **Alde**: der Riss zur oder zum Ersten seit der Rede ist geheilt — sie billigte den maßvollen Pfad und rückte näher (Loyalität fern → nah). Sie überstand den ersten Lebenswurf (7); ihr Sterblichkeitsbogen läuft weiter, doch sie ist nun Verbündete statt Mahnerin auf Distanz.
-- **Das Schisma Eisen↔Zauber** wandelte sich von offener Feindschaft zu „Hand in Hand" (Setzung „Die zwei Lichter"), die positive Form der Vielfalt. Der „harte Weg" — Verschmelzung, die Ringe — bleibt als künftiger Konflikt offen.
+- **Grask** glüht (Loyalität 4) und hielt den Wall ein zweites Mal. Nach dem Scheiterhaufen ist er der klarste Verfechter des **reinigenden Feuers** — für ihn ist Stärke eine Axt, nicht ein Wir; bei der Rede „Was uns stark macht" verschränkte er die Arme. Sein Bogen läuft auf die Frage zu, ob die Härte ihn zum Schild oder zur Klinge macht — und ob Henk sein Anlass wird, das Feuer zu fordern.
+- **Yssa** öffnete im Frühling J2 die **erste Disziplin „Das Verhüllen"** (aus Aldes Buch, nicht den Ringen). Doch am Scheiterhaufen hielt sie im Zentrum den Schleier und ist seither **tiefer gezeichnet** — das Finstere nennt sie „das offene Auge" und richtet die Aufmerksamkeit auf sie. Ihre Gabe ist Schild und Einfallstor zugleich; der „harte Weg" (die Ringe) bleibt gemieden, aber die Versuchung wächst.
+- **Borin** bekam Erz-Aussicht und Material (Nahbereich); das Schisma mit Yssa blieb zu Respekt gekühlt. Baumeister oder spröder Eiferer bleibt offen — der Außenposten am Erz ist sein nächstes großes Werk, sobald der Weg sicher ist.
+- **Mara** ist die bewährte Stimme des Überlebens; sie trug die Linie „erst Dach und Korn, dann Wissen" durch (Notunterkünfte, Material). Ihr Saatkorn-Scharnier steht weiter aus.
+- **Vesk**: seine Kundschaft scheiterte zweimal in Folge (Winter J1 am gewarnten Klan, Frühling J2 als kritischer Rückschlag an den Klippen), und auch die Sommer-Sicherung gelang nur halb. Ein echter Riss in seiner Kompetenz; sein Reifungsbogen drängt auf einen Erfolg.
+- **Alde** war seit dem Scheiterhaufen wieder **abgerückt** (Loyalität 1) — sie ging unter Protest von der Flamme. Die Rede „Das Feuer, das wärmt" und vor allem die **Rückkehr ihres totgeglaubten Gefährten Eskil** mit dem vierten Boot haben sie ein Stück zurückgewonnen (Loyalität 2); ganz geschlossen ist der Riss nicht, solange das reinigende Feuer gilt. Lebenswurf 1 überstanden.
+- **Die zwei Feuer**: aus „Eisen gegen Zauber → Hand in Hand" ist die neue Achse der Identität geworden — **reinigendes Feuer (Härte) gegen das Feuer, das wärmt (Mut/Gemeinschaft)**. Beide gelten; Grask zieht zum einen, Alde und Eskil zum anderen. Henk, der erste Berührte, ist der erste Prüfstein.
+- **Eskil** ist neu (siehe oben): der Augenzeuge des Finsteren, dessen ungehobene Truhe der nächste große Wissens-Hebel ist.

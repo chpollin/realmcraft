@@ -24,7 +24,7 @@ Eine unbekannte Insel, neblig und still, der Wald landeinwärts dicht und beobac
 
 ## Orte
 
-- **Graulandung**, das Lager am Strand, Zentrum an der Küste: drei beschädigte Boote am grauen Kies; aus dem Wall aus Wrackholz ist eine Festungssiedlung geworden — Steinwall mit Graben, schweres Torhaus, Spähtürme, volle Speicher (Verteidigung 3).
+- **Graulandung**, das Lager am Strand, Zentrum an der Küste: drei (im Sommer J2 ausgeschlachtete) beschädigte Boote am grauen Kies, dazu das vierte, sturmzerschlagen gestrandete; aus dem Wall aus Wrackholz ist eine Festungssiedlung geworden — Steinwall mit Graben, schweres Torhaus, Spähtürme, volle Speicher (Verteidigung 3), seit Sommer J2 Notunterkünfte für die sechzehn Geretteten aus Khar. Die Erzklippen sind frei, aber der Weg dahin noch unsicher; der befestigte Außenposten am Erz ist geplant, nicht gebaut.
 - **Der Nebelwald**, Urwald landeinwärts im Westen: dicht und dämmrig, Reich der Stillen und der Schädelklans.
 - **Die Erzklippen**, Steilküste im Norden: schroffe Klippen mit Erzadern, Schutz und Material.
 - **Die Stummen Ringe**, alte Ruinen im Höhenland des Südens: Steinkreise einer toten Macht, Zauber und Gefahr. Yssas möglicher Pfad zur ersten Disziplin.
@@ -33,9 +33,9 @@ Eine unbekannte Insel, neblig und still, der Wald landeinwärts dicht und beobac
 
 ## Mächte und Beziehungen
 
-- **Das Finstere**, Schattenmacht über See. Todfeind, noch fern (−3). Frisst Khar, greift langsam über die See, sucht, was entkommen ist. Kein Heer, das man schlägt, sondern ein wachsender Schrecken. *Profil:* Reichweite +3, Hunger +3, doch kaum zu treffen (Gestalt zum Schlagen −2).
+- **Das Finstere**, Schattenmacht über See. Todfeind, noch fern (−3), doch **nicht mehr blind**: Durch den öffentlich verbrannten Stillen erblickte es im Frühling J2 die Insel, und im Herbst J2 zeigt sich die erste Frucht davon — der junge Fischer **Henk** kehrte verändert aus dem Nebel zurück, der erste Berührte unter den Gestrandeten (wie es in Khar begann, Eskil erkennt die Zeichen). Kein Heer, das man schlägt, sondern ein wachsender Schrecken, der nun einen Fuß im Lager hat. *Profil:* Reichweite +3, Hunger +3, doch kaum zu treffen (Gestalt zum Schlagen −2).
 - **Die Stillen**, altes Elfenvolk der Region. Erzürnt, eine Warnung in Blut (−2). Holzfäller der Gestrandeten kreuzten ihr Grenzmal; die Stillen töteten sie lautlos und dulden nun keinen Fuß mehr in ihrem Gebiet. *Profil:* Magie +3, Wissen der Insel +2, doch wenige (Zahl −2).
-- **Die Schädelklans**, wilde Inselorks. Offener Krieg (−3). Eine vertriebene Bande überfiel das Lager (Sommer J1), dann stürmte der große Klan in voller Zahl und wurde am Steinwall blutig zurückgeworfen (Herbst J1); geschlagen, nicht gebrochen, sammelt er sich nun gewarnt im Nebel zum Frühlingssturm. *Profil:* Wildheit +2, Zahl +1, doch zersplittert (Ordnung −2).
+- **Die Schädelklans**, wilde Inselorks. Gebrochen am Wall (−2). Eine vertriebene Bande überfiel das Lager (Sommer J1), der große Klan stürmte in voller Zahl und wurde am Steinwall blutig zurückgeworfen (Herbst J1); im Frühling J2 sammelte er sich neu und zerschellte ein **zweites Mal** an Graulandung. Nur versprengte, wilde Banden bleiben im Nebelwald — im Sommer J2 vertrieb Vesk eine davon, die übrigen halten sich verborgen und alarmiert, was den Weg zu den Erzklippen unsicher macht. Rache bleibt denkbar. *Profil:* Wildheit +2, Zahl +1, doch zersplittert (Ordnung −2).
 - **Das Eisenkonkordat**, Festland-Techmacht. Fern, ahnungslos voneinander (0). Expandiert über See, sucht Erz und Brückenköpfe, verachtet Zauber. *Profil:* Technik +3, Heer +2, doch blind für Zauber (Magie −2).
 
 Die Beziehungswerte führt der Speicherstand mit grobem Zahlenanker; die Haltung kann sich von Runde zu Runde verschieben.
@@ -46,4 +46,4 @@ Im Besitz des Volkes: die drei beschädigten Langboote, die Werkzeuge und Esse d
 
 ## Was offen bleibt
 
-Die Insel ist kaum erkundet. Was die Stillen hinter ihrem Grenzmal wollen, was in den Stummen Ringen wartet, wohin der Stille verschwand und ob das Finstere den Überfall geschickt hat, ist offenes Material der laufenden Partie (siehe [chronik-gestrandete.md](chronik-gestrandete.md)).
+Die Insel ist kaum erkundet. Was die Stillen hinter ihrem Grenzmal wollen, was in den Stummen Ringen wartet und wie weit das Finstere greifen kann, ist offenes Material der laufenden Partie. Der namenlose Stille ist geklärt — ein lebender Kanal des Finsteren, beim Klan-Sturm gefangen und im Frühling J2 öffentlich verbrannt; doch im Sterben öffnete er dem Feind den Blick auf die Insel (siehe Henk, den ersten Berührten). Siehe [chronik-gestrandete.md](chronik-gestrandete.md).
