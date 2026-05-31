@@ -22,6 +22,18 @@ function trendEl(trends, key) {
   });
 }
 
+// Trend in Worten und die qualitative Einordnung einer Grundgröße auf der
+// 0–5-Skala (0–2 niedrig, 3–5 hoch), dazu die Skala selbst als fünf Segmente.
+const TREND_WORT = { steigend: 'steigend', fallend: 'fallend', gleichbleibend: 'gleichbleibend' };
+const GG_WORT = ['Mangel', 'knapp', 'knapp gesichert', 'gesichert', 'reichlich', 'Überfluss'];
+function ggWort(v) { return GG_WORT[Math.max(0, Math.min(5, Math.round(v)))] || ''; }
+function skala05(v) {
+  const n = Math.max(0, Math.min(5, Math.round(v)));
+  const ton = n <= 2 ? ' low' : '';
+  return el('div', { class: 'stat-scale', 'aria-hidden': 'true' },
+    Array.from({ length: 5 }, (_, i) => el('span', { class: `seg${i < n ? ' on' : ''}${ton}` })));
+}
+
 const ICO = {
   nahrung: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 0-5 2.5-5 6 0 4 2 9 5 12 3-3 5-8 5-12 0-3.5-2-6-5-6z"/><path d="M12 9v8"/></svg>',
   material: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>',
@@ -62,27 +74,67 @@ export function renderLage(root, state, opts = {}) {
 
   const { grundgroessen = {}, lagewerte = {}, offeneFaeden = [] } = state;
 
-  // --- Grundgrößen ---
+  // --- Grundgrößen: Wert, 0–5-Skala mit Einordnung, Trend mit Begründung und die
+  // zugeordneten Quellen (Ausbeuten). Bevölkerung ist eine Kopfzahl mit Text.
   const bev = grundgroessen.bevoelkerung || {};
-  const stats = [
+  const trends = state.trends || {};
+  const ausbeuten = Array.isArray(lagewerte.ausbeuten) ? lagewerte.ausbeuten : [];
+  const skalaStats = [
     { k: 'nahrung', lab: 'Nahrung', val: grundgroessen.nahrung },
     { k: 'material', lab: 'Material', val: grundgroessen.material },
     { k: 'wissen', lab: 'Wissen', val: grundgroessen.wissen },
-    { k: 'bevoelkerung', lab: 'Bevölkerung', val: bev.zahl ?? bev.label ?? '–', sub: bev.label },
   ];
-  const statGrid = el('div', { class: 'stat-grid' },
-    stats.map((s) =>
-      el('div', { class: 'stat' }, [
+  // Ausbeuten gehören als Quelle zu ihrer Grundgröße (key gegen Label); was nicht
+  // passt, bleibt unten bei den Lagewerten stehen (keine Dopplung).
+  const matchedKeys = new Set(skalaStats.map((s) => s.lab.toLowerCase()));
+  const restAusbeuten = ausbeuten.filter((a) => !matchedKeys.has((a.key || '').toLowerCase()));
+  const quellenFuer = (lab) => ausbeuten.filter((a) => (a.key || '').toLowerCase() === lab.toLowerCase());
+
+  const trendZeile = (key) => {
+    const t = trends[key];
+    const info = t && TREND[t.richtung];
+    if (!info) return null;
+    return el('div', { class: `stat-trend trend-${info.cls}`, 'data-testid': `trend-${key}` }, [
+      el('span', { class: 'tmark', text: info.mark }),
+      document.createTextNode(` ${TREND_WORT[t.richtung] || ''}`),
+      t.grund ? el('span', { class: 'tgrund', text: ` — ${t.grund}` }) : null,
+    ]);
+  };
+
+  const ggCard = (s) => {
+    const v = typeof s.val === 'number' ? s.val : null;
+    const quellen = quellenFuer(s.lab);
+    return el('div', { class: 'stat stat-rich' }, [
+      el('div', { class: 'stat-head' }, [
         el('div', { class: 'ico', 'aria-hidden': 'true', html: ICO[s.k] || '' }),
-        el('div', { class: 'num', 'data-testid': `stat-${s.k}`, text: String(s.val) }),
-        trendEl(state.trends, s.k),
         el('div', { class: 'lab', text: s.lab }),
-        s.sub ? el('div', { class: 'note', text: s.sub }) : null,
+        el('div', { class: 'num', 'data-testid': `stat-${s.k}`, text: v == null ? '–' : String(v) }),
+        v == null ? null : el('div', { class: 'stat-of', text: '/ 5' }),
       ]),
-    ),
-  );
+      v == null ? null : skala05(v),
+      v == null ? null : el('div', { class: 'stat-qual', text: ggWort(v) }),
+      trendZeile(s.k),
+      quellen.length ? el('ul', { class: 'stat-quellen' }, quellen.map((a) =>
+        el('li', {}, [
+          el('span', { class: 'qamt', text: signed(a.value) }),
+          el('span', { class: 'qtxt', text: a.quelle ? `Ausbeute · ${a.quelle}` : 'Ausbeute' }),
+        ]))) : null,
+    ]);
+  };
+
+  const bevCard = el('div', { class: 'stat stat-rich stat-bev' }, [
+    el('div', { class: 'stat-head' }, [
+      el('div', { class: 'ico', 'aria-hidden': 'true', html: ICO.bevoelkerung || '' }),
+      el('div', { class: 'lab', text: 'Bevölkerung' }),
+      el('div', { class: 'num', 'data-testid': 'stat-bevoelkerung', text: String(bev.zahl ?? bev.label ?? '–') }),
+    ]),
+    trendZeile('bevoelkerung'),
+    bev.label ? el('div', { class: 'note', text: bev.label }) : null,
+  ]);
+
+  const statGrid = el('div', { class: 'stat-grid' }, [...skalaStats.map(ggCard), bevCard]);
   const grund = el('section', { class: 'panel pad' }, [
-    blockHead('Grundgrößen', 'Getragene Vorräte'),
+    blockHead('Grundgrößen', 'Vorräte, Trend und Quellen'),
     statGrid,
   ]);
 
@@ -110,7 +162,7 @@ export function renderLage(root, state, opts = {}) {
       ]),
     ),
   );
-  const yields = (lagewerte.ausbeuten || []).map((a) =>
+  const yields = restAusbeuten.map((a) =>
     el('div', { class: 'yield' }, [
       el('span', { class: 'amt', text: signed(a.value) }),
       el('div', {}, [

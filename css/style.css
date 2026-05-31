@@ -1137,6 +1137,28 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 }
 .bild-versionen:hover { border-color: var(--ink-faint); }
 
+/* Grundgrößen-Karten mit Aufschlüsselung: Kopf (Icon, Label, Wert), 0–5-Skala
+   mit Einordnung, Trend mit Begründung, zugeordnete Quellen. Vertrag:
+   docs/Frontend-Contract.md (Lage). */
+.stat-rich { text-align: left; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.stat-rich .stat-head { display: flex; align-items: center; gap: 9px; }
+.stat-rich .stat-head .ico { margin: 0; }
+.stat-rich .stat-head .lab { flex: 1; margin: 0; }
+.stat-rich .stat-head .num { font-size: 24px; line-height: 1; margin: 0; }
+.stat-of { font-size: 12px; color: var(--muted); align-self: flex-end; margin-bottom: 3px; }
+.stat-scale { display: flex; gap: 4px; }
+.stat-scale .seg { height: 6px; flex: 1; border-radius: 3px; background: var(--line); }
+.stat-scale .seg.on { background: var(--rc-anthra); }
+.stat-scale .seg.on.low { background: var(--ink-faint); }
+.stat-qual { font-size: 12.5px; color: var(--ink-soft); }
+.stat-rich .stat-trend { font-size: 12px; display: flex; gap: 3px; align-items: baseline; flex-wrap: wrap; }
+.stat-rich .stat-trend .tmark { font-weight: 700; }
+.stat-rich .stat-trend .tgrund { color: var(--muted); }
+.stat-quellen { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 5px; }
+.stat-quellen li { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--ink-soft); }
+.stat-quellen .qamt { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stat-rich.stat-bev .note { font-size: 12px; color: var(--muted); line-height: 1.5; text-align: left; }
+
 /* Besitz: was das Volk hat */
 .besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; }
 .besitz-item { display: flex; align-items: baseline; gap: 9px; line-height: 1.5; color: var(--ink-soft); }
