@@ -92,6 +92,22 @@ Das bewusste **Gegengewicht zum reinigenden Feuer**: Nicht Härte schützt vor d
 
 Zweck: Eskils Warnung (Khar wurde dem gleich, wovor es floh) zur spielbaren Gegenkraft machen und Aldes Mahnung Gewicht im Regelwerk geben. Der zentrale Identitätskonflikt der Partie ist damit ein Hebel, kein bloßes Stimmungsbild.
 
+### Disziplin: Das Verwahren (der dritte Weg)
+
+Eröffnet in Kapitel 1, Frühling Jahr 3, aus Khars Schutz-Lehre (Eskils Truhe vollends ergründet) und Yssas „Verhüllen", bewiesen an den drei früh Berührten der Frühlings-Katastrophe (kritischer Coup, natürliche 10).
+
+Die **zweite Disziplin** der Gestrandeten — und zugleich die **Methode hinter „Das Feuer, das wärmt"**: einen früh Berührten oder einen Ort gegen den Griff des Finsteren **verwahren**. Früh erkennen (Eskils Test), mit Bann und Schleier als Wall umgeben, warm und gesehen halten statt zu verbrennen. Wirkung: **+1 bis +2 auf Proben, einen früh Berührten zu halten oder zurückzuholen und einen Ort gegen die Berührung zu schützen.** Damit hat die Wärme eine *Methode*, nicht nur eine Haltung — und dem reinigenden Feuer ist das Monopol gegen das Finstere genommen. Preis: bindet Yssa und die begrenzte Lehre des Buches, zieht die Aufmerksamkeit des Finsteren auf das Verwahrte; wirkt **nur früh** — über der Schwelle (wie bei Henk) hilft nur noch das Feuer.
+
+Zweck: den dritten Weg, der bei Henk fehlte, zur spielbaren Kraft machen und den Identitätskonflikt der zwei Feuer von der Haltung zur Machtfrage im Rat zuspitzen (Grask gegen die bewährte Wärme).
+
+### Die Ordnung der zwei Feuer (das Gesetz der Schwelle)
+
+Eingeführt in Kapitel 1, Frühling Jahr 3, durch den Handel zwischen der oder dem Ersten und Grask, besiegelt als Regiment am Wall — die **Versöhnung der streitenden zwei Feuer zu einer Doktrin**, die der ganze Rat trägt.
+
+Regel: Früh Berührte werden **verwahrt** (das wärmende Feuer, die Disziplin „Das Verwahren", Eskils Test). Wer aber **innerhalb der Mauern über die Schwelle geht, wird ohne Zaudern verbrannt** (das reinigende Feuer) — keine zweite Henk-Nacht. Dazu gehört der **Krieg nach außen**, der bei Grask und der Wehr liegt: Außenposten am Erz, Räumen der versprengten Klan-Banden, eine Entscheidung gegen die Stillen, solange das Volk stark ist.
+
+Wirkung: Der Identitätsriss ist geschlossen, Härte und Wärme haben jede ihren Platz, Grask kehrt ergeben zurück (Loyalität 5), kein Lagedruck der Spaltung mehr. Preis: Die harte Schwellen-Klausel bindet (im Zweifel wird gebrannt), und der Feldzug nach außen ist zugesagt — er wird Verluste und neue Feindschaften bringen. „Das reinigende Feuer" und „Das Feuer, das wärmt" gelten weiter, sind aber nun in dieser Ordnung gebunden statt im offenen Streit.
+
 ## Wie Setzungen entstehen und vergehen
 
 Eine Setzung wird vereinbart, wenn die laufende Geschichte eine Lücke der Grundmechanik sichtbar macht oder die Welt eine eigene Regel verlangt. Sie wird notiert mit Wortlaut, Begründung und Kapitel, im Speicherstand unter `setzungen` mitgeführt und im Dashboard unter Historie angezeigt. Sie kann jederzeit geändert oder zurückgenommen werden; eine geänderte Setzung wird hier überschrieben, ihre Vorgeschichte bleibt über die Chronik nachvollziehbar.

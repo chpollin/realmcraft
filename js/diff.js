@@ -33,6 +33,18 @@ function numEntry(art, prevObj, nextObj, key) {
 export function diffStates(prev, next) {
   if (!next || !prev) return { hasChanges: false, isFirst: true, eintraege: [] };
 
+  // Verschiedene Partien nicht vergleichen: ein Wechsel von "Die Karren" zu
+  // "Die Gestrandeten" ergaebe ein sinnloses Banner (alle Berater getauscht,
+  // alle Orte entfallen, jede Setzung "neu"). Nur wenn BEIDE Staende einen
+  // Spielnamen tragen und der sich unterscheidet, gilt es als Erstladung der
+  // neuen Partie (kein Delta). Fehlt ein Name (aeltere Staende, Tests), faellt
+  // es auf den normalen Feldvergleich zurueck.
+  const ga = next.meta?.spielname || next.volk?.name;
+  const gb = prev.meta?.spielname || prev.volk?.name;
+  if (ga && gb && ga !== gb) {
+    return { hasChanges: false, isFirst: true, differentGame: true, eintraege: [] };
+  }
+
   const eintraege = [];
 
   // Kapitel

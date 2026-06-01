@@ -6,6 +6,14 @@
 const KEY = 'rc.history';
 const MAX = 50;
 
+// Identitaet einer Partie: der Spielname (Fallback Volksname). Zwei Staende
+// gehoeren zur selben Partie, wenn ihr Schluessel uebereinstimmt. Nur innerhalb
+// einer Partie ist ein Delta sinnvoll, und nur eine Partie wird in der
+// Kapitel-Historie nebeneinandergestellt.
+export function gameKey(state) {
+  return state?.meta?.spielname || state?.volk?.name || null;
+}
+
 function ls() {
   try {
     return typeof globalThis !== 'undefined' && globalThis.localStorage ? globalThis.localStorage : null;
@@ -57,13 +65,32 @@ export function saveSnapshot(state) {
   if (!state) return -1;
   const arr = readAll();
   const last = arr[arr.length - 1];
+  // Duplikat-Schutz gegen den unmittelbar letzten Eintrag (erneutes Laden
+  // derselben Datei). Ein Partiewechsel hat immer einen anderen State und legt
+  // damit von selbst einen neuen Eintrag an. Der spielname wird mitgefuehrt,
+  // damit lastForParty und die Historie-Auswahl nach Partie filtern koennen.
   if (last && stableStringify(last.state) === stableStringify(state)) {
     return arr.length - 1;
   }
-  arr.push({ savedAt: Date.now(), state });
+  arr.push({ savedAt: Date.now(), spielname: gameKey(state), state });
   const trimmed = arr.slice(-MAX);
   writeAll(trimmed);
   return trimmed.length - 1;
+}
+
+/**
+ * @param {string|null} name Partie-Schluessel (siehe gameKey).
+ * @returns {object|null} der zuletzt abgelegte Stand DERSELBEN Partie, oder null.
+ *   Basis fuer das Delta-Banner: nur gegen denselben Spielnamen vergleichen,
+ *   nie quer ueber Partien (sonst eine sinnlose Vermischung).
+ */
+export function lastForParty(name) {
+  const arr = readAll();
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const k = arr[i].spielname ?? gameKey(arr[i].state);
+    if ((k || null) === (name || null)) return arr[i].state;
+  }
+  return null;
 }
 
 /** @returns {object|null} der zuletzt abgelegte Stand. */

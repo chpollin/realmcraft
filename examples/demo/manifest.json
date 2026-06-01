@@ -9,15 +9,6 @@
       "kapitel": 1,
       "jahreszeit": "Herbst",
       "jahr": 2
-    },
-    {
-      "slug": "die-karren",
-      "titel": "Die Karren",
-      "pfad": "examples/demo/die-karren/state.json",
-      "bilder": 0,
-      "kapitel": 4,
-      "jahreszeit": "Frühling",
-      "jahr": 19
     }
   ]
 }

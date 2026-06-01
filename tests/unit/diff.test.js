@@ -77,6 +77,30 @@ test('Ansehen-Stufenwechsel wird erkannt', () => {
   assert.equal(e.richtung, 'up');
 });
 
+test('verschiedene Partien ergeben kein Delta (differentGame)', () => {
+  const prev = { meta: { spielname: 'Die Karren', kapitel: 4 }, berater: [{ id: 'a', name: 'A' }] };
+  const next = { meta: { spielname: 'Die Gestrandeten', kapitel: 1 }, berater: [{ id: 'b', name: 'B' }] };
+  const r = diffStates(prev, next);
+  assert.equal(r.hasChanges, false);
+  assert.equal(r.isFirst, true);
+  assert.equal(r.differentGame, true);
+  assert.deepEqual(r.eintraege, []);
+});
+
+test('gleiche Partie: Delta wird normal berechnet', () => {
+  const prev = { meta: { spielname: 'Die Gestrandeten', kapitel: 1 }, lagewerte: { wohlstand: 1 } };
+  const next = { meta: { spielname: 'Die Gestrandeten', kapitel: 1 }, lagewerte: { wohlstand: 2 } };
+  const r = diffStates(prev, next);
+  assert.equal(r.hasChanges, true);
+  assert.ok(r.eintraege.find((x) => x.key === 'wohlstand' && x.delta === 1));
+});
+
+test('ohne Spielnamen faellt es auf den normalen Vergleich zurueck', () => {
+  const r = diffStates({ meta: { kapitel: 3 } }, { meta: { kapitel: 4 } });
+  assert.equal(r.differentGame, undefined);
+  assert.ok(r.eintraege.find((x) => x.art === 'kapitel'));
+});
+
 test('weggefallener Ort wird erkannt', () => {
   const prev = { karte: { orte: [{ id: 'a', name: 'Altdorf' }, { id: 'b', name: 'Brunnen' }] } };
   const next = { karte: { orte: [{ id: 'a', name: 'Altdorf' }] } };

@@ -35,6 +35,12 @@ const getApiKey = () => (localStorage.getItem(LS.apiKey) || envApiKey() || '').t
 // Update-Loop-Zustand: Delta fuer den naechsten Render, aktuell betrachteter Verlaufsindex.
 let pendingDelta = null;
 let viewIndex = -1;
+// Partie des aktuell geladenen Stands (Spielname). Skaliert den Bild-Versions-
+// Speicher, damit zwei Partien sich nicht ins Bild reden; bei jedem Render gesetzt.
+let aktuellePartie = null;
+function gameKey(state) {
+  return state?.meta?.spielname || state?.volk?.name || null;
+}
 
 // --- DOM-Referenzen aus dem Scaffold (index.html) ---
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -240,8 +246,10 @@ function handleSavegameText(text, { demo = false } = {}) {
     setState(res.data);
     return;
   }
-  // Delta zum vorigen Stand berechnen, neuen Stand in den lokalen Verlauf legen.
-  const prev = getState() || store.loadLast();
+  // Delta nur gegen den letzten Stand DERSELBEN Partie berechnen, nie quer ueber
+  // Partien (sonst eine sinnlose Vermischung). Auf der ersten Last einer Partie
+  // gibt es keinen Vorgaenger -> kein Banner.
+  const prev = store.lastForParty(gameKey(res.data));
   pendingDelta = diffStates(prev, res.data);
   store.saveSnapshot(res.data);
   viewIndex = store.list().length - 1;
@@ -256,7 +264,10 @@ function handleSavegameText(text, { demo = false } = {}) {
 function refreshHistorySelect() {
   const sel = document.querySelector('[data-testid="history-select"]');
   if (!sel) return;
-  const items = store.list();
+  // Nur die Staende der aktuellen Partie nebeneinanderstellen; ein gemischter
+  // Verlauf mehrerer Partien waere wirr und liesse quer springen.
+  const aktuell = gameKey(getState());
+  const items = store.list().filter((it) => !aktuell || (it.spielname || null) === aktuell);
   if (items.length < 2) {
     sel.hidden = true;
     sel.replaceChildren();
@@ -742,6 +753,29 @@ async function onGenerateEreignisbild(index) {
 const VER_NS = 'rc.imgver'; // identity -> [{ key, label, savedAt }]
 const AKT_NS = 'rc.imgakt'; // identity -> aktiver Cache-Key
 
+// Die Versions-/Auswahl-Listen werden PRO PARTIE gefuehrt, sonst zeigte eine
+// Partie die fortgeschriebenen Bilder einer anderen (gleiche Identitaet
+// "berater:<id>"). Der Schluessel haengt einen kompakten Partie-Hash an.
+function nsKey(base) {
+  return aktuellePartie ? `${base}.${makeKey([aktuellePartie])}` : base;
+}
+// Einmalige Migration der alten, partie-losen Listen auf die erste geladene
+// Partie, damit bereits erzeugte Bilder einer laufenden Sitzung nicht verwaisen.
+function migrateLegacyNs(base) {
+  if (!aktuellePartie) return;
+  const scoped = nsKey(base);
+  if (scoped === base) return;
+  try {
+    if (localStorage.getItem(scoped) == null) {
+      const legacy = localStorage.getItem(base);
+      if (legacy != null) {
+        localStorage.setItem(scoped, legacy);
+        localStorage.removeItem(base); // genau einer Partie zuordnen
+      }
+    }
+  } catch { /* localStorage optional */ }
+}
+
 function jsonLS(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -759,36 +793,33 @@ function identityOf(typ, id) {
   return typ === 'armee' ? 'armee' : `${typ}:${id}`;
 }
 function verList(identity) {
-  const all = jsonLS(VER_NS, {});
+  const all = jsonLS(nsKey(VER_NS), {});
   return Array.isArray(all[identity]) ? all[identity] : [];
 }
 function verPush(identity, entry) {
-  const all = jsonLS(VER_NS, {});
+  const all = jsonLS(nsKey(VER_NS), {});
   const list = Array.isArray(all[identity]) ? all[identity] : [];
   list.push(entry);
   all[identity] = list;
-  setLS(VER_NS, all);
+  setLS(nsKey(VER_NS), all);
   return list;
 }
 function aktGet(identity) {
-  return jsonLS(AKT_NS, {})[identity] || null;
+  return jsonLS(nsKey(AKT_NS), {})[identity] || null;
 }
 function aktSet(identity, key) {
-  const all = jsonLS(AKT_NS, {});
+  const all = jsonLS(nsKey(AKT_NS), {});
   if (key) all[identity] = key; else delete all[identity];
-  setLS(AKT_NS, all);
+  setLS(nsKey(AKT_NS), all);
 }
 
-// Setzt den fluechtigen Bild-Versionsstand zurueck: die localStorage-Listen und
-// die einmal-pro-Sitzung-Markierung von restoreBildChronik. Noetig beim Wechsel
-// zwischen Demo-Staenden, sonst zeigt der neue Stand fuer gleich benannte
-// Identitaeten (z. B. berater:<id>) noch das aktive Bild des vorigen Standes
-// (aktGet liest die alte Wahl, applyAktiveBild setzt das alte Bild). Nach dem
-// Reset greift fuer Demo-Staende die direkte Pfad-Anzeige (entity.dataUrl) bzw.
-// die frisch eingespielte bildChronik des neuen Standes.
+// Beim Wechsel des Standes nur die Einmal-pro-Sitzung-Markierung loeschen, damit
+// die bildChronik des neuen Standes wieder eingespielt wird. Die Versions-/
+// Auswahl-Listen selbst werden NICHT mehr geloescht (das vernichtete sonst die
+// bereits erzeugten Bilder des Nutzers); das Durchbluten zwischen Partien
+// verhindert jetzt die Partie-Skalierung der Namespaces (nsKey). Innerhalb
+// derselben Partie bleiben Wahl und Versionen ueber Reloads erhalten.
 function resetBildVersionState() {
-  try { localStorage.removeItem(VER_NS); } catch { /* egal */ }
-  try { localStorage.removeItem(AKT_NS); } catch { /* egal */ }
   bildChronikRestauriert.clear();
 }
 
@@ -1200,6 +1231,11 @@ function wire() {
     // kann nicht in einen späteren, unverwandten Render durchsickern.
     const delta = pendingDelta;
     pendingDelta = null;
+    // Partie-Skalierung des Bild-Speichers VOR jedem Bild-Zugriff setzen, einmal
+    // die alten partie-losen Listen auf diese Partie migrieren.
+    aktuellePartie = gameKey(state);
+    migrateLegacyNs(VER_NS);
+    migrateLegacyNs(AKT_NS);
     renderAll(state, delta);
     applyRoute();
     restoreBildChronik(state).then(() => hydrateImages(state));
@@ -1316,14 +1352,19 @@ async function ladeDemoStand(eintrag) {
   }
 }
 
-// Befüllt den Demo-Picker aus dem Manifest und blendet ihn ein (ab einem Stand).
-// Bei Auswahl wird der gewählte Stand geladen. Ohne Manifest bleibt der Picker
-// verborgen, das übrige Verhalten unberührt.
+// Ein einziges Lade-Auswahlfeld: jeder Demo-Stand aus dem Manifest plus der
+// Eintrag "Eigenen Speicherstand laden …", der den bestehenden Datei-Dialog
+// oeffnet. So liegt das Umschalten zwischen Demos UND das Laden einer eigenen
+// Datei an einer Stelle. Erscheint, sobald ein Manifest da ist (auch bei nur
+// einem Demo, weil die Eigen-Option das Feld immer nuetzlich macht). Der zuletzt
+// geladene Demo-Slug wird gespiegelt, damit die Eigen-Option nie "haengen" bleibt.
+const PICK_OWN = '__own__';
+let pickerDemoSlug = null;
 async function wireDemoPicker() {
   const sel = els.demoSelect;
   if (!sel) return null;
   const manifest = await ladeDemoManifest();
-  if (!manifest) { sel.hidden = true; return null; }
+  if (!manifest) { sel.hidden = true; return manifest; }
 
   sel.replaceChildren(
     ...manifest.staende.map((e) => {
@@ -1333,12 +1374,20 @@ async function wireDemoPicker() {
       if (saison) teile.push(saison);
       return el('option', { value: e.slug }, [teile.join(' · ')]);
     }),
+    el('option', { value: PICK_OWN }, ['Eigenen Speicherstand laden …']),
   );
   sel.hidden = false;
+  if (pickerDemoSlug) sel.value = pickerDemoSlug;
 
   sel.addEventListener('change', () => {
+    if (sel.value === PICK_OWN) {
+      // Auswahl auf den geladenen Demo zuruecksetzen, dann den Datei-Dialog oeffnen.
+      sel.value = pickerDemoSlug || manifest.staende[0]?.slug || '';
+      els.loadInput?.click();
+      return;
+    }
     const eintrag = manifest.staende.find((e) => e.slug === sel.value);
-    if (eintrag) ladeDemoStand(eintrag);
+    if (eintrag) { pickerDemoSlug = sel.value; ladeDemoStand(eintrag); }
   });
   return manifest;
 }
@@ -1352,6 +1401,7 @@ async function loadDefaultSample() {
   if (manifest) {
     const eintrag = manifest.staende.find((e) => e.slug === manifest.default) || manifest.staende[0];
     if (await ladeDemoStand(eintrag)) {
+      pickerDemoSlug = eintrag.slug;
       if (els.demoSelect) els.demoSelect.value = eintrag.slug;
       return;
     }

@@ -54,6 +54,34 @@ test('list traegt Kapitel und Zeit', () => {
   assert.equal(it.spielname, 'Die Karren');
 });
 
+test('lastForParty gibt den letzten Stand DERSELBEN Partie zurueck', () => {
+  store.saveSnapshot({ meta: { spielname: 'Die Karren', kapitel: 4 } });
+  store.saveSnapshot({ meta: { spielname: 'Die Gestrandeten', kapitel: 1 } });
+  store.saveSnapshot({ meta: { spielname: 'Die Gestrandeten', kapitel: 1, zeit: { jahreszeit: 'Herbst' } } });
+  assert.equal(store.lastForParty('Die Karren').meta.kapitel, 4);
+  assert.equal(store.lastForParty('Die Gestrandeten').meta.zeit.jahreszeit, 'Herbst');
+  assert.equal(store.lastForParty('Unbekannt'), null);
+});
+
+test('Partiewechsel erzeugt immer einen neuen Eintrag (kein partie-uebergreifendes Dedup)', () => {
+  store.saveSnapshot({ meta: { spielname: 'A', kapitel: 1 } });
+  store.saveSnapshot({ meta: { spielname: 'B', kapitel: 1 } });
+  store.saveSnapshot({ meta: { spielname: 'A', kapitel: 1 } });
+  assert.equal(store.list().length, 3);
+});
+
+test('gleiche Partie, identischer Stand: kein Doppeleintrag', () => {
+  store.saveSnapshot({ meta: { spielname: 'A', kapitel: 1 } });
+  store.saveSnapshot({ meta: { spielname: 'A', kapitel: 1 } });
+  assert.equal(store.list().length, 1);
+});
+
+test('gameKey: Spielname vor Volksname, sonst null', () => {
+  assert.equal(store.gameKey({ meta: { spielname: 'Die Karren' } }), 'Die Karren');
+  assert.equal(store.gameKey({ volk: { name: 'die Gestrandeten' } }), 'die Gestrandeten');
+  assert.equal(store.gameKey({}), null);
+});
+
 test('clear leert den Verlauf', () => {
   store.saveSnapshot({ meta: { kapitel: 4 } });
   store.clear();
