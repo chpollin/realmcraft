@@ -108,6 +108,22 @@ Regel: Früh Berührte werden **verwahrt** (das wärmende Feuer, die Disziplin �
 
 Wirkung: Der Identitätsriss ist geschlossen, Härte und Wärme haben jede ihren Platz, Grask kehrt ergeben zurück (Loyalität 5), kein Lagedruck der Spaltung mehr. Preis: Die harte Schwellen-Klausel bindet (im Zweifel wird gebrannt), und der Feldzug nach außen ist zugesagt — er wird Verluste und neue Feindschaften bringen. „Das reinigende Feuer" und „Das Feuer, das wärmt" gelten weiter, sind aber nun in dieser Ordnung gebunden statt im offenen Streit.
 
+### Die Ordnung der vier Boote
+
+Eingeführt in Kapitel 1, Winter Jahr 3, aus der gelungenen Umstrukturierung der Gruppen (Mehrheitsbescheid 6:1, Grask dagegen; Wurf 8 + 2 = 10, Marge +5, die Wesensart trug +2 als flexible Föderation statt −2 als erzwungene Einheit).
+
+Die vier Boote — die drei alten und das vierte aus Khar — sind zu **stehenden Werk- und Wehrtrupps** geordnet: keine starre Hierarchie von oben, sondern eine lose Föderation, jede Mannschaft mit ihrer Stärke, frei zusammengespannt. Wirkung: **löst eine zusätzliche Nebenaktion pro Saison** (Neben max 2→3), **sobald die Nahrung es trägt (Stand 3 oder höher)**; bei Nahrung unter 3 liegt der Gewinn schlummernd. Stand Winter J3: latent (Nahrung 2). Preis und Spannung: Die Ordnung lebt von der Wesensart-Stärke — Vielfalt und lose Bindung —; wer sie zu starrer, einmütiger Einheit zwingt, weckt die Schwäche (−2).
+
+Zweck: den Wunsch „mehr Hände, mehr Aktionen" zur bespielbaren Institution machen und ihn an die Versorgung binden — erst satt, dann handeln. Der erste Wachstums-Hebel des Volkes über die nackte Verteidigung hinaus.
+
+### Der Bund am Feuer (die Versammlungsordnung)
+
+Eingeführt in Kapitel 1, Winter Jahr 3, durch die große Versammlung am Feuer (Machtprobe natürliche 10, Marge +6, kritischer Glücksfall, der einen neuen Modus öffnet). Das ganze Volk — nicht nur der Rat — trat zusammen, jede Stimme durfte reden, und Gesetz für Gesetz wurde einzeln beschlossen. Damit ist die **Verfassung von „im Werden" zu festgeschrieben** gehoben: aus dem gewachsenen Treibholz-Recht ist ein geschriebener Bund geworden.
+
+Der **Mehrheitsbescheid** bleibt der Kern (der oder die Erste stellt die Frage, stimmt mit, bricht den Gleichstand; ein Veto kostet Loyalität), doch das ganze Volk hat nun einen festen Ort, an dem es spricht — die **Versammlung**. Wirkung: **+1 auf Machtproben und Bescheide, die sich auf das gemeinsame geschriebene Recht berufen** (Legitimität); der **Identitätsriss der zwei Feuer ist als Gesetz geschlossen** (das Gesetz der Schwelle ist Recht, kein Spaltungs-Lagedruck mehr möglich); und die **Nachfolge ist vorbereitet** — weil das Recht geschrieben und vom Volk getragen ist, stirbt es nicht mit dem, der führt; ein Sturz an der Spitze wird keine Krise mehr (vgl. Spielmechanik: vorbereitete Nachfolge verläuft ruhig). Preis: ein geschriebenes Recht bindet auch den, der es gab — Willkür von oben widerspricht nun dem eigenen Bund.
+
+Zweck: aus dem Treck dreier Völker ein Volk mit dauerhaftem Recht machen; die Verfassung als echte Institution festschreiben und sie gegen das Vergessen und gegen die Krise der Nachfolge sichern. Mit diesem Akt stieg das Ansehen der oder des Ersten auf die höchste Stufe („Bund am Feuer").
+
 ## Wie Setzungen entstehen und vergehen
 
 Eine Setzung wird vereinbart, wenn die laufende Geschichte eine Lücke der Grundmechanik sichtbar macht oder die Welt eine eigene Regel verlangt. Sie wird notiert mit Wortlaut, Begründung und Kapitel, im Speicherstand unter `setzungen` mitgeführt und im Dashboard unter Historie angezeigt. Sie kann jederzeit geändert oder zurückgenommen werden; eine geänderte Setzung wird hier überschrieben, ihre Vorgeschichte bleibt über die Chronik nachvollziehbar.
