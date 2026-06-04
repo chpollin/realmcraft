@@ -124,5 +124,17 @@ export function renderWelt(root, state, handlers = {}) {
     groupGrid,
   ]);
 
-  root.append(power, groups);
+  // --- Ansehen & Beziehungen: erzählender Lagesatz aus state.beziehungenAnsehen.text.
+  // Optional; nur gerendert, wenn Text vorhanden (Frontend-Contract: beziehungen-ansehen).
+  const ansehen = state.beziehungenAnsehen?.text
+    ? el('section', { class: 'panel pad' }, [
+        el('div', { class: 'section-title' }, [
+          el('span', { class: 'kicker', text: 'Ansehen & Beziehungen' }),
+          document.createTextNode(' Wie das Reich gesehen wird'),
+        ]),
+        el('p', { class: 'narrative', 'data-testid': 'beziehungen-ansehen', text: state.beziehungenAnsehen.text }),
+      ])
+    : null;
+
+  root.append(...[ansehen, power, groups].filter(Boolean));
 }

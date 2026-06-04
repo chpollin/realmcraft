@@ -154,7 +154,7 @@
           "id": { "$ref": "#/definitions/id" },
           "name": { "type": "string" },
           "rolle": { "type": "string" },
-          "lebensstand": { "$ref": "#/definitions/lebensstand" },
+          "lebensstand": { "type": "string", "description": "Freitext-Status der Person (z. B. 'ruestig', 'tot (verbrannt)', 'aufgenommen ins Volk'). Personen sind beliebige NPCs mit erzählerischem Status — daher kein strenges Enum wie bei den Beratern." },
           "erscheinung": { "type": "string" },
           "portrait": { "$ref": "#/definitions/portrait" }
         }
@@ -244,7 +244,7 @@
               "kern": { "type": "string", "description": "Drei-Wort-Kern des Vorhabens." },
               "folge": { "type": "string", "description": "Klartext-Folge des Vorhabens." },
               "ziel": { "type": "integer" },
-              "mod": { "type": "integer" },
+              "mod": { "type": ["integer", "string"], "description": "Netto-Modifikator als ganze Zahl ODER als offene Aufschlüsselung im Sinne der 'jeden Modifikator offen nennen'-Regel (z. B. '+2 Riss / +1 Wissen / -2 Misstrauen = +1')." },
               "status": { "type": "string", "enum": ["gewaehlt", "frei"] },
               "wurf": { "type": ["integer", "null"] },
               "ergebnis": { "type": ["string", "null"], "description": "Nach dem Wurf: Erfolg/Misserfolg und Folge." }

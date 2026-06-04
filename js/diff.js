@@ -103,5 +103,44 @@ export function diffStates(prev, next) {
     if (!pS.has(s.titel)) eintraege.push({ art: 'setzung-neu', label: `Neue Setzung: ${s.titel}`, richtung: 'up' });
   }
 
+  // Mächte: neu, weg, Beziehungswechsel. Eine gespaltene Macht (neue id auf,
+  // alte ab) oder ein Beziehungsruck (z. B. -1 -> -2) blieb bisher unsichtbar.
+  const pMa = new Map((prev.maechte || []).map((m) => [m.id, m]));
+  const nMa = new Map((next.maechte || []).map((m) => [m.id, m]));
+  for (const [id, m] of nMa) {
+    if (!pMa.has(id)) {
+      eintraege.push({ art: 'macht-neu', label: `Neue Macht: ${m.name}`, richtung: 'up' });
+    } else {
+      const a = pMa.get(id).beziehung?.wert;
+      const c = m.beziehung?.wert;
+      if (typeof a === 'number' && typeof c === 'number' && a !== c) {
+        eintraege.push({ art: 'beziehung', label: `Beziehung ${m.name}`, from: a, to: c, delta: c - a, richtung: c > a ? 'up' : 'down' });
+      }
+    }
+  }
+  for (const [id, m] of pMa) {
+    if (!nMa.has(id)) eintraege.push({ art: 'macht-weg', label: `Macht entfallen: ${m.name}`, richtung: 'down' });
+  }
+
+  // Wehr: Gesamtstärke (neu oder verändert).
+  const pAr = num(prev.armee?.gesamt);
+  const cAr = num(next.armee?.gesamt);
+  if (pAr != null && cAr != null && pAr !== cAr) {
+    eintraege.push({ art: 'armee-stat', label: 'Wehr (Gesamt)', from: pAr, to: cAr, delta: cAr - pAr, richtung: cAr > pAr ? 'up' : 'down' });
+  } else if (pAr == null && cAr != null) {
+    eintraege.push({ art: 'armee-neu', label: 'Streitmacht aufgestellt', richtung: 'up' });
+  }
+
+  // Trends: ein Richtungswechsel je Grundgröße (steigend/fallend/gleichbleibend).
+  const pTr = prev.trends || {};
+  const nTr = next.trends || {};
+  for (const key of Object.keys(nTr)) {
+    const a = pTr[key]?.richtung;
+    const c = nTr[key]?.richtung;
+    if (a && c && a !== c) {
+      eintraege.push({ art: 'trend', label: `Trend ${LABELS[key] || key}: ${a} → ${c}`, richtung: c === 'steigend' ? 'up' : c === 'fallend' ? 'down' : 'flat' });
+    }
+  }
+
   return { hasChanges: eintraege.length > 0, isFirst: false, eintraege };
 }

@@ -109,3 +109,34 @@ test('weggefallener Ort wird erkannt', () => {
   assert.ok(e.label.includes('Brunnen'));
   assert.equal(e.richtung, 'down');
 });
+
+test('neue, weggefallene und veränderte Macht werden erkannt', () => {
+  const prev = { maechte: [{ id: 'alt', name: 'Altmacht', beziehung: { wert: -1 } }, { id: 'weg', name: 'Wegmacht' }] };
+  const next = { maechte: [{ id: 'alt', name: 'Altmacht', beziehung: { wert: -2 } }, { id: 'neu', name: 'Neumacht' }] };
+  const r = diffStates(prev, next);
+  assert.ok(r.eintraege.find((x) => x.art === 'macht-neu' && x.label.includes('Neumacht')));
+  assert.ok(r.eintraege.find((x) => x.art === 'macht-weg' && x.label.includes('Wegmacht')));
+  const bez = r.eintraege.find((x) => x.art === 'beziehung' && x.label.includes('Altmacht'));
+  assert.ok(bez);
+  assert.equal(bez.delta, -1);
+  assert.equal(bez.richtung, 'down');
+});
+
+test('Wehr-Gesamtstärke: neu und verändert', () => {
+  const veraendert = diffStates({ armee: { gesamt: 96 } }, { armee: { gesamt: 166 } });
+  const a = veraendert.eintraege.find((x) => x.art === 'armee-stat');
+  assert.ok(a);
+  assert.equal(a.delta, 70);
+  assert.equal(a.richtung, 'up');
+  const neu = diffStates({}, { armee: { gesamt: 40 } });
+  assert.ok(neu.eintraege.find((x) => x.art === 'armee-neu'));
+});
+
+test('Trend-Richtungswechsel wird erkannt', () => {
+  const prev = { trends: { nahrung: { richtung: 'steigend' } } };
+  const next = { trends: { nahrung: { richtung: 'gleichbleibend' } } };
+  const e = diffStates(prev, next).eintraege.find((x) => x.art === 'trend');
+  assert.ok(e);
+  assert.ok(e.label.includes('Nahrung'));
+  assert.equal(e.richtung, 'flat');
+});

@@ -124,6 +124,14 @@ Der **Mehrheitsbescheid** bleibt der Kern (der oder die Erste stellt die Frage, 
 
 Zweck: aus dem Treck dreier Völker ein Volk mit dauerhaftem Recht machen; die Verfassung als echte Institution festschreiben und sie gegen das Vergessen und gegen die Krise der Nachfolge sichern. Mit diesem Akt stieg das Ansehen der oder des Ersten auf die höchste Stufe („Bund am Feuer").
 
+### Die Wilden gewinnen
+
+Eingeführt in Kapitel 1, Frühling Jahr 4, aus dem Befragungs-Coup an den Gefangenen (natürliche 10, Marge +7) und dem darauf folgenden Mehrheitsbescheid (einstimmig 7:0), mit dem die acht gefangenen Inselorks ins Volk aufgenommen wurden — die ersten gewonnenen Wilden.
+
+Doktrin: Die Gestrandeten **jagen** die versprengten Inselorks nicht mehr, sondern **gewinnen** sie. Wer sich ergibt, von Eskils Test als unberührt (rein) bestätigt ist und den Eid an Wehr und Recht leistet, wird aufgenommen — gewendete Hände, neue Wehr und einheimisches Wissen über die Insel. Es ist „Aus Vielen geschmiedet", zur Politik geworden: das Volk wächst, indem es den alten Feind eingliedert statt auslöscht. Wirkung: **+1 auf Machtproben, die gebrochene Wilde gewinnen, eingliedern oder als Führer der Insel nutzen** (stützt die Wesensart); ein Weg zu Bevölkerungs- und Wehr-Wachstum aus Versprengten. Preis und Grenze: Jeder neue Mund will gespeist sein (Druck auf die Versorgung, Maras Sorge), das Vertrauen muss sich erst bewähren, und es gilt streng die **Schwellen-Klausel** der Ordnung der zwei Feuer (eine übersehene Berührung wäre ein Tor hinter den Mauern). Spannung nach außen: Den Stillen gelten die Wilden als Ungeziefer — die Aufnahme könnte den Faden zu ihnen belasten.
+
+Zweck: den Coup-Hebel zur stehenden Institution machen und der Gründungs-Eigenart des Volkes (aus vielen geschmiedet) eine wachsende, aktive Form geben — die positive Antwort auf einen Feind, statt der Auslöschung.
+
 ## Wie Setzungen entstehen und vergehen
 
 Eine Setzung wird vereinbart, wenn die laufende Geschichte eine Lücke der Grundmechanik sichtbar macht oder die Welt eine eigene Regel verlangt. Sie wird notiert mit Wortlaut, Begründung und Kapitel, im Speicherstand unter `setzungen` mitgeführt und im Dashboard unter Historie angezeigt. Sie kann jederzeit geändert oder zurückgenommen werden; eine geänderte Setzung wird hier überschrieben, ihre Vorgeschichte bleibt über die Chronik nachvollziehbar.

@@ -1152,6 +1152,9 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .stat-scale .seg { height: 6px; flex: 1; border-radius: 3px; background: var(--line); }
 .stat-scale .seg.on { background: var(--rc-anthra); }
 .stat-scale .seg.on.low { background: var(--ink-faint); }
+/* Überfluss: Segmente über die Basis-Skala 0–5 hinaus, schmal und abgesetzt. */
+.stat-scale .seg.over { flex: 0 0 8px; }
+.stat-scale .seg.over.on { background: var(--rc-up); }
 .stat-qual { font-size: 12.5px; color: var(--ink-soft); }
 .stat-rich .stat-trend { font-size: 12px; display: flex; gap: 3px; align-items: baseline; flex-wrap: wrap; }
 .stat-rich .stat-trend .tmark { font-weight: 700; }
@@ -1214,3 +1217,31 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* ----------------------------------------------------------------------------
+   Wesen des Volkes (volk-identitaet) und Stehende Modifikatoren (modifikatoren)
+   — Lage-View. Schlichte Schlüssel/Wert-Zeilen im War-Table-Ton.
+   ---------------------------------------------------------------------------- */
+.id-list { display: flex; flex-direction: column; gap: 10px; }
+.id-row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; align-items: start; }
+.id-key { color: var(--rc-ink-dim, #8a8f98); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; padding-top: 2px; }
+.id-val { color: var(--rc-ink, #e8e8ea); line-height: 1.5; }
+.id-region-name { font-weight: 600; margin-bottom: 4px; }
+.gw-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.gw { display: inline-flex; align-items: baseline; gap: 5px; padding: 2px 8px; border-radius: 6px; font-size: .85rem; border: 1px solid var(--rc-line, #2c2f36); }
+.gw .gw-val { font-variant-numeric: tabular-nums; font-weight: 600; }
+.gw.pos .gw-val { color: var(--rc-good, #7bbf7b); }
+.gw.neg .gw-val { color: var(--rc-bad, #d08a7a); }
+
+.mod-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.mod-col .mod-sub { margin: 0 0 8px; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--rc-ink-dim, #8a8f98); }
+.mod-list { display: flex; flex-direction: column; gap: 8px; }
+.mod-item { display: grid; grid-template-columns: 38px 1fr; gap: 10px; align-items: start; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rc-line, #2c2f36); background: var(--rc-panel-2, rgba(255,255,255,.02)); }
+.mod-item .mod-val { font-variant-numeric: tabular-nums; font-weight: 700; text-align: center; }
+.mod-item.pos .mod-val { color: var(--rc-good, #7bbf7b); }
+.mod-item.neg .mod-val { color: var(--rc-bad, #d08a7a); }
+.mod-item.flat .mod-val { color: var(--rc-ink-dim, #8a8f98); }
+.mod-key { font-weight: 600; }
+.mod-grund { color: var(--rc-ink-dim, #8a8f98); font-size: .88rem; line-height: 1.45; margin-top: 2px; }
+@media (max-width: 1080px) { .mod-cols { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .id-row { grid-template-columns: 1fr; gap: 3px; } }

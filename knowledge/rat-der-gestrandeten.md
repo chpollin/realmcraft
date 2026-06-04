@@ -58,6 +58,16 @@ Alle Bilder sind im selben Stil gedacht: Tuschelavierung und Kohle auf getöntem
 
 **Der Bogen.** Alde trägt, warum sie flohen, ist das sittliche Rückgrat — und steht als Einzige im **Lebensabend**, mit dem Lebenswurf jeden Winter. Ihr Bogen ist Sterblichkeit: wahrscheinlich altert und stirbt sie in den frühen Kapiteln, und der Charakter des Volkes wird daran geprüft, ob es ihre Warnung — über den Stillen, über das Nicht-Werden-Wollen wie das Finstere — bewahrt, wenn sie fort ist. Gut möglich, dass sie als Erste begreift, dass das Finstere mit dem Stillen schon einen Fuß im Lager hat, und dass sie für dieses Wissen zahlt. Ihr Tod kann die erste große Trauer der Gestrandeten sein und ein Wendepunkt: Überlebt ihr Gewissen sie, festgeschrieben in der Verfassung — oder stirbt es mit ihr? Sie ist der Keim der Seele dieses Volkes und sein erster Verlust.
 
+**Erfüllt (Kapitel 1 → 2).** Aldes Bogen ging auf, wie er angelegt war: Sie überstand mehrere Lebenswürfe, sah ihre Mahnung zur **Wärme** zur Doktrin und zum **Bund am Feuer** (Verfassung) werden, erlebte die Aufnahme der einstigen Feinde und sprach am Ring das rettende Wort — *man verurteilt niemanden, man nimmt nur an, was frei gegeben wird.* In den Friedensjahren nach dem Binden des Rings starb sie hochbetagt und friedlich am großen Feuer. Ihr Gewissen **überlebte sie** — festgeschrieben im Recht und weitergetragen von ihrer Ziehtochter Tila. Der erste große, aber sanfte Verlust des Volkes.
+
+---
+
+## Tila Graumahl — Gedächtnis, Heilkunde und Zusammenhalt (die Zivilen) — *neu in Kapitel 2*
+
+**Das Bild.** Das Lagerkind aus Jahr 1, nun eine junge Frau: die alte Schramme über der Braue (vom Schädelklan-Überfall ihrer Kindheit), ein wacher, lebhafter Blick, der nie ganz stillsteht. Sie trägt nun **Aldes Stab und das Buch aus Khar**, in das sie weiterschreibt — Glanzpunkt und Erdton-Akzent zugleich, das Erbe sichtbar gemacht.
+
+**Der Bogen.** Aldes Ziehtochter und gewählte Nachfolgerin als Sprecherin der Zivilen, von der Alten selbst gelehrt. Sie verkörpert die **junge Generation**, die das Finstere nur aus Liedern kennt — Wärme und Barmherzigkeit sind ihr Selbstverständnis, nicht erkämpfte Überzeugung. Ihr Bogen: ob sie Aldes Gewissen mit eigener Autorität füllen kann (sie ist jung und am Rat noch ungetestet, Loyalität 4), und wie eine Generation, die den Krieg nie sah, auf den neuen Feind reagiert — die gestrandete Eisenflotte, ein Spiegel der eigenen Herkunft. Ihre große Frage in Kapitel 2: die Fremden mit derselben Barmherzigkeit aufnehmen, die sie selbst groß machte — oder zum ersten Mal die Härte lernen?
+
 ---
 
 ## Neben dem Rat: Eskil Buchwart — Bewahrer aus Khar
@@ -65,6 +75,8 @@ Alle Bilder sind im selben Stil gedacht: Tuschelavierung und Kohle auf getöntem
 **Das Bild.** Mit dem vierten Boot gelandet (Sommer J2), ein hagerer alter Mann, vom Hunger gezeichnet, in derselben Tusche-und-Kohle-Skizze wie die Übrigen — doch um ihn liegt etwas Salzwasserzerstörtes, als hätte die See ihn beinahe behalten. Die schwere ledergebundene Truhe voll geretteter Schriften presst er an die Brust; sie ist sein Glanzpunkt und sein Erdton-Akzent (abgegriffenes Leder, wie bei Aldes Buch). Wache, traurige Augen.
 
 **Der Bogen.** Eskil ist kein Sprecher des Rates, aber das vielleicht folgenreichste neue Gewicht: der **Einzige, der das Finstere aus eigener Anschauung kennt**, weil er sah, wie es Khar nahm. Seine These — Khar wurde dem gleich, wovor es floh; das Finstere kommt durch Furcht und Härte, nicht über die Mauer — gebar die Setzung „Das Feuer, das wärmt" und stellt sich damit gegen das reinigende Feuer. Sein Wissen (die Truhe) ist ein ungehobener Hebel auf **Wissen** und gegen den Feind, besonders jetzt, da mit Henk der erste Berührte im Lager ist. Als alter Gefährte Aldes ist er zugleich ihr Trost und die Stimme, die ihrer Mahnung Autorität gibt. Mögliche Enden: der Lehrer, der dem Volk beibringt, den Feind zu überleben, ohne ihm zu gleichen — oder der Unglücksbote, dessen Wissen zu spät kommt, und der (im Lebensabend wie Alde) stirbt, ehe die Truhe ganz gelesen ist.
+
+**Kapitel 2.** Eskils These trug: die Wärme besiegte das Finstere im Inselherzen, nicht die Härte. Sein Wissen aus der Truhe wurde zum **Verwahren** und, mit dem Lied der Stillen, zum **Binden**. Nun ist er sehr alt und gebrechlich, der **letzte lebende Augenzeuge Khars** — und führt die **Gilde der Wärme**, wo er das Binde-Lied und alles, was er weiß, einer jungen Generation einprägt, ehe es mit ihm geht. Sein letzter Bogen ist ein Wettlauf: das Wissen sichern, bevor der Lehrer fort ist — gerade jetzt, da mit der Eisenflotte und dem wachsenden Schatten über See der Feind, den nur er aus eigener Anschauung kennt, zurückkehrt.
 
 ## Das Ensemble: woran die Bögen sich entzünden
 
@@ -76,7 +88,9 @@ Alle Bilder sind im selben Stil gedacht: Tuschelavierung und Kohle auf getöntem
 
 ---
 
-## Stand der Bögen (Herbst Jahr 2)
+## Stand der Bögen (historischer Schnappschuss, Herbst Jahr 2)
+
+> Hinweis: Der folgende Abschnitt ist ein alter Schnappschuss. Den **aktuellen Stand (Kapitel 2, Jahr 8)** führt die [chronik-gestrandete.md](chronik-gestrandete.md) und der Speicherstand: Alde ist gestorben (Tila folgt), Eskil hochbetagt; der Rat steht bei 5 (Tila 4); der Ring ist gebunden, die Stillen verbrüdert (4), und das Eisenkonkordat ist gestrandet.
 
 Wo die Porträts oben Möglichkeit sind, hält dieser Abschnitt fest, was die Partie bis hierher eingelöst hat. Die Zahlen führt der Speicherstand; hier steht die Richtung.
 

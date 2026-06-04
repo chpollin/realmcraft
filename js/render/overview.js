@@ -28,10 +28,13 @@ const TREND_WORT = { steigend: 'steigend', fallend: 'fallend', gleichbleibend: '
 const GG_WORT = ['Mangel', 'knapp', 'knapp gesichert', 'gesichert', 'reichlich', 'Überfluss'];
 function ggWort(v) { return GG_WORT[Math.max(0, Math.min(5, Math.round(v)))] || ''; }
 function skala05(v) {
-  const n = Math.max(0, Math.min(5, Math.round(v)));
+  // Skala-Basis ist 0–5; Werte darüber sind Überfluss und wachsen dynamisch
+  // weiter (zusätzliche, als `over` markierte Segmente), statt bei 5 zu deckeln.
+  const n = Math.max(0, Math.round(v));
+  const segs = Math.max(5, n);
   const ton = n <= 2 ? ' low' : '';
   return el('div', { class: 'stat-scale', 'aria-hidden': 'true' },
-    Array.from({ length: 5 }, (_, i) => el('span', { class: `seg${i < n ? ' on' : ''}${ton}` })));
+    Array.from({ length: segs }, (_, i) => el('span', { class: `seg${i < n ? ' on' : ''}${ton}${i >= 5 ? ' over' : ''}` })));
 }
 
 const ICO = {
@@ -56,6 +59,14 @@ const DELTA_ICO = {
   'setzung-neu': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9.5 14.5l1.8 1.8 3.2-3.6"/></svg>',
   kapitel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.5L7 20z"/></svg>',
 };
+// Aliase für die neueren Delta-Arten (eigene Symbole wären Beiwerk): Wehr nutzt
+// das Schild, Trend den Pfeil, Beziehung/Mächte das Banner bzw. die Loyalitäts-Büste.
+DELTA_ICO['armee-stat'] = DELTA_ICO.verteidigung;
+DELTA_ICO['armee-neu'] = DELTA_ICO.verteidigung;
+DELTA_ICO.trend = DELTA_ICO.mobilitaet;
+DELTA_ICO.beziehung = DELTA_ICO.loyalitaet;
+DELTA_ICO['macht-neu'] = DELTA_ICO.kapitel;
+DELTA_ICO['macht-weg'] = DELTA_ICO.kapitel;
 
 // Wählt das Icon eines Delta-Eintrags: Grundgrößen über ICO[key], Lagewerte über
 // DELTA_ICO[key], alles andere über DELTA_ICO[art]. Ohne Treffer kein Icon.
@@ -109,7 +120,7 @@ export function renderLage(root, state, opts = {}) {
         el('div', { class: 'ico', 'aria-hidden': 'true', html: ICO[s.k] || '' }),
         el('div', { class: 'lab', text: s.lab }),
         el('div', { class: 'num', 'data-testid': `stat-${s.k}`, text: v == null ? '–' : String(v) }),
-        v == null ? null : el('div', { class: 'stat-of', text: '/ 5' }),
+        v == null ? null : el('div', { class: 'stat-of', text: `/ ${Math.max(5, Math.round(v))}` }),
       ]),
       v == null ? null : skala05(v),
       v == null ? null : el('div', { class: 'stat-qual', text: ggWort(v) }),
@@ -188,11 +199,84 @@ export function renderLage(root, state, opts = {}) {
     threads,
   ]);
 
+  const volkPanel = renderVolkIdentitaet(state.volk);
+  if (volkPanel) root.append(volkPanel);
   root.append(grund);
   if (state.runde && (state.runde.aktionen || []).length) {
     root.append(renderAktionsbrett(state.runde));
   }
   root.append(el('div', { class: 'grid-2 mt' }, [lage, faeden]));
+  const modPanel = renderModifikatoren(state.modifikatoren);
+  if (modPanel) root.append(modPanel);
+}
+
+// Wesen des Volkes: Wesensart, Ausrichtung, Erscheinung und Heimatregion mit
+// Geländewerten. Foundational-Lore, die sonst nur in Bild-Prompts steckte und
+// im UI unsichtbar war. Optional; ohne volk kein Panel.
+function renderVolkIdentitaet(volk) {
+  if (!volk) return null;
+  const idRow = (key, val, testid) => el('div', { class: 'id-row' }, [
+    el('div', { class: 'id-key', text: key }),
+    el('div', { class: 'id-val', 'data-testid': testid, text: val }),
+  ]);
+  const rows = [];
+  if (volk.wesensart) rows.push(idRow('Wesensart', volk.wesensart, 'volk-wesensart'));
+  if (volk.ausrichtung) rows.push(idRow('Ausrichtung', volk.ausrichtung, 'volk-ausrichtung'));
+  if (volk.erscheinung) rows.push(idRow('Erscheinung', volk.erscheinung, 'volk-erscheinung'));
+  const region = volk.region;
+  if (region && (region.name || (region.gelaendewerte || []).length)) {
+    const gw = (region.gelaendewerte || []).map((k) => el('span', {
+      class: `gw ${k.value < 0 ? 'neg' : k.value > 0 ? 'pos' : 'flat'}`,
+      title: k.key,
+    }, [
+      el('span', { class: 'gw-key', text: k.key }),
+      el('span', { class: 'gw-val', text: signed(k.value) }),
+    ]));
+    rows.push(el('div', { class: 'id-row', 'data-testid': 'volk-region' }, [
+      el('div', { class: 'id-key', text: 'Region' }),
+      el('div', { class: 'id-val' }, [
+        region.name ? el('div', { class: 'id-region-name', text: region.name }) : null,
+        gw.length ? el('div', { class: 'gw-list' }, gw) : null,
+      ]),
+    ]));
+  }
+  if (!rows.length) return null;
+  return el('section', { class: 'panel pad', 'data-testid': 'volk-identitaet' }, [
+    blockHead('Wesen des Volkes', volk.name || 'Identität'),
+    el('div', { class: 'id-list' }, rows),
+  ]);
+}
+
+// Stehende Modifikatoren: Gelände (Heimatwerte) und Lage (erzählte Dauer-Effekte
+// mit Begründung), die laufend auf Proben wirken. Optional; ohne Einträge kein Panel.
+function renderModifikatoren(mod) {
+  if (!mod) return null;
+  const gel = mod.gelaende || [];
+  const lage = mod.lage || [];
+  if (!gel.length && !lage.length) return null;
+  const item = (k) => el('div', {
+    class: `mod-item ${k.value < 0 ? 'neg' : k.value > 0 ? 'pos' : 'flat'}`,
+    'data-testid': 'mod-item',
+  }, [
+    el('span', { class: 'mod-val', text: signed(k.value) }),
+    el('div', { class: 'mod-text' }, [
+      el('span', { class: 'mod-key', text: k.key }),
+      k.grund ? el('div', { class: 'mod-grund', text: k.grund }) : null,
+    ]),
+  ]);
+  const cols = [];
+  if (gel.length) cols.push(el('div', { class: 'mod-col' }, [
+    el('h4', { class: 'mod-sub', text: 'Gelände' }),
+    el('div', { class: 'mod-list' }, gel.map(item)),
+  ]));
+  if (lage.length) cols.push(el('div', { class: 'mod-col' }, [
+    el('h4', { class: 'mod-sub', text: 'Lage' }),
+    el('div', { class: 'mod-list' }, lage.map(item)),
+  ]));
+  return el('section', { class: 'panel pad mt', 'data-testid': 'modifikatoren' }, [
+    blockHead('Stehende Modifikatoren', 'Was dauerhaft auf Proben wirkt'),
+    el('div', { class: 'mod-cols' }, cols),
+  ]);
 }
 
 // Aktionsbrett der laufenden Runde: Haupt/Neben-Zähler und je Aktion Titel,
@@ -253,10 +337,11 @@ function blockHead(title, eyebrow) {
 // lesbar ist, wo sich etwas bewegt hat; jedes Delta trägt sein Vorzeichen als
 // hervorgehobene, richtungsgefärbte Marke (Einbußen rot, Zugewinne grün).
 const DELTA_GRUPPEN = [
-  { titel: 'Grundgrößen', arten: ['grundgroesse'] },
+  { titel: 'Grundgrößen', arten: ['grundgroesse', 'trend'] },
   { titel: 'Lagewerte', arten: ['lagewert'] },
   { titel: 'Rat', arten: ['loyalitaet', 'berater-neu', 'berater-weg'] },
-  { titel: 'Welt & Stand', arten: ['kapitel', 'ansehen', 'ort-neu', 'ort-weg', 'setzung-neu'] },
+  { titel: 'Wehr', arten: ['armee-stat', 'armee-neu'] },
+  { titel: 'Welt & Stand', arten: ['kapitel', 'ansehen', 'ort-neu', 'ort-weg', 'setzung-neu', 'macht-neu', 'macht-weg', 'beziehung'] },
 ];
 
 function deltaItem(e) {

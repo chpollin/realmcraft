@@ -31,9 +31,19 @@ Bevor du eine Partie führst oder fortsetzt, lies in dieser Reihenfolge:
 1. `docs/Spielmechanik.md`, die vollständige Mechanik. Sie ist bindend.
 2. `knowledge/INDEX.md`, die Navigation der Wissensbasis. Es nennt die Dokumente der laufenden Partie (Chronik, Regeln, Welt, Personen) und verlinkt sie; die Dateinamen sind partie-spezifisch, darum gehst du immer über das INDEX statt über feste Namen. Die ältere, abgeschlossene Partie liegt unter `knowledge/archiv/`.
 3. Über das INDEX die Chronik (wo die Partie steht und warum) und die Regeln (die Setzungen, also die vereinbarten Sonderregeln). Welt und Personen nach Bedarf.
-4. Den aktuellen Speicherstand: `savegame.json` im Repo-Root, falls vorhanden (die laufende Partie). Sonst den jüngsten Stand aus `examples/`.
+4. Den aktuellen Speicherstand: `savegame.json` im Repo-Root, falls vorhanden (die geladene Partie). Sonst den jüngsten Stand aus `examples/`.
 
 Der Speicherstand ist der Zustand jetzt, die `knowledge/`-Dokumente sind das Gedächtnis über die Zeit. Bei Widerspruch gewinnt der Speicherstand für Zahlenwerte, das Gedächtnis für Zusammenhang und Begründung.
+
+## Mehrere Partien (Multi-Partie-Hub)
+
+Es kann **mehrere Partien** parallel geben (eine geladen/aktiv, die übrigen pausiert). `savegame.json` enthält immer genau die gerade geladene Partie; welche das ist, erkennst du an `meta.spielname`. Die Navigation aller Partien — geladen wie pausiert, mit ihren `knowledge/`-Dokumenten und Backups — steht im Multi-Partie-Hub in `knowledge/INDEX.md`. Lies das INDEX, bevor du annimmst, welche Partie läuft.
+
+So wechselst du zwischen Partien:
+
+1. Erst den aktuellen Stand sichern: `savegame.json` als neues dated Backup nach `examples/` kopieren (`examples/<partie>-LIVE-backup-<datum>.json`, PowerShell `Copy-Item`).
+2. Dann das gewünschte Backup nach `savegame.json` kopieren (`Copy-Item examples/<partie>-LIVE-backup-<datum>.json savegame.json`). Das Dashboard aktualisiert sich per Live-Reload.
+3. Beim Fortsetzen die zur neuen Partie gehörenden `knowledge/`-Dokumente über das INDEX lesen (jede Partie hat eigene Chronik, Regeln, Welt, Personen).
 
 ## Wie du Spielleiter bist
 

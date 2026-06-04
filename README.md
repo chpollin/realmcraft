@@ -40,7 +40,7 @@ npm run test:e2e    # End-to-End und Visual-Snapshots (Playwright)
 
 - `index.html`, `js/`, `css/` — das Dashboard (vanilla ES-Module, kein Build).
 - `schema/` — JSON-Schema des Speicherstands.
-- `examples/` — Beispielstände (u. a. der voreingestellte Stand der laufenden Partie).
+- `examples/` — Beispielstände (u. a. der voreingestellte Stand sowie Backups der laufenden Partien).
 - `docs/` — siehe unten.
 - `knowledge/` — verdichtetes Partie-Gedächtnis.
 
@@ -49,7 +49,7 @@ npm run test:e2e    # End-to-End und Visual-Snapshots (Playwright)
 - [docs/Spielmechanik.md](docs/Spielmechanik.md) — die Regeln (Spielfluss, Zugarten).
 - [docs/UI-Gesamtbild.md](docs/UI-Gesamtbild.md) — Stil, Architektur, die Reiter, Bild-Pipeline und Live-Spiegelung.
 - [docs/Frontend-Contract.md](docs/Frontend-Contract.md) — die verbindlichen Felder und testids des Dashboards.
-- [knowledge/INDEX.md](knowledge/INDEX.md) — Navigation der laufenden Partie.
+- [knowledge/INDEX.md](knowledge/INDEX.md) — Kampagnen-Hub und Navigation der Partien. Es laufen derzeit zwei: „Die Gestrandeten" (aktuell geladen) und „Die Mehrung" (pausiert); beide sind jederzeit aufnehmbar.
 
 ## Promptotyping
 

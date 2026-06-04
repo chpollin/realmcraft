@@ -35,5 +35,12 @@ Beim Hybrid-Format extrahiert das Dashboard den **ersten** ```json-Block. Enthä
 | `offeneFaeden` | Lose Enden für das nächste Kapitel. |
 | `karte` | Kartenprompt und minimale Ortsliste (Name, Typ, Richtung). |
 
+## Laufende-Partie-Felder (erwartet, technisch optional)
+Die Mechanik schreibt nach jedem Zug `trends` (je Grundgröße), `runde` (das Aktionsbrett) und `setzungen` (die vereinbarten Sonderregeln) fort. Im JSON-Schema sind diese Felder **optional** (nicht `required`), damit ältere Speicherstände ohne sie weiterhin gültig bleiben (abwärtskompatibel). Im laufenden Spiel werden sie erwartet und mitgeführt.
+
+Zwei Lockerungen, die der Regel "jeden Modifikator offen nennen" folgen bzw. dem unterschiedlichen Charakter der beiden Figurenlisten Rechnung tragen:
+- `runde.aktionen[].mod` darf eine **ganze Zahl** ODER ein **offener Modifikator-Text** sein (z. B. `+2 / +1 = +3`); das Schema wurde entsprechend gelockert, damit die ganze Rechnung sichtbar bleibt.
+- `personen[].lebensstand` ist **Freitext-Status** (z. B. `tot (verbrannt)`), während `berater[].lebensstand` das strenge Enum `rüstig | lebensabend | hinfällig` bleibt.
+
 ## Bilder im Speicherstand
 `berater[].portrait`, `personen[].portrait` und `karte` können ein erzeugtes Bild referenzieren. Im normalen Betrieb liegt das Bild im lokalen Cache (IndexedDB); für portable Bundles kann ein `portrait.dataUrl` mit eingebettetem base64-Bild gespeichert werden, das beim Import den Cache füllt, ohne neu zu generieren.

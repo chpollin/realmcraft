@@ -83,6 +83,8 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - Stat-Werte als Text: `[data-testid="stat-nahrung"]`=8, `stat-material`=5, `stat-wissen`=16, `stat-bevoelkerung` (enthält 300).
 - Lagewerte: `[data-testid="lage-verteidigung"]` (enthält "+3"), `lage-mobilitaet` ("0"), `lage-wohlstand` ("+1").
 - `[data-testid="offene-faeden"]` Liste mit ≥1 Eintrag.
+- Wesen des Volkes (optional, aus `state.volk`): `[data-testid="volk-identitaet"]` mit, je nach gesetzten Feldern, `[data-testid="volk-wesensart"]`, `volk-ausrichtung`, `volk-erscheinung` und `[data-testid="volk-region"]` (Regionsname und Geländewerte). Fehlen alle Felder, fehlt das Panel.
+- Modifikatoren (optional, aus `state.modifikatoren`): `[data-testid="modifikatoren"]` mit `[data-testid="mod-item"]` je Eintrag aus `.gelaende` und `.lage` (richtungsgefärbt). Fehlen beide, fehlt das Panel.
 
 ### Berater (`data-view="berater"`)
 - `[data-testid="advisor-list"]` enthält genau `state.berater.length` × `[data-testid="advisor-card"]`.
@@ -98,7 +100,14 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 ### Welt (`data-view="welt"`)
 - Optional `[data-testid="beziehungen-ansehen"]` (erzählender Lagesatz aus `state.beziehungenAnsehen.text`), nur wenn gesetzt.
 - `[data-testid="power-card"]` × `state.maechte.length`, je mit `[data-testid="power-name"]`, `power-relation`, `power-stance`, einem Bild `[data-testid="power-bild"]` (`<img>`) und `[data-testid="generate-macht"]` (Button → `onGenerateMacht(machtId)`). Optionales Cache-Feld `maechte[].bild`.
+- Mächte-Profil (optional, je Macht): `[data-testid="power-profil"]` mit `[data-testid="profil-mod"]` je Stärke/Schwäche (Maßstab −2..+3, die rot markierte Schwäche ist der Hebel des Rates). Fehlt das Profil, fehlt der Block.
 - `[data-testid="group-row"]` × `state.gruppen.length`, je mit Gruppenname und Sprechername (aus `berater`/`personen` via `sprecherId`), einem Bild `[data-testid="gruppe-bild"]` (`<img>`) und `[data-testid="generate-gruppe"]` (Button → `onGenerateGruppe(gruppeId)`). Optionales Cache-Feld `gruppen[].bild`. Bildstil aus `meta.armeeStyle` (Rückfall `meta.visualStyle`).
+
+### Recht (`data-view="recht"`)
+Nachschlage-Sicht (`js/render/recht.js`, `renderRecht(root, state)`): die vereinbarte Ordnung dieser Partie, kein Spielzug verändert sie hier.
+- Verfassung (optional, aus `state.verfassung.text`): `[data-testid="verfassung"]` (Grundordnung, volle Breite).
+- Setzungen (optional, aus `state.setzungen`): `[data-testid="setzungen"]` mit `[data-testid="setzung"]` je Sonderregel (Titel + Text).
+- Sind weder Verfassung noch Setzungen erfasst: `[data-testid="recht-leer"]` mit Hinweis.
 
 ### Karte (`data-view="karte"`)
 - `[data-testid="map-image"]` (`<img>`, anfangs Platzhalter/leer), `[data-testid="generate-map"]` (Button), `[data-testid="map-legend"]` mit `[data-testid="map-place"]` × `state.karte.orte.length`.
@@ -121,11 +130,31 @@ Lokaler Verlauf über localStorage (Schlüssel `rc.history`), trägt Auto-Restor
 - `app.js` (`wireLive`) lädt beim Start `savegame.json` per `fetch` und abonniert `/events` nur dann, wenn die Datei existiert (HTTP 200). Fehlt sie (404), passiert nichts; der Leerzustand bleibt und die Tests sind unberührt. Bei `file://`/Pages (kein http) ist der Live-Modus aus.
 - Jede SSE-Meldung lädt `savegame.json` neu über denselben Pfad wie ein Datei-Upload (Delta-Banner, Verlauf, Render). So spiegelt der Browser, was Claude Code im Terminal schreibt.
 
+### SSE-Live-Reload-Vertrag (`/events`)
+- Endpunkt `/events` (Server-Sent-Events), abonniert vom Frontend (`wireLive`) per `EventSource('events')`.
+- Event `savegame`: das Frontend holt `savegame.json` neu und rendert (Delta-Banner, Verlauf). Ausgelöst, wenn der Server eine Änderung an `savegame.json` beobachtet.
+- Event `reload`: das Frontend ruft `location.reload()` (ganze Seite neu) — bei Code-/Asset-Änderung am Dev-Server, damit kein offener Tab auf altem JS/HTML/CSS hängen bleibt.
+- Reconnect: transiente Aussetzer fängt `EventSource` selbst; nur bei `readyState === CLOSED` (z. B. Serverneustart) baut das Frontend nach ~2 s Backoff neu auf.
+
 ## Test-Hooks
 - Persistenz/localStorage-Keys: `realmcraft.apiKey`, `realmcraft.model.portrait`, `realmcraft.model.map`, `rc.history` (Verlauf für Auto-Restore und Kapitel-Historie).
 - Bild-API in E2E gemockt per Playwright `route('**/generativelanguage.googleapis.com/**')` → JSON mit `candidates[0].content.parts[0].inlineData{mimeType:'image/png', data:<1x1-PNG-base64>}`.
 - Export-Bundle: `[data-testid="export-btn"]` erzeugt einen Download eines JSON-Stands mit eingebetteten `portrait.dataUrl`; Import erkennt `dataUrl` und füllt den Cache (kein API-Call). E2E prüft den Roundtrip über das Cache-Verhalten.
 - Export bettet zusätzlich ein: das jeweils **gewählte** Bild jeder Entität als deren primäres `dataUrl` (Berater `portrait`, Armee `bild`, Verband `avatar`, Macht/Gruppe/Siedlung `bild`), die **Ereignis-Bilder** der Historie (`historie[].bild.dataUrl`) und — als Frontend-eigenes Feld — die volle **Bild-Chronik** unter `bildChronik` (`{ [identity]: { aktiv, versionen: [{ key, label, savedAt, dataUrl }] } }`, identity z. B. `berater:<id>` oder `armee`). Beim Laden spielt `restoreBildChronik` diese Versionen in IndexedDB + die localStorage-Listen zurück, sodass fortgeschriebene Bilder samt allen Ständen auf einem fremden Browser (GitHub Pages) erscheinen und durchblätterbar sind. `bildChronik` gehört dem Frontend (das Schema lässt am Root zusätzliche Felder zu).
+
+## View → gelesene savegame-Felder
+
+Welche Sicht welche Felder des Speicherstands liest (optionale Felder kursiv im Text oben; fehlen sie, fehlt der zugehörige Block):
+
+| View | gelesene `state`-Felder |
+|---|---|
+| `lage` | `volk`, `meta` (kapitel, zeit, weltereignis), `ansehen`, `trends`, `runde`, `grundgroessen`, `lagewerte`, `offeneFaeden`, `modifikatoren` (`.gelaende`/`.lage`) |
+| `berater` | `berater[]` (id, name, rolle, ziel, loyalitaet, erscheinung, portrait, lebensstand) |
+| `welt` | `beziehungenAnsehen.text`, `maechte[]` (+ Profil), `gruppen[]`, `berater`/`personen` (Sprecher) |
+| `recht` | `verfassung.text`, `setzungen[]` |
+| `karte` | `karte` (prompt, orte, chronik) |
+| `historie` | `historie[]`, `opts.chronik` |
+| `lebenswelt` | `lebenswelt` (ort, gebaeude, leben, siedlungen, besitz), `grundgroessen.bevoelkerung`, `lagewerte.verteidigung` |
 
 ## Demo-Stände (GitHub Pages)
 
@@ -156,6 +185,13 @@ Die Sicht rendert `js/render/lebenswelt.js`. Reihenfolge der Blöcke: Der Ort, W
 ### Wie sie leben
 
 - `lw-leben` — Panel mit Bevölkerung (gespiegelt aus `grundgroessen.bevoelkerung`), Stimmung, Nahrung, Trinken, Glaube, Alltag und Bräuchen. Nur befüllte Zeilen erscheinen.
+
+### Panels (data-testid)
+
+Die Sicht rendert je nach erfassten Daten folgende Panels:
+- `[data-testid="lw-bevoelkerung"]` — wie das Volk lebt (Bevölkerung gespiegelt aus `grundgroessen.bevoelkerung`, Stimmung, Nahrung, Trinken, Glaube, Alltag, Bräuche; nur befüllte Zeilen).
+- `[data-testid="lw-siedlungen"]` — die Siedlungen (Hauptstadt zuerst), nur wenn vorhanden.
+- `[data-testid="lw-besitz"]` — was das Volk hat (Boote, Werkzeug, Saatgut, Waffen …), nur wenn vorhanden.
 
 ### app.js / Bild-Pipeline
 
