@@ -92,7 +92,8 @@
       "PowerShell(\"ping-ps-flush\")",
       "PowerShell(\"ping2\")",
       "Bash(node tools/generate-demo-images.mjs die-karren)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(git -C \"/c/Users/chris/Documents/GitHub/ide/realmcraft\" status --porcelain --untracked-files=all)"
     ],
     "deny": [
       "Bash(rm -rf:*)",

@@ -1,0 +1,590 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "spielname": "Die letzten Wälle",
+    "kapitel": 1,
+    "zeit": {
+      "jahreszeit": "Sommer",
+      "jahr": 7
+    },
+    "rundeOffen": true,
+    "weltereignis": "offen",
+    "visualStyle": "Düster-realistischer Nordländer-Stil, gedämpfte Graublau- und Erdtöne, Nebel über dunklem Wasser, raues Holz und Eisen, kaltes Tageslicht; gemalt, körnig, Witcher-/Sagen-Ernst, kein Glanz, keine Heroik-Pose.",
+    "mapStyle": "Gezeichnete Pergament-Seekarte des hohen Nordens, gedämpfte Farben, eine enge Förde zwischen steilen Kiefernhängen, Symbole für Mauer, Wald und Wracks, alt und abgegriffen."
+  },
+  "volk": {
+    "name": "Vargvik, die Wolfsbucht",
+    "wesensart": "Unbeugsam hinter der Mauer: +2 auf alles Halten, Aushalten, Verteidigen — −2 auf alles Offene: Aufbruch, Fahrt, Erkundung, Verhandlung nach außen. Ein Volk, das nur noch Mauern kennt.",
+    "ausrichtung": "Belagert, defensiv, auf bloßes Überleben gestellt; lebt allein vom Fischfang, kein Handel, das alte Wissen verloren.",
+    "erscheinung": "Eine kleine Wikingerstadt aus Holz und Stein über einer engen Förde: Palisadenwall, Räucherhütten, ein Häuflein müder Schildträger, Rauch über grauen Dächern, dahinter dunkler Wald.",
+    "region": {
+      "name": "Der Vargfjord, eine enge Förde im hohen Norden",
+      "gelaendewerte": [
+        {
+          "key": "Fjord-Enge, gut zu verteidigen",
+          "value": 2
+        },
+        {
+          "key": "karger Boden, nur Fisch",
+          "value": -1
+        },
+        {
+          "key": "isoliert, Seewege abgeschnitten",
+          "value": -1
+        }
+      ]
+    }
+  },
+  "status": {
+    "text": "Du bist Philipp mit den schwarzen Locken, Hauptmann der Wache von Vargvik. Ein gelernter Lederer, der sich Stufe um Stufe in der Wehr hochgearbeitet hat — handwerklich geschickt, erfahren im Kampf, von der Mannschaft anerkannt. Nicht der Jarl, aber die Hand, die die Mauer hält; auf dich schaut der Rat, wenn die Wiedergänger kommen. An deiner Seite ein ergebener Kern: deine Brüder Christopher (der mit den Geistern spricht und die Kunst hält) und Stephan (Redner und Taktiker) sowie deine Söhne Finn (junger Hauptmann an der Mauer) und Felix (Späher).",
+    "ansehen": {
+      "stufe": 1,
+      "label": "Hauptmann, der die Mauer hält"
+    }
+  },
+  "grundgroessen": {
+    "nahrung": 1,
+    "material": 1,
+    "wissen": 1,
+    "bevoelkerung": {
+      "zahl": 100,
+      "label": "Seelen in Vargvik — etwa 24 wehrfähige Schildträger an der Mauer, ~16 Fischer und Handwerker, der Rest Frauen, Alte, Kinder und Versehrte; jeden Winter weniger"
+    }
+  },
+  "lagewerte": {
+    "verteidigung": 0,
+    "mobilitaet": -1,
+    "wohlstand": -2,
+    "ausbeuten": [
+      {
+        "key": "Fischfang (Förde)",
+        "value": 1,
+        "quelle": "die Boote der Halla"
+      }
+    ]
+  },
+  "lebenswelt": {
+    "leben": {
+      "stimmung": "Zäh und müde, am Rand der Verzweiflung; man hält, weil das Meer im Rücken keinen Ausweg lässt.",
+      "nahrung": "Allein vom Fischfang — gepökelt und geräuchert; im Winter knapp und streng zugeteilt.",
+      "trinken": "Dünnbier und Brunnenwasser; Met nur noch zu Toten- und Festriten.",
+      "glaube": "Alte Nordgötter und Ahnengeister; Grímas Riten geben Halt, doch die Pest sät Zweifel an den Mächten.",
+      "alltag": "Wachdienst an der Mauer im Wechsel, Netze flicken, Fisch räuchern — und die Toten verbrennen, ehe sie wiederkommen.",
+      "braeuche": [
+        "Totenverbrennung statt Bestattung, damit keiner wiedergeht",
+        "Die Mauerwache im Wechsel, Tag und Nacht",
+        "Das Räuchern als Gemeinschaftswerk der Fischerfamilien"
+      ]
+    },
+    "siedlungen": [
+      {
+        "id": "vargvik",
+        "name": "Vargvik, die Wolfsbucht",
+        "hauptstadt": true,
+        "typ": "Ummauerte Hafenstadt",
+        "lage": "Über der Enge des Vargfjords, zwischen steilen Kiefernhängen; die offene See im Westen, der Schwarzwald im Osten.",
+        "beschreibung": "Eine kleine Wikingerstadt aus Holz und Stein, geduckt hinter Palisadenwall und Ringmauer über der Förde. Rauch über grauen Dächern, Räucherhütten am Kai, ein Häuflein müder Schildträger auf dem Wehrgang; dahinter der dunkle Wald, aus dem es kommt.",
+        "stimmung": "Müde Entschlossenheit hinter dem Wall — Trotz statt Hoffnung.",
+        "versorgung": "Fisch, geräuchert und gepökelt; Dünnbier und Brunnenwasser.",
+        "bauten": [
+          "Ringmauer und Palisadenwall über der Fjord-Enge",
+          "Räucherhütten am Kai",
+          "Christophers Braukate",
+          "Die Halle des Jarls",
+          "Der Kai mit Hallas Fischerbooten"
+        ],
+        "eigenschaften": [
+          {
+            "key": "Fjord-Enge, gut zu verteidigen",
+            "value": 2
+          },
+          {
+            "key": "karger Boden, nur Fisch",
+            "value": -1
+          },
+          {
+            "key": "isoliert, kein Handel",
+            "value": -1
+          }
+        ]
+      }
+    ]
+  },
+  "modifikatoren": {
+    "gelaende": [
+      {
+        "key": "Fjord-Enge, gut zu verteidigen",
+        "value": 2
+      },
+      {
+        "key": "isoliert, kein Handel",
+        "value": -1
+      }
+    ],
+    "lage": [
+      {
+        "key": "jahrelange Belagerung, Erschöpfung der Wehr",
+        "value": -1,
+        "grund": "jeder Winter frisst mehr Verteidiger, als der Sommer ersetzt"
+      },
+      {
+        "key": "verlorenes Wissen",
+        "value": -1,
+        "grund": "die alten Brauer sind tot, die Rezepte nur noch Fragmente"
+      },
+      {
+        "key": "Misstrauen statt Meuterei",
+        "value": -1,
+        "grund": "Philipps Salzproben-Rede (Wurf 7) vertagte den Aufstand: die Wache griff nicht zu, doch die Spionen-Furcht — Wiedergänger in vertrauten Gesichtern — zersetzt nun den Zusammenhalt von innen"
+      }
+    ]
+  },
+  "faehigkeiten": [
+    "Mauerwehr und Wallbau (das Handwerk Philipps und der Wache)",
+    "Fischfang und Räuchern als einzige verlässliche Nahrung",
+    "Reste der Kunst: fragmentarische Alchemie und Geisterzwiesprache in Christophers Händen",
+    "Wiedergänger lebend fangen (Fangstangen-Schlinge, nutzt ihre Langsamkeit) — durch kritischen Coup erschlossen",
+    "Forschungspfad zum Ursprung am lebenden Gefangenen: das Erkennen + die echte Salzprobe (mit Auðun +2 / Christopher +1)"
+  ],
+  "gruppen": [
+    {
+      "id": "wehr",
+      "name": "Die Wache",
+      "sprecherId": "brandr",
+      "kompetenz": "Mauer, Waffen, Wachdienst"
+    },
+    {
+      "id": "kunst",
+      "name": "Die Brauer / die Kunst",
+      "sprecherId": "christopher",
+      "kompetenz": "Alchemie, Heilkunde, Kräuter, Geisterzwiesprache"
+    },
+    {
+      "id": "fischer",
+      "name": "Die Fischer und das Volk",
+      "sprecherId": "halla",
+      "kompetenz": "Fischfang, Versorgung, Stimmung des Volkes"
+    },
+    {
+      "id": "hof",
+      "name": "Der Hof des Jarls",
+      "sprecherId": "jarl-harald",
+      "kompetenz": "weltliche Führung, Recht, Vorräte"
+    },
+    {
+      "id": "glaube",
+      "name": "Die Seherkunst / der Glaube",
+      "sprecherId": "grima",
+      "kompetenz": "Vorzeichen, Riten, Moral des Volkes"
+    },
+    {
+      "id": "spaeher",
+      "name": "Die Späher / die Jugend",
+      "sprecherId": "felix",
+      "kompetenz": "Kundschaft jenseits der Mauer, Wagemut"
+    }
+  ],
+  "berater": [
+    {
+      "id": "jarl-harald",
+      "name": "Jarl Harald der Müde",
+      "rolle": "Herr von Vargvik, weltliche Führung",
+      "ziel": "Die Stadt um jeden Preis am Leben halten und seine Ordnung bewahren — lieber ein erniedrigender Handel als ein heldischer Untergang. Seine schlimmste Furcht ist eingetreten: die Wache als Tyrannei, ein Hauptmann, der seine Söhne mit Stahl auf loyale Männer hetzt und Verwundete foltert. Offene Gegnerschaft.",
+      "loyalitaet": -2,
+      "generation": "alt",
+      "lebensstand": "lebensabend",
+      "erscheinung": "grauer Bart, schwerer Fellmantel, ein steifes Bein; Augen, die nichts Gutes mehr erwarten."
+    },
+    {
+      "id": "christopher",
+      "name": "Christopher",
+      "rolle": "Bruder Philipps; Druide und Alchemist der Stadt, der mit den Geistern spricht",
+      "ziel": "Mit Geisterzwiesprache und Kunst den Ursprung der Pest ergründen und Vargvik retten; seinem Bruder bis zum Letzten ergeben. Sein Brauen und Geisterwandeln schürt jedoch Furcht und den Verdacht, die Kunst selbst nähre die Wiedergänger. Prüfte Auðuns Fachwissen und fand es echt — die beiden Brüder bilden nun die einzige konstruktive, nüchterne Achse in Vargvik.",
+      "loyalitaet": 5,
+      "generation": "mittel",
+      "lebensstand": "ruestig",
+      "erscheinung": "kräftiger Mann in den mittleren Jahren, helle, wettergegerbte Haut; kurzgeschorenes braunes Haar, an den Schläfen knapp geschoren, oben etwas voller; voller, gepflegter kurzer brauner Bart; helle, wache Augen und ein warmes, offenes Lächeln, das schlecht zu seinem oft abwesenden Druidenblick passt; anders als sein schwarzlockiger Bruder Philipp trägt er das Haar kurz. Fleckige Alchemistenhände, Amulette aus Knochen und Kupfer am Hals, gemurmelte Zwiesprache mit Unsichtbaren."
+    },
+    {
+      "id": "stephan",
+      "name": "Stephan",
+      "rolle": "Bruder Philipps; Redner und Taktiker des Rates",
+      "ziel": "Mit Wort und Klugheit die Stadt zusammenhalten und ihre Schläge lenken; dient seinem Bruder treu und stärkt dessen Hand im Rat. Versuchte den Faustschlag und den Bruderkampf aufzuhalten — bleibt treu, doch erschüttert; nach der Folter erkennt er seinen Bruder nicht wieder.",
+      "loyalitaet": 2,
+      "generation": "mittel",
+      "lebensstand": "ruestig",
+      "erscheinung": "breitschultrig, ruhige feste Stimme, gepflegter Bart; der, auf den der Rat hört, wenn die Stimmen laut werden."
+    },
+    {
+      "id": "finn",
+      "name": "Finn",
+      "rolle": "Älterer Sohn Philipps; junger Hauptmann an der Mauer",
+      "ziel": "Würdig in die Fußstapfen des Vaters treten und die Wehr halten; ihm bedingungslos ergeben. Hat auf Befehl des Vaters Brandr mit dem Schwert angegriffen und verwundet — restlos gehorcht; etwas in ihm hat sich dabei geschlossen.",
+      "loyalitaet": 5,
+      "generation": "jung",
+      "lebensstand": "ruestig",
+      "erscheinung": "dunkle Locken, kantiges Gesicht, ernst über seine Jahre; trägt das alte Lederwams des Vaters."
+    },
+    {
+      "id": "brandr",
+      "name": "Brandr Eisenkinn",
+      "rolle": "Ehemals Veteran der Wache, Philipps härtester Schildmann — nun Feind in den Mauern",
+      "ziel": "Geschlagen, von Finn mit dem Schwert verwundet, dann von Philipp und Finn vor den Augen der Wache am Boden mit Salz in der Wunde gefoltert. Kein Berater mehr, sondern offener Feind; seine Männer haben die Folter gesehen und wenden sich von Philipp ab. Will Rache und/oder Philipps Sturz. Nun zusätzlich öffentlich als verkleideter Wiedergänger verleumdet (Salzproben-Rede) — gefährlicher Märtyrer-Stoff; sein Blut war rot.",
+      "loyalitaet": -5,
+      "generation": "alt",
+      "lebensstand": "ruestig",
+      "erscheinung": "ein Auge fehlt, vernarbt, riesig, unheimlich ruhig."
+    },
+    {
+      "id": "halla",
+      "name": "Halla Netzhand",
+      "rolle": "Sprecherin der Fischer und des Volkes",
+      "ziel": "Die Menschen satt und am Leben halten — würde die Mauer für Boote und Flucht aufgeben, wenn das Hungern zu groß wird. Kann das Volk aufwiegeln. Hat die Folter an Brandr gesehen und wiegelt das Volk gegen Philipp auf.",
+      "loyalitaet": -2,
+      "generation": "mittel",
+      "lebensstand": "ruestig",
+      "erscheinung": "wettergegerbt, breit, salzrissige Hände, laute Stimme."
+    },
+    {
+      "id": "grima",
+      "name": "Gríma die Blinde",
+      "rolle": "Seherin (Völva), Stimme des Glaubens",
+      "ziel": "Die Ausbreitung als Urteil der Mächte deuten und durch Riten besänftigen; sieht im fremden Wissen Frevel — oder die Erfüllung einer dunklen Weissagung. Kann das Volk gegen 'befleckte' Maßnahmen kehren. Sieht in Faustschlag, Bruderkampf und Folter den Frevel offen ausgebrochen; verkündet das Urteil der Mächte gegen Philipp.",
+      "loyalitaet": -2,
+      "generation": "alt",
+      "lebensstand": "lebensabend",
+      "erscheinung": "milchige Augen, Knochenamulette, eine tiefe, singende Stimme."
+    },
+    {
+      "id": "felix",
+      "name": "Felix",
+      "rolle": "Jüngerer Sohn Philipps; Späher und Kundschafter der Wache",
+      "ziel": "Sich vor dem Vater beweisen und hinter die Mauer schauen, wo sich keiner traut; wagemutig, doch treu.",
+      "loyalitaet": 5,
+      "generation": "jung",
+      "lebensstand": "ruestig",
+      "erscheinung": "schlank und flink, ein heller Kopf voll Locken, ein Späherbogen über der Schulter; zu jung für das, was er draußen sieht."
+    }
+  ],
+  "personen": [
+    {
+      "id": "audun",
+      "name": "Auðun der Krähenmantel",
+      "rolle": "Der Fremde vom Schiff — ein fahrender Druide aus jenseits der See, der forschen kann",
+      "lebensstand": "ruestig, von Finn und Felix vor den Rat gebracht (unter Bewachung), seinen Preis genannt",
+      "erscheinung": "ein hagerer Fremder mit zerzaustem Haar und hellwachen Augen, redet schnell und sprunghaft und lacht über die eigenen Gedanken; wirkt verrückt und ist doch von beunruhigender Klugheit. Riecht nach Salz, Rauch und unbekannten Kräutern.",
+      "hintergrund": "Verrückt, aber herzlich und sehr intelligent. Ein echter Forscher: er kann den Ursprung der Pest und ein Mittel dagegen methodisch untersuchen. Sein voller Charakter und seine Beweggründe entfalten sich erst im Lauf der Partie (Hintergrunddetail für später)."
+    }
+  ],
+  "maechte": [
+    {
+      "id": "wiedergaenger",
+      "name": "Die Wiedergänger",
+      "typ": "Seuche / namenlose Macht",
+      "erscheinung": "graue, aufgedunsene Gestalten mit erloschenen Augen, einzeln schwach und langsam, doch zahllos und ohne Ermüden; mehr in jedem Jahr.",
+      "profil": [
+        {
+          "key": "Zahl ohne Ende",
+          "value": 3
+        },
+        {
+          "key": "einzeln schwach und langsam",
+          "value": -1
+        },
+        {
+          "key": "unermüdlich, ohne Furcht",
+          "value": 2
+        }
+      ],
+      "beziehung": {
+        "wert": -3,
+        "label": "tödlicher, gesichtsloser Feind"
+      },
+      "haltung": "Branden Welle um Welle gegen die Mauer; warum sie sich ausbreiten, weiß niemand. EINER ist nun lebend gefangen (Fangstangen) und in Vargvik verwahrt — Studienobjekt und Gefahr zugleich."
+    },
+    {
+      "id": "audun-schiff",
+      "name": "Auðun der Krähenmantel und sein Schiff",
+      "typ": "Fremder, Wildcard (möglicher Verbündeter)",
+      "erscheinung": "ein fremdes Schiff im Hafen, eine Handvoll schweigsamer Leute, ihr Meister mit zerzaustem Haar und zu wachen Augen.",
+      "profil": [
+        {
+          "key": "Wissen der Kunst, kann forschen",
+          "value": 2
+        },
+        {
+          "key": "sprunghaft, unberechenbar",
+          "value": -1
+        }
+      ],
+      "beziehung": {
+        "wert": 1,
+        "label": "fachlich bestätigt — Forscher-Allianz mit Christopher im Werden"
+      },
+      "haltung": "Christopher prüfte sein Fachwissen (Aschensud, Scheidung der Säfte) und fand es echt — Auðun korrigierte und ergänzte sogar verlorene Rezepte. Sagt: Salzprobe am Lebenden ist falsch (rotes Blut), aber an einem echten Gewendeten reagiere das Salz mit der Fäulnis; verlangt einen frischen Wiedergänger zum Beweis. Sein Profilwert +2 (forschen) steht nun als Modifikator für Ursprungs-/Salzproben-Aktionen bereit. Will weiter für sich behalten, was er findet (offenes Risiko)."
+    },
+    {
+      "id": "ragnars-clan",
+      "name": "Ragnars Clan",
+      "typ": "fremder Stamm (möglicher Verbündeter, noch unterwegs)",
+      "erscheinung": "ein anderer Stamm aus dem Norden, geführt von Ragnar — Krieger und Siedler auf der Suche nach sicherem Grund; noch nicht in Vargvik eingetroffen.",
+      "profil": [
+        {
+          "key": "freundlich, bündniswillig",
+          "value": 1
+        },
+        {
+          "key": "noch nicht eingetroffen",
+          "value": 0
+        }
+      ],
+      "beziehung": {
+        "wert": 1,
+        "label": "freundlich gesinnt, noch fern"
+      },
+      "haltung": "Ein befreundeter Clan unter Ragnar, der selbst ein Führer ist; er wird kommen und ist ein möglicher Verbündeter gegen die Pest. (Hintergrunddetail, tritt später auf.)"
+    },
+    {
+      "id": "die-hoefe",
+      "name": "Die Höfe der Küste",
+      "typ": "versprengte Restsiedlungen",
+      "erscheinung": "ferne Rauchsäulen, schweigende Leuchtfeuer; einst Nachbarn, heute meist gefallen oder verstummt.",
+      "profil": [
+        {
+          "key": "vielleicht hält noch einer",
+          "value": 1
+        },
+        {
+          "key": "unerreichbar, Seewege voller Gefahr",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": -1,
+        "label": "fern, verstummt, kaum erreichbar"
+      },
+      "haltung": "Kein Handel mehr, keine Hilfe; ob überhaupt einer noch lebt, ist ungewiss."
+    }
+  ],
+  "besitz": [
+    "Die Ringmauer und der Palisadenwall über der Fjord-Enge",
+    "Räucherhütten und die Fischerboote der Halla",
+    "Christophers Braukate mit den letzten Kräutervorräten und Rezeptfragmenten",
+    "Die Halle des Jarls",
+    "Fangstangen mit Würgschlinge (aus dem Hundefänger-Gerät) — taugen, einen einzelnen Wiedergänger lebend zu bändigen",
+    "DER GEFANGENE: ein lebend gefangener Wiedergänger, mit zwei Fangstangen-Schlingen gebändigt und verwahrt — lebendes Studienobjekt (Forschung + Salzprobe), zugleich Gefahr in den Mauern"
+  ],
+  "verfassung": {
+    "text": "Vargvik ist nominell ein Jarltum: Jarl Harald herrscht und spricht Recht. Doch seit die Belagerung alles auffrisst, ist die wahre Macht die Mauer — und damit Philipps Wache. Der Rat tagt, wenn die Lage kippt; entschieden hat bislang der Jarl, doch sein Wort wiegt von Jahr zu Jahr leichter. Eine geklärte Ordnung, wer in der Not befiehlt, fehlt noch."
+  },
+  "beziehungenAnsehen": {
+    "text": "Ansehen nominell 1, doch sein Inhalt ist gekippt: Nicht mehr 'der die Mauer hält', sondern 'der seine eigenen Männer schlägt und seine Söhne auf sie hetzt'. Bei der Wache (Brandrs Männern) und beim Volk (Halla) verkehrt sich der Ruf in Furcht; Furcht ist hohle Bindung. Nach außen reicht nichts: die Höfe schweigen, der Fremde studiert, die Wiedergänger kennen kein Verhandeln."
+  },
+  "historie": [
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1–7 der Belagerung",
+      "zusammenfassung": "Sieben Jahre branden die Wiedergänger gegen Vargvik. Handel und Felder sind dahin, man lebt vom Fisch. Die alten Brauer starben, das Wissen der Kunst zerfiel zu Fragmenten in den Händen von Christopher, Philipps Bruder, der mit den Geistern spricht. Philipp, ein Lederer, arbeitete sich in diesen Jahren zum Hauptmann der Wache hoch. Nun, im siebten Sommer, läuft ein fremdes Schiff ein: Auðun der Krähenmantel bringt Kunde von einem Mittel gegen die Pest."
+    }
+  ],
+  "offeneFaeden": [
+    "Woher kommen die Wiedergänger — und warum breiten sie sich aus?",
+    "Stammt die Pest aus der Kunst selbst? Was ahnt Christopher aus der Geisterzwiesprache — und behält er es für sich?",
+    "Was will Auðun der Krähenmantel wirklich, und was kostet sein 'Mittel'?",
+    "Hält noch einer der Höfe an der Küste — gibt es Verbündete?",
+    "Wie lange trägt der Jarl noch, ehe die Macht ganz an die Wache fällt?",
+    "Der nächste Winter: weniger Verteidiger, weniger Fisch — wie viele Lebenswürfe?",
+    "Hintergrund: Auðun der Krähenmantel bietet an, Ursprung und Heilung methodisch zu erforschen — verrückt, aber brillant; sein wahres Wesen zeigt sich erst später.",
+    "Hintergrund: Ragnars Clan, ein befreundeter Stamm unter dem Führer Ragnar, ist nach Vargvik unterwegs — ein möglicher Verbündeter, der erst später eintrifft.",
+    "Christophers Geisterzwiesprache schürt Furcht im Volk (Brandr, Gríma) — der Verdacht, die Kunst nähre die Pest, richtet sich nun gegen Philipps eigenen Bruder.",
+    "Philipp schlug Brandr im Rat für ein ehrliches Wort ins Gesicht; Brandr schlug nicht zurück, sondern 'merkt es sich' (Loy -2). Ein kalter, gefährlicher Bruch mit dem treuesten Schildmann — noch ein Schlag und Brandr ist am Bruch.",
+    "Der Faustschlag in der Jarlshalle vor dem Fremden hat Harald gegen Philipp aufgebracht (Loy 2→1) und das Ansehen Philipps angekratzt: ein Hauptmann, der eigene Männer schlägt, hält durch Furcht, nicht durch Treue.",
+    "OFFENER UMSTURZ: Philipp befahl Finn, Brandr mit dem Schwert anzugreifen — Machtprobe kritisch gelungen (10), Finn gehorchte restlos und verwundete Brandr. Brandr (Loy -5, am Bruch) verließ blutend die Halle und trägt den Versuch, Philipp abzusetzen, zur Wache. Die Stadt-Fraktionen haben sich abgewandt (Harald -1, Halla -1, Gríma -1); Halla zum Volk, Gríma zum Glauben. Nur der Familienkern hält (Finn +5, Felix +5, Christopher +4, Stephan +3).",
+    "Philipp hält zeitweilige Autorität (+1 auf befohlene Aktionen) aus dem kritischen Erfolg — verbraucht beim nächsten Rückschlag. Seine Herrschaft ist binnen einer Ratssitzung von Treue auf nackte Furcht gekippt.",
+    "Auðun beobachtete den ganzen Bruch mit Faszination statt Schrecken — er studiert Philipp wie einen Befund. Sein Angebot ist im Tumult unbeantwortet liegengeblieben.",
+    "KRITISCHER COUP — LEBENDER WIEDERGÄNGER GEFANGEN (Haupt, Wurf 10): Philipp und Finn fingen mit Fangstangen einen Wiedergänger lebend und brachten ihn samt zwei skeptischen Wache-Zeugen durch das Tor; keine Verluste. NEUER HEBEL 'Der Gefangene': erstes lebendes Studienobjekt — eröffnet den Forschungspfad zum Ursprung (Auðun +2 / Christopher +1) und macht die Salzprobe real prüfbar. Weltkosten: ein lebendes Pestwesen in den Mauern schürt Furcht (Gríma, Halla) und ist eine reale Gefahr (Biss/Entkommen wäre Katastrophe). Die mitgegangenen Schildmänner sahen Philipps eigenen Mut — erster Faden zurück zur Wache.",
+    "AUÐUNS KOMPETENZ BESTÄTIGT (Neben, Wurf 8): Christopher prüfte Auðun fachlich und fand einen echten Meister, der verlorene Rezepte kennt. Forscher-Allianz Christopher+Auðun im Werden (Beziehung +1, Christopher +5). Auðun: die Salzprobe sei am Lebenden (Brandr) falsch, aber an einem echten Gewendeten real — das Salz reagiere mit der Fäulnis. Damit ist Philipps Notlüge als prüfbare Erkennungsmethode an einem frischen Wiedergänger im Spiel.",
+    "SALZPROBEN-REDE (Wurf 7, auf Ziel, kein Coup): Statt sich Stephans Zugriff zu fügen, behauptete Philipp, die Folter sei eine Enttarnung gewesen und Brandr ein verkleideter Wiedergänger (Blut färbe sich grün). Das Blut war rot — die Behauptung blieb unbewiesen, aber die Wache zögerte und ließ vom Aufstand ab (Meuterei vertagt, Mod -1). PREIS: allgemeine Spionen-Furcht/Misstrauen ('Wiedergänger tragen vertraute Gesichter') zersetzt Vargvik von innen. Stephans Zugriff ist neutralisiert (er durchschaut die Lüge, kann den 'Spion' aber nicht mehr schützen). Gríma lenkt die Spionen-Furcht auf Christopher und die Kunst. Auðun bietet an, die Salzprobe an einem echten Wiedergänger wissenschaftlich zu prüfen (braucht einen Frischen).",
+    "ESKALATION ZUR FOLTER: Philipp und Finn verfolgten den verwundeten Brandr, warfen ihn zu Boden und rieben ihm Salz (das kostbare Pökelsalz des Winters) in die Schwertwunde — vor den Augen der Wache. Brandr schrie nicht. Die Wache wendet sich offen ab (Verteidigung +1→0, Modifikator 'Meuterei der Wache droht' -2). Harald/Halla/Gríma nun bei -2, offene Gegnerschaft; Halla wiegelt das Volk auf, Gríma verkündet das Urteil der Mächte. Die zeitweilige Autorität ist durch diesen Rückschlag verbraucht. Stephan -1 (auf 2). Vargvik steht am Rand des Bürgerkriegs, während die Wiedergänger weiter die Mauer berennen."
+  ],
+  "trends": {
+    "nahrung": {
+      "richtung": "fallend",
+      "grund": "nur Fischfang, der Winter zehrt; weniger Hände zum Fangen"
+    },
+    "material": {
+      "richtung": "fallend",
+      "grund": "kein Handel, Holz und Eisen werden an der Mauer verbraucht"
+    },
+    "wissen": {
+      "richtung": "fallend",
+      "grund": "die Eingeweihten sterben, die Rezepte zerfallen"
+    }
+  },
+  "runde": {
+    "haupt": {
+      "used": 1,
+      "max": 1
+    },
+    "neben": {
+      "used": 1,
+      "max": 2
+    },
+    "aktionen": [
+      {
+        "art": "haupt",
+        "titel": "Einen lebenden Wiedergänger fangen",
+        "id": "act-fang",
+        "kern": "Lebendes Studienobjekt holen",
+        "folge": "Philipp und Finn fingen mit Fangstangen-Schlingen einen Wiedergänger lebend und brachten ihn — mit zwei skeptischen Schildmännern als Zeugen — durch das Tor. Kritischer Coup (10): keine Verluste, neuer Hebel 'Der Gefangene' eröffnet (Forschung + echte Salzprobe). Weltkosten: Furcht in der Stadt (Gríma, Halla).",
+        "ziel": 7,
+        "mod": "+2 Fangstangen / -2 Wesensart (nach außen)",
+        "status": "gewaehlt",
+        "wurf": 10,
+        "ergebnis": "KRITISCHER COUP: lebender Wiedergänger gefangen, neuer Forschungspfad offen"
+      },
+      {
+        "art": "neben",
+        "titel": "Auðuns Fachwissen prüfen (Christopher)",
+        "id": "act-audun-pruefen",
+        "kern": "Echt oder Schwätzer?",
+        "folge": "Christopher prüfte Auðun mit einer echten alchemistischen Frage; der Fremde bestand glänzend. Kompetenz bestätigt, Beziehung 0→+1, Christopher 4→5. Auðuns +2 (forschen) ab jetzt nutzbar.",
+        "ziel": 5,
+        "mod": "+1 Christophers Meisterschaft",
+        "status": "gewaehlt",
+        "wurf": 7,
+        "ergebnis": "deutlicher Erfolg (7+1=8 vs 5, Marge +3): Auðun ist ein echter Meister der Kunst"
+      },
+      {
+        "art": "haupt",
+        "titel": "Den Fremden vor den Rat laden",
+        "id": "act-fremder",
+        "kern": "Auðun anhören",
+        "folge": "Finn und Felix holten Auðun unter Bewachung vom Kai. Er nannte seinen Preis (Dach, Fisch, Zugang zur Kunst, ein Gefallener) und will für sich behalten, was er findet. Aufgelöst als freies Gespräch — kein Wurf, kein Aktionsbudget. Kosten: Brandr verstimmt (-1).",
+        "ziel": 5,
+        "mod": "als freies Gespräch aufgelöst (kein Wurf)",
+        "status": "gewaehlt",
+        "wurf": null,
+        "ergebnis": "erledigt: Auðun vor dem Rat, Preis bekannt; nun zu entscheiden, ob Vargvik auf das Angebot eingeht"
+      },
+      {
+        "art": "haupt",
+        "titel": "Die Salzprobe wirklich prüfen (an einem Wiedergänger)",
+        "id": "act-salzprobe",
+        "kern": "Aus der Lüge eine Wahrheit machen — oder sie zerschellen lassen",
+        "folge": "Der Gefangene ist da: Salz an dem lebenden Wiedergänger prüfen, vor Zeugen. Reagiert die Fäulnis (grün), wird Philipps Notlüge zur bewiesenen Waffe und das Rätsel kippt; bleibt nichts, zerfällt die Salzprobe als Methode. Auðun + Christopher führen es.",
+        "ziel": 7,
+        "mod": "+2 Auðun (forschen) +1 Christopher (Kunst) = +3",
+        "status": "frei",
+        "wurf": null,
+        "ergebnis": null
+      },
+      {
+        "art": "haupt",
+        "titel": "Die Spionen-Furcht lenken oder löschen",
+        "id": "act-misstrauen",
+        "kern": "Das Gift im Inneren steuern",
+        "folge": "Die Paranoia ist los; Gríma lenkt sie auf Christopher. Wege: sie auf einen Sündenbock richten (festigt die Macht, opfert jemanden), sie einhegen (Stephans Klugheit, Machtprobe), oder Christopher öffentlich schützen (gegen Gríma, kostet beim verängstigten Volk).",
+        "ziel": 6,
+        "mod": "Stephan +1 wenn eingebunden · Gríma wiegelt -1",
+        "status": "frei",
+        "wurf": null,
+        "ergebnis": null
+      },
+      {
+        "art": "haupt",
+        "titel": "Über Auðuns Angebot entscheiden",
+        "id": "act-audun-pakt",
+        "kern": "Den Fremden binden oder abweisen",
+        "folge": "Im Tumult unbeantwortet liegengeblieben. Annehmen, unter Bedingungen stellen, oder abweisen.",
+        "ziel": 5,
+        "mod": "Verhandlung nach außen -2 (Wesensart), je nach Weg",
+        "status": "frei",
+        "wurf": null,
+        "ergebnis": null
+      },
+      {
+        "art": "haupt",
+        "titel": "Einen Wiedergänger fangen und untersuchen",
+        "id": "act-erkennen",
+        "kern": "Ursprung erkennen",
+        "folge": "Mit Christophers Kunst einen Gefallenen studieren — gefährlich, aber der Weg zum Verstehen der Pest.",
+        "ziel": 7,
+        "mod": "+1 Christophers Kunst",
+        "status": "frei",
+        "wurf": null,
+        "ergebnis": null
+      },
+      {
+        "art": "neben",
+        "titel": "Die Mauer für den Winter härten",
+        "id": "act-mauer",
+        "kern": "Wall verstärken",
+        "folge": "Philipps Handwerk: Palisade und Wehrgang ausbessern, ehe der Winter und die nächste Welle kommen.",
+        "ziel": 4,
+        "mod": "+2 Belagerung / +1 Handwerk",
+        "status": "frei",
+        "wurf": null,
+        "ergebnis": null
+      }
+    ]
+  },
+  "setzungen": [
+    {
+      "titel": "Wesensart: Unbeugsam hinter der Mauer",
+      "text": "+2 auf alles Halten, Aushalten, Verteidigen; −2 auf alles Offene: Aufbruch, Fahrt, Erkundung, Verhandlung nach außen."
+    },
+    {
+      "titel": "Die Kunst (Disziplin: Alchemie & Druidentum)",
+      "text": "Magie gibt es nur als Tränke, Dekokte und Geisterzwiesprache, ein Handwerk weniger Eingeweihter — in Vargvik der Druide Christopher, Philipps Bruder, der mit den Geistern spricht. Quelle: seltene Kräuter, Pilze, Aschensud und die fragmentarischen Rezepte (Verbrauch von Material/Wissen, abhängig von Christophers Können). Anwendungen: Kriegssud (+1/+2 für Verteidiger im Kampf, vergiftet den Trinker langsam), Heilsud (+1 auf Lebenswürfe/Wundpflege), Totenwitterung (Aufklärung über die Wiedergänger), Geisterzwiesprache (mit Toten und Geistern reden, um den Ursprung zu ergründen — Christophers eigene Gabe), Das Erkennen (einen Gefallenen studieren, um den Ursprung zu verstehen; harter Zielwert). Preis: Die Kunst ist der verdächtige Ursprung der Pest — jede Anwendung nährt Furcht und den Verdacht, man füttere, was man bekämpft; Abhängigkeit von schwindenden Zutaten; Wissenslücken lassen eine gewürfelte 1 etwas Schlimmeres hervorbringen."
+    },
+    {
+      "titel": "Verlorenes Wissen",
+      "text": "Das alte Können ist Fragment. Wissen startet niedrig und sinkt, wenn Eingeweihte sterben. Voller Zugang zur Kunst muss erst zurückgewonnen werden (Hauptaktionen, harte Zielwerte)."
+    },
+    {
+      "titel": "Chronisten-Stil (vereinbart)",
+      "text": "Erzählweise dieser Partie: 3. Person über 'Philipp', Sagen-Ton, Szene im Präteritum, Optionen/Mechanik im Präsens. Sachlich-erzählerisch, normal ausformuliert (volle Sätze, keine Stichpunkte), kompakt, kein Pathos. Pro Szene nur 2–3 relevante Rats-Stimmen mit eigenem Klang; ganzer Rat nur bei großen Fragen oder auf 'rat'. Jede Probe als abgesetzter Mini-Block mit offenem Zielwert und jedem Modifikator; nie für den Spieler würfeln. Jede Antwort endet mit einer kurzen Zusammenfassung (2–3 Sätze) und danach der Statuskonsole. Bei prägenden Momenten optional ein Bild-Prompt fürs Dashboard."
+    }
+  ],
+  "karte": {
+    "prompt": "Gezeichnete, abgegriffene Pergament-Seekarte des hohen Nordens: eine enge Förde (der Vargfjord) zwischen steilen, kiefernbewachsenen Hängen, im Westen die offene graue See, im Zentrum die ummauerte Stadt Vargvik mit Palisadenwall über der Engstelle, im Osten und Norden dunkler 'Schwarzwald', aus dem die Wiedergänger kommen, im Fjord ein fremdes Schiff am Kai, im Süden entlang der Küste verstreute, halb verlassene Höfe mit dünnen Rauchfäden. Gedämpfte Farben, alt, kalt.",
+    "orte": [
+      {
+        "id": "vargvik",
+        "name": "Vargvik (die Wolfsbucht)",
+        "typ": "Stadt",
+        "richtung": "Zentrum, über der Fjord-Enge",
+        "beziehung": "Heimat, hinter der Mauer"
+      },
+      {
+        "id": "vargfjord",
+        "name": "Der Vargfjord",
+        "typ": "Förde",
+        "richtung": "West zur offenen See",
+        "beziehung": "Lebensader (Fisch) und einziger Weg hinaus"
+      },
+      {
+        "id": "schwarzwald",
+        "name": "Der Schwarzwald über der Bucht",
+        "typ": "Wald",
+        "richtung": "Ost und Nord",
+        "beziehung": "woher die Wiedergänger kommen"
+      },
+      {
+        "id": "kai",
+        "name": "Der Kai mit dem fremden Schiff",
+        "typ": "Hafen",
+        "richtung": "im Fjord unter der Stadt",
+        "beziehung": "Auðuns Schiff liegt vor Anker"
+      },
+      {
+        "id": "die-hoefe-ort",
+        "name": "Die fernen Höfe",
+        "typ": "Restsiedlungen",
+        "richtung": "Süd entlang der Küste",
+        "beziehung": "verstummt, vielleicht noch bewohnt"
+      }
+    ]
+  }
+}
