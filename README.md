@@ -54,3 +54,9 @@ npm run test:e2e    # End-to-End und Visual-Snapshots (Playwright)
 ## Promptotyping
 
 RealmCraft ist ein [Promptotyping](https://dhcraft.org/Promptotyping/)-Projekt von [Christopher Pollin](https://dhcraft.org) (DHCraft).
+
+## Licence
+
+The code in this repository is released under the MIT Licence (see `LICENSE`).
+Documentation, knowledge documents, and other textual content are licensed under
+CC BY 4.0. Any third-party material included retains the rights of its holders.
