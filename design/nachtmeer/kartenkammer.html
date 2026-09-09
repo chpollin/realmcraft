@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Nachtmeer · Kartenkammer</title>
+  <link rel="stylesheet" href="../../spiel/nachtmeer/chamber-tokens.css">
+  <link rel="stylesheet" href="../../spiel/nachtmeer/chamber.css">
+  <script type="module" src="../../spiel/nachtmeer/app.js"></script>
+</head>
+<body data-preview="true">
+  <a class="skip" href="#world">Zur Karte</a>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-beacon" viewBox="0 0 24 24"><path d="M8 21h8M9 21l1-11h4l1 11M8 10h8V7l-4-3-4 3zM12 1v1M3 5l3 1M21 5l-3 1M2 11h4M22 11h-4"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/></symbol>
+    <symbol id="i-council" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21v-4a6 6 0 0 1 12 0v4M3 8a3 3 0 0 0 0 6M21 8a3 3 0 0 1 0 6M2 21v-2a4 4 0 0 1 2-3M22 21v-2a4 4 0 0 0-2-3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1zM12 5v15"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M12 22V2M12 8C7 8 5 5 5 2c5 0 7 3 7 6ZM12 14c-5 0-7-3-7-6 5 0 7 3 7 6ZM12 11c5 0 7-3 7-6-5 0-7 3-7 6ZM12 18c5 0 7-3 7-6-5 0-7 3-7 6Z"/></symbol>
+    <symbol id="i-material" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10M7 4l10 6"/></symbol>
+    <symbol id="i-aether" viewBox="0 0 24 24"><path d="m12 2 7 10-7 10-7-10zM5 12h14M12 2v20"/></symbol>
+    <symbol id="i-hope" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/><circle cx="12" cy="12" r="4"/></symbol>
+    <symbol id="i-ship" viewBox="0 0 24 24"><path d="M12 2v14M12 3l7 10h-7M10 6l-5 7h5M2 17h20l-4 4H6z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 3v7h7"/></symbol>
+  </defs></svg>
+  <div id="preview-bar" class="preview-bar" hidden><span>Gestaltungsprobe · Sternwarte</span><button data-sample="unknown" aria-pressed="true">01 Unbekannter Seeweg</button><button data-sample="draft" aria-pressed="false">02 Bauentwurf</button><button data-sample="lit" aria-pressed="false">03 Aktives Feuer</button><a href="../../spiel/">Partie spielen ↗</a></div>
+  <div class="game-shell">
+    <header class="game-header">
+      <a class="brand" href="kartenkammer.html" aria-label="Nachtmeer Start"><svg aria-hidden="true"><use href="#i-beacon"/></svg><span><small>RealmCraft · Die Kartenkammer von Lys</small><strong>Nachtmeer</strong></span></a>
+      <div id="resources" class="resources" aria-label="Vorräte des Reichs"></div>
+    </header>
+    <nav class="chamber-nav" aria-label="Spielansichten"><button class="active" data-action="map">Seekarte</button><button data-action="council">Hafenrat</button><button data-action="chronicle">Chronik</button><div class="nav-meta"><button data-action="tides">Gezeit <b id="turn">1</b> / 6</button><span>Die erloschenen Feuer</span></div></nav>
+    <div class="workspace">
+      <main id="world" class="world" tabindex="-1" aria-label="Seekarte des Nachtmeers">
+        <div class="chart-heading"><div><span class="eyebrow" id="chart-status">Das letzte Hafenlicht</span><h1 id="mission-title">Gewässer um Lys</h1><p id="mission-summary"></p></div><div class="chart-modes" role="group" aria-label="Karteninhalt"><button data-map-mode="routes" aria-pressed="true">Seewege</button><button data-map-mode="institutions" aria-pressed="false">Ordnungen</button></div></div>
+        <p class="chart-pan-hint">↔ Karte seitlich verschieben</p>
+        <div class="chart-scroll" tabindex="0" role="region" aria-label="Seekarte, bei schmalem Fenster seitlich verschiebbar"><div id="chart" class="chart-canvas"></div></div>
+        <div class="chart-legend" aria-label="Zeichenerklärung"><span><i class="legend-line unknown"></i>Unbekannt</span><span><i class="legend-line"></i>Offen</span><span><i class="legend-line lit"></i>Feuer aktiv</span><span><i class="legend-line planned"></i>Vorgemerkt</span><span class="chart-note" id="chart-note"></span></div>
+        <section class="register" aria-label="Geltende Beschlüsse"><div class="register-heading"><span class="eyebrow">Beschlussregister</span><button data-action="register">Alle Einträge ↗</button></div><div id="records" class="record-list"></div></section>
+        <div class="dispatch"><span class="folio" aria-hidden="true">§</span><button id="current-event" class="story-teaser" data-action="story"></button></div>
+      </main>
+      <aside id="inspector" class="inspector" aria-label="Ausgewählter Ort"></aside>
+    </div>
+    <footer class="game-meta"><span id="save-status">Lokale Partie</span><div class="file-tools"><button data-action="export">Speichern</button><button data-action="import">Laden</button><button data-action="help">Spielregeln</button><button data-action="reset">Neue Partie</button><a href="../../spiel/winter.html">Der erste Winter</a></div></footer>
+  </div>
+  <footer class="command-deck" aria-label="Befehle für die Gezeit"><div class="command-heading"><span class="eyebrow">Deine Anordnungen</span><strong><span id="order-count">0</span> <small>von 2 Befehlen</small></strong></div><div id="orders" class="orders"></div><button class="advance primary" data-action="review">Gezeit prüfen</button></footer>
+  <input id="save-file" type="file" accept=".json,application/json" hidden>
+  <noscript>Bitte JavaScript aktivieren, um Nachtmeer zu spielen.</noscript>
+  <div id="notice" role="status" class="notice"></div>
+  <dialog id="dialog" aria-labelledby="dialog-title"><button class="dialog-close" data-action="close" aria-label="Fenster schließen"><svg aria-hidden="true"><use href="#i-close"/></svg></button><div id="dialog-content"></div></dialog>
+</body>
+</html>

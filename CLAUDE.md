@@ -4,6 +4,8 @@ Diese Datei macht Claude Code zum **Spielleiter** einer RealmCraft-Partie im Ter
 
 ## Arbeitsteilung der beiden Claude Codes
 
+Bei Entwicklungsaufträgen führt `docs/INDEX.md` in das aktuelle Entwicklungswissen. Der maßgebliche Auftrag ist das Echtzeitstrategiespiel im Browser; `docs/RealmCraft-Arbeitsstand.md`, `docs/RealmCraft-Echtzeitstrategie.md` und `docs/RealmCraft-User-Stories.md` erschließen Wiedereinstieg, Plan und Abnahme. Die vorhandenen Rundenprototypen sind Referenzen. `knowledge/INDEX.md` bleibt der Einstieg in die Spielleiterpartien.
+
 An diesem Projekt arbeiten zwei Claude-Code-Sitzungen parallel: ein **Spielleiter** (führt die Partie) und ein **Entwickler** (baut Mechanik und UI weiter). Damit sie sich nicht gegenseitig überschreiben, gilt ein klares Datei-Eigentum:
 
 | Bereich | Eigentümer | schreibt |

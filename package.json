@@ -9,6 +9,9 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test \"tests/unit/**/*.test.js\"",
     "test:e2e": "playwright test",
+    "test:strategy": "node --test tests/unit/strategy.test.js && playwright test tests/e2e/strategy.spec.js",
+    "test:nachtmeer": "node --test tests/unit/nachtmeer.test.js tests/unit/nachtmeer-presentation.test.js",
+    "simulate:nachtmeer": "node design/nachtmeer-simulate.mjs",
     "test:visual:update": "playwright test --update-snapshots",
     "report": "playwright show-report"
   },

@@ -1,0 +1,79 @@
+import { JOBS, PROJECTS, RULES, SEASONS } from './scenario.js';
+import { assigned, council, preview } from './engine.js';
+
+const image = hash => `../examples/demo/die-gestrandeten/bilder/${hash}.webp`;
+const btn = (action, label, options = '') => `<button type="button" data-action="${action}" ${options}>${label}</button>`;
+const sign = value => value > 0 ? `+${value}` : String(value);
+const policyName = policy => ({ majority: 'Mehrheitsbeschluss', pact: 'Versorgungspakt', veto: 'Veto der Führung' })[policy] ?? 'Ratsfrage offen';
+
+export function renderOverview(game) {
+  const season = game.status === 'lost' ? { name: 'Ende der Partie' } : SEASONS[game.turn];
+  return `<div class="campaign-heading"><div><span class="eyebrow">Die Gestrandeten · Graulandung</span><h1>${season ? `${season.name} im ersten Jahr` : 'Nach dem ersten Winter'}</h1><p>${game.status === 'lost' ? 'Die Versorgung der Gemeinschaft ist zusammengebrochen.' : game.status === 'won' ? 'Der Winter ist überstanden. Die Entscheidungen dieses Jahres bleiben in der Chronik.' : season.text}</p></div><ol class="season-track" aria-label="Jahresverlauf">${SEASONS.map((s, i) => `<li class="${i === game.turn && game.status === 'playing' ? 'current' : i < game.turn ? 'done' : ''}" ${i === game.turn ? 'aria-current="step"' : ''}><span>${i < game.turn ? '✓' : i + 1}</span>${s.name}</li>`).join('')}</ol></div><div class="resource-bar"><div><span>Nahrung im Vorrat</span><strong data-testid="food-stock">${game.food}</strong></div><div><span>Material im Vorrat</span><strong data-testid="material-stock">${game.material}</strong></div><div><span>Arbeitsgruppen</span><strong data-testid="workers">${game.workers}</strong></div><div><span>Gesellschaftliche Ordnung</span><strong class="text-value">${game.pact ? 'Versorgungspakt' : 'Mehrheitsrat'}</strong></div></div>`;
+}
+
+function map(game, draft, place) {
+  const node = (id, label, description) => `<button type="button" data-action="place" data-place="${id}" class="map-place ${place === id ? 'selected' : ''}" aria-pressed="${place === id}"><span class="place-symbol" aria-hidden="true">${id === 'erz' ? 'II' : id === 'weg' ? '·' : 'I'}</span><span>${label}<small>${description}</small></span></button>`;
+  return `<div class="world-map" aria-label="Die bekannte Küste mit Graulandung, Küstenweg und Erzklippen"><svg class="terrain" viewBox="0 0 720 430" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="map-grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" class="map-grid"/></pattern></defs><rect width="720" height="430" class="sea"/><path d="M0 0H565L594 40 562 78 603 110 554 164 535 208 463 241 436 306 337 359 300 430H0Z" class="land"/><path d="M0 0H381L439 54 399 126 317 140 263 220 144 240 0 290Z" class="highland"/><path d="M400 26L452 78 425 102 385 51ZM306 54L351 109 319 130 275 88ZM193 98L240 146 204 168 165 135Z" class="ridge"/><path d="M198 330L354 224 518 103" class="supply-road"/><rect width="720" height="430" fill="url(#map-grid)"/></svg><span class="map-caption">Bekannte Küste</span><span class="map-north" aria-label="Norden">N ↑</span>${node('erz', 'Erzklippen', game.buildings.mine ? 'Außenposten in Betrieb' : draft.project === 'mine' ? 'Bau vorgemerkt' : 'Unerschlossenes Erz')}${node('weg', 'Küstenweg', 'Gesichert · Versorgung offen')}${node('grau', 'Graulandung', game.buildings.granary ? 'Winterlager fertig' : draft.project === 'granary' ? 'Winterlager geplant' : 'Siedlung am Strand')}<span class="sea-label">Schwarze See</span><div class="map-legend"><span>● Eigene Orte</span><span>┄ Gesicherter Weg</span></div></div>`;
+}
+
+function projectCard(game, draft, id) {
+  const project = PROJECTS[id];
+  const built = game.buildings[id];
+  const active = draft.project === id;
+  const availableWorkers = game.workers - assigned(draft) + (draft.project ? PROJECTS[draft.project].workers : 0);
+  const disabled = availableWorkers < project.workers || game.material < project.cost || game.status !== 'playing';
+  return `<div class="eyebrow">${project.place === 'erz' ? 'Die Erzklippen' : 'Graulandung'}</div><h2>${project.name}</h2><p>${project.description}</p><dl class="facts"><div><dt>Baukosten</dt><dd>${project.cost} Material</dd></div><div><dt>Baukapazität</dt><dd>${project.workers} Gruppen</dd></div><div><dt>Fertigstellung</dt><dd>Saisonende</dd></div><div><dt>Wirksam ab</dt><dd>Nächster Saison</dd></div></dl>${built ? '<div class="rule-note">Anlage fertiggestellt</div>' : active ? `<div class="rule-note">Bau vorgemerkt<small>${policyName(draft.policy)}</small></div><div class="actions">${btn('rat', 'Antrag im Rat', 'class="primary"')}${btn('cancel-project', 'Auftrag entfernen')}</div>` : `${btn('project', `${project.name} vormerken`, `class="primary" data-project="${id}" ${disabled ? 'disabled' : ''}`)}${availableWorkers < project.workers ? `<p class="hint">Für den Bau zuerst ${project.workers - availableWorkers} Arbeitsgruppen in der Zuweisung freigeben.</p>` : ''}${game.material < project.cost ? '<p class="hint warning">Das Material muss zu Saisonbeginn im Vorrat liegen.</p>' : ''}`}`;
+}
+
+function allocation(game, draft) {
+  const free = game.workers - assigned(draft);
+  const yieldFood = SEASONS[game.turn]?.yield ?? 0;
+  const jobs = Object.entries(JOBS).map(([id, name]) => {
+    const locked = id === 'mine' && !game.buildings.mine;
+    const rate = id === 'food' ? yieldFood : id === 'wood' ? RULES.woodYield : RULES.mineYield;
+    return `<div class="job-row"><div><strong>${name}</strong><small>${locked ? 'Benötigt fertigen Erzaußenposten' : `+${rate} ${id === 'food' ? 'Nahrung' : 'Material'} je Gruppe`}</small></div><div class="stepper">${btn('minus', '−', `data-job="${id}" aria-label="${name} verringern" ${draft.allocation[id] === 0 || game.status !== 'playing' ? 'disabled' : ''}`)}<output aria-label="Gruppen für ${name}" data-testid="allocation-${id}">${draft.allocation[id]}</output>${btn('plus', '+', `data-job="${id}" aria-label="${name} erhöhen" ${free <= 0 || locked || game.status !== 'playing' ? 'disabled' : ''}`)}</div></div>`;
+  }).join('');
+  return `<section class="allocation" aria-label="Arbeitszuweisung"><div class="section-heading"><h2>Arbeitszuweisung</h2><span class="free-workers ${free < 0 ? 'warning' : ''}" data-testid="free-workers">${free} frei / ${game.workers} gesamt</span></div>${jobs}<div class="job-row"><div><strong>Bauvorhaben</strong><small>${draft.project ? PROJECTS[draft.project].name : 'Kein Auftrag vorgemerkt'}</small></div><span>${draft.project ? PROJECTS[draft.project].workers : 0} Gruppen</span></div></section>`;
+}
+
+export function renderMap(game, draft, place) {
+  const ended = game.status !== 'playing';
+  const detail = place === 'weg'
+    ? '<span class="eyebrow">Die Küste</span><h2>Küstenweg</h2><p>Der Weg verbindet Graulandung mit den Erzklippen. Er ist in diesem Szenario gesichert.</p><dl class="facts"><div><dt>Versorgung</dt><dd>Offen</dd></div><div><dt>Kontrolle</dt><dd>Eigene Gemeinschaft</dd></div></dl>'
+    : projectCard(game, draft, place === 'erz' ? 'mine' : 'granary');
+  return `${game.turn === 0 ? '<div class="intro-note"><span class="eyebrow">Dein Ziel</span><p>Führe die Gemeinschaft durch den ersten Winter. Verteile die Arbeitsgruppen und entscheide, welche Anlagen und Regeln ihr dafür braucht.</p></div>' : ''}<div class="map-layout"><div>${map(game, draft, place)}${!ended ? allocation(game, draft) : `<div class="actions">${btn('chronik', 'Jahresbericht lesen', 'class="primary"')}</div>`}</div><aside class="inspector" aria-label="Ausgewählter Ort">${place === 'grau' ? `<img class="settlement-image" src="${image('07d53df40fc17a39')}" alt="Graulandung als befestigte Küstensiedlung" width="480" height="270">` : ''}<div class="inspector-content">${detail}</div><div class="winter-note"><span class="eyebrow">Wintervorsorge</span><p>Winterverbrauch <strong>${game.buildings.granary ? RULES.winterConsumption - RULES.winterRelief : RULES.winterConsumption} Nahrung</strong></p><small>${game.buildings.granary ? 'Das fertige Winterlager schützt die Vorräte.' : 'Ein vor dem Winter fertiggestelltes Lager spart 6 Nahrung.'}</small></div></aside></div>`;
+}
+
+export function renderCouncil(game, draft) {
+  const votes = council(game, draft);
+  const project = draft.project ? PROJECTS[draft.project] : null;
+  const yes = votes.filter(v => v.yes).length;
+  const majorityYes = council(game, { ...draft, policy: 'majority' }).filter(v => v.yes).length;
+  const p = preview(game, draft);
+  const cards = votes.map(v => `<article class="advisor"><img src="${image(v.image)}" alt="Porträt von ${v.name}" width="80" height="100"><div><span class="eyebrow">${v.role}</span><h3>${v.name}</h3><p>${project ? v.reason : v.interest}</p><span class="loyalty">Loyalität ${sign(v.loyalty)} <span class="quiet">/ −5 bis +5</span></span></div>${project ? `<strong class="vote ${v.yes ? 'yes' : 'no'}">${v.yes ? 'Ja' : 'Nein'}</strong>` : ''}</article>`).join('');
+  return `<div class="section-heading"><div><span class="eyebrow">Der Rat von Graulandung</span><h2>${project ? `Antrag auf ${project.name}` : 'Stimmen der Gemeinschaft'}</h2></div>${project ? `<span>${yes} von 5 Stimmen · 3 benötigt</span>` : ''}</div><div class="council-layout"><div>${cards}</div><aside class="inspector inspector-content"><span class="eyebrow">Geltendes Recht</span><h2>${game.pact ? 'Versorgungspakt' : 'Mehrheitsrat'}</h2><p>${game.pact ? 'Jeder neue Bau benötigt mindestens 18 Nahrung nach Saisonverbrauch. Der Pakt gilt für den Rest dieses Szenarios.' : 'Drei Ratsstimmen entscheiden. Die Führung kann einen abgelehnten Antrag per Veto durchsetzen.'}</p>${project ? `<h3>Entscheidung vormerken</h3><div class="policy-choices">${btn('policy', 'Mehrheitsbeschluss', `data-policy="majority" aria-pressed="${draft.policy === 'majority'}" ${majorityYes < RULES.majority ? 'disabled' : ''}`)}${!game.pact ? btn('policy', 'Versorgungspakt beschließen', `data-policy="pact" aria-pressed="${draft.policy === 'pact'}"`) : ''}${btn('policy', 'Mit Veto durchsetzen', `data-policy="veto" aria-pressed="${draft.policy === 'veto'}"`)}</div><p class="hint">Das Veto kostet bei jedem widersprechenden Mitglied zwei Loyalitätspunkte. Bereits geltendes Recht bleibt verbindlich.</p>${(game.pact || draft.policy === 'pact') ? `<div class="rule-note ${p.endFood < RULES.reserve ? 'warning' : ''}">Reserve nach Saison ${p.endFood} / mindestens ${RULES.reserve}</div>` : ''}<div class="actions">${btn('lage', 'Zuweisung ansehen')}</div>` : `<div class="rule-note">${game.status === 'playing' ? 'Noch kein Bauantrag vorgemerkt.' : 'Die Entscheidungen dieser Partie stehen in der Chronik.'}</div><div class="actions">${btn('lage', 'Zur Karte')}</div>`}</aside></div>`;
+}
+
+function balance(before, p) {
+  return `<div class="balance-grid"><div><span class="eyebrow">Nahrung nach Saison</span><strong data-testid="food-preview">${p.endFood}</strong><span>${before.food} Vorrat + ${p.foodGain} Gewinn − ${p.consumption} Verbrauch</span>${p.gap ? `<span class="warning">${p.gap} ungedeckter Bedarf</span>` : ''}</div><div><span class="eyebrow">Material nach Saison</span><strong data-testid="material-preview">${p.endMaterial}</strong><span>${before.material} Vorrat + ${p.materialGain} Gewinn − ${p.cost} Baukosten</span></div></div>`;
+}
+
+export function renderReview(game, draft) {
+  const p = preview(game, draft);
+  return `<div class="section-heading"><div><span class="eyebrow">Entwurf prüfen</span><h2>${SEASONS[game.turn]?.name ?? 'Partie'} abschließen</h2></div>${btn('lage', 'Zurück zu den Aufträgen')}</div>${balance(game, p)}<div class="review-grid"><section><h3>Verbindliche Folgen</h3><ul class="consequences"><li>${draft.project ? PROJECTS[draft.project].result : 'Kein Bauvorhaben. Bestehende Produktion wird fortgesetzt.'}</li><li>${draft.policy ? policyName(draft.policy) : 'Kein neuer Ratsbeschluss.'}</li>${draft.policy === 'pact' ? '<li>Die Vorratsbedingung gilt auch für spätere Bauanträge.</li>' : ''}${draft.policy === 'veto' ? `<li>Jeweils −2 Loyalität bei ${p.votes.filter(v => !v.yes).map(v => v.name.split(' ')[0]).join(', ') || 'keinem Ratsmitglied'}.</li>` : ''}</ul></section><section><h3>Prüfung der Voraussetzungen</h3>${p.errors.length ? `<div class="rule-note warning" role="alert">${p.errors.map(error => `<p>${error}</p>`).join('')}</div><div class="actions">${btn(draft.project && !draft.policy ? 'rat' : 'lage', draft.project && !draft.policy ? 'Ratsfrage klären' : 'Entwurf korrigieren')}</div>` : '<div class="rule-note">Die Befehle sind ausführbar.</div>'}${p.warnings.map(warning => `<p class="hint warning">${warning}</p>`).join('')}</section></div>`;
+}
+
+function ending(game) {
+  if (game.status === 'playing') return '';
+  return `<section class="ending ${game.status}" data-testid="campaign-result"><span class="eyebrow">Der erste Winter · Szenario abgeschlossen</span><h2>${game.status === 'won' ? 'Die Feuer brennen weiter.' : 'Die Vorräte reichen nicht.'}</h2><p>${game.status === 'won' ? 'Graulandung hat den ersten Winter überstanden. Eure Entscheidungen haben ihre Spuren in der Siedlung und im Rat hinterlassen.' : `Die Versorgungslücken summieren sich auf ${game.shortfall} Nahrung. Die Gemeinschaft kann ihre Versorgung in diesem Szenario nicht mehr aufrechterhalten.`}</p><dl class="ending-facts"><div><dt>Erzklippen</dt><dd>${game.buildings.mine ? 'Erschlossen' : 'Unerschlossen'}</dd></div><div><dt>Winterlager</dt><dd>${game.buildings.granary ? 'Errichtet' : 'Nicht errichtet'}</dd></div><div><dt>Politische Ordnung</dt><dd>${game.pact ? 'Versorgungspakt' : 'Mehrheitsrat'}</dd></div><div><dt>Versorgungslücken</dt><dd>${game.shortfall} Nahrung insgesamt</dd></div></dl><div class="actions">${btn('new', 'Andere Entscheidungen erproben', 'class="primary" aria-haspopup="dialog"')}${btn('export', 'Partie als Datei behalten')}</div></section>`;
+}
+
+export function renderChronicle(game) {
+  return `${ending(game)}<div class="section-heading"><div><span class="eyebrow">Gedächtnis der Gemeinschaft</span><h2>Chronik des ersten Jahres</h2></div></div>${!game.history.length ? '<p class="empty-note">Das erste Kapitel ist noch offen. Nach einer ausgeführten Saison erscheinen ihre Folgen hier.</p>' : [...game.history].reverse().map((entry, index) => `<details class="chronicle-entry" ${index === 0 ? 'open' : ''}><summary><span>${entry.season}, Jahr 1</span><span>${entry.command.project ? PROJECTS[entry.command.project].name : 'Versorgung und Alltag'}</span></summary><div class="chronicle-body">${balance(entry.before, { ...entry, endFood: entry.after.food, endMaterial: entry.after.material })}<ul class="consequences">${entry.events.map(event => `<li>${event}</li>`).join('')}</ul><p class="quiet">Eingesetzte Gruppen · Versorgung ${entry.command.allocation.food}, Material ${entry.command.allocation.wood}, Erz ${entry.command.allocation.mine}${entry.command.project ? ', Bau 2' : ''}</p></div></details>`).join('')}`;
+}
+
+export function renderTurnBar(game, draft, view) {
+  if (game.status !== 'playing') return `<div><span class="eyebrow">Partie abgeschlossen</span><p>Die ausgeführten Entscheidungen bleiben gespeichert.</p></div>${view !== 'chronik' ? btn('chronik', 'Jahresbericht', 'class="primary"') : ''}`;
+  const p = preview(game, draft);
+  return `<div><span class="eyebrow">Erwarteter Endbestand · ${SEASONS[game.turn].name}</span><strong>${p.endFood} Nahrung <span class="quiet">/</span> ${p.endMaterial} Material</strong><p class="${p.errors.length || p.gap ? 'warning' : 'quiet'}">${p.errors[0] ?? p.warnings[0] ?? 'Alle Gruppen zugewiesen. Die Bilanz ist berechenbar.'}</p></div>${view === 'review' ? btn('execute', 'Saison ausführen', `class="primary" ${p.errors.length ? 'disabled' : ''}`) : btn('review', 'Saison prüfen', 'class="primary"')}`;
+}
