@@ -29,3 +29,6 @@ Thumbs.db
 
 # Running game campaigns (written only by engine/cli.mjs)
 campaigns/
+
+# Agent worktrees (Claude Code isolation)
+.claude/worktrees/
