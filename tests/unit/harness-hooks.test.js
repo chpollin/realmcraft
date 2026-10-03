@@ -4,7 +4,7 @@
 
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -455,7 +455,15 @@ describe('subagent-status', () => {
   before(() => {
     writeFileSync(join(dir, 'run.json'), JSON.stringify({ format: 'realmcraft-run', version: 1, campaign: CID, turn: TURN, active: true, startedAt: new Date().toISOString(), endedAt: null, agents: {} }));
     rmSync(join(dir, 'agents', 'proposals', `chronicler.T${TURN}.json`), { force: true });
+    // Phase B agents run while the kernel is in phase agents.
+    setPhase('agents');
   });
+  const setPhase = (phase) => {
+    const s = JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8'));
+    writeFileSync(join(dir, 'state.json'), JSON.stringify({ ...s, phase }));
+  };
+  const stepOf = (id) => status().steps.find((s) => s.id === id);
+  const proposalFile = (pid) => join(dir, 'agents', 'proposals', `${pid}.json`);
 
   it('ignores subagents that are not RealmCraft roles', () => {
     const before = existsSync(join(dir, 'status.json')) ? readFileSync(join(dir, 'status.json'), 'utf8') : null;
@@ -485,6 +493,52 @@ describe('subagent-status', () => {
     const step = status().steps.find((s) => s.id === 'chronicler-all');
     assert.equal(step.state, 'failed');
     assert.equal(step.summary, 'kein Vorschlag geschrieben');
+  });
+
+  it('a proposal written after a failed stop turns the step done', () => {
+    const r = run('proposal-check', post(putProposal(narrative()), { agent_type: 'rc-chronicler', agent_id: 'c2' }));
+    assert.equal(r.code, 0, r.stderr);
+    assert.equal(stepOf('chronicler-all').state, 'done');
+  });
+
+  it('parallel starts without a task description take distinct tasks, a launch record binds exactly', async () => {
+    rmSync(proposalFile(`rival.talbund.T${TURN}`), { force: true });
+    rmSync(proposalFile(`rival.bergnomaden.T${TURN}`), { force: true });
+    const hookAsync = (payload) => new Promise((done) => {
+      const p = spawn(process.execPath, [HOOK('subagent-status')], { env: { ...process.env, REALMCRAFT_ROOT: root, CLAUDE_PROJECT_DIR: root } });
+      p.stdout.resume();
+      p.stderr.resume();
+      p.on('exit', done);
+      p.stdin.end(JSON.stringify(payload));
+    });
+    writeFileSync(join(dir, 'run.json'), JSON.stringify({ format: 'realmcraft-run', version: 1, campaign: CID, turn: TURN, active: true, startedAt: new Date().toISOString(), endedAt: null, agents: {}, bound: {} }));
+    await Promise.all(['p1', 'p2'].map((agent_id) => hookAsync({ hook_event_name: 'SubagentStart', agent_type: 'rc-rival', agent_id, cwd: root })));
+    let marker = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
+    assert.deepEqual(Object.values(marker.agents).sort(), ['rival-bergnomaden', 'rival-talbund']);
+    assert.deepEqual(marker.bound, {}, 'a guess binds nothing');
+
+    const launched = launchRecord('p3', 'rc-rival', zugPrompt('rival-talbund'), `rc-rival rival.talbund.T${TURN}`);
+    run('subagent-status', { hook_event_name: 'SubagentStart', agent_type: 'rc-rival', cwd: root, ...launched });
+    marker = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
+    assert.equal(marker.bound.p3, `rival.talbund.T${TURN}`);
+    assert.equal(marker.agents.p3, 'rival-talbund');
+  });
+
+  it('a guessed stop without a proposal leaves the step; after open the reconcile fails it', () => {
+    // p1 holds a guessed step; its stop names nothing.
+    run('subagent-status', { hook_event_name: 'SubagentStop', agent_type: 'rc-rival', agent_id: 'p1', last_assistant_message: '', cwd: root });
+    const guessed = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')).agents.p1;
+    assert.equal(stepOf(guessed).state, 'running');
+    setPhase('planning');
+    try {
+      const r = spawnSync(process.execPath, [join(REPO, 'tools', 'harness', 'status-note.mjs'), 'sync', '--campaign', CID, '--root', root], { encoding: 'utf8', env: { ...process.env, REALMCRAFT_ROOT: root } });
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(status().phase, 'planning');
+      assert.equal(stepOf(guessed).state, 'failed');
+      assert.equal(stepOf('chronicler-all').state, 'done', 'a delivered proposal stays done');
+    } finally {
+      setPhase('agents');
+    }
   });
 });
 

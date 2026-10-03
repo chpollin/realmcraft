@@ -13,6 +13,7 @@
 
 import { activeCampaign, normPath, parseArgs, readJsonFile, rootDir } from './lib.mjs';
 import { withLock, writeJsonAtomic } from '../../engine/harness/io.js';
+import { reconcileStatus } from './reconcile.mjs';
 
 const { pos, opt } = parseArgs(process.argv.slice(2));
 const cmd = pos[0];
@@ -40,4 +41,14 @@ const marker = withLock(dir, 'run', () => {
   writeJsonAtomic(path, next);
   return next;
 });
+// The end of a run is the last moment the status view hears of it, so it
+// follows the files once more (phase after open, steps of agents whose stop
+// event was not attributed).
+if (cmd === 'end') {
+  try {
+    await reconcileStatus(dir);
+  } catch {
+    // status.json is a view; the marker is written either way
+  }
+}
 process.stdout.write(`${JSON.stringify(marker, null, 2)}\n`);

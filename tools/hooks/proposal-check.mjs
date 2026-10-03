@@ -133,7 +133,7 @@ if (!result.duplicate) {
         reason: null,
       });
     });
-    s.updateStep(loc.dir, { id: stepId, agent: task.agent, summary: 'Vorschlag liegt vor, Vorprüfung bestanden' });
+    s.updateStep(loc.dir, { id: stepId, agent: task.agent, state: 'done', summary: 'Vorschlag liegt vor, Vorprüfung bestanden' });
   });
 }
 const context = [`RealmCraft: proposal ${pid} passed the pre-check${result.duplicate ? ' (unchanged duplicate)' : ''}.`];

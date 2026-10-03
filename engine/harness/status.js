@@ -91,6 +91,15 @@ export function updateStep(dir, { id, agent, state, summary }, { lock } = {}) {
   }, lock);
 }
 
+/** Sets the phase shown with the steps, so the view follows the kernel phase after apply and open. */
+export function setPhase(dir, phase, { lock } = {}) {
+  return commit(dir, (cur) => {
+    const status = requireStatus(cur, dir);
+    status.phase = phase;
+    return status;
+  }, lock);
+}
+
 // Agent named by a proposal id ("research.schar.T6" -> research), for steps
 // that a verdict reaches before any hook announced them.
 function agentOf(proposalId) {
