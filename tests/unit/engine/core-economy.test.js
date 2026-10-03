@@ -628,6 +628,16 @@ test('capStocks: a cap of 0 stores nothing and caps are read from the opening st
   assert.equal(hw(tc.state).resources.nahrung, 30);
 });
 
+test('capStocks: a cap whose source was suspended this season binds at once', () => {
+  const { env, state } = setup();
+  hw(state).statuses.push(status('vorrat', { op: 'stock.cap', res: 'nahrung', amount: 4 }));
+  hw(state).resources.nahrung = 34;
+  const tc = ctxOf(state, env);
+  tc.state.peoples[PID].statuses = tc.state.peoples[PID].statuses.filter((s) => s.id !== 'vorrat');
+  capStocks(tc);
+  assert.equal(hw(tc.state).resources.nahrung, 32, 'cap 30 now, excess 4 loses ceil(4 / 2) = 2');
+});
+
 test('capStocks: a world cap above 999 still holds the stock at 999', () => {
   const big = capped({ nahrung: 1500 }, { regeln: { ...REGELN, resources: REGELN.resources.map((r) => (r.id === 'nahrung' ? { ...r, cap: 2000 } : r)) } });
   assert.equal(hw(big.state).resources.nahrung, 999);

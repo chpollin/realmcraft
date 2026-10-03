@@ -15,7 +15,8 @@ import { RULES } from '../core/rules.js';
 import { issue } from '../core/issues.js';
 import { applyOnce, setKern } from '../core/effects.js';
 import { addResource, noteChange, notice, setControl, setPeople } from '../core/log.js';
-import { controlledRegions, kern, regionTerrain, settlementsOf } from '../core/state.js';
+import { kern, settlementsOf } from '../core/state.js';
+import { regionPotential } from '../core/economy.js';
 import { reach, regionAt, tileOf } from '../core/map.js';
 
 const EMPTY = Object.freeze({ camp: null, migratedAt: 0, transition: null });
@@ -165,7 +166,11 @@ function tendHerds(tc, pid, mx) {
     addResource(tc, pid, herd, -rules.winterLoss, 'winter takes part of the herds');
     return;
   }
-  const pasture = controlledRegions(tc.s0, pid).filter((r) => rules.pastureTerrains.includes(regionTerrain(tc.world, r))).length;
+  // A region grazes like it harvests: its dominant terrain or the land around
+  // an own settlement in it (economy regionPotential), so a camp on an alm in
+  // a mountain region keeps its herds. yield.mod plays no part, hence no standing.
+  const pasture = regionPotential(tc.s0, tc.env, pid, [], tc.cal.season)
+    .filter((p) => p.terrains.some((t) => rules.pastureTerrains.includes(t))).length;
   // The season's labour is already in tc.state (set when apply starts), S0 holds the previous one.
   const hueten = tc.state.peoples[pid].population.assigned?.hueten ?? 0;
   const growth = Math.min(people.population.core, rules.growth * pasture) + Math.floor(hueten / 2);
