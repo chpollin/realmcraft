@@ -295,16 +295,18 @@ export class MapView {
     if (model.layer === 'besitz') this.drawOwnership(cells, s);
     if (model.layer === 'bedrohung') this.drawThreat(cells, s);
     this.drawRegionBorders(cells, s);
+    this.drawReach(cells, s);
 
     this.drawRoads(s);
     this.drawCampGlow(s);
     if (s > 20) this.drawRegionLabels(cells, s);
     if (model.layer === 'handel') this.drawTrade(s, now);
     this.drawMoves(s);
+    this.drawPlans(s);
     this.drawPlaces(s);
     this.drawUnits(s);
     this.drawHighlights(s, now);
-    this.drawPreview(s, now);
+    this.drawPreview(s, now, cells);
     this.drawHoverSelection(s, now);
 
     ctx.globalAlpha = 1;
@@ -615,6 +617,9 @@ export class MapView {
       const y = [0.15, -1.35, 1.65, -2.85, 3.15].map((d) => a.y / a.n + s * d).find(clear);
       if (y === undefined) continue;
       const lit = id === hovered;
+      // A controlled province carries its owner's flag before the name.
+      const owner = this.ownership().get(this.regions().get(id)?.anchor.k);
+      if (owner) this.icon('besitz', x - half - s * 0.05, y, Math.max(12, px * 0.8), col(peopleToken(owner)), col('--map-label-halo', { a: 0.7 }));
       ctx.lineWidth = 4;
       ctx.lineJoin = 'round';
       ctx.strokeStyle = col('--map-label-halo', { a: lit ? 0.6 : 0.4 });
@@ -655,44 +660,226 @@ export class MapView {
       if (!road.path.some((h) => model.known[hexKey(h.q, h.r)])) continue;
       const { p } = this.tracePath(road.path);
       const strasse = road.art === 'strasse';
+      // Each road level above the second widens the line, so paths, roads and high roads read apart.
+      const grow = 1 + Math.max(0, (road.level ?? (strasse ? 2 : 1)) - 2) * 0.45;
       ctx.globalAlpha = muted ? 0.45 : 0.9;
       ctx.strokeStyle = col('--map-road-casing', { a: 0.55 });
-      ctx.lineWidth = Math.max(2.5, s * (strasse ? 0.15 : 0.1));
+      ctx.lineWidth = Math.max(2.5, s * (strasse ? 0.15 : 0.1) * grow);
       ctx.setLineDash([]);
       if (strasse) ctx.stroke(p);
       ctx.strokeStyle = col('--map-road', { a: strasse ? 0.9 : 0.75 });
-      ctx.lineWidth = Math.max(1.2, s * (strasse ? 0.07 : 0.045));
+      ctx.lineWidth = Math.max(1.2, s * (strasse ? 0.07 : 0.045) * grow);
       ctx.setLineDash(strasse ? [] : [s * 0.16, s * 0.14]);
       ctx.stroke(p);
     }
     ctx.restore();
   }
 
+  /**
+   * Reach and sight of the selected own unit (model.unitReach from the
+   * kernel): the tiles it can move to this season washed and outlined in the
+   * people's colour, and the edge of what it keeps in sight dashed in the
+   * colour of water and sight.
+   */
+  drawReach(cells, s) {
+    const r = this.model.unitReach;
+    if (!r || this.model.selection?.id !== r.id) return;
+    const { ctx } = this;
+    const reach = new Set(r.tiles);
+    const sight = new Set(r.sight);
+    const edges = (set) => {
+      const p = new Path2D();
+      for (const c of cells) {
+        if (!set.has(c.k)) continue;
+        neighbors(c.tile.q, c.tile.r).forEach((n, i) => {
+          if (set.has(hexKey(n.q, n.r))) return;
+          const [a, b] = EDGE_CORNERS[i];
+          p.moveTo(c.x + CORNERS[a][0] * s * 0.96, c.y + CORNERS[a][1] * s * 0.96);
+          p.lineTo(c.x + CORNERS[b][0] * s * 0.96, c.y + CORNERS[b][1] * s * 0.96);
+        });
+      }
+      return p;
+    };
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const c of cells) {
+      if (!reach.has(c.k)) continue;
+      ctx.beginPath();
+      hexPath(ctx, c.x, c.y, s * 0.94);
+      ctx.fillStyle = col('--people-own', { a: 0.13 });
+      ctx.fill();
+    }
+    const sightEdge = edges(sight);
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.5 });
+    ctx.lineWidth = Math.max(3, s * 0.11);
+    ctx.setLineDash([s * 0.12, s * 0.16]);
+    ctx.stroke(sightEdge);
+    ctx.strokeStyle = col('--map-river', { a: 0.85 });
+    ctx.lineWidth = Math.max(1.2, s * 0.045);
+    ctx.stroke(sightEdge);
+    ctx.setLineDash([]);
+    const reachEdge = edges(reach);
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.55 });
+    ctx.lineWidth = Math.max(3.5, s * 0.13);
+    ctx.stroke(reachEdge);
+    ctx.strokeStyle = col('--people-own');
+    ctx.lineWidth = Math.max(1.6, s * 0.06);
+    ctx.stroke(reachEdge);
+    ctx.restore();
+  }
+
+  /**
+   * Orders of the draft that act on the map, drawn where they act: moves and
+   * attacks as arrows from the units, a migration from the camp, a raid towards
+   * the region, and markers on the tiles that explorations, foundings, roads
+   * and applications aim at. The kernel decides at season end; this shows the plan.
+   */
+  drawPlans(s) {
+    const { model } = this;
+    if (!model.real || model.phase === 'A') return;
+    const at = (k) => { const [q, r] = String(k).split(',').map(Number); return Number.isInteger(q) && Number.isInteger(r) ? { q, r } : null; };
+    const unitAt = (id) => model.units.find((u) => u.id === id && u.volk === 'spieler') ?? null;
+    for (const o of model.orders) {
+      const p = o.params ?? {};
+      const tile = typeof p.tile === 'string' ? at(p.tile) : null;
+      if (o.type === 'move' && tile && unitAt(p.unit)) this.arrow(unitAt(p.unit), tile, s, '--people-own', { dashed: true });
+      else if (o.type === 'attack' && tile) {
+        for (const id of p.units ?? []) if (unitAt(id)) this.arrow(unitAt(id), tile, s, '--down', { head: 'krieger' });
+      } else if (o.type === 'ausfall' && tile) {
+        const from = model.units.find((u) => u.id === p.settlement) ?? model.places.find((x) => x.id === p.settlement);
+        if (from) this.arrow(from, tile, s, '--down', { head: 'krieger' });
+      } else if (o.type === 'migrate' && tile && model.home) this.arrow(model.home, tile, s, '--people-own', { dashed: true, head: 'lager' });
+      else if (o.type === 'retreat' && unitAt(p.unit) && model.home) this.arrow(unitAt(p.unit), model.home, s, '--ink', { dashed: true });
+      else if (o.type === 'raubzug') {
+        const region = this.regions().get(p.region);
+        if (!region) continue;
+        for (const id of p.units ?? []) if (unitAt(id)) this.arrow(unitAt(id), { q: region.anchor.q, r: region.anchor.r }, s, '--down', { dashed: true, head: 'raeuber' });
+      } else if (tile) {
+        const mark = { explore: 'sicht', found: 'siedlung', road: 'handel', 'road.pave': 'handel', 'discipline.use': 'magie' }[o.type];
+        if (mark) this.planMark(tile, s, mark);
+      } else if (o.type === 'discipline.use' && typeof p.target === 'string' && at(p.target)) this.planMark(at(p.target), s, 'magie');
+    }
+  }
+
+  arrow(from, to, s, tokenName, { dashed = false, head = null } = {}) {
+    const { ctx } = this;
+    const a = this.hexScreen(from.q, from.r);
+    const b = this.hexScreen(to.q, to.r);
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const start = { x: a.x + Math.cos(ang) * s * 0.5, y: a.y + Math.sin(ang) * s * 0.5 };
+    const end = { x: b.x - Math.cos(ang) * s * 0.55, y: b.y - Math.sin(ang) * s * 0.55 };
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.6 });
+    ctx.lineWidth = Math.max(4, s * 0.17);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    ctx.strokeStyle = col(tokenName);
+    ctx.lineWidth = Math.max(2, s * 0.08);
+    ctx.setLineDash(dashed ? [s * 0.2, s * 0.16] : []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col(tokenName);
+    const hs = Math.max(7, s * 0.3);
+    ctx.beginPath();
+    ctx.moveTo(end.x + Math.cos(ang) * hs * 0.6, end.y + Math.sin(ang) * hs * 0.6);
+    ctx.lineTo(end.x + Math.cos(ang + 2.4) * hs, end.y + Math.sin(ang + 2.4) * hs);
+    ctx.lineTo(end.x + Math.cos(ang - 2.4) * hs, end.y + Math.sin(ang - 2.4) * hs);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    if (head && s > 18) {
+      const mx = (start.x + end.x) / 2;
+      const my = (start.y + end.y) / 2;
+      const r = Math.max(9, s * 0.3);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mx, my, r, 0, Math.PI * 2);
+      ctx.fillStyle = col('--night-1', { a: 0.95 });
+      ctx.fill();
+      ctx.strokeStyle = col(tokenName);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+      this.icon(head, mx, my, r * 1.3, col(tokenName));
+    }
+  }
+
+  planMark(tile, s, iconName) {
+    const { ctx } = this;
+    const p = this.hexScreen(tile.q, tile.r);
+    ctx.save();
+    ctx.beginPath();
+    hexPath(ctx, p.x, p.y, s * 0.9);
+    ctx.setLineDash([s * 0.14, s * 0.12]);
+    ctx.strokeStyle = col('--people-own', { a: 0.9 });
+    ctx.lineWidth = Math.max(1.5, s * 0.05);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    this.icon(iconName, p.x, p.y - s * 0.55, Math.max(12, s * 0.42), col('--people-own'), col('--map-label-halo', { a: 0.85 }));
+  }
+
+  /**
+   * Trade routes: a running contract flows, a route a trade order would find
+   * is a quiet dotted line, a closed one is not drawn. A real route is drawn
+   * only over tiles the people knows; its chip with partner and length sits at
+   * the last known tile towards the partner.
+   */
   drawTrade(s, now) {
     const { ctx, model } = this;
     const reduced = prefersReducedMotion();
     for (const route of model.tradeRoutes) {
-      const { p, pts } = this.tracePath(route.path);
-      if (pts.length < 2) continue;
+      if (route.state === 'closed') continue;
+      const flowing = route.state === undefined || route.state === 'contract';
+      const runs = [];
+      let run = [];
+      for (const h of route.path) {
+        if (!model.real || model.known[hexKey(h.q, h.r)]) run.push(h);
+        else if (run.length) { runs.push(run); run = []; }
+      }
+      if (run.length) runs.push(run);
+      const drawn = runs.filter((r) => r.length >= 2);
+      if (!drawn.length) continue;
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = col('--map-trade', { a: 0.22 });
-      ctx.lineWidth = Math.max(6, s * 0.32);
-      ctx.stroke(p);
-      ctx.strokeStyle = col('--map-trade');
-      ctx.lineWidth = Math.max(1.8, s * 0.08);
-      ctx.setLineDash([s * 0.12, s * 0.3]);
-      ctx.lineDashOffset = reduced ? 0 : -(now / 30) % 1000;
-      ctx.stroke(p);
-      ctx.setLineDash([]);
-      const mid = pts[Math.floor(pts.length / 2)];
-      this.chip(mid.x, mid.y - s * 0.55, route.gut, 'handel', '--map-trade');
+      for (const r of drawn) {
+        const { p } = this.tracePath(r);
+        ctx.strokeStyle = col('--map-trade', { a: flowing ? 0.22 : 0.12 });
+        ctx.lineWidth = Math.max(6, s * (flowing ? 0.32 : 0.22));
+        ctx.stroke(p);
+        ctx.strokeStyle = col('--map-trade', { a: flowing ? 1 : 0.8 });
+        ctx.lineWidth = Math.max(1.6, s * (flowing ? 0.08 : 0.06));
+        ctx.setLineDash(flowing ? [s * 0.12, s * 0.3] : [s * 0.04, s * 0.18]);
+        ctx.lineDashOffset = reduced || !flowing ? 0 : -(now / 30) % 1000;
+        ctx.stroke(p);
+        ctx.setLineDash([]);
+      }
+      const last = drawn.at(-1).at(-1);
+      const end = this.hexScreen(last.q, last.r);
+      const text = route.label ?? route.gut;
+      if (text) this.chip(end.x, end.y - s * 0.6, text, 'handel', '--map-trade');
       ctx.restore();
     }
   }
 
-  drawPreview(s, now) {
+  drawPreview(s, now, cells = []) {
+    const region = this.model.preview?.region;
+    if (region) {
+      const { ctx } = this;
+      ctx.save();
+      for (const c of cells) {
+        if (c.status === 'frontier' || c.tile.regionId !== region) continue;
+        ctx.beginPath();
+        hexPath(ctx, c.x, c.y, s + 0.5);
+        ctx.fillStyle = col('--ember', { a: 0.14 });
+        ctx.fill();
+      }
+      ctx.restore();
+    }
     const tiles = this.model.preview?.tiles;
     if (!tiles?.length) return;
     const { ctx } = this;
@@ -875,6 +1062,17 @@ export class MapView {
       }
       ctx.restore();
       this.icon(u.art, p.x, p.y, R * 1.25, col('--ink'));
+      // A unit that moved or was routed this season says so at its shoulder.
+      const mark = { moved: ['bewegung', '--ink-dim'], routed: ['warnung', '--down'] }[u.zustandId];
+      if (mark && s > 18) {
+        const bx = p.x + R * 0.9;
+        const by = p.y - R * 0.9;
+        ctx.beginPath();
+        ctx.arc(bx, by, Math.max(6, R * 0.42), 0, Math.PI * 2);
+        ctx.fillStyle = col('--night-1');
+        ctx.fill();
+        this.icon(mark[0], bx, by, Math.max(9, R * 0.6), col(mark[1]));
+      }
       // Strength as small pips under the token: game state, not decoration.
       if (s > 24) {
         const n = u.staerke ?? 0;

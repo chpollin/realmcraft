@@ -132,6 +132,59 @@
   .bo-folge { color: var(--ink-subtle); }
   .bo-grund { color: var(--down); font-weight: 500; }
   .is-queued { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--up); font-weight: 600; }
+  .probe-chance { margin-inline-start: var(--space-1); color: var(--ink); }
+  .bo-extra { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .bo-extra .folge-chip { padding-block: 0.1rem; background: var(--night-3); }
+
+  /* Sections of the module views and of the people's panel. */
+  .kontext-sektion { display: grid; gap: var(--space-3); }
+  .kontext-sektion > h3 { margin: 0; }
+  .leer-zeile { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-subtle); font-size: var(--step--1); }
+  .einheit-marken, .angebot-eintrag .meta { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .mini { display: inline-flex; align-items: center; gap: 0.15rem; font-variant-numeric: tabular-nums; }
+  .angebot-eintrag, .halt-eintrag { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); }
+  .angebot-eintrag .meta, .halt-eintrag .meta { margin-inline-start: auto; color: var(--ink-subtle); font-size: var(--step--1); }
+
+  /* Strength against defence of an attack. */
+  .kraefte { display: flex; align-items: center; gap: var(--space-3); }
+  .kraft {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--night-2);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+  .kraft.own .icon { color: var(--people-own); }
+  .kraft.foe .icon { color: var(--down); }
+  .kraefte-gegen { color: var(--ink-subtle); font-weight: 700; }
+
+  /* Trade offer and market forms. */
+  .angebot { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-m); background: oklch(from var(--night-2) l c h / 0.5); }
+  .angebot-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .angebot-zeile .stepper { margin-inline-start: auto; }
+  .angebot-seite { display: inline-grid; place-items: center; inline-size: 2rem; block-size: 2.25rem; border-radius: var(--radius-s); color: var(--ink-dim); }
+  .angebot-zeile.give .angebot-seite .icon { color: var(--down); }
+  .angebot-zeile.get .angebot-seite .icon { color: var(--up); }
+  .res-feld { display: inline-flex; align-items: center; gap: var(--space-1); padding-inline-start: var(--space-2); border-radius: var(--radius-s); background: var(--night-2); }
+  .res-feld .icon { color: var(--ink-subtle); }
+  .res-wahl { block-size: 2.25rem; padding-inline: var(--space-1) var(--space-2); border: 0; border-radius: var(--radius-s); background: transparent; color: var(--ink); font: inherit; font-size: var(--step--1); }
+  .res-wahl option { background: var(--night-1); color: var(--ink); }
+  .stepper { display: inline-flex; align-items: center; gap: 2px; border-radius: var(--radius-s); background: var(--night-2); }
+  .stepper output { min-inline-size: 2ch; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stepper .icon-btn { inline-size: 2.25rem; block-size: 2.25rem; }
+  .stepper .icon-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+  .angebot .befehle-sektion > h3 { display: none; }
+  .markt-modus { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--night-2); justify-self: start; }
+
+  /* Magic applications. */
+  .anwendung { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); border-radius: var(--radius-s); }
+  .anwendung-name { font-weight: 600; }
+  .anwendung .costs { margin-inline-start: auto; }
+  .anwendung-slot, .anwendung-ziel { display: inline-flex; align-items: center; gap: 2px; color: var(--ember); border-radius: var(--radius-s); }
+  .anwendung-ziel { color: var(--ink-subtle); }
 }
 
 @media (max-width: 760px) {
