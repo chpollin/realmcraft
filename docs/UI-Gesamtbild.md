@@ -1,61 +1,65 @@
 # RealmCraft-Dashboard, das Gesamtbild
 
-Dieses Dokument beschreibt das **Gesamterlebnis und die Design-Absicht** des RealmCraft-Dashboards, damit eine andere Sitzung genau dieses Interface nachbauen kann. Es ist die *Warum*-Ebene. Die verbindlichen Details — testids, Feldnamen, DOM-Verträge — führt [`Frontend-Contract.md`](Frontend-Contract.md); bei Widerspruch gewinnt der Vertrag. Die Spielregeln stehen in [`Spielmechanik.md`](Spielmechanik.md), das Datenformat im Speicherstand und in [`Speicherstand-Format.md`](Speicherstand-Format.md).
+Das Dashboard ist die visuelle Spiegelung eines RealmCraft-Spielstands. Es trifft keine Spielentscheidungen und würfelt nicht. Es zeigt den Zustand, den der Chronist (ein LLM im Chat oder Claude Code im Terminal) in `savegame.json` schreibt. Die ASCII-Statuskonsole am Ende jeder Antwort des Chronisten und das Dashboard tragen dieselben Zahlen, einmal als Text und einmal als Oberfläche. Das Dashboard ist auch ohne Terminal nutzbar, um einen Stand zu laden, anzusehen, Bilder zu erzeugen und zu exportieren, mit einem Stand pro Projekt.
 
-## Was das Dashboard ist
-
-Ein **Lagetisch des Rates**: die visuelle Spiegelung eines RealmCraft-Spielstands. Es trifft keine Spielentscheidungen und würfelt nicht — es *zeigt* den Zustand, den der Chronist (Sprachmodell oder Claude Code) in `savegame.json` schreibt. Die ASCII-Statuskonsole, die der Chronist am Ende jeder Antwort ausgibt, und dieses Dashboard sind Zwillinge: dieselben Zahlen, einmal als Text, einmal als Oberfläche.
-
-Ein Stand pro Projekt. Das Dashboard ist eigenständig nutzbar (Stand laden, ansehen, Bilder erzeugen, exportieren), ganz ohne Terminal.
+Verbindliche testids, Feldnamen und DOM-Verträge führt [Frontend-Contract.md](Frontend-Contract.md), bei Widerspruch gilt der Vertrag. Die Spielregeln stehen in [Spielmechanik.md](Spielmechanik.md), das Datenformat in [Speicherstand-Format.md](Speicherstand-Format.md).
 
 ## Grundhaltung und Stil
 
-Ruhig, dokumentarisch, **Asche und Eisen**. Monochromes Grau, ein einzelner gedämpfter Erdton als Akzent, viel Weißraum, keine grellen Farben. Die erzeugten Bilder tragen denselben Stil wie das Spiel: Tuschelavierung und Kohle auf getöntem, geborgenem Papier, eine Feldskizze aus dem Tagebuch eines überlebenden Chronisten (der genaue Prompt-Baustein steht als `meta.visualStyle` im Stand, der Kartenstil als `meta.mapStyle`). Die Chrome ist still und tritt hinter den Inhalt zurück; einzig Vorzeichen-Farben (Stärke grün, Schwäche rot, neutral grau) tragen Bedeutung.
+Die Oberfläche ist ruhig und monochrom. Weiß, helle Grautöne und Anthrazit als Kernfarbe bilden die Richtung Anthrazit-Licht. Tiefe entsteht durch Schichtung von grauer Seite, weißen Karten und anthrazitfarbenen Ankern. Status spricht über Glyphen (▲▼), Position, Vorzeichen und Tonwert. Farbe trägt nur die Richtung einer Veränderung, gedämpft grün für Zuwachs und gedämpft rot für Verlust.
+
+Alle Farben, Abstände und Schriften kommen als Tokens aus `:root` in `css/style.css`, der einzigen Tokenquelle. Space Grotesk dient als Display-Schrift, Inter als Textschrift. Beide liegen mit ihren OFL-Lizenzen unter `fonts/` und werden ohne externes CDN geladen. Die Oberfläche verzichtet auf Eyebrows und stehende Erklärtexte, Abschnitte tragen echte Überschriften.
+
+Die erzeugten Bilder folgen dem Stil der jeweiligen Partie. `meta.visualStyle` gilt für Porträts und Szenen, `meta.mapStyle` für die Karte und `meta.armeeStyle` mit `meta.visualStyle` als Rückfall für Heerschau und Verbände.
 
 ## Architektur in Kürze
 
-- **Reine ES-Module, kein Framework.** `js/app.js` ist Bootstrap: Hash-Routing, Datei-Upload, Einstellungen, Bildgenerierung, Export.
-- **Render-Module** `js/render/*.js` füllen je eine `[data-view="…"]`-Sektion per `replaceChildren`, gebaut mit dem Helfer `el()` aus `js/components/ui.js`. Formatierungshelfer (`signed`, `roman`, `initials`) in `js/format.js`.
-- **Zustand:** `js/state.js` (Store mit `setState`/`getState`/`subscribe`), `js/parse.js` (Validierung beim Laden), `js/diff.js` (Deltas für die Update-Animation), `js/store.js` (localStorage-Persistenz, `loadLast`).
-- **Server:** `serve.mjs`, ein Null-Abhängigkeits-Statikserver. Beobachtet `savegame.json` und schickt bei Änderung ein **Server-Sent-Event** auf `/events` (Live-Reload). Reicht den Gemini-Key aus `.env` über `/env.js` an den Browser, ohne ihn ins Repo zu schreiben.
-- **Bilder:** `js/images/gemini.js` (`generateImage`, `MODELS`), `js/images/cache.js` (`makeKey`/`cacheGet`/`cachePut`, IndexedDB mit localStorage-Spiegel für Dauerhaftigkeit).
+- `js/app.js` ist der Bootstrap mit Hash-Routing, Datei-Upload, Einstellungen, Bilderzeugung und Verdrahtung der Module.
+- Render-Module unter `js/render/*.js` füllen je eine `[data-view="…"]`-Sektion per `replaceChildren`, gebaut mit dem Helfer `el()` aus `js/components/ui.js`. `js/render/hero.js` baut die Reichsleiste über den Sichten. Formatierungshelfer wie `signed`, `roman` und `initials` liegen in `js/format.js`.
+- Zustand und Laden verteilen sich auf `js/state.js` (Store mit `setState`, `getState`, `subscribe`), `js/parse.js` (Validierung beim Laden), `js/diff.js` (Deltas innerhalb derselben Partie) und `js/store.js` (Verlauf in localStorage, `loadLast`, `lastForParty`).
+- `js/live.js` spiegelt im Terminalmodus `savegame.json`, `js/demo.js` lädt Demostände aus `examples/demo/manifest.json`, `js/export.js` baut das Export-Bundle mit eingebetteten Bildern.
+- Die Bilder laufen über `js/images/gemini.js` (`generateImage`, `MODELS`), `js/images/cache.js` (IndexedDB mit localStorage-Spiegel), `js/images/prompts.js` (Prompts und Cache-Schlüssel ohne DOM, auch von den Werkzeugen unter `tools/` genutzt), `js/images/registry.js` (eine Zeile je Bildtyp) und `js/images/versions.js` (Versionen fortgeschriebener Bilder je Partie).
+- `serve.mjs` ist ein Statikserver ohne Abhängigkeiten. Er beobachtet `savegame.json` und meldet Änderungen als Server-Sent Event auf `/events`. Den Gemini-Key aus `.env` reicht er über `/env.js` nur an Aufrufe derselben Herkunft weiter.
 
 ## Laden und Live-Reload
 
-Beim Start lädt das Dashboard zuerst den letzten Stand aus localStorage (`loadLast`), dann holt es `savegame.json` per `fetch` — die **Datei gewinnt** über den localStorage-Spiegel. Ändert der Chronist die Datei, feuert der Server das SSE, das Dashboard holt neu und rendert. So spiegelt der Browser jeden geschriebenen Zug von selbst. Ohne geladenen Stand zeigt es einen **Leerzustand** mit „Speicherstand laden“ (Datei wählen, hierher ziehen oder mit Strg+V einfügen; akzeptiert reines JSON oder hybrides Markdown mit eingebettetem ```json-Block).
+Beim Start lädt das Dashboard zuerst den letzten Stand aus localStorage (`loadLast`) und holt dann `savegame.json` per `fetch`. Die Datei gewinnt über den localStorage-Spiegel. Ändert der Chronist die Datei, sendet der Server das Ereignis, und das Dashboard lädt neu und rendert. Ohne Live-Datei, etwa auf GitHub Pages, lädt es den voreingestellten Demostand. Ohne jeden Stand zeigt es einen Leerzustand mit der Möglichkeit, einen Speicherstand per Dateiwahl, Drag and Drop oder Strg+V einzufügen. Akzeptiert werden reines JSON und hybrides Markdown mit eingebettetem ```json-Block.
 
 ## Der Rahmen
 
-- **Kopf:** Wortmarke „RealmCraft“ mit Eyebrow „Lagetisch des Rates“. Rechts: „Speicherstand laden“, ein Kapitel/Jahr-Navigator (blättert durch die Historie der Stände), „Exportieren“, „Einstellungen“ (Gemini-Key, Modellwahl).
-- **Reiterleiste** (`nav.tabs`): die sieben Sichten, per Hash erreichbar (`#/lage` usw.), aktiver Reiter hervorgehoben.
-- **Hero** (persistent, auf jeder Route sichtbar, sobald ein Stand geladen ist): Badges (Kapitel, Jahreszeit + Jahr, Weltereignis offen/gewürfelt), „Das Volk“ + Reichsname, die **Kernzustand-Leiste** (Grundgrößen Nahrung/Material/Wissen/Volk und Lagewerte Verteidigung/Mobilität/Wohlstand als Icon+Zahl, Lagewerte mit Vorzeichen und Richtungsfarbe), und das Ansehen als Sterne + Titel.
-- **Sichtbereich:** die umschaltbaren `[data-view]`-Sektionen.
-- **Fuß:** Projektzeile (Promptotyping, DHCraft, Repo).
+- Der Kopf trägt die Wortmarke RealmCraft. Rechts liegen Speicherstand laden, die Auswahl der Demostände, ein Navigator durch die Kapitelhistorie der Stände, Exportieren, Einstellungen (Gemini-Key, Modellwahl) und die Anleitung.
+- Die Reiterleiste (`nav.tabs`) führt die acht Sichten, je per Hash erreichbar (`#/lage` usw.), mit hervorgehobenem aktivem Reiter.
+- Der Hero ist auf jeder Route sichtbar, sobald ein Stand geladen ist. Er zeigt Kapitel, Jahreszeit mit Jahr und den Zustand des Weltereignisses, den Namen des Volkes, die Kernzustand-Leiste aus Grundgrößen (Nahrung, Material, Wissen, Volk) und Lagewerten (Verteidigung, Mobilität, Wohlstand) als Symbol und Zahl sowie das Ansehen.
+- Der Sichtbereich enthält die umschaltbaren `[data-view]`-Sektionen.
+- Der Fuß nennt Projekt, Anleitung und Repository.
 
-## Die sieben Reiter
+## Die acht Reiter
 
-`VIEWS = ['lage', 'lebenswelt', 'berater', 'armee', 'welt', 'karte', 'historie']`. Jeder Reiter hat ein Render-Modul und einen Vertragsabschnitt; exakte testids im Frontend-Contract.
+`VIEWS = ['lage', 'lebenswelt', 'berater', 'armee', 'welt', 'karte', 'historie', 'recht']`. Jeder Reiter hat ein Render-Modul und einen Vertragsabschnitt, die exakten testids stehen im Frontend-Contract.
 
-| Reiter | Modul | Zweck und Inhalt |
+| Reiter | Modul | Inhalt |
 |---|---|---|
-| **Lage** | `render/overview.js` | Das Lagebild: erzählender Statustext, Stat-Karten der Grund- und Lagewerte mit Trends, das **Aktionsbrett** der laufenden Runde (`runde`: Haupt/Neben-Budget, gewählte Vorhaben mit Ziel/Mod/Wurf/Ergebnis). |
-| **Lebenswelt** | `render/lebenswelt.js` | Die gelebte Welt: wie das Volk in seiner Siedlung lebt — Bild der Hauptstadt (generierbar), Lage, Bauten, Versorgung, ein erzählender Absatz. Liest `siedlung`, Einwohner live aus `grundgroessen.bevoelkerung`, Verteidigung aus `lagewerte`. (Jüngster Reiter.) |
-| **Berater** | `render/advisors.js` | Der Rat: Porträt je Berater (generierbar), Loyalitätsmesser (−5..+5), Rolle, Ziel, Lebensstand. |
-| **Armee** | `render/armee.js` | Die Streitmacht: Gesamtstärke und Moral, die Verbände (Name, Typ, Stärke, Führung über `fuehrungId`→Berater), stehende Modifikatoren, das Verluste-Logbuch. Liest `armee`. |
-| **Welt** | `render/actors.js` | Diplomatie: Machtkarten (generierbares Bild, Erscheinung, Beziehungsmesser + Label, Haltung, **Profil** der Stärken/Schwächen) und die tragenden Gruppen mit ihren Sprechern. Liest `maechte` und `gruppen`. |
-| **Karte** | `render/map.js` | Die Insel: generierbares Kartenbild im `mapStyle`, dazu die Orte mit Richtung und Beziehung. Liest `karte`. |
-| **Chronik** | `render/history.js` | Das Gedächtnis: Historie Kapitel für Kapitel, die Setzungen (Regel-Evolution), die offenen Fäden. |
+| Lage | `render/overview.js` | Grund- und Lagewerte mit Skala, Trend und Quellen, Wesen des Volkes, stehende Modifikatoren, das Aktionsbrett der laufenden Runde (`runde`), offene Fäden und die Änderungen seit dem letzten Stand. |
+| Lebenswelt | `render/lebenswelt.js` | Das Leben der Bevölkerung, die Siedlungen mit Hauptstadt, Bild je Siedlung, Bauten und Versorgung sowie der Besitz. Liest `lebenswelt` und fällt auf das ältere Einzelobjekt `siedlung` zurück. Einwohner und Verteidigung kommen live aus `grundgroessen.bevoelkerung` und `lagewerte`. |
+| Berater | `render/advisors.js` | Der Rat mit Porträt je Berater, Loyalitätsmesser (−5 bis +5), Rolle, Ziel und Lebensstand. |
+| Armee, beschriftet als Curriculum | `render/armee.js` | Gesamtwert und Lagesatz, die Verbände mit Zuständigkeit über `fuehrungId`, stehende Modifikatoren und ein Verlustlogbuch, mit Bildern für Gesamtbild und Verbände. Liest `armee`. Die Beschriftung verwendet seit Juni 2026 didaktische Begriffe, während Daten und Vertrag `armee` heißen. |
+| Welt | `render/actors.js` | Die Mächte mit Bild, Erscheinung, Beziehungsmesser, Haltung und Profil, die tragenden Gruppen mit ihren Sprechern und das Ansehen des Reiches bei anderen (`beziehungenAnsehen`). |
+| Karte | `render/map.js` | Das Kartenbild im `mapStyle`, die Karten-Chronik als Zeitleiste der Stände mit Weiterentwicklung aus dem Vorgängerbild und die Orte mit Richtung und Beziehung. Liest `karte`. |
+| Chronik | `render/history.js` | Der Weg des Volkes als Zeitleiste je Jahreszeit, nach Kapiteln gruppiert, mit Ereignisbild je Eintrag, dazu die Fähigkeiten. Route und Datenfeld heißen `historie`. |
+| Recht | `render/recht.js` | Die Verfassung und die Setzungen der Partie, angezeigt als Sonderregeln. Liest `verfassung` und `setzungen`. |
 
-Fehlt ein optionaler Block im Stand (`armee`, `siedlung`, `maechte[].profil` …), rendert der Reiter ohne Fehler einen leeren Zustand.
+Fehlt ein optionaler Block im Stand, etwa `armee`, `lebenswelt` oder `maechte[].profil`, rendert der Reiter ohne Fehler einen leeren Zustand oder lässt den Block weg.
 
-## Die Bild-Pipeline (überall gleich)
+## Die Bildpipeline
 
-Jedes Bildmotiv — Porträts, Karte, Mächte, Gruppen, Siedlung — nutzt dieselbe Kette: ein „Bild erzeugen“-Knopf ruft den passenden Handler (`onGeneratePortrait`, `onGenerateMap`, `onGenerateArmeeBild`, `onGenerateVerband`, `onGenerateMacht`, `onGenerateGruppe`, `onGenerateSiedlung`), der aus dem motivspezifischen Prompt plus `visualStyle`/`mapStyle` über `generateImage` ein Bild holt und unter einem stabilen Cache-Key (`makeKey([...])`) in IndexedDB samt localStorage-Spiegel ablegt. Ohne hinterlegten Gemini-Key (Einstellungen oder `.env` über `/env.js`) erscheint ein klarer Hinweis-Toast statt eines Fehlers. Einmal erzeugte Bilder bleiben über Sitzungen erhalten.
+Jeder Bildtyp ist in `js/images/registry.js` mit Prompt, Cache-Schlüssel, Seitenverhältnis und DOM-Ziel eingetragen. Ein Erzeugen-Knopf ruft den passenden Handler (`onGeneratePortrait`, `onGenerateMap`, `onGenerateKarteStand`, `onGenerateArmeeBild`, `onGenerateVerband`, `onGenerateMacht`, `onGenerateGruppe`, `onGenerateSiedlung`, `onGenerateEreignisbild`). Der Handler holt über `generateImage` ein Bild und legt es unter einem stabilen Schlüssel in IndexedDB samt localStorage-Spiegel ab. Die Schlüssel hängen am vollständigen Prompt, `tests/unit/keys.test.js` hält sie fest, damit bereits erzeugte Bilder auffindbar bleiben.
 
-## Konsole und Oberfläche als Zwillinge
+Porträts, Heerschau, Verbände, Mächte, Gruppen und Siedlungen lassen sich fortschreiben (`onBildFortschreiben`). Das bisherige Bild dient als Vorlage, der aktuelle Stand liefert den Kontext, und jede Fassung bleibt je Partie als wählbare Version erhalten (`onWaehleBildVersion`). Karten entwickeln sich stattdessen über die Karten-Chronik weiter, Ereignisbilder entstehen einmal je Eintrag. Ohne hinterlegten Gemini-Key erscheint ein Hinweis statt eines Fehlers. Der Export bettet alle im Browser vorhandenen Bilder ein, sodass ein exportierter Stand auf einem fremden Browser dieselben Bilder zeigt.
 
-Was der Chronist in die ASCII-Statuskonsole schreibt (Jahreszeit, Grundgrößen, Lagewerte, Loyalitäten, Aktionsbrett, Ansehen), zeigt das Dashboard als Hero und Lage-Sicht — dieselbe Wahrheit, zweimal dargestellt. Wer das Interface nachbaut, hält diese Spiegelung ein: die Konsole ist der Textmodus desselben Lagebilds.
+## Konsole und Oberfläche
 
-## Was bewusst nicht im Dashboard liegt
+Was der Chronist in die ASCII-Statuskonsole schreibt (Jahreszeit, Grundgrößen, Lagewerte, Loyalitäten, Aktionsbrett, Ansehen), zeigt das Dashboard in Hero und Lage-Sicht. Ein Nachbau hält diese Spiegelung ein, die Konsole ist der Textmodus desselben Lagebilds.
 
-Keine Spiellogik (würfeln, Folgen deuten, Regeln) — das ist Sache des Chronisten. Kein Schreiben in den Stand außer Export. Der Gemini-Key wird nie in den Stand, ins Gedächtnis oder in einen Commit geschrieben; er lebt allein in `.env`/Einstellungen und wird zur Laufzeit durchgereicht.
+## Abgrenzung
+
+Spiellogik wie Würfeln, Folgen deuten und Regeln anwenden bleibt beim Chronisten. Das Dashboard schreibt nur über den Export in einen Stand. Der Gemini-Key gelangt nie in den Stand, ins Gedächtnis oder in einen Commit, er lebt allein in `.env` oder den Einstellungen des Browsers.

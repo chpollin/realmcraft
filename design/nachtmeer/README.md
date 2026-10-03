@@ -48,10 +48,10 @@ Die Beobachtung hält fest, welche Information gesucht wurde, welche Stelle irri
 
 ## Start
 
-Bei laufendem Repository-Server auf Port 4190:
+Nach `npm run serve` läuft der Repository-Server auf Port 4173. Bei einem über `PORT` gesetzten anderen Port ändert sich die Adresse entsprechend.
 
-- [Admiralität](http://localhost:4190/design/nachtmeer/?variant=admiralitaet)
-- [Atlas](http://localhost:4190/design/nachtmeer/?variant=atlas)
-- [Signal](http://localhost:4190/design/nachtmeer/?variant=signal)
+- [Admiralität](http://localhost:4173/design/nachtmeer/?variant=admiralitaet)
+- [Atlas](http://localhost:4173/design/nachtmeer/?variant=atlas)
+- [Signal](http://localhost:4173/design/nachtmeer/?variant=signal)
 
 Die Weltillustration liegt unter `assets/nachtmeer.png`. Sie wurde mit dem integrierten Imagegen-Werkzeug erzeugt. Der vollständige Prompt steht in `ART-DIRECTION.md`. SVG-Symbole, Beschriftungen und Interaktionen werden im Browser gezeichnet.

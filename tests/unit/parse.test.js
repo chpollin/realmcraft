@@ -1,4 +1,4 @@
-// Unit-Tests fuer js/parse.js — geschrieben VOR der Implementierung (rot ist gewollt).
+// Unit-Tests fuer js/parse.js.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "js/parse.js".
 
 import { test } from 'node:test';

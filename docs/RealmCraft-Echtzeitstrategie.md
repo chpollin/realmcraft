@@ -189,7 +189,7 @@ Automatisierte Harness-Läufe können Startfehler, wirtschaftliche Sackgassen, R
 
 ## Umgang mit dem vorhandenen Repository
 
-Der neue Bereich `rts/` erhält seinen eigenen Build. Das bestehende Dashboard, die Nachtmeer-Partie und der Winter-Prototyp bleiben über ihre bisherigen Einstiege erreichbar. Der aktuelle Server auf Port 4190 bleibt für diese Referenzen nutzbar. Die Echtzeitentwicklung erhält beim Aufbau einen eigenen, auf Verfügbarkeit geprüften Entwicklungsport; der Produktionsbuild wird als statische Anwendung ausgeliefert.
+Der neue Bereich `rts/` erhält seinen eigenen Build. Das bestehende Dashboard, die Nachtmeer-Partie und der Winter-Prototyp bleiben über ihre bisherigen Einstiege erreichbar. Sie laufen weiter über `npm run serve`. Die Echtzeitentwicklung erhält beim Aufbau einen eigenen, auf Verfügbarkeit geprüften Entwicklungsport. Der Produktionsbuild wird als statische Anwendung ausgeliefert.
 
 Übernommen werden das Prinzip gültiger Befehle, die Trennung von Vorschau und Wirkung, erklärbare Institutionen und die Prüfung von Speicherständen. Szenariospezifische Namen und Sonderfälle werden nicht in den allgemeinen Kern kopiert. Der neue Speicherpfad bleibt von den bestehenden Partien getrennt.
 
