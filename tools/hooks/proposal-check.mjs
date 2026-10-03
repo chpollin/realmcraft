@@ -79,9 +79,39 @@ try {
   process.exit(0);
 }
 
+// Agent duties the kernel does not enforce at ingest, held here so the agent
+// corrects them while it still runs: a research proposal names the path of
+// every achievement (knowledge/plan-m1.md, "Path of an achievement"), and the
+// refs of a chronicle, a voice or a stance name entries the kernel resolved
+// and the people saw, so prose cannot rest on an event that did not happen.
+const REF_ITEMS = new Set(['narrative', 'voice', 'stance']);
+function dutyIssues() {
+  const out = [];
+  const items = Array.isArray(proposal?.items) ? proposal.items : [];
+  if (proposal?.agent === 'research' && ctx.regeln?.pfade) {
+    items.forEach((item, i) => {
+      if (item?.type === 'entwicklung' && item.data && typeof item.data === 'object' && typeof item.data.pfad !== 'string') {
+        out.push({ code: 'pfad_missing', path: `/items/${i}/data/pfad`, message: `every achievement names its path, one of ${ctx.regeln.pfade.paths.map((p) => p.id).join(', ')}`, where: `item ${i}` });
+      }
+    });
+  }
+  const seer = proposal?.people ?? state?.campaign?.player;
+  if (Array.isArray(state?.chronicle) && seer) {
+    const seen = new Set(state.chronicle.filter((e) => Array.isArray(e.visibleTo) && (e.visibleTo.includes(seer) || e.visibleTo.includes('all'))).map((e) => e.id));
+    items.forEach((item, i) => {
+      if (!REF_ITEMS.has(item?.type) || !Array.isArray(item.refs)) return;
+      item.refs.forEach((r, j) => {
+        if (!seen.has(r)) out.push({ code: 'dangling_ref', path: `/items/${i}/refs/${j}`, message: `"${r}" is no event the kernel resolved for ${seer}; cite ids from context.resolved or the events file of your task`, where: `item ${i}` });
+      });
+    });
+  }
+  return out;
+}
+
 const errors = [
   ...result.issues.filter((i) => i.severity !== 'warning').map((i) => ({ ...i, where: '' })),
   ...result.items.flatMap((it) => it.issues.filter((i) => i.severity !== 'warning').map((i) => ({ ...i, where: `item ${it.index}` }))),
+  ...(result.duplicate ? [] : dutyIssues()),
 ];
 
 async function note(fn) {

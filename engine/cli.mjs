@@ -385,8 +385,42 @@ function upsertIndex(c, state) {
   });
 }
 
+// Judges' findings reach the next tasks for two turns.
+const FINDING_TURNS = 2;
+const INGESTED = 'agents/ingested';
+
+/**
+ * Accepted items of earlier proposals that later tasks carry (see
+ * engine/harness/tasks.js, notes): judges' findings of the recent turns and
+ * the stances of every rival before this turn. Only items the verdict
+ * accepted count; a file without its verdict is skipped.
+ */
+function agentNotes(c, turn) {
+  const findings = [];
+  const stances = {};
+  for (const n of listJson(join(c.dir, INGESTED))) {
+    const m = /^(judge-[a-z]+|rival)\.(?:([a-z0-9-]+)\.)?T(\d+)\.json$/.exec(n);
+    if (!m) continue;
+    const [, agent, people, t] = m;
+    const at = Number(t);
+    if (agent === 'rival' ? !people || at >= turn : at < turn - FINDING_TURNS || at > turn) continue;
+    const proposal = tryJson(join(c.dir, INGESTED, n)).value;
+    const verdict = tryJson(join(c.dir, LAYOUT.verdicts, n)).value;
+    if (!proposal || !Array.isArray(proposal.items) || !Array.isArray(verdict?.items)) continue;
+    for (const v of verdict.items) {
+      const item = v.verdict === 'accepted' ? proposal.items[v.index] : null;
+      if (item?.type === 'finding') findings.push({ id: item.id, judge: agent, turn: at, severity: item.severity, for: item.for, text: item.text });
+      if (item?.type === 'stance' && agent === 'rival') (stances[people] ??= []).push({ turn: at, text: item.text });
+    }
+  }
+  findings.sort((a, b) => a.turn - b.turn || (a.judge < b.judge ? -1 : a.judge > b.judge ? 1 : 0));
+  for (const list of Object.values(stances)) list.sort((a, b) => a.turn - b.turn);
+  return { findings, stances };
+}
+
 function writeTasks(c, state, phase = state.phase) {
-  for (const { path, task } of buildTasks(state, c.env, { library: c.library, phase })) writeJsonAtomic(join(c.dir, path), task);
+  const notes = agentNotes(c, state.turn);
+  for (const { path, task } of buildTasks(state, c.env, { library: c.library, phase, notes })) writeJsonAtomic(join(c.dir, path), task);
 }
 
 // --- transitions -------------------------------------------------------------
@@ -718,6 +752,7 @@ function cmdStatus(c, a) {
     season: cal.season,
     year: cal.year,
     player: { id: p.id, name: p.name, resources: p.resources, meters: p.meters, population: p.population, standing: p.standing, lebensweise: p.lebensweise },
+    settings: settingsOf(state),
     probes: openProbes(c, pid),
     tasks,
     proposals: waiting,
@@ -878,7 +913,7 @@ function cmdRepin(c) {
 function cmdTasks(c, a) {
   const { state } = c;
   const agent = flag(a, 'agent');
-  const wanted = agent?.startsWith('judge-') ? [buildJudgeTask(state, c.env, agent)] : buildTasks(state, c.env, { library: c.library });
+  const wanted = agent?.startsWith('judge-') ? [buildJudgeTask(state, c.env, agent)] : buildTasks(state, c.env, { library: c.library, notes: agentNotes(c, state.turn) });
   const tasks = [];
   for (const { path, task } of wanted) {
     const full = join(c.dir, path);
@@ -900,7 +935,7 @@ function taskFor(c, proposal, state) {
   const held = tryJson(file).value;
   if (held) return held;
   if (turn !== state.turn) return null;
-  const wanted = agent.startsWith('judge-') ? [buildJudgeTask(state, c.env, agent)] : buildTasks(state, c.env, { library: c.library });
+  const wanted = agent.startsWith('judge-') ? [buildJudgeTask(state, c.env, agent)] : buildTasks(state, c.env, { library: c.library, notes: agentNotes(c, state.turn) });
   return wanted.find((w) => w.task.agent === agent && w.task.people === (proposal.people ?? null))?.task ?? null;
 }
 

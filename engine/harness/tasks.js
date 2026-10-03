@@ -1,15 +1,23 @@
 // Tasks the kernel hands to the agents (agents/tasks/T<turn>/<agent>-<scope>.json).
-// Every task that asks for prose (rival stance, council voices, world cards,
-// chronicle, judges) carries context.language, the campaign's narrative language.
+// Every task that asks for prose (achievements, rival stance, council voices,
+// world cards, chronicle, judges) carries context.language, the campaign's
+// narrative language.
 // Pure: no file access, so the CLI, the server and tests share it. A task for
 // one people carries only data derived from projectFor(state, env, people), so
 // an agent never sees a stock or draft of another people.
 //
-//   buildTasks(state, env, { library, phase })  -> [{ path, task }]
+//   buildTasks(state, env, { library, phase, notes })  -> [{ path, task }]
 //     phase resolving: the world task (phase A); otherwise the phase B tasks
 //     (research per people, rival per AI people, council for the player,
 //     chronicler for the campaign).
 //   buildJudgeTask(state, env, judge)           -> { path, task }
+//
+// notes are what the CLI reads from earlier accepted proposals, so this
+// module stays free of file access: { findings: [{ id, judge, turn, severity,
+// for, text }], stances: { <people>: [{ turn, text }] } }. A finding of
+// severity info or warn reaches context.findings of the roles in its `for`
+// (severe ones go to the player through /zug); a rival continues the stances
+// of its own people from context.stances.
 
 import { ONCE_OPS, STANDING_OPS, TIERS } from '../schemas/effects.js';
 import { ITEMS_BY_AGENT } from '../schemas/proposal.js';
@@ -29,6 +37,50 @@ const ALL_PRIMITIVES = [...new Set([...STANDING_OPS, ...ONCE_OPS])];
 const DEFAULT_LIMITS = Object.freeze({ candidatesPerTurn: 3, aboveTier: 1, openCandidates: 6, moduleActivations: 1 });
 
 const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
+
+const MAX_NAMES = 40;
+const MAX_RESOLVED = 80;
+const MAX_FINDINGS = 8;
+const MAX_STANCES = 3;
+// Bookkeeping entries every season has; they record no event to narrate.
+const QUIET_KINDS = new Set(['campaign.phase', 'campaign.turn', 'ingest.accepted']);
+
+const firstN = (entries) => Object.fromEntries(entries.slice(0, MAX_NAMES));
+
+/**
+ * Canonical names of what a people sees, so prose agents name things the
+ * same way every turn (a discipline named once as Rauchschau stays so).
+ */
+function namesFor(view, env, pid) {
+  const p = view.peoples[pid];
+  const dev = (list) => list.map((x) => [x.ref, env.entwicklung(x.ref)?.name ?? x.ref]);
+  return {
+    peoples: firstN(Object.values(view.peoples).map((x) => [x.id, x.name])),
+    settlements: firstN(view.map.settlements.map((s) => [s.id, s.name])),
+    council: firstN(p.council.map((m) => [m.id, m.name])),
+    developments: firstN([...dev(p.developments.known), ...dev(p.developments.research), ...dev(p.developments.candidates)]),
+    features: firstN(Object.entries(view.map.features ?? {}).map(([tile, f]) => [tile, f.name])),
+    paths: pathsOf(env).map((x) => x.id),
+  };
+}
+
+/**
+ * What the kernel resolved for a people since the previous season began, as
+ * id, kind and reason: the ground every claim of a narrative agent rests on.
+ */
+function resolvedFor(view) {
+  return view.chronicle
+    .filter((e) => e.turn >= view.turn - 1 && !QUIET_KINDS.has(e.kind))
+    .slice(-MAX_RESOLVED)
+    .map((e) => ({ id: e.id, turn: e.turn, kind: e.kind, reason: e.reason ?? '' }));
+}
+
+function findingsFor(notes, agent) {
+  return (notes?.findings ?? [])
+    .filter((f) => f.severity !== 'severe' && (f.for ?? []).includes(agent))
+    .slice(-MAX_FINDINGS)
+    .map(({ id, judge, turn, severity, text }) => ({ id, judge, turn, severity, text }));
+}
 
 function packLibrary(env) {
   const c = env.content;
@@ -59,7 +111,7 @@ const ORDER_PARAMS = Object.freeze({
   },
   talk: { mode: 'listen | ask | honor | honor-dead', member: 'council member id (all modes but honor-dead)' },
   'research.assign': { development: 'ref of an open candidate or of a development in research' },
-  'research.direct': { tags: 'one to three distinct vocabulary tags', note: 'optional text, at most 200 characters' },
+  'research.direct': { pfad: 'id of an open path (context.pfade), alone or with tags', tags: 'one to three distinct vocabulary tags, optional with pfad', note: 'optional text, at most 200 characters' },
   'destiny.adopt': { bestimmung: 'ref of a destiny offered to the people (bestimmung.offers)' },
   migrate: { tile: `${TILE} within reach of the camp, buildable, no settlement on it` },
   adopt: { lebensweise: 'ref of another known, active way of life' },
@@ -101,7 +153,11 @@ function candidateParams(view, env, pid, type) {
     case 'found': case 'explore': case 'road': case 'road.pave': case 'migrate': return nearTiles(view, pid).map((tile) => ({ tile }));
     case 'institute': return refs('institution').map((development) => ({ development }));
     case 'research.assign': return [...p.developments.candidates.map((c) => c.ref), ...p.developments.research.map((r) => r.ref)].map((development) => ({ development }));
-    case 'research.direct': return [{ tags: [practiceTop(p, 1).map(([t]) => t).find((t) => Object.hasOwn(env.vocabulary, t)) ?? Object.keys(env.vocabulary).sort()[0]] }];
+    case 'research.direct': {
+      // With paths a request names one; the order check drops closed paths.
+      const paths = pathsOf(env).map((x) => ({ pfad: x.id }));
+      return paths.length ? paths : [{ tags: [practiceTop(p, 1).map(([t]) => t).find((t) => Object.hasOwn(env.vocabulary, t)) ?? Object.keys(env.vocabulary).sort()[0]] }];
+    }
     case 'destiny.adopt': return (p.bestimmung?.offers ?? []).map((o) => ({ bestimmung: o.ref }));
     case 'adopt': return refs('lebensweise').map((lebensweise) => ({ lebensweise }));
     case 'recruit': return cross(refs('einheit'), 'type', own, 'settlement');
@@ -197,7 +253,7 @@ function limitsFor(env, items, extra = {}) {
   };
 }
 
-function researchTask(state, env, library, pid) {
+function researchTask(state, env, library, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
   const lim = { ...DEFAULT_LIMITS, ...(env.regeln.tuning?.limits ?? {}) };
@@ -208,6 +264,8 @@ function researchTask(state, env, library, pid) {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
+      // Names, summaries and appearances are shown to the player.
+      language: settingsOf(state).language,
       practiceTop: practiceTop(people, 3),
       openTier: open,
       maxKnownTier: maxKnownTier(view, env, pid),
@@ -219,6 +277,7 @@ function researchTask(state, env, library, pid) {
       known: people.developments.known.map((k) => k.ref),
       lebensweise: people.lebensweise,
       bestimmung: people.bestimmung ?? null,
+      findings: findingsFor(notes, 'research'),
     },
     limits: limitsFor(env, ITEMS_BY_AGENT.research, {
       candidates: lim.candidatesPerTurn,
@@ -231,7 +290,7 @@ function researchTask(state, env, library, pid) {
   });
 }
 
-function rivalTask(state, env, pid) {
+function rivalTask(state, env, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
   const profile = env.regeln.aiProfiles?.find((a) => a.id === people.agentProfile) ?? null;
@@ -245,15 +304,20 @@ function rivalTask(state, env, pid) {
       profile: profile ? { id: profile.id, name: profile.name, stance: profile.stance, weights: profile.weights } : null,
       catalogue: catalogueFor(view, env, pid),
       orders: orderGuide(view, env, pid),
+      pfade: pathsView(view, env, pid),
       resources: people.resources,
       units: people.units,
+      names: namesFor(view, env, pid),
+      // Own stances of earlier turns, oldest first; the new one continues them.
+      stances: (notes?.stances?.[pid] ?? []).slice(-MAX_STANCES),
+      findings: findingsFor(notes, 'rival'),
     },
     // Orders with slot "free" take no slot; main and minor are the capacity of the season.
     limits: limitsFor(env, ITEMS_BY_AGENT.rival, { tags: tagsFor(env), slots: { main: cap.main, minor: cap.minor } }),
   });
 }
 
-function councilTask(state, env, pid) {
+function councilTask(state, env, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
   return envelope(state, 'council', pid, {
@@ -264,6 +328,8 @@ function councilTask(state, env, pid) {
       council: people.council,
       seats: kern(people).seats,
       newMemberLoyalty: env.regeln.tuning?.newMemberLoyalty ?? 0,
+      names: namesFor(view, env, pid),
+      findings: findingsFor(notes, 'council'),
     },
     limits: limitsFor(env, ITEMS_BY_AGENT.council, { tags: tagsFor(env) }),
   });
@@ -271,7 +337,7 @@ function councilTask(state, env, pid) {
 
 // The world agent sees the event bands and the situation of every people,
 // because a card is matched against its `if` condition.
-function worldTask(state, env) {
+function worldTask(state, env, notes) {
   const eventDraws = {};
   const situation = {};
   for (const pid of peopleIds(state)) {
@@ -284,35 +350,46 @@ function worldTask(state, env) {
   const cal = calendarOf(env.regeln, state.turn);
   return envelope(state, 'world', null, {
     read: ['state.json', 'library.json'],
-    context: { phase: 'a', language: settingsOf(state).language, season: cal.season, year: cal.year, eventDraws, situation },
+    context: { phase: 'a', language: settingsOf(state).language, season: cal.season, year: cal.year, eventDraws, situation, findings: findingsFor(notes, 'world') },
     limits: limitsFor(env, ITEMS_BY_AGENT.world, { tags: tagsFor(env) }),
   });
 }
 
-function chroniclerTask(state, env) {
+function chroniclerTask(state, env, notes) {
   const player = state.campaign.player;
+  const view = projectFor(state, env, player);
   const cal = calendarOf(env.regeln, state.turn);
   const reads = [`view/${player}.json`];
   if (state.turn > 0) reads.push(`view/${player}/events/${stem(state.turn - 1)}.json`);
   return envelope(state, 'chronicler', null, {
     read: reads,
-    context: { phase: 'b', language: settingsOf(state).language, player, season: cal.season, year: cal.year, chapter: stem(state.turn) },
+    context: {
+      phase: 'b',
+      language: settingsOf(state).language,
+      player,
+      season: cal.season,
+      year: cal.year,
+      chapter: stem(state.turn),
+      resolved: resolvedFor(view),
+      names: namesFor(view, env, player),
+      findings: findingsFor(notes, 'chronicler'),
+    },
     limits: limitsFor(env, ITEMS_BY_AGENT.chronicler),
   });
 }
 
-export function buildTasks(state, env, { library, phase = state.phase } = {}) {
+export function buildTasks(state, env, { library, phase = state.phase, notes = null } = {}) {
   if (state.status === 'ended') return [];
-  if (phase === 'resolving') return [worldTask(state, env)];
+  if (phase === 'resolving') return [worldTask(state, env, notes)];
   const lib = library ?? packLibrary(env);
   const out = [];
   for (const pid of peopleIds(state)) {
     if (!alive(state, pid)) continue;
-    out.push(researchTask(state, env, lib, pid));
-    if (state.peoples[pid].controller === 'ai') out.push(rivalTask(state, env, pid));
-    else out.push(councilTask(state, env, pid));
+    out.push(researchTask(state, env, lib, pid, notes));
+    if (state.peoples[pid].controller === 'ai') out.push(rivalTask(state, env, pid, notes));
+    else out.push(councilTask(state, env, pid, notes));
   }
-  out.push(chroniclerTask(state, env));
+  out.push(chroniclerTask(state, env, notes));
   return out;
 }
 

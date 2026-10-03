@@ -31,5 +31,9 @@ Environment variables:
 | `07-phases.test.js` | locked orders in resolving, phase guards of seal, apply and open | Regelkern section 14 |
 | `08-bestimmung.test.js` | victory, collapse, AI victory, tamper guard | Regelkern section 13 |
 | `09-eventlog.test.js` | an entry with source, target and change for every changed field | Regelkern section 15 |
+| `10-pfade.test.js` | paths in the projection, research requests on a path, points that accumulate until an achievement completes | plan-m1, owner decision M1-1 |
+| `11-migration.test.js` | a campaign from before the paths model loads after `repin` and keeps its developments | plan-m1, kernel contracts, Migration |
+| `12-board-data.test.js` | options of `new`, machine-readable issues, council, trade, rivals, outcome, judges' findings in `status.json` | plan-m1, View additions for the board |
+| `harness-turn.test.js` | a turn of `/zug` with scripted agents through the CLI, the proposal hook and the harness helpers, research on a path, findings and stances in the next tasks, the acceptance tool | `.claude/commands/zug.md`, agents-harness |
 
 Each test file opens with the assumptions it adds to those of `lib/harness.js`.
