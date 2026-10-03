@@ -32,10 +32,14 @@ export async function generateImage({
     throw new Error('Kein API-Key: generateImage benoetigt einen apiKey.');
   }
 
+  // A bare base64 string is taken as PNG, the type the first callers sent;
+  // { data, mimeType } carries the real type (JPEG photos, WebP demo images).
   const parts = [
     { text: prompt },
-    ...refImages.map((data) => ({
-      inlineData: { mimeType: 'image/png', data },
+    ...refImages.map((r) => ({
+      inlineData: typeof r === 'string'
+        ? { mimeType: 'image/png', data: r }
+        : { mimeType: r.mimeType || 'image/png', data: r.data },
     })),
   ];
 
@@ -112,4 +116,27 @@ export async function generateImage({
   const dataUrl = 'data:' + mimeType + ';base64,' + inline.data;
 
   return { dataUrl, mimeType };
+}
+
+// Turns any image URL the dashboard holds into a reference image for the API:
+// a data URL directly, a path (slim demo states reference .webp files) or blob
+// URL via fetch. null when the image cannot be read, so the caller generates
+// from the text prompt alone instead of failing.
+export async function toRefImage(url) {
+  if (!url) return null;
+  const m = /^data:([^;,]+)?;base64,(.*)$/s.exec(url);
+  if (m) return { data: m[2], mimeType: m[1] || 'image/png' };
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    // Chunked, because String.fromCharCode(...bytes) overflows the argument
+    // limit for images of a few hundred kilobytes.
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return { data: btoa(bin), mimeType: blob.type || 'image/png' };
+  } catch {
+    return null;
+  }
 }

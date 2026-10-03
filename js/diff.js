@@ -1,6 +1,7 @@
 // js/diff.js — Delta zwischen zwei Speicherstaenden, rein und ohne Seiteneffekt.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt js/diff.js.
 // Liefert eine Liste lesbarer Aenderungseintraege fuer das Delta-Banner.
+import { gameKey } from './store.js';
 
 const LABELS = {
   nahrung: 'Nahrung',
@@ -39,8 +40,8 @@ export function diffStates(prev, next) {
   // Spielnamen tragen und der sich unterscheidet, gilt es als Erstladung der
   // neuen Partie (kein Delta). Fehlt ein Name (aeltere Staende, Tests), faellt
   // es auf den normalen Feldvergleich zurueck.
-  const ga = next.meta?.spielname || next.volk?.name;
-  const gb = prev.meta?.spielname || prev.volk?.name;
+  const ga = gameKey(next);
+  const gb = gameKey(prev);
   if (ga && gb && ga !== gb) {
     return { hasChanges: false, isFirst: true, differentGame: true, eintraege: [] };
   }

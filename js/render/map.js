@@ -1,6 +1,7 @@
 // Sicht "Karte": Kartenbild (generierbar) und Legende der bekannten Orte.
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Karte (data-view=karte)".
 import { el } from '../components/ui.js';
+import { aktiverKarteStand } from '../images/prompts.js';
 
 export function renderKarte(root, state, handlers = {}) {
   root.replaceChildren();
@@ -9,10 +10,7 @@ export function renderKarte(root, state, handlers = {}) {
   const karte = state.karte || {};
   const orte = karte.orte || [];
   const chronik = Array.isArray(karte.chronik) ? karte.chronik : [];
-  const selId = (handlers.getKarteStandId && handlers.getKarteStandId()) || karte.aktuellerStand;
-  const aktiv = chronik.length
-    ? (chronik.find((e) => e.id === selId) || chronik[chronik.length - 1])
-    : null;
+  const aktiv = aktiverKarteStand(state, handlers.getKarteStandId?.());
 
   // Datengetriebener Alt-Text: nennt die bekannten Orte, statt einer fixen Floskel.
   const alt = orte.length

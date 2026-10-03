@@ -7,13 +7,12 @@
 //   el(tag, attrs, children)      -> HTMLElement   Hyperscript-Helfer
 //   gauge(value, min, max)        -> HTMLElement   Balken mit Nullpunkt (Lagewerte, -2..+3)
 //   loyaltyMeter(value)           -> HTMLElement   Schiene -5..+5, Farbverlauf rot->messing->grün
-//   statCard({label,value,sub})   -> HTMLElement
-//   modal({title,body,actions})   -> HTMLElement   (Overlay-Element, mit .close())
-//   toast(message)                -> void
+//   toast(message, { error })     -> void          Fehler bleiben bis zum Schließen stehen
+//   bildLeiste(typ, id, handlers) -> HTMLElement   Knopf "Bild fortschreiben" und Versionswahl
 //
 // Optik: Diese Bausteine erzeugen nur DOM mit den Klassennamen aus der gewählten
 // Richtung "War Table" (design/prototypes/war-table.html). Das Aussehen liefert
-// css/style.css (Eigentum scaffold), abgeleitet aus design/design-tokens.css.
+// css/style.css (Eigentum scaffold); :root dort ist die einzige Token-Quelle.
 // Daher injiziert dieses Modul KEINE eigenen Styles und referenziert KEINE
 // Token-Variablen direkt; Cross-Modul-Kontrakt ist allein die Klassen-/DOM-Form.
 //
@@ -183,114 +182,44 @@ export function loyaltyMeter(value, { label, valueText } = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// statCard({ label, value, sub })
+// toast(message, { error })
 // ---------------------------------------------------------------------------
-// Kennzahlen-Karte (Grundgrößen). Klassen .stat / .num / .lab / .note nach
-// war-table.html. Der optionale Schlüssel `testid` setzt data-testid auf die
-// Wert-Zelle (.num), damit DOM-Tests wie [data-testid="stat-nahrung"] direkt
-// den Wert lesen (siehe js/render/overview.js und Frontend-Contract, Lage).
-export function statCard({ label, value, sub, testid } = {}) {
-  return el('div', { class: 'stat' }, [
-    el('div', {
-      class: 'num',
-      text: value == null ? '—' : String(value),
-      ...(testid ? { 'data-testid': testid } : {}),
-    }),
-    label != null ? el('div', { class: 'lab', text: label }) : null,
-    sub != null ? el('div', { class: 'note', text: sub }) : null,
-  ]);
-}
+// Nicht-blockierende Meldung am unteren Rand, data-testid="toast" je Meldung
+// gemäß Frontend-Contract. Jede Meldung ist ihre eigene Live-Region (Fehler
+// role=alert, sonst role=status); der Host trägt bewusst keine, sonst
+// verschachteln sich Live-Regionen und Ansagen doppeln. Jede Meldung hat einen
+// per Tastatur erreichbaren Schließen-Knopf. Fehler bleiben stehen, bis sie
+// geschlossen werden (WCAG 2.2.1); Hinweise verschwinden nach kurzer Zeit.
+// Lange Meldungen gelten auch ohne { error } als Fehler, weil die Aufrufer in
+// app.js API-Fehlertexte bisher ohne Flag durchreichen.
+const TOAST_CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
-// ---------------------------------------------------------------------------
-// modal({ title, body, actions })
-// ---------------------------------------------------------------------------
-// Gibt das Overlay-Element zurück (noch nicht im DOM; der Aufrufer hängt es
-// ein). Das Element trägt eine .close()-Methode und schließt bei Klick auf den
-// Backdrop sowie bei Escape. Klassen .modal-overlay / .modal-dialog / ... nach
-// war-table.html. data-testid="modal" gemäß Frontend-Contract.
-//
-// actions: Array<{ label, onClick, primary }>
-//   onClick erhält die close-Funktion als Argument: onClick(close).
-export function modal({ title, body, actions = [] } = {}) {
-  const close = () => {
-    document.removeEventListener('keydown', onKeydown, true);
-    overlay.remove();
-  };
-
-  function onKeydown(e) {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
-  }
-
-  const actionBtns = (Array.isArray(actions) ? actions : []).map((a) =>
-    el('button', {
-      class: `btn${a.primary ? ' primary' : ''}`,
-      text: a.label,
-      onClick: () => a.onClick?.(close),
-    }),
-  );
-
-  const dialog = el('div', {
-    class: 'modal-dialog',
-    role: 'dialog',
-    'aria-modal': 'true',
-  }, [
-    title != null ? el('div', { class: 'modal-head' }, [el('h3', { text: title })]) : null,
-    el('div', { class: 'modal-body' }, [
-      body == null ? null : (body instanceof Node ? body : el('p', { text: body })),
-    ]),
-    actionBtns.length ? el('div', { class: 'modal-actions' }, actionBtns) : null,
-  ]);
-
-  const overlay = el('div', {
-    class: 'modal-overlay',
-    dataset: { testid: 'modal' },
-    onClick: (e) => { if (e.target === overlay) close(); },
-  }, [dialog]);
-
-  overlay.close = close;
-  document.addEventListener('keydown', onKeydown, true);
-  return overlay;
-}
-
-// ---------------------------------------------------------------------------
-// toast(message)
-// ---------------------------------------------------------------------------
-// Kurze, nicht-blockierende Meldung am unteren Rand. Legt bei Bedarf einen
-// gemeinsamen Host an (aria-live, damit Screenreader die Meldung ansagen) und
-// entfernt jede Meldung nach kurzer Zeit. data-testid="toast" je Meldung
-// gemäß Frontend-Contract.
-export function toast(message) {
+export function toast(message, { error = false } = {}) {
   let host = document.querySelector('[data-testid="toast-host"]');
   if (!host) {
-    // Eine einzige Live-Region am Host (aria-atomic, damit die ganze Meldung als
-    // Einheit angesagt wird). Die einzelnen Toasts tragen KEIN eigenes role=status
-    // mehr, sonst verschachteln sich Live-Regionen und Ansagen doppeln/entfallen.
-    host = el('div', {
-      class: 'toast-host',
-      dataset: { testid: 'toast-host' },
-      'aria-live': 'polite',
-      'aria-atomic': 'true',
-    });
+    host = el('div', { class: 'toast-host', dataset: { testid: 'toast-host' } });
     document.body.append(host);
   }
 
-  // Der Schließen-Hinweis steht sichtbar als CSS-::after; ein zusätzliches
-  // title-Attribut wäre für Screenreader nur redundant.
+  const text = message == null ? '' : String(message);
+  const bleibt = error || text.length > 120;
   const t = el('div', {
-    class: 'toast',
+    class: `toast${bleibt ? ' error' : ''}`,
     dataset: { testid: 'toast' },
-    text: message,
-    onClick: () => t.remove(),
-  });
+    role: bleibt ? 'alert' : 'status',
+  }, [
+    el('p', { class: 'toast-text', text }),
+    el('button', {
+      class: 'toast-close',
+      type: 'button',
+      'aria-label': 'Meldung schließen',
+      html: TOAST_CLOSE_ICON,
+      onClick: () => t.remove(),
+    }),
+  ]);
   host.append(t);
 
-  // Laengere Meldungen (z. B. API-Fehler) bleiben laenger stehen; per Klick
-  // sofort schliessbar. Kurze Hinweise verschwinden von selbst.
-  const ms = message && message.length > 120 ? 12000 : 5000;
-  setTimeout(() => t.remove(), ms);
+  if (!bleibt) setTimeout(() => t.remove(), 5000);
 }
 
 // ---------------------------------------------------------------------------

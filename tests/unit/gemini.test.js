@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MODELS, endpoint, generateImage } from '../../js/images/gemini.js';
+import { MODELS, endpoint, generateImage, toRefImage } from '../../js/images/gemini.js';
 import {
   MOCK_PIXEL_BASE64,
   MOCK_PIXEL_MIME,
@@ -145,6 +145,47 @@ test('generateImage: refImages werden als inlineData mit image/png angehaengt', 
       mimeType: 'image/png',
       data: MOCK_PIXEL_BASE64,
     });
+  } finally {
+    mock.restore();
+  }
+});
+
+test('generateImage: refImages als Objekt tragen ihren echten mimeType', async () => {
+  const mock = installFetch(() => okResponse());
+  try {
+    await generateImage({
+      apiKey: 'K',
+      model: MODELS.portrait,
+      prompt: 'p',
+      refImages: [{ data: 'QUJD', mimeType: 'image/webp' }, { data: 'REVG' }],
+    });
+    const parts = JSON.parse(mock.calls[0].options.body).contents[0].parts;
+    assert.deepEqual(parts[1].inlineData, { mimeType: 'image/webp', data: 'QUJD' });
+    assert.deepEqual(parts[2].inlineData, { mimeType: 'image/png', data: 'REVG' });
+  } finally {
+    mock.restore();
+  }
+});
+
+test('toRefImage: data-URL wird ohne Netz zerlegt', async () => {
+  const mock = installFetch(() => { throw new Error('kein Netz erwartet'); });
+  try {
+    assert.deepEqual(await toRefImage('data:image/jpeg;base64,QUJD'), { data: 'QUJD', mimeType: 'image/jpeg' });
+    assert.equal(await toRefImage(''), null);
+    assert.equal(mock.calls.length, 0);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('toRefImage: Pfad wird geladen und base64-kodiert, Fehler ergibt null', async () => {
+  const bytes = Buffer.from(MOCK_PIXEL_BASE64, 'base64');
+  const mock = installFetch((url) => (url === 'bilder/a.webp'
+    ? { ok: true, blob: async () => new Blob([bytes], { type: 'image/webp' }) }
+    : { ok: false, status: 404 }));
+  try {
+    assert.deepEqual(await toRefImage('bilder/a.webp'), { data: MOCK_PIXEL_BASE64, mimeType: 'image/webp' });
+    assert.equal(await toRefImage('bilder/fehlt.webp'), null);
   } finally {
     mock.restore();
   }
