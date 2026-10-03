@@ -1,0 +1,433 @@
+[
+  {
+    "id": "T0-e1",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "campaign.created",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-salzfund"
+    },
+    "change": null,
+    "reason": "campaign from world hochland with seed 7",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "create"
+  },
+  {
+    "id": "T0-e2",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "people.placed",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "map.settlements",
+      "before": null,
+      "after": "s-bergnomaden"
+    },
+    "reason": "Hochvolk der Grauen Kämme starts at 0,1",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "create"
+  },
+  {
+    "id": "T0-e5",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "research.offer",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "developments.candidates",
+      "before": [],
+      "after": [
+        {
+          "ref": "rauchschau@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "saumpfad@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "sesshaft@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        }
+      ]
+    },
+    "reason": "pool offers rauchschau@1, saumpfad@1, sesshaft@1",
+    "refs": [
+      "rauchschau@1",
+      "saumpfad@1",
+      "sesshaft@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "open"
+  },
+  {
+    "id": "T0-e8",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "campaign.phase",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-salzfund"
+    },
+    "change": {
+      "field": "phase",
+      "before": "agents",
+      "after": "planning"
+    },
+    "reason": "planning opens",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "open"
+  },
+  {
+    "id": "T0-e9",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "event.draw",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "eventDraws.bergnomaden",
+      "before": null,
+      "after": {
+        "turn": 0,
+        "roll": 10,
+        "band": 5,
+        "roller": "player",
+        "card": null
+      }
+    },
+    "reason": "world-event roll 10, band 5",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "seal"
+  },
+  {
+    "id": "T0-e14",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "campaign.phase",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-salzfund"
+    },
+    "change": {
+      "field": "phase",
+      "before": "planning",
+      "after": "resolving"
+    },
+    "reason": "orders sealed",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "seal"
+  },
+  {
+    "id": "T0-e26",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.herden",
+      "delta": 2
+    },
+    "reason": "the herds graze on 1 pasture region(s), 0 clan(s) tend them",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "modules"
+  },
+  {
+    "id": "T0-e27",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": 2
+    },
+    "reason": "the herds feed the people",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "modules"
+  },
+  {
+    "id": "T0-e31",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": 6
+    },
+    "reason": "2 clan(s) harvest nahrung in -1:0:0 (wiese)",
+    "refs": [
+      "-1:0:0"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e32",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.material",
+      "delta": 3
+    },
+    "reason": "1 clan(s) harvest material in -1:0:0 (wiese)",
+    "refs": [
+      "-1:0:0"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e33",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.salz",
+      "delta": 1
+    },
+    "reason": "1 salz from deposits near the settlements",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e34",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.wissen",
+      "delta": 1
+    },
+    "reason": "1 settlement(s) gather knowledge",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e35",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "economy.consumption",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": -3
+    },
+    "reason": "3 clan(s) eat in fruehling",
+    "refs": [
+      "nomadisch@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e36",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "population.growth",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "population.growth",
+      "before": 0,
+      "after": 1
+    },
+    "reason": "growth points carried on",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T0-e60",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "event.history",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-salzfund"
+    },
+    "change": {
+      "field": "modules.kern.draws.salzfund@1",
+      "before": null,
+      "after": {
+        "total": 1,
+        "last": {
+          "bergnomaden": 0
+        }
+      }
+    },
+    "reason": "Salzader im Fels drawn by bergnomaden",
+    "refs": [
+      "salzfund@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T0-e61",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "event.drawn",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": null,
+    "reason": "Salzader im Fels (roll 10, band 5)",
+    "refs": [
+      "salzfund@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T0-e62",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.salz",
+      "delta": 3
+    },
+    "reason": "Salzader im Fels",
+    "refs": [
+      "salzfund@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T0-e63",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "flag.set",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "modules.kern.flags.salzfund~gefunden",
+      "before": null,
+      "after": true
+    },
+    "reason": "Salzader im Fels",
+    "refs": [
+      "salzfund@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T0-e74",
+    "turn": 0,
+    "source": "kernel",
+    "kind": "campaign.turn",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-salzfund"
+    },
+    "change": {
+      "field": "turn",
+      "before": 0,
+      "after": 1
+    },
+    "reason": "season ends",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "finalize"
+  }
+]

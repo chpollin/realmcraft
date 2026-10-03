@@ -8,9 +8,11 @@ import { MapView } from './map/renderer.js';
 import { Minimap } from './map/minimap.js';
 import { el, prefersReducedMotion } from './dom.js';
 import { icon } from './icons.js';
-import { renderTopbar, renderResources, renderDestinyChip, renderOrders, renderMessages, renderEndTurn } from './ui/leiste.js';
+import { renderTopbar, renderResources, renderDestinyChip, renderOrders, renderMessages, renderEndTurn, renderBlocker } from './ui/leiste.js';
 import { renderKontext } from './ui/kontext.js';
 import { renderOrtsliste } from './ui/ortsliste.js';
+import { renderRatsleiste } from './ui/ratsleiste.js';
+import { initEreignisse } from './ui/ereignisse.js';
 import { renderWeltgeschehen, runZwischenzug } from './ui/weltgeschehen.js';
 import { renderBaum } from './ui/baum.js';
 import { renderRat } from './ui/rat.js';
@@ -18,6 +20,7 @@ import { renderChronik } from './ui/chronik.js';
 import { renderBestimmung } from './ui/bestimmung.js';
 import { renderProbe } from './ui/probe.js';
 import { closePinnedTip } from './ui/tip.js';
+import { issueText } from './data/adapter.js';
 
 const DIALOGS = {
   entwicklungen: renderBaum,
@@ -84,9 +87,9 @@ export function startBoard(model, game) {
           api.openDialog('probe', { real: true, opt, target });
           return;
         }
-        game.addOption(opt);
+        const res = game.addOption(opt);
         api.setPreview(null);
-        api.announce(`${opt.titel} in die Befehle aufgenommen`);
+        api.announce(res.grund ? `${opt.titel}: ${res.grund}` : `${opt.titel} in die Befehle aufgenommen`);
         return;
       }
       if (opt.probe) {
@@ -111,10 +114,14 @@ export function startBoard(model, game) {
         api.openDialog('probe', { real: true, opt, target: {} });
         return null;
       }
-      const id = game.addOption(opt, { roll, extra });
+      const res = game.addOption(opt, { roll, extra });
       api.setPreview(null);
+      if (res.grund) {
+        api.announce(`${opt.titel}: ${res.grund}`);
+        return null;
+      }
       api.announce(`${opt.titel} in die Befehle aufgenommen`);
-      return id;
+      return res.id;
     },
 
     addOrder(order) {
@@ -137,6 +144,17 @@ export function startBoard(model, game) {
       }
       if (o) api.announce(`${o.titel} zurückgenommen`);
       document.getElementById('befehle').querySelector('button')?.focus() ?? document.getElementById('zug-beenden').focus();
+    },
+
+    /** Real campaign: takes every owed roll in turn without ending the turn afterwards. */
+    rollOwed() {
+      const first = game.blockers().wuerfe[0];
+      if (first) api.openDialog('probe', { real: true, probeId: first.probeId, sequence: 'wuerfe' });
+    },
+
+    jumpToTile(tileKey) {
+      const [q, r] = String(tileKey).split(',').map(Number);
+      if (Number.isInteger(q) && Number.isInteger(r)) selectHex({ q, r }, { fly: true });
     },
 
     /** Real campaign: rolls (or rolls again) the probe of an order already in the draft. */
@@ -265,6 +283,14 @@ export function startBoard(model, game) {
      * probe dialog, then the draft is sealed through the server.
      */
     async endTurn() {
+      // Problems first: rolling for a draft that cannot be sealed would only end in the same refusal.
+      const { probleme } = game.blockers();
+      if (probleme.length) {
+        renderBlocker(api, { open: true });
+        api.announce(`Zug kann nicht enden: ${probleme.length === 1 ? 'ein Problem' : `${probleme.length} Probleme`}`);
+        document.querySelector('#blocker-liste button')?.focus();
+        return;
+      }
       const can = game.canSeal();
       if (can.rolls?.length) {
         api.openDialog('probe', { real: true, probeId: can.rolls[0].id, sequence: true });
@@ -278,7 +304,7 @@ export function startBoard(model, game) {
       for (const d of document.querySelectorAll('dialog[open]')) d.close();
       const res = await game.seal();
       if (!res.ok) {
-        const why = (res.issues ?? []).filter((i) => i.severity === 'error').map((i) => i.message).join(' ');
+        const why = [...new Set((res.issues ?? []).filter((i) => i.severity === 'error').map((i) => issueText(i, game.t)))].join(', ');
         api.announce(`Zug nicht versiegelt: ${why}`);
         return;
       }
@@ -297,12 +323,12 @@ export function startBoard(model, game) {
     document.getElementById('brett').classList.toggle('has-panel', Boolean(model.panel && (model.panel === 'welt' || model.selection)));
   }
 
-  function selectHex(h) {
+  function selectHex(h, opts = {}) {
     const { units, places } = objectsAt(model, h.q, h.r);
     const unit = units.find((u) => u.volk === 'spieler') ?? units[0];
-    if (unit) return api.select({ kind: 'unit', id: unit.id, q: h.q, r: h.r });
-    if (places[0]) return api.select({ kind: 'place', id: places[0].id, q: h.q, r: h.r });
-    return api.select({ kind: 'tile', q: h.q, r: h.r });
+    if (unit) return api.select({ kind: 'unit', id: unit.id, q: h.q, r: h.r }, opts);
+    if (places[0]) return api.select({ kind: 'place', id: places[0].id, q: h.q, r: h.r }, opts);
+    return api.select({ kind: 'tile', q: h.q, r: h.r }, opts);
   }
 
   /* Map and tools */
@@ -382,6 +408,7 @@ export function startBoard(model, game) {
         renderMessages(api);
         renderEndTurn(api);
         renderKontext(api);
+        renderRatsleiste(api);
         for (const name of ['rat', 'entwicklungen', 'bestimmung']) {
           const d = document.getElementById(`dlg-${name}`);
           if (d.open) api.rerenderDialog(name);
@@ -391,6 +418,7 @@ export function startBoard(model, game) {
         renderTopbar(api);
         renderMessages(api);
         renderOrtsliste(api);
+        renderRatsleiste(api);
         api.setPhase(model.phase);
         api.view.invalidateColours();
         api.view.changed();
@@ -486,6 +514,7 @@ export function startBoard(model, game) {
   renderMessages(api);
   renderEndTurn(api);
   renderOrtsliste(api);
+  renderRatsleiste(api);
   if (game && model.zz) model.panel = 'welt';
   refreshPanels();
   api.setPhase(model.phase);
@@ -494,5 +523,6 @@ export function startBoard(model, game) {
   if (game) document.documentElement.dataset.campaign = game.cid;
   // Handle for the browser tests and the console; the board reads nothing back from it.
   window.spielbrett = api;
+  if (game) initEreignisse(api);
   return api;
 }

@@ -29,10 +29,10 @@ export const SPIELSTAND = {
     name: 'Überdauern in den Kämmen',
     art: 'start',
     meilensteine: [
-      { text: 'Drei Weideplätze dauerhaft gesichert', stand: '3 von 3', erreicht: true },
-      { text: 'Vier Winter ohne Hungertote', stand: '2 von 4', erreicht: false },
-      { text: 'Fünf Pfadzeichen im Gebirge', stand: '4 von 5', erreicht: false },
-      { text: 'Eine Wintersiedlung mit Vorrat für das ganze Volk', stand: '0 von 1', erreicht: false }
+      { text: 'Drei Weideplätze dauerhaft gesichert', stand: '3 von 3', erreicht: true, icon: 'besitz', fortschritt: { wert: 3, ziel: 3 } },
+      { text: 'Vier Winter ohne Hungertote', stand: '2 von 4', erreicht: false, icon: 'frost', fortschritt: { wert: 2, ziel: 4, einheit: 'Winter' } },
+      { text: 'Fünf Pfadzeichen im Gebirge', stand: '4 von 5', erreicht: false, icon: 'pass', fortschritt: { wert: 4, ziel: 5 } },
+      { text: 'Eine Wintersiedlung mit Vorrat für das ganze Volk', stand: '0 von 1', erreicht: false, icon: 'siedlung', fortschritt: { wert: 0, ziel: 1 } }
     ],
     wechsel: [
       {
@@ -40,9 +40,9 @@ export const SPIELSTAND = {
         weil: 'das Volk jeden Herbst den Grauhang mit Steinen sichert und die Schmiede neue Waffen für den Pass erproben',
         preis: 'Zustimmung minus 2 und die Loyalität der Ältesten der Herden sinkt um 2.',
         meilensteine: [
-          'Den Hohlpass mit einem Wall sperren',
-          'Zwei Winter ohne Verlust an Wehrfähigen',
-          'Eine Feste mit eigener Schmiede im Fels'
+          { text: 'Den Hohlpass mit einem Wall sperren', icon: 'turm' },
+          { text: 'Zwei Winter ohne Verlust an Wehrfähigen', icon: 'schild' },
+          { text: 'Eine Feste mit eigener Schmiede im Fels', icon: 'bauwerk' }
         ]
       },
       {
@@ -50,9 +50,9 @@ export const SPIELSTAND = {
         weil: 'die Feuerhüterin und die Schauenden am Schrein immer mehr Fragen des Volkes entscheiden',
         preis: 'Zustimmung minus 2 und die Loyalität des Pfadmeisters sinkt um 2.',
         meilensteine: [
-          'Drei Schreine im Gebirge geweiht',
-          'Psil aus einer Ruine geborgen und genutzt',
-          'Ein Rat der Schauenden steht über den Ältesten'
+          { text: 'Drei Schreine im Gebirge geweiht', icon: 'schrein' },
+          { text: 'Psil aus einer Ruine geborgen und genutzt', icon: 'psil' },
+          { text: 'Ein Rat der Schauenden steht über den Ältesten', icon: 'rat' }
         ]
       }
     ]
@@ -151,7 +151,7 @@ export const SPIELSTAND = {
         name: null,
         bekannt: false,
         meilensteine: [
-          { text: 'Den Grauhang plündern', erreicht: true },
+          { text: 'Den Grauhang plündern', erreicht: true, icon: 'raeuber' },
           { text: null, erreicht: null },
           { text: null, erreicht: null },
           { text: null, erreicht: null }
@@ -169,9 +169,9 @@ export const SPIELSTAND = {
         name: 'Herr der Pässe',
         bekannt: true,
         meilensteine: [
-          { text: 'Eine Salzstraße über den Hohlpass eröffnen', erreicht: true },
-          { text: 'Zoll an drei Pässen erheben', erreicht: true },
-          { text: 'Jeden Sommer zwei Karawanen über den Kamm führen', erreicht: false }
+          { text: 'Eine Salzstraße über den Hohlpass eröffnen', erreicht: true, icon: 'salz' },
+          { text: 'Zoll an drei Pässen erheben', erreicht: true, icon: 'pass' },
+          { text: 'Jeden Sommer zwei Karawanen über den Kamm führen', erreicht: false, icon: 'haendler' }
         ]
       }
     }

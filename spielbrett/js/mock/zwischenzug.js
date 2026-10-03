@@ -2,7 +2,7 @@
 // Alle Positionen sind axiale Offsets zum Hauptlager und passen zu spielstand.js.
 
 export const ZWISCHENZUG = {
-  dauer: 9000,
+  dauer: 10200,
 
   agenten: [
     { id: 'kern', name: 'Regelkern', rolle: 'Wertet Befehle und Würfe aus' },
@@ -10,7 +10,9 @@ export const ZWISCHENZUG = {
     { id: 'rivalen', name: 'Rivalenvölker', rolle: 'Führt die Züge der anderen Völker' },
     { id: 'forschung', name: 'Forschung', rolle: 'Schlägt Entwicklungen aus der Praxis vor' },
     { id: 'rat', name: 'Rat', rolle: 'Wägt Loyalität und Stimmung der Berater' },
-    { id: 'chronist', name: 'Chronist', rolle: 'Schreibt die Saison nieder' }
+    { id: 'chronist', name: 'Chronist', rolle: 'Schreibt die Saison nieder' },
+    // Judges run after the round and come last; they borrow the kernel's origin colour.
+    { id: 'richter', origin: 'kern', name: 'Kohärenzrichter', rolle: 'Prüft die Runde auf Widersprüche' }
   ],
 
   ereignisse: [
@@ -151,6 +153,27 @@ export const ZWISCHENZUG = {
       urteil: { status: 'abgelehnt', grund: 'keine Grundlage in der Praxis des Volkes' }
     },
     { t: 8000, agent: 'forschung', typ: 'ende' },
-    { t: 8800, agent: 'chronist', typ: 'ende' }
+    { t: 8800, agent: 'chronist', typ: 'ende' },
+
+    { t: 9000, agent: 'richter', typ: 'start', taetigkeit: 'prüft Chronik, Rat und Welt auf Widersprüche' },
+    {
+      t: 9500,
+      agent: 'richter',
+      typ: 'ergebnis',
+      titel: 'Der Frost trifft dieselbe Karte wie in der Vorrunde',
+      text: 'Das Ereignis lief schon einmal für den Talbund und wurde in dieser Runde erneut gezogen.',
+      urteil: { status: 'angenommen' },
+      befund: 'severe'
+    },
+    {
+      t: 9700,
+      agent: 'richter',
+      typ: 'ergebnis',
+      titel: 'Die Chronik nennt Garmund vor dem Fund der Ruine',
+      text: 'Der Vertrauensgewinn steht im Protokoll erst nach dem Fund.',
+      urteil: { status: 'angenommen' },
+      befund: 'warn'
+    },
+    { t: 10000, agent: 'richter', typ: 'ende' }
   ]
 };

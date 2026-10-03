@@ -7,8 +7,8 @@
 import { buildEnv, previewDraft, bandOf, eventBand, eventBands, SUCCESS_BANDS, sameWorld, CONTENT_FILES } from './kernel.js';
 import { makeLabels, bandKey } from './labels.js';
 import { server, turnStem } from './server.js';
-import { adaptView, orderRows, resourceRows, messages, issueText, describeParams, seasonOf, boardPhase, volkOf, previewDeltas } from './adapter.js';
-import { draftFor, withOrder, withoutOrder, withRoll, withMandate, withChoice, withAssign, openRolls } from './draft.js';
+import { adaptView, orderRows, resourceRows, messages, issueText, describeParams, seasonOf, boardPhase, volkOf, previewDeltas, blockersOf } from './adapter.js';
+import { draftFor, withOrder, withoutOrder, withReplacedOrder, withoutRoll, withRoll, withMandate, withChoice, withAssign, openRolls } from './draft.js';
 import { optionsFor, previewOption } from './options.js';
 
 const SAVE_DELAY = 250;
@@ -24,6 +24,90 @@ export const originOf = (agentOrSource) => {
 const STEP_STATE = { waiting: 'wartet', running: 'arbeitet', done: 'fertig', failed: 'gescheitert' };
 const POSITIONAL = new Set(['tile', 'settlement', 'unit', 'region']);
 const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+
+/** Whole seconds between the step timestamps of status.json, null while one is missing. */
+export function durationSeconds(startedAt, endedAt) {
+  const a = Date.parse(startedAt);
+  const b = Date.parse(endedAt);
+  return Number.isFinite(a) && Number.isFinite(b) && b >= a ? Math.round((b - a) / 1000) : null;
+}
+
+export function formatDuration(sec) {
+  if (!Number.isFinite(sec)) return '';
+  if (sec < 60) return `${sec} s`;
+  return sec % 60 ? `${Math.floor(sec / 60)} min ${sec % 60} s` : `${sec / 60} min`;
+}
+
+/**
+ * Map positions and judge severities that agent proposals left in the event log.
+ * Agent entries carry the proposal id in refs, and a judge's finding is logged
+ * as "<severity>: <text>", the only place the severity reaches the board.
+ */
+export function agentEventIndex(events, positionOf) {
+  const positions = new Map();
+  const findings = [];
+  for (const e of events ?? []) {
+    if (!String(e?.source).startsWith('agent:')) continue;
+    if (e.kind === 'ingest.finding') {
+      const m = /^(info|warn|severe): ([\s\S]*)$/.exec(e.reason ?? '');
+      if (m) findings.push({ severity: m[1], text: m[2], source: e.source });
+      continue;
+    }
+    const pos = e.change && POSITIONAL.has(e.target?.kind) ? positionOf(e) : null;
+    if (!pos) continue;
+    for (const ref of e.refs ?? []) if (!positions.has(ref)) positions.set(ref, pos);
+  }
+  return { positions, findings };
+}
+
+/**
+ * Agent rows of the Weltgeschehen panel from the steps of status.json. Rivals
+ * carry no content (fog of war), judges come last, and a finding carries its
+ * severity when the event log has it.
+ */
+export function shapeSteps(steps, { t, peopleName = () => null, positions = new Map(), findings = [] }) {
+  const rows = (steps ?? []).map((step) => {
+    const judge = step.agent.startsWith('judge');
+    const rival = step.agent === 'rival';
+    const people = step.id.split('-').slice(1).join('-');
+    const who = !judge && people && people !== 'all' ? peopleName(people) : null;
+    const proposals = rival ? [] : step.proposals ?? [];
+    return {
+      id: originOf(step.agent),
+      step: step.id,
+      agent: step.agent,
+      role: judge ? 'judge' : rival ? 'rival' : 'agent',
+      name: `${t(`agent.${step.agent}`, step.agent)}${who ? `, ${who}` : ''}`,
+      status: STEP_STATE[step.state] ?? step.state,
+      taetigkeit: rival ? '' : step.summary ?? '',
+      dauer: step.state === 'done' ? durationSeconds(step.startedAt, step.endedAt) : null,
+      angenommen: proposals.filter((p) => p.verdict === 'accepted').length,
+      abgelehnt: proposals.filter((p) => p.verdict === 'rejected').length,
+      results: proposals.map((p) => {
+        const cls = p.verdict === 'accepted' ? 'angenommen' : p.verdict === 'rejected' ? 'abgelehnt' : 'info';
+        const severity = p.kind === 'finding'
+          ? findings.find((f) => f.source === `agent:${step.agent}` && f.text.startsWith(p.title))?.severity ?? null
+          : null;
+        return {
+          cls,
+          icon: p.kind === 'finding' ? (severity === 'info' ? 'ja' : 'warnung') : cls === 'angenommen' ? 'ja' : cls === 'abgelehnt' ? 'nein' : 'dauer',
+          titel: p.title,
+          proposalId: p.proposalId,
+          kind: p.kind,
+          severity,
+          severityText: severity ? t(`severity.${severity}`, { info: 'Hinweis', warn: 'Warnung', severe: 'schwer' }[severity]) : null,
+          // Items of one proposal share its id, so only an accepted item points at the place the change took.
+          pos: cls === 'angenommen' ? positions.get(p.proposalId) ?? null : null,
+          budget: p.budget ? `Netto ${p.budget.net}, Stufe ${p.budget.tier}` : null,
+          grund: p.reason ?? t(`verdict.${p.verdict}`, p.verdict),
+          info: `${t(`verdict.${p.verdict}`, p.verdict)}${p.budget ? `, Wirkung ${p.budget.effect}, Preis ${p.budget.price}` : ''}`,
+          detail: p.reason ?? null,
+        };
+      }),
+    };
+  });
+  return [...rows.filter((r) => r.role !== 'judge'), ...rows.filter((r) => r.role === 'judge')];
+}
 
 /** Campaign to open: ?campaign=<cid>, else the most recently updated one that is still playing. */
 export function pickCampaign(index, wanted) {
@@ -144,7 +228,7 @@ export async function createGame(model, { cid: wanted } = {}) {
     const res = await g.saving;
     g.saving = null;
     const errors = (res.issues ?? []).filter((i) => i.severity === 'error' && i.code !== 'roll_missing');
-    g.saveError = res.stored ? null : errors.map((i) => `${issueText(i, t)}: ${i.message}`).join(' ') || 'Der Server hat den Entwurf nicht angenommen.';
+    g.saveError = res.stored ? null : [...new Set(errors.map((i) => issueText(i, t)))].join(', ') || t('issue.server', 'Der Server hat den Entwurf nicht angenommen');
     if (sent === g.draft) {
       refresh();
       emit('draft');
@@ -169,34 +253,30 @@ export async function createGame(model, { cid: wanted } = {}) {
   function applyStatus() {
     const s = g.status;
     if (!s || s.turn !== g.view.turn && s.turn !== g.view.turn - 1) return;
-    const kernelRow = model.zz?.agenten.find((a) => a.id === 'kern');
-    const agenten = [];
-    const rows = new Map();
-    for (const step of s.steps ?? []) {
-      const id = originOf(step.agent);
-      const people = step.id.split('-').slice(1).join('-');
-      const name = `${t(`agent.${step.agent}`, step.agent)}${people && people !== 'all' && g.view.peoples[people] ? `, ${g.view.peoples[people].name}` : ''}`;
-      const row = {
-        id, step: step.id, name, status: STEP_STATE[step.state] ?? step.state, taetigkeit: step.summary ?? '',
-        results: (step.proposals ?? []).map((p) => ({
-          cls: p.verdict === 'accepted' ? 'angenommen' : p.verdict === 'rejected' ? 'abgelehnt' : 'info',
-          icon: p.verdict === 'accepted' ? 'ja' : p.verdict === 'rejected' ? 'nein' : 'dauer',
-          titel: p.title,
-          budget: p.budget ? `Netto ${p.budget.net}, Stufe ${p.budget.tier}` : null,
-          grund: p.reason ?? t(`verdict.${p.verdict}`, p.verdict),
-          info: `${t(`verdict.${p.verdict}`, p.verdict)}${p.budget ? `, Wirkung ${p.budget.effect}, Preis ${p.budget.price}` : ''}`,
-        })),
-      };
-      rows.set(step.id, row);
-      agenten.push(row);
-    }
-    ensureZz();
-    model.zz.agenten = [kernelRow ?? kernelAgent(), ...agenten];
+    // Positions and severities come from two logs that arrive after the status itself.
+    const build = () => {
+      const idx = [g.reportIdx, g.eventIdx].filter(Boolean);
+      const agenten = shapeSteps(s.steps, {
+        t,
+        peopleName: (id) => g.view.peoples[id]?.name ?? null,
+        positions: new Map(idx.flatMap((i) => [...i.positions])),
+        findings: idx.flatMap((i) => i.findings),
+      });
+      ensureZz();
+      model.zz.agenten = [model.zz.agenten.find((a) => a.role === 'kernel') ?? kernelAgent(), ...agenten];
+    };
+    build();
     emit('status');
+    server.events(cid, pid, turnStem(s.turn)).then((list) => {
+      if (!list || g.status !== s) return;
+      g.eventIdx = agentEventIndex(list, positionOf);
+      build();
+      emit('status');
+    }).catch(() => {});
   }
 
   function kernelAgent() {
-    return { id: 'kern', name: t('agent.kernel', 'Regelkern'), status: g.view.phase === 'resolving' ? 'arbeitet' : 'fertig', taetigkeit: '', results: [] };
+    return { id: 'kern', role: 'kernel', name: t('agent.kernel', 'Regelkern'), status: g.view.phase === 'resolving' ? 'arbeitet' : 'fertig', taetigkeit: '', results: [] };
   }
 
   function ensureZz() {
@@ -220,7 +300,7 @@ export async function createGame(model, { cid: wanted } = {}) {
     if (!rep) return;
     g.report = rep;
     ensureZz();
-    const kern = model.zz.agenten.find((a) => a.id === 'kern') ?? kernelAgent();
+    const kern = model.zz.agenten.find((a) => a.role === 'kernel') ?? kernelAgent();
     kern.status = 'fertig';
     kern.taetigkeit = '';
     const res = [];
@@ -250,7 +330,10 @@ export async function createGame(model, { cid: wanted } = {}) {
     kern.results = res;
     if (!model.zz.agenten.includes(kern)) model.zz.agenten.unshift(kern);
     model.highlights = highlights;
+    // Agent results with a place on the map can now jump there.
+    g.reportIdx = agentEventIndex(rep.events, positionOf);
     emit('report', { turn, highlights });
+    applyStatus();
   }
 
   function kindText(e) {
@@ -350,18 +433,68 @@ export async function createGame(model, { cid: wanted } = {}) {
   // --- actions --------------------------------------------------------------------------
 
   const ctx = () => ({ view: g.view, env: g.env, t, draft: g.draft, base: g.base, world: g.world });
+  const leadCache = { draft: null, view: null, out: {} };
 
   Object.assign(g, {
     onUpdate(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     optionsFor: (target) => optionsFor(ctx(), target),
-    previewOption: (opt, extra) => previewOption(ctx(), { type: opt.type, params: opt.params }, extra),
-    /** Adds an option to the draft; with a probe the roll arrives together with the order. */
+    // An option that replaces another order keeps doing so through every re-preview (probe dialog).
+    previewOption: (opt, extra = {}) => previewOption(ctx(), { type: opt.type, params: opt.params }, { ...(opt.extra?.replace ? { replace: opt.extra.replace } : {}), ...extra }),
+    /**
+     * Adds an option to the draft; with a probe the roll arrives together with
+     * the order. The option is previewed again on the current draft first, so
+     * an order the kernel refuses (or one that would overflow a slot) never
+     * enters the draft; the refusal comes back as { grund }.
+     */
     addOption(opt, { roll = null, extra = {} } = {}) {
-      let next = withOrder(g.draft, { type: opt.type, params: opt.params }, extra);
+      const { replace, ...ext } = { ...(opt.extra ?? {}), ...extra };
+      const check = previewOption(ctx(), { type: opt.type, params: opt.params }, { ...ext, ...(replace ? { replace } : {}) });
+      if (check.grund) return { grund: check.grund };
+      const rid = check.extra.replace ?? null;
+      let next = rid
+        ? withReplacedOrder(g.draft, rid, { type: opt.type, params: opt.params }, ext, g.base.probes.find((p) => p.order === rid)?.id ?? null)
+        : withOrder(g.draft, { type: opt.type, params: opt.params }, ext);
       if (roll) next = withRoll(next, roll.probe, roll.value, roll.fingerprint);
       setDraft(next);
-      return next.orders.at(-1).id;
+      return { id: next.orders.at(-1).id };
     },
+    dropRoll(probeId) { setDraft(withoutRoll(g.draft, probeId)); },
+    /**
+     * Change of the probe modifier when a member leads, per member id, from the
+     * kernel preview: measured on the first probe of the draft, else on
+     * exploring from the home settlement. Cached per draft object.
+     */
+    leadEffects() {
+      if (leadCache.draft === g.draft && leadCache.view === g.view) return leadCache.out;
+      const out = {};
+      let draft = g.draft;
+      let oid = g.base.probes.find((p) => p.order && p.roller === 'player')?.order ?? null;
+      const home = model.home;
+      if (!oid && home && (g.base.catalogue ?? []).some((c) => c.type === 'explore' && c.available)) {
+        draft = withOrder(g.draft, { type: 'explore', params: { tile: `${home.q},${home.r}` } });
+        oid = draft.orders.at(-1).id;
+      }
+      if (oid) {
+        const { [oid]: _own, ...lead } = draft.lead ?? {};
+        const modOf = (d) => {
+          const pv = previewDraft(g.view, g.env, d);
+          if (pv.issues.some((i) => i.severity === 'error' && i.path === `/lead/${oid}`)) return null;
+          return pv.probes.find((p) => p.order === oid)?.modTotal ?? null;
+        };
+        const none = modOf({ ...draft, lead });
+        if (none !== null) {
+          for (const m of g.view.peoples[pid].council) {
+            const v = modOf({ ...draft, lead: { ...lead, [oid]: m.id } });
+            out[m.id] = v === null ? null : v - none;
+          }
+        }
+      }
+      leadCache.draft = g.draft;
+      leadCache.view = g.view;
+      leadCache.out = out;
+      return out;
+    },
+    blockers: () => blockersOf(g.view, g.env, t, g.draft, g.base, g.world),
     removeOrder(id) {
       const row = model.orders.find((o) => o.id === id);
       setDraft(withoutOrder(g.draft, id, row?.probe ?? null));

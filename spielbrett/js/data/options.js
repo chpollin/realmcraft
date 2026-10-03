@@ -6,8 +6,8 @@
 // that preview (Spieldesign D15), never from the board.
 
 import { key, parseKey } from '../../../engine/world/index.js';
-import { previewDraft } from './kernel.js';
-import { withOrder } from './draft.js';
+import { previewDraft, isUnique } from './kernel.js';
+import { withOrder, withReplacedOrder } from './draft.js';
 import { describeParams, issueText, issuesOfOrder, previewDeltas, slotArt } from './adapter.js';
 
 const TILE_ORDERS = ['explore', 'found', 'migrate', 'road', 'road.pave'];
@@ -40,13 +40,28 @@ const sameOrder = (a, b) => a.type === b.type && JSON.stringify(a.params) === JS
 
 const modLabel = (t, label) => t(`tag.${label}`, t(label, label));
 
+/** The draft with the candidate added, or put in place of `replaceId`. */
+function draftWith(draft, cand, extra, replaceId, base) {
+  if (!replaceId) return withOrder(draft, cand, extra);
+  const probeId = base?.probes?.find((p) => p.order === replaceId)?.id ?? null;
+  return withReplacedOrder(draft, replaceId, cand, extra, probeId);
+}
+
 /**
  * One board option per candidate, previewed on the draft. base is the preview
  * of the draft as it stands; extra = { venture, lead } for the probe dialog.
+ * A once-per-season order (research.assign) replaces its namesake in the
+ * draft instead of colliding with it. extra.replace names an order the
+ * candidate takes the place of; an option blocked only by a full slot carries
+ * `ersatz`, the same option replacing the last order of that slot, so the
+ * board can offer "ersetzen" instead of letting the slot overflow.
  */
 export function previewOption(ctx, cand, extra = {}) {
   const { view, env, t, draft, base, world } = ctx;
-  const next = withOrder(draft, cand, extra);
+  const { replace: wanted = null, ...ext } = extra;
+  const namesake = isUnique(cand.type) ? draft.orders.find((o) => o.type === cand.type && !sameOrder(o, cand)) : null;
+  const replaceId = wanted ?? namesake?.id ?? null;
+  const next = draftWith(draft, cand, ext, replaceId, base);
   const order = next.orders.at(-1);
   const index = next.orders.length - 1;
   const pv = previewDraft(view, env, next);
@@ -59,6 +74,16 @@ export function previewOption(ctx, cand, extra = {}) {
   const blocking = errors.filter((e) => e.code !== 'council_rejected');
   const vote = pv.votes.find((v) => v.order === order.id) ?? null;
   const pos = cand.params.tile ? parseKey(cand.params.tile) : null;
+  const replaced = replaceId ? draft.orders.find((o) => o.id === replaceId) : null;
+  let ersatz = null;
+  if (!replaceId && blocking.length && blocking.every((e) => e.code === 'slots') && po?.slot) {
+    const sameSlot = (base?.orders ?? []).filter((o) => o.slot === po.slot);
+    const last = sameSlot.at(-1);
+    if (last) {
+      const alt = previewOption(ctx, cand, { ...ext, replace: last.id });
+      if (!alt.grund) ersatz = alt;
+    }
+  }
   return {
     id: `${cand.type}:${JSON.stringify(cand.params)}`,
     type: cand.type,
@@ -79,11 +104,13 @@ export function previewOption(ctx, cand, extra = {}) {
     } : null,
     folge: describeParams(view, env, t, cand, world),
     queued: draft.orders.some((o) => sameOrder(o, cand)),
-    grund: blocking.length ? `${issueText(blocking[0], t)}${blocking[0].message ? `: ${blocking[0].message}` : ''}` : null,
+    grund: blocking.length ? issueText(blocking[0], t) : null,
     rat: vote?.required && !vote.passed ? vote : null,
     issues: errors,
     preview: { deltas: previewDeltas(view, base, pv), tiles: pos ? [pos] : [] },
-    extra,
+    extra: replaceId ? { ...ext, replace: replaceId } : ext,
+    ersetzt: replaced ? { id: replaced.id, titel: t(`order.${replaced.type}`, replaced.type), ziel: describeParams(view, env, t, replaced, world) } : null,
+    ersatz,
     pv,
   };
 }

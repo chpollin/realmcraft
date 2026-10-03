@@ -36,17 +36,29 @@ export function withOrder(draft, { type, params }, extra = {}) {
 }
 
 /**
+ * Puts `cand` in place of order `replaceId`: the old order (and its roll, kept
+ * in `withdrawn`) leaves, the new one keeps the old id so the draft order list
+ * reads as one choice changed rather than one dropped and one added.
+ */
+export function withReplacedOrder(draft, replaceId, cand, extra = {}, probeId = null) {
+  return withOrder(withoutOrder(draft, replaceId, probeId), cand, { ...extra, id: replaceId });
+}
+
+/** Drops a roll whose probe no longer exists; it stays visible in `withdrawn`. */
+export function withoutRoll(draft, probeId) {
+  const r = draft.rolls?.[probeId];
+  if (!r) return draft;
+  return { ...draft, rolls: without(draft.rolls, probeId), withdrawn: [...(draft.withdrawn ?? []), { probe: probeId, value: r.value, fingerprint: r.fingerprint }].slice(-MAX_WITHDRAWN) };
+}
+
+/**
  * Removes an order. A roll already made for it moves to `withdrawn`, so the
  * round report still shows it (schema: a withdrawn rolled order stays visible).
  */
 export function withoutOrder(draft, id, probeId = null) {
-  let next = {
-    ...draft,
-    orders: draft.orders.filter((o) => o.id !== id),
-    venture: without(draft.venture, id),
-    lead: without(draft.lead, id),
-    mandate: without(draft.mandate, id),
-  };
+  let next = { ...draft, orders: draft.orders.filter((o) => o.id !== id) };
+  // Optional maps stay absent when the draft has none: a key holding undefined fails the draft schema in the browser preview.
+  for (const field of ['venture', 'lead', 'mandate']) if (draft[field]) next[field] = without(draft[field], id);
   // A Machtprobe overriding this order loses its object.
   next = { ...next, orders: next.orders.filter((o) => !(o.type === 'machtprobe' && o.params?.order === id)) };
   if (probeId && draft.rolls?.[probeId]) {

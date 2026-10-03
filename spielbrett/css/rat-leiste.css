@@ -1,0 +1,215 @@
+/* Council strip on the map, slot indicator and blocker summary in the turn bar,
+   lead choice in the probe dialog. */
+
+@layer layout {
+  /* Council strip: left edge of the map, below the layer tools, above the minimap. */
+  .ratsleiste {
+    position: absolute;
+    z-index: 5;
+    inset-block-start: 4.25rem;
+    inset-inline-start: var(--space-4);
+    max-block-size: calc(100% - 4.25rem - 9.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border-radius: var(--radius-m);
+    background: oklch(from var(--night-1) l c h / 0.9);
+    box-shadow: var(--shadow-float);
+  }
+  .ratsleiste:empty { display: none; }
+  .rl-schalter { align-self: flex-start; }
+  .rl-liste { display: grid; gap: 2px; overflow-y: auto; scrollbar-width: thin; }
+  .rl-liste > li > .has-tip { display: block; }
+  .rl-karte {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--space-2);
+    inline-size: 100%;
+    padding: var(--space-1);
+    border-radius: var(--radius-s);
+    text-align: start;
+  }
+  .ratsleiste[data-zu="false"] .rl-karte { inline-size: 15rem; }
+  .rl-karte:hover { background: var(--hover-wash); }
+  .rl-karte:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .rl-karte .portraet { --ring: var(--ink-faint); }
+  .rl-karte.is-anfuehrer .portraet { --ring: var(--ember); }
+  .rl-bild { position: relative; display: grid; }
+  .rl-rolle {
+    position: absolute;
+    inset-block-end: -3px;
+    inset-inline-end: -5px;
+    display: grid;
+    place-items: center;
+    inline-size: 1.2rem;
+    block-size: 1.2rem;
+    border-radius: 50%;
+    background: var(--night-2);
+    color: var(--ink-dim);
+    box-shadow: 0 0 0 1.5px var(--night-1);
+  }
+  .rl-text { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px var(--space-2); min-inline-size: 0; }
+  .rl-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rl-loyal { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); }
+  .rl-loyal.up { color: var(--up); }
+  .rl-loyal.down { color: var(--down); }
+  .rl-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; }
+  .rl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    max-inline-size: 100%;
+    padding: 1px 0.4rem;
+    border-radius: 999px;
+    background: var(--night-3);
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rl-chip.fuehrung.up { color: var(--up); }
+  .rl-chip.fuehrung.down { color: var(--down); }
+  .rl-chip.auftrag { color: var(--ink); }
+
+  /* Slot indicator, bottom left of the turn bar: one box per action, filled when taken. */
+  .budget { display: flex; flex-direction: row; align-items: center; gap: var(--space-4); }
+  .budget > .has-tip { display: inline-flex; }
+  .slot-gruppe { display: grid; justify-items: start; gap: 2px; }
+  .slot-name { font-size: 0.75rem; font-weight: 600; color: var(--ink-subtle); }
+  .slot-boxen { display: flex; gap: var(--space-1); }
+  .slot-boxen > .has-tip { display: inline-flex; }
+  .slot {
+    display: grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: var(--radius-s);
+    border: 1.5px dashed var(--ink-faint);
+    color: var(--ink-faint);
+    transition: background var(--dur-1), border-color var(--dur-1), box-shadow var(--dur-2);
+  }
+  .slot.on { border: 1.5px solid var(--ember); background: oklch(from var(--ember) l c h / 0.16); color: var(--ember); }
+  .slot.on.neben { background: transparent; }
+  .slot.over { border-color: var(--down); background: oklch(from var(--down) l c h / 0.2); color: var(--down); }
+  .slot.is-ziel { border-style: solid; border-color: var(--ember); color: var(--ember); box-shadow: 0 0 0 4px var(--ember-glow); animation: slot-ziel 900ms var(--ease-out) infinite alternate; }
+  .slot.is-voll { box-shadow: 0 0 0 3px oklch(from var(--down) l c h / 0.45); }
+  .slot.is-ersetzt { border-color: var(--down); color: var(--down); background: repeating-linear-gradient(135deg, transparent 0 5px, oklch(from var(--down) l c h / 0.22) 5px 7px); }
+  @keyframes slot-ziel { to { box-shadow: 0 0 0 7px var(--ember-glow); } }
+  .slot-gruppe.is-ueber .slot-name { color: var(--down); }
+  button.slot:hover { background: oklch(from var(--ember) l c h / 0.28); }
+  button.slot:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* Research: a budget of its own, styled apart from the action slots. */
+  .forschung-budget {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-inline-size: 13rem;
+    block-size: 2.5rem;
+    margin-block-start: 1rem;
+    padding-inline: var(--space-3);
+    border-radius: 999px;
+    border: 1.5px dashed var(--origin-forschung);
+    color: var(--ink-dim);
+  }
+  .forschung-budget > .icon { color: var(--origin-forschung); flex: none; }
+  .forschung-budget.on { border-style: solid; background: oklch(from var(--origin-forschung) l c h / 0.14); color: var(--ink); }
+  .forschung-budget.is-ziel { box-shadow: 0 0 0 4px oklch(from var(--origin-forschung) l c h / 0.35); }
+  .forschung-budget:hover { background: oklch(from var(--origin-forschung) l c h / 0.2); }
+  .fb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--step--1); font-weight: 500; }
+
+  /* Orders in the turn bar carry their slot symbol. */
+  .befehl > .befehl-art { inline-size: 16px; block-size: 16px; rotate: none; border: 0; border-radius: 0; background: none; color: var(--ember); flex: none; }
+  .befehl > .befehl-art.frei { color: var(--ink-subtle); }
+  .befehl.is-problem { box-shadow: inset 0 0 0 1.5px var(--down); }
+  .ereignis-schritt > .icon { color: var(--origin-welt); }
+  .ereignis-schritt.is-offen { box-shadow: inset 0 0 0 1.5px var(--origin-welt); }
+  .btn.btn-klein { min-block-size: 2rem; padding-inline: var(--space-2) var(--space-3); gap: var(--space-1); font-size: var(--step--1); }
+
+  /* Blocker summary beside "Zug beenden" and the list it opens. */
+  .blocker { position: relative; flex: none; }
+  .blocker:empty { display: none; }
+  .blocker-knoepfe { display: flex; flex-direction: column; gap: 2px; }
+  .blocker-knopf {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-s);
+    font-size: var(--step--1);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .blocker-knopf.problem { color: var(--down); }
+  .blocker-knopf.wurf { color: var(--ember); }
+  .blocker-knopf:hover { background: var(--hover-wash); }
+  .blocker-liste {
+    position: absolute;
+    inset-block-end: calc(100% + var(--space-3));
+    inset-inline-end: 0;
+    z-index: 30;
+    display: grid;
+    gap: var(--space-2);
+    inline-size: min(24rem, 100vw - 2rem);
+    grid-auto-rows: max-content;
+    max-block-size: 60vh;
+    overflow-y: auto;
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--night-2);
+    box-shadow: var(--shadow-float);
+  }
+  .blocker-liste[hidden] { display: none; }
+  .blocker-eintrag { display: grid; gap: var(--space-1); padding: var(--space-2); border-radius: var(--radius-s); background: var(--night-1); }
+  .blocker-eintrag.be-wurf { box-shadow: inset 3px 0 0 var(--ember); }
+  .blocker-eintrag:not(.be-wurf) { box-shadow: inset 3px 0 0 var(--down); }
+  .be-grund { font-size: var(--step--1); color: var(--ink-dim); }
+  .be-aktionen { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+  /* Province panel: the selected tile as one section of its province. */
+  .provinz-feld { display: grid; gap: var(--space-3); padding-block-start: var(--space-3); border-block-start: 1px solid var(--hairline); }
+  h3.mit-symbol { display: flex; align-items: center; gap: var(--space-2); }
+
+  /* Order options in the side panel: slot symbol, replacement and swap. */
+  .bo-art.forschung { color: var(--origin-forschung); }
+  .bo-ersetzt { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--step--1); color: var(--ink-dim); }
+  .bo-tausch { margin-block-start: var(--space-1); margin-inline-start: var(--space-5); }
+}
+
+@layer overlays {
+  /* The probe body scrolls inside a dialog capped at the viewport; rows keep their content
+     height instead of shrinking, which let the verdict overlap the button on short screens. */
+  .overlay-body.probe { grid-auto-rows: max-content; }
+  .probe-wahl { display: grid; gap: var(--space-2); }
+  .probe-fuehrung { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-1); }
+  .probe-fuehrung legend { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); margin-block-end: var(--space-1); }
+  .probe-option.fuehrung { grid-template-columns: auto 28px 1fr 2.5rem 3.25rem; gap: var(--space-2); }
+  .probe-option.wagnis { grid-template-columns: auto 1fr auto 3.25rem; }
+  .probe-option.is-gewaehlt { background: oklch(from var(--ember) l c h / 0.1); }
+  .probe-option.is-gesperrt { cursor: not-allowed; opacity: 0.55; }
+  .po-name { display: grid; min-inline-size: 0; }
+  .po-grund { font-size: 0.75rem; color: var(--down); }
+  .po-leer { inline-size: 28px; }
+  .po-wirkung, .po-chance { text-align: end; font-weight: 600; }
+  .po-wirkung.up { color: var(--up); }
+  .po-wirkung.down { color: var(--down); }
+  .po-chance { color: var(--ink-dim); }
+}
+
+@media (max-width: 760px) {
+  .ratsleiste { inset-block-start: 3.25rem; inset-inline-start: var(--space-2); max-block-size: calc(100% - 3.25rem - 7rem); }
+  .ratsleiste[data-zu="false"] .rl-karte { inline-size: 12.5rem; }
+  .budget { display: flex; gap: var(--space-2); }
+  .slot { inline-size: 2rem; block-size: 2rem; }
+  .slot-name { display: none; }
+  .forschung-budget { margin: 0; max-inline-size: 8rem; block-size: 2rem; }
+  .brett.has-panel .ratsleiste { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot.is-ziel { animation: none; }
+}

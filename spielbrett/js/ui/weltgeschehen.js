@@ -11,9 +11,12 @@ import { fade } from '/engine/world/index.js';
 import { closeButton } from './kontext.js';
 import { withTip } from './tip.js';
 import { nextSeason } from './leiste.js';
+import { formatDuration } from '../data/game.js';
 
-const STATUS = { wartet: 'wartet', arbeitet: 'arbeitet', fertig: 'fertig', gescheitert: 'gescheitert' };
 const STATE_CLASS = { fertig: 'done', arbeitet: 'working', gescheitert: 'failed' };
+// The turn command is the one the game master runs again after a failed step.
+const RETRY_HINT = 'erneut mit /zug';
+const SEVERITY_TEXT = { info: 'Hinweis', warn: 'Warnung', severe: 'schwer' };
 
 export function renderWeltgeschehen(api) {
   const { model } = api;
@@ -26,6 +29,12 @@ export function renderWeltgeschehen(api) {
   document.getElementById('brett').classList.add('has-panel');
   const zz = model.zz;
   const phaseA = zz.phase === 'A';
+  // Agent events re-render the whole panel, so scroll position and keyboard focus are carried over.
+  const scroll = panel.querySelector('.panel-body')?.scrollTop ?? 0;
+  const focusKey = panel.contains(document.activeElement) ? document.activeElement.dataset.fk : null;
+  const rows = agentRows(zz);
+  const kern = rows.find((a) => a.role === 'kernel');
+  const others = rows.filter((a) => a !== kern);
   panel.replaceChildren(
     el('div', { class: 'panel-kopf' },
       el('div', { class: 'panel-siegel' }, icon('welt', { size: 22 })),
@@ -35,38 +44,107 @@ export function renderWeltgeschehen(api) {
     el('p', { class: `phase ${phaseA ? 'a' : 'b'}`, role: 'status' },
       icon(phaseA ? 'schloss' : 'ja', { size: 16 }), zz.phaseTitel),
     el('div', { class: 'panel-body' },
-      el('ol', { class: 'agenten plain' }, ...agentRows(zz).map((a) => el('li', {
-        class: `agent is-${STATE_CLASS[a.status] ?? 'waiting'}`,
-        style: { '--origin': `var(--origin-${a.id})` },
-        'data-agent': a.step ?? a.id,
-      },
-      el('span', { class: 'agent-siegel' }, icon(a.id, { size: 18 })),
-      el('span', { class: 'agent-name' }, a.name,
-        el('span', { class: 'agent-status', 'aria-label': STATUS[a.status] ?? a.status }, a.status === 'fertig' ? icon('ja', { size: 16 }) : a.status === 'gescheitert' ? icon('nein', { size: 16 }) : null)),
-      a.status === 'arbeitet' || a.status === 'gescheitert' ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
-      a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r))) : null)))));
+      kern ? kernGroup(api, zz, kern) : null,
+      others.length ? el('section', { 'aria-labelledby': 'wg-agenten' },
+        el('h3', { id: 'wg-agenten', text: 'Agenten' }),
+        el('ol', { class: 'agenten plain' }, ...others.map((a) => agentItem(api, a)))) : null));
+  const body = panel.querySelector('.panel-body');
+  body.scrollTop = scroll;
+  if (focusKey) body.parentElement.querySelector(`[data-fk="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: true });
 }
 
 /** Agent rows: a real campaign brings them from status.json and the round report, the prototype from its timeline. */
 function agentRows(zz) {
   if (zz.agenten) return zz.agenten;
-  return ZWISCHENZUG.agenten.map((a) => ({ ...a, ...zz.agents[a.id] }));
+  const roleOf = (id) => ({ kern: 'kernel', rivalen: 'rival', richter: 'judge' }[id] ?? 'agent');
+  const rows = ZWISCHENZUG.agenten.map((a) => ({ ...a, ...zz.agents[a.id], role: roleOf(a.id) }));
+  return [...rows.filter((r) => r.role !== 'judge'), ...rows.filter((r) => r.role === 'judge')];
 }
 
-/** One result: icon, title and a compact badge; the reasoning sits in the tooltip, a rejection's reason stays visible. */
-function resultRow(api, r) {
+const countOf = (a, cls) => a[cls === 'angenommen' ? 'angenommen' : 'abgelehnt'] ?? a.results.filter((r) => r.cls === cls).length;
+
+function counters(a) {
+  const ok = countOf(a, 'angenommen');
+  const no = countOf(a, 'abgelehnt');
+  if (!ok && !no) return null;
+  return el('span', { class: 'zaehler' },
+    ok ? el('span', { class: 'z-ok', 'aria-label': `${ok} angenommen` }, icon('ja', { size: 14 }), String(ok)) : null,
+    no ? el('span', { class: 'z-nein', 'aria-label': `${no} abgelehnt` }, icon('nein', { size: 14 }), String(no)) : null);
+}
+
+/** State as a label: waiting is grey text, running pulses on the seal, done carries the duration, failed names the retry. */
+function statusMark(a) {
+  if (a.status === 'wartet') return el('span', { class: 'agent-status wartet', text: 'wartet' });
+  if (a.status === 'arbeitet') return el('span', { class: 'agent-status laeuft', text: 'arbeitet' });
+  if (a.status === 'fertig') {
+    const dauer = formatDuration(a.dauer);
+    return el('span', { class: 'agent-status fertig', 'aria-label': `fertig${dauer ? `, ${dauer}` : ''}` }, icon('ja', { size: 16 }), dauer ? el('span', { class: 'dauer', text: dauer }) : null);
+  }
+  return el('span', { class: 'agent-status gescheitert' }, icon('nein', { size: 16 }), 'gescheitert');
+}
+
+const sigil = (a) => el('span', { class: 'agent-siegel' }, icon(a.role === 'judge' ? 'schild' : a.id, { size: 18 }));
+
+/** Kernel results in a native disclosure; the open state survives the panel's re-rendering. */
+function kernGroup(api, zz, a) {
+  const details = el('details', {
+    class: `agent wg-kern is-${STATE_CLASS[a.status] ?? 'waiting'}`,
+    open: zz.kernOffen !== false,
+    style: { '--origin': 'var(--origin-kern)' },
+    'data-agent': a.step ?? a.id,
+  },
+  el('summary', { 'data-fk': 'kern' },
+    sigil(a),
+    el('span', { class: 'agent-name', text: 'Kern-Ergebnisse' }),
+    counters(a),
+    statusMark(a),
+    icon('trendAb', { size: 16, cls: 'wg-chevron' })),
+  a.status === 'arbeitet' || a.status === 'gescheitert' ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
+  a.status === 'gescheitert' ? retryHint() : null,
+  a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r, a))) : null);
+  details.addEventListener('toggle', () => { zz.kernOffen = details.open; });
+  return details;
+}
+
+const retryHint = () => el('span', { class: 'agent-hinweis' }, icon('pfeil', { size: 14 }), RETRY_HINT);
+
+function agentItem(api, a) {
+  const failed = a.status === 'gescheitert';
+  return el('li', {
+    class: `agent is-${STATE_CLASS[a.status] ?? 'waiting'} is-${a.role}`,
+    style: { '--origin': `var(--origin-${a.origin ?? a.id})` },
+    'data-agent': a.step ?? a.id,
+  },
+  sigil(a),
+  el('span', { class: 'agent-kopf' }, el('span', { class: 'agent-name', text: a.name }), a.role === 'agent' ? counters(a) : null, statusMark(a)),
+  // A rival's content stays hidden (fog of war), only that it acts is shown.
+  a.role === 'rival' && (a.status === 'arbeitet' || a.status === 'fertig') ? el('span', { class: 'agent-plant', text: 'plant' }) : null,
+  a.role !== 'rival' && (a.status === 'arbeitet' || failed) && a.taetigkeit ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
+  failed ? retryHint() : null,
+  a.role !== 'rival' && a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r, a))) : null);
+}
+
+/** One result: icon, title and a compact badge; a rejection's reason stays visible, a place on the map is one click away. */
+function resultRow(api, r, a) {
+  const severity = r.severity ? ` sev-${r.severity}` : '';
   const badge = r.delta !== undefined
     ? el('span', { class: `delta ${r.delta > 0 ? 'up' : 'down'}`, text: signed(r.delta) })
-    : r.budget ? el('span', { class: 'erg-budget', 'aria-label': `Budget ${r.budget}`, text: r.budget.replace(' von ', '/') }) : null;
+    : r.severityText ? el('span', { class: 'erg-schwere', text: r.severityText })
+      : r.budget ? el('span', { class: 'erg-budget', 'aria-label': `Budget ${r.budget}`, text: r.budget.replace(' von ', '/') }) : null;
   const btn = el('button', {
-    class: `ergebnis ${r.cls}`,
+    class: `ergebnis ${r.cls}${severity}`,
     type: 'button',
-    'aria-label': `${r.titel}${r.delta !== undefined ? ` ${signed(r.delta)}` : ''}${r.cls === 'abgelehnt' ? ', abgelehnt' : r.cls === 'angenommen' ? ', angenommen' : ''}`,
-    onclick: () => { if (r.pos) api.select({ kind: r.selKind ?? 'tile', id: r.selId, q: r.pos.q, r: r.pos.r }, { fly: true, keepPanel: true }); },
+    'data-fk': `${a.step ?? a.id}:${r.proposalId ?? ''}:${r.titel}`,
+    'aria-label': `${r.titel}${r.delta !== undefined ? ` ${signed(r.delta)}` : ''}${r.severityText ? `, ${r.severityText}` : ''}${r.cls === 'abgelehnt' ? ', abgelehnt' : r.cls === 'angenommen' ? ', angenommen' : ''}${r.pos ? ', auf der Karte zeigen' : ''}`,
+    onclick: () => {
+      if (!r.pos) return;
+      const sel = r.selKind ? { kind: r.selKind, id: r.selId, q: r.pos.q, r: r.pos.r } : { kind: 'tile', q: r.pos.q, r: r.pos.r };
+      api.select(sel, { fly: true, keepPanel: true });
+    },
   },
   icon(r.icon, { size: 16 }),
   el('span', { class: 'erg-titel', text: r.titel }),
-  badge,
+  el('span', { class: 'erg-marken' }, badge, r.pos ? icon('ort', { size: 14, cls: 'erg-ort' }) : null),
   r.cls === 'abgelehnt' ? el('span', { class: 'erg-grund', text: r.grund }) : null);
   return el('li', {}, r.info ? withTip(btn, [el('span', { text: r.info })], null, { left: true }) : btn);
 }
@@ -119,10 +197,12 @@ export function runZwischenzug(api) {
       api.announce(e.titel);
     },
     start(e) {
-      Object.assign(model.zz.agents[e.agent], { status: 'arbeitet', taetigkeit: e.taetigkeit });
+      Object.assign(model.zz.agents[e.agent], { status: 'arbeitet', taetigkeit: e.taetigkeit, t0: performance.now() });
     },
     ende(e) {
-      model.zz.agents[e.agent].status = 'fertig';
+      const a = model.zz.agents[e.agent];
+      a.status = 'fertig';
+      if (a.t0 !== undefined) a.dauer = Math.max(1, Math.round((performance.now() - a.t0) / 1000));
     },
     ressource(e) {
       const r = model.ressourcen.find((x) => x.key === e.key) ?? model.module.find((x) => x.key === e.key);
@@ -169,6 +249,7 @@ export function runZwischenzug(api) {
         grund: ok ? null : e.urteil.grund,
         info: `${e.text}${ok && e.urteil.budget ? ` Budget ${e.urteil.budget}.` : ''}`,
       };
+      if (e.befund) Object.assign(row, { severity: e.befund, severityText: SEVERITY_TEXT[e.befund], icon: e.befund === 'info' ? 'ja' : 'warnung', budget: null });
       const k = e.karte;
       if (k) {
         if (k.art === 'ort-neu') {

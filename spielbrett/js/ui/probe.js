@@ -9,6 +9,7 @@
 import { el, signed, prefersReducedMotion } from '../dom.js';
 import { icon } from '../icons.js';
 import { dialogHead } from './dialoge.js';
+import { portrait } from './portrait.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -242,20 +243,47 @@ function renderProbeReal(dlg, api, ctx) {
       isEvent ? null : el('p', { class: 'chance-wert num' }, el('strong', { text: `${p.chance} %` }), ' Erfolg'));
   }
 
+  /**
+   * Venture and lead as choices with their effect: every row is the kernel
+   * preview of the draft with exactly that choice, so modifier and chance are
+   * the kernel's, and a member the kernel refuses is shown with its reason.
+   */
   function options() {
     if (!fresh || state.roll !== null) return null;
-    const rows = [];
+    const venture = state.venture ? { venture: true } : {};
+    const variant = (lead) => game.previewOption(ctx.opt, { ...venture, ...(lead ? { lead } : {}) });
+    const none = variant(null);
+    const baseMod = none.probe?.modTotal ?? 0;
+    const parts = [];
     if (opt.art === 'haupt') {
-      rows.push(el('li', {}, el('label', { class: 'probe-option' },
-        el('input', { type: 'checkbox', checked: state.venture, 'data-wagnis': '', onchange: (e) => { state.venture = e.target.checked; update(); } }),
-        el('span', { text: 'Als Wagnis' }), el('span', { class: 'num down', text: '+1 Ziel' }), el('span'))));
+      const alt = game.previewOption(ctx.opt, { ...(state.venture ? {} : { venture: true }), ...(state.lead ? { lead: state.lead } : {}) });
+      const withV = state.venture ? opt : alt;
+      parts.push(el('label', { class: 'probe-option wagnis' },
+        el('input', { type: 'checkbox', checked: state.venture, 'data-wagnis': '', onchange: (e) => { state.venture = e.target.checked; update('[data-wagnis]'); } }),
+        el('span', { text: 'Als Wagnis' }),
+        el('span', { class: 'num down', text: withV.probe ? `Ziel ${withV.probe.ziel}` : '' }),
+        el('span', { class: 'num po-chance', text: withV.probe ? `${withV.probe.chance} %` : '' })));
     }
-    for (const m of game.view.peoples[game.pid].council) {
-      rows.push(el('li', {}, el('label', { class: 'probe-option' },
-        el('input', { type: 'checkbox', checked: state.lead === m.id, 'data-fuehrung': m.id, onchange: (e) => { state.lead = e.target.checked ? m.id : null; update(); } }),
-        el('span', { text: `${m.name} führt` }), el('span'), el('span'))));
-    }
-    return el('ul', { class: 'probe-optionen plain', 'aria-label': 'Wagnis und Führung' }, ...rows);
+    const row = (id, label, face, v) => {
+      const refused = id && (v.grund || !v.probe);
+      const d = v.probe ? v.probe.modTotal - baseMod : 0;
+      return el('li', {}, el('label', { class: `probe-option fuehrung${refused ? ' is-gesperrt' : ''}${state.lead === id ? ' is-gewaehlt' : ''}` },
+        el('input', {
+          type: 'radio', name: 'fuehrung', value: id ?? '', checked: state.lead === id, disabled: Boolean(refused), 'data-fuehrung': id ?? 'niemand',
+          onchange: () => { state.lead = id; update(`[data-fuehrung="${id ?? 'niemand'}"]`); },
+        }),
+        face,
+        el('span', { class: 'po-name' }, label, refused ? el('span', { class: 'po-grund', text: v.grund ?? t('issue.generic', 'Der Regelkern lässt das so nicht zu') }) : null),
+        el('span', { class: `num po-wirkung ${d > 0 ? 'up' : d < 0 ? 'down' : ''}`, text: id && !refused ? signed(d) : '' }),
+        el('span', { class: 'num po-chance', text: refused || !v.probe ? '' : `${v.probe.chance} %` })));
+    };
+    const council = game.view.peoples[game.pid].council;
+    parts.push(el('fieldset', { class: 'probe-fuehrung' },
+      el('legend', { text: t('ui.fuehrung', 'Führung') }),
+      el('ul', { class: 'probe-optionen plain' },
+        row(null, t('ui.niemand-fuehrt', 'Niemand führt'), el('span', { class: 'po-leer', 'aria-hidden': 'true' }), none),
+        ...council.map((m) => row(m.id, m.name, portrait(m.id, m.name, { size: 28 }), variant(m.id))))));
+    return el('div', { class: 'probe-wahl' }, ...parts);
   }
 
   function renderCalc() {
@@ -276,12 +304,11 @@ function renderProbeReal(dlg, api, ctx) {
     ].filter(Boolean));
   }
 
-  function update() {
+  function update(focusSel) {
     opt = game.previewOption(ctx.opt, extra());
     api.setPreview(opt.preview);
     renderCalc();
-    const focus = calc.querySelector(state.lead ? `[data-fuehrung="${state.lead}"]` : '[data-wagnis]');
-    focus?.focus();
+    calc.querySelector(focusSel)?.focus();
   }
 
   function land(n) {
@@ -306,7 +333,9 @@ function renderProbeReal(dlg, api, ctx) {
     );
     rollBtn.hidden = true;
     const more = remaining().length;
-    takeBtn.replaceChildren(fresh ? 'In die Befehle' : ctx.sequence ? (more ? 'Weiter' : t('ui.zug-beenden', 'Zug beenden')) : 'Übernehmen');
+    // sequence true walks the owed rolls of "Zug beenden" and seals; 'wuerfe' only takes the rolls.
+    const last = ctx.sequence === true ? t('ui.zug-beenden', 'Zug beenden') : 'Übernehmen';
+    takeBtn.replaceChildren(fresh ? 'In die Befehle' : ctx.sequence ? (more ? 'Weiter' : last) : 'Übernehmen');
     takeBtn.hidden = false;
     takeBtn.focus();
   }
@@ -346,11 +375,11 @@ function renderProbeReal(dlg, api, ctx) {
       dlg.close();
       return;
     }
-    const next = game.canSeal().rolls?.[0];
-    if (next) renderProbeReal(dlg, api, { real: true, probeId: next.id, sequence: true });
+    const next = game.blockers().wuerfe[0];
+    if (next) renderProbeReal(dlg, api, { real: true, probeId: next.probeId, sequence: ctx.sequence });
     else {
       dlg.close();
-      api.endTurn();
+      if (ctx.sequence === true) api.endTurn();
     }
   }
 
