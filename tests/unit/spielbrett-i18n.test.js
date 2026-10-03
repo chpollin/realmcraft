@@ -192,7 +192,7 @@ describe('label completeness', () => {
   });
 
   test('every kernel issue code has a board label in both languages', () => {
-    for (const code of [...Object.keys(CODES), 'generic', 'server', 'handel.no_route']) {
+    for (const code of [...Object.keys(CODES), 'generic', 'server', 'handel.no_route', 'handel.at_war', 'handel.not_trading']) {
       const key = `issue.${code.replaceAll('_', '-')}`;
       assert.ok(Object.hasOwn(board.en.labels, key) && Object.hasOwn(board.de.labels, key), key);
     }
