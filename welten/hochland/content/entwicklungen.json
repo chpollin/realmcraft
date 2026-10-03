@@ -771,24 +771,13 @@
       ],
       "price": [
         {
-          "op": "order.restrict",
-          "mode": "duty",
-          "orders": [
-            "explore"
-          ],
-          "tags": [],
-          "limit": 1,
-          "per": "year",
-          "breach": [
-            {
-              "op": "standing.delta",
-              "amount": -1
-            },
-            {
-              "op": "relation.delta",
-              "people": "neighbours",
-              "amount": -1
-            }
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
           ]
         }
       ],
