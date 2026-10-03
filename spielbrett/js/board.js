@@ -22,7 +22,7 @@ import { renderProbe } from './ui/probe.js';
 import { closePinnedTip } from './ui/tip.js';
 import { issueText } from './data/adapter.js';
 import { t, onLanguage, applyStatic } from './i18n/index.js';
-import { renderSprache } from './ui/sprache.js';
+import { getAudio } from './audio/index.js';
 
 const DIALOGS = {
   entwicklungen: renderPfade,
@@ -283,6 +283,7 @@ export function startBoard(model, game) {
       // Problems first: rolling for a draft that cannot be sealed would only end in the same refusal.
       const { probleme } = game.blockers();
       if (probleme.length) {
+        getAudio()?.play('warning');
         renderBlocker(api, { open: true });
         api.announce(t.fmt('board.announce.cannot-end', { reason: t.plural('board.announce.problems', probleme.length) }));
         document.querySelector('#blocker-liste button')?.focus();
@@ -294,6 +295,7 @@ export function startBoard(model, game) {
         return;
       }
       if (!can.ok) {
+        getAudio()?.play('warning');
         api.announce(t.fmt('board.announce.cannot-end', { reason: can.reason }));
         document.getElementById('zug-beenden').dataset.grund = can.reason;
         return;
@@ -301,6 +303,7 @@ export function startBoard(model, game) {
       for (const d of document.querySelectorAll('dialog[open]')) d.close();
       const res = await game.seal();
       if (!res.ok) {
+        getAudio()?.play('warning');
         const why = [...new Set((res.issues ?? []).filter((i) => i.severity === 'error').map((i) => issueText(i, t)))].join(', ');
         api.announce(t.fmt('board.announce.not-sealed', { reason: why }));
         return;
@@ -487,6 +490,13 @@ export function startBoard(model, game) {
       if (model.panel) {
         api.setPanel(null);
         canvas.focus();
+        return;
+      }
+      // Nothing left to close: Escape opens the game menu (ui/menu.js sets the hook).
+      // Without preventDefault the same keystroke would close the menu dialog again.
+      if (api.openMenu) {
+        e.preventDefault();
+        api.openMenu();
       }
     }
   });
@@ -505,13 +515,12 @@ export function startBoard(model, game) {
     document.documentElement.style.setProperty('--leiste-h', `${Math.round(e.target.getBoundingClientRect().height)}px`);
   }).observe(document.querySelector('.leiste'));
 
-  /* Language: everything visible is rendered again in place, no reload. Modal
-     dialogs keep the rest of the page inert, so none is open while it changes. */
+  /* Language: everything visible is rendered again in place, no reload. The
+     switch sits in the settings dialog, which renders itself again. */
 
   onLanguage(() => {
     game?.relabel();
     applyStatic();
-    renderSprache();
     renderLayers();
     renderTopbar(api);
     renderOrders(api);
@@ -529,7 +538,6 @@ export function startBoard(model, game) {
   /* First render */
 
   applyStatic();
-  renderSprache();
   renderTopbar(api);
   renderOrders(api);
   renderMessages(api);

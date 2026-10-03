@@ -38,5 +38,8 @@ function append(node, children) {
 export const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
 
 export function prefersReducedMotion() {
+  // The viewer's choice in the settings (html data-motion) outranks the system preference.
+  const chosen = document.documentElement.dataset.motion;
+  if (chosen) return chosen === 'reduced';
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

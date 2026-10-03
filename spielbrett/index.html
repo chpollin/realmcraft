@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/bestimmung.css">
   <link rel="stylesheet" href="css/ereignisse.css">
   <link rel="stylesheet" href="css/pfade.css">
+  <link rel="stylesheet" href="css/shell.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -35,7 +36,10 @@
       <button class="kurz" type="button" data-dialog="rat" aria-keyshortcuts="R" aria-haspopup="dialog"></button>
       <button class="kurz" type="button" data-dialog="chronik" aria-keyshortcuts="C" aria-haspopup="dialog"></button>
     </nav>
-    <div class="sprache" id="sprache" role="radiogroup" data-t-aria-label="board.lang.group"></div>
+    <button class="icon-btn menu-knopf" id="menu-knopf" type="button" aria-haspopup="dialog" aria-keyshortcuts="Escape"
+      data-t-aria-label="shell.menu.open" data-t-title="shell.menu.open">
+      <svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4.5 7h15 M4.5 12h15 M4.5 17h15"/></svg>
+    </button>
   </header>
 
   <main class="brett" id="brett">
@@ -80,6 +84,12 @@
   <dialog class="overlay" id="dlg-bestimmung" aria-labelledby="dlg-bestimmung-titel"></dialog>
   <dialog class="overlay overlay-klein" id="dlg-probe" aria-labelledby="dlg-probe-titel"></dialog>
   <dialog class="overlay overlay-ereignis" id="dlg-ereignis" aria-labelledby="dlg-ereignis-titel"></dialog>
+  <dialog class="overlay overlay-klein" id="dlg-menu" aria-labelledby="dlg-menu-titel"></dialog>
+  <dialog class="overlay overlay-klein" id="dlg-einstellungen" aria-labelledby="dlg-einstellungen-titel"></dialog>
+  <dialog class="overlay overlay-lesen" id="dlg-regeln" aria-labelledby="dlg-regeln-titel"></dialog>
+  <dialog class="overlay overlay-lesen" id="dlg-ende" aria-labelledby="dlg-ende-titel"></dialog>
+
+  <section class="start" id="start" hidden aria-label="RealmCraft"></section>
 
   <div class="sr-only" id="ansage" aria-live="polite"></div>
 </body>
