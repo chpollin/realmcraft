@@ -146,7 +146,7 @@ Polish:
 4. A world feature on an extremely far tile (for example `12345678901234567890,1`) hangs the CLI for about half a minute and then crashes ingest with `RangeError` in `candidateSeeds` (`engine/world/regions.js`). `PATTERNS.tile` admits any number of digits and neither the validator nor ingest checks a feature tile against the world. Bound the tile pattern or check the range.
 5. A refused destiny item still stores its content in the returned library: `storeContent` runs before `offerDestiny` in `engine/harness/ingest.js`, so a destiny refused for `practice-touches-destiny` (or own, held by a rival, offered already, offers full) leaves an unreferenced card in `library.json`, and a later proposal with the same id fails as a duplicate. Run the offer preconditions before storing, or restore the library on refusal.
 6. Replay of journals written by an older kernel is not covered by a test. Any behaviour change (including the labour trim of lane KB) changes replay hashes. Proposed: raise `JOURNAL_FORMAT` in `engine/cli.mjs` and write a base anchor at the next transition when the last entry has an older kernel format.
-7. An ingest fuzz test written by the helper of lane KB covers both ingest defects and stays red until they are fixed. It was not committed; it is recoverable only by writing it anew from this description.
+7. An ingest fuzz test written by the helper of lane KB covers both ingest defects and stays red until they are fixed. It lies on the local branch `wip/fuzz-ingest` (`tests/unit/sim/fuzz-ingest.test.js`), not on `main`; bring it over with the fixes and add it to the file list of `tools/sim/fuzz.mjs`.
 
 ### Housekeeping
 
