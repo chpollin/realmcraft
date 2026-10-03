@@ -39,6 +39,6 @@ Der Spieler plant im Browser und klickt „Zug beenden“, der Server versiegelt
 - Spielbrett: keine Ansichten für die Module Handel, Magie, Militär und Lebensweise, Angriff und Handel ohne Bedienung.
 - Dokumente: Agentenvertrag nennt andere Hook- und Agent-Dateinamen und den Ansichtspfad `view/<pid>/state.json` statt `view/<pid>.json`.
 - Balance: Ersatz-KI gerät oft in Knappheit, dunkler Pfad erreicht Macht früher.
-- Unabhängiges Review des Commits `b8ad4c4` läuft, Befunde sind noch einzuarbeiten.
+- Das unabhängige Review des Commits `b8ad4c4` fand eine kritische Lücke (Agents mit Shell-Zugriff umgehen den Wächter) und elf schwere, darunter austauschbare versiegelte Entwürfe, Neuwürfeln über die Vorschau, Ressourcen aus Raubzug vor Kostenzahlung und zu billig bepreiste dauerhafte und wiederkehrende Wirkungen. Drei Fix-Lanes arbeiten in eigenen Worktrees: Harness-Sicherheit, Kern und CLI, Prüfer und Budget. Ihre Zweige werden nach Prüfung zusammengeführt, bestehende Partien bleiben ladbar.
 - Porträts: der Gemini-Key in `.env` wird abgelehnt, ein gültiger Key fehlt.
 - Entscheidungen des Nutzers: Rückbau der alten Spiele und des Dashboards, `STAND-UND-VISION.md`, Aufteilung von `CLAUDE.md` nach Rollen, Umgang mit dem ungetrackten `schwarzkaemme/`, Grundsatzfragen aus [Spieldesign](Spieldesign.md).
