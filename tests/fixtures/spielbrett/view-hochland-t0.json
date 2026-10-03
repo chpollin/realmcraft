@@ -7,7 +7,7 @@
     "world": {
       "id": "hochland",
       "version": "0.1.0",
-      "hash": "be416e7a6b575c93"
+      "hash": "b75d1308c096eb0c"
     },
     "player": "bergnomaden"
   },
@@ -132,19 +132,19 @@
         "research": [],
         "candidates": [
           {
-            "ref": "saumpfad@1",
+            "ref": "ahnenfeuer@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
           },
           {
-            "ref": "sesshaft@1",
+            "ref": "erdkeller@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
           },
           {
-            "ref": "speertraeger@1",
+            "ref": "fluchtburg@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
@@ -176,7 +176,8 @@
           "age": 47,
           "lifeStage": "ruestig",
           "leader": true,
-          "appearance": "Hochgewachsene Frau mit grauen Zöpfen, wettergegerbtes Gesicht, ein Stab mit eingekerbten Wintern"
+          "appearance": "Hochgewachsene Frau mit grauen Zöpfen, wettergegerbtes Gesicht, ein Stab mit eingekerbten Wintern",
+          "at": null
         },
         {
           "id": "ulrun",
@@ -198,7 +199,8 @@
           "age": 63,
           "lifeStage": "lebensabend",
           "leader": false,
-          "appearance": "Alte Hirtin mit Schaffellmantel und Hirtenstab, ruhige helle Augen, Hände voller Schwielen"
+          "appearance": "Alte Hirtin mit Schaffellmantel und Hirtenstab, ruhige helle Augen, Hände voller Schwielen",
+          "at": null
         },
         {
           "id": "torhild",
@@ -221,7 +223,8 @@
           "age": 39,
           "lifeStage": "ruestig",
           "leader": false,
-          "appearance": "Frau mit rußgeschwärzten Händen und einem Halsreif aus Bronze, Glutschale im Arm"
+          "appearance": "Frau mit rußgeschwärzten Händen und einem Halsreif aus Bronze, Glutschale im Arm",
+          "at": null
         },
         {
           "id": "garmund",
@@ -243,7 +246,8 @@
           "age": 58,
           "lifeStage": "lebensabend",
           "leader": false,
-          "appearance": "Hagerer Mann mit Steigeisen am Gürtel und einem Seil über der Schulter, Narbe über der Braue"
+          "appearance": "Hagerer Mann mit Steigeisen am Gürtel und einem Seil über der Schulter, Narbe über der Braue",
+          "at": null
         },
         {
           "id": "brandur",
@@ -265,7 +269,8 @@
           "age": 34,
           "lifeStage": "ruestig",
           "leader": false,
-          "appearance": "Breitschultriger Schmied mit Lederschurz und versengtem Bart, ein Hammer im Gürtel"
+          "appearance": "Breitschultriger Schmied mit Lederschurz und versengtem Bart, ein Hammer im Gürtel",
+          "at": null
         }
       ],
       "practice": {
@@ -452,30 +457,30 @@
         "before": [],
         "after": [
           {
-            "ref": "saumpfad@1",
+            "ref": "ahnenfeuer@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
           },
           {
-            "ref": "sesshaft@1",
+            "ref": "erdkeller@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
           },
           {
-            "ref": "speertraeger@1",
+            "ref": "fluchtburg@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
           }
         ]
       },
-      "reason": "pool offers saumpfad@1, sesshaft@1, speertraeger@1",
+      "reason": "pool offers ahnenfeuer@1, erdkeller@1, fluchtburg@1",
       "refs": [
-        "saumpfad@1",
-        "sesshaft@1",
-        "speertraeger@1"
+        "ahnenfeuer@1",
+        "erdkeller@1",
+        "fluchtburg@1"
       ],
       "visibleTo": [
         "bergnomaden"
@@ -504,6 +509,10 @@
       "step": "open"
     }
   ],
+  "settings": {
+    "difficulty": "normal",
+    "language": "de"
+  },
   "derived": {
     "bergnomaden": {
       "stats": {
@@ -547,7 +556,7 @@
             ],
             "research": [],
             "candidates": [
-              "sesshaft@1"
+              "erdkeller@1"
             ]
           },
           {
@@ -565,7 +574,9 @@
               "sippenrat@1"
             ],
             "research": [],
-            "candidates": []
+            "candidates": [
+              "ahnenfeuer@1"
+            ]
           },
           {
             "id": "militaer",
@@ -581,7 +592,7 @@
             "known": [],
             "research": [],
             "candidates": [
-              "speertraeger@1"
+              "fluchtburg@1"
             ]
           },
           {
@@ -597,9 +608,7 @@
             },
             "known": [],
             "research": [],
-            "candidates": [
-              "saumpfad@1"
-            ]
+            "candidates": []
           },
           {
             "id": "erkenntnis",
@@ -665,7 +674,114 @@
         "research.assign",
         "research.direct",
         "talk"
-      ]
+      ],
+      "council": [
+        {
+          "id": "asgra",
+          "location": {
+            "tile": "0,1",
+            "settlement": "s-bergnomaden"
+          },
+          "strengths": {
+            "lead": 0,
+            "favor": [
+              "weg",
+              "winter"
+            ],
+            "oppose": [
+              "unfreiheit"
+            ]
+          }
+        },
+        {
+          "id": "ulrun",
+          "location": {
+            "tile": "0,1",
+            "settlement": "s-bergnomaden"
+          },
+          "strengths": {
+            "lead": -1,
+            "favor": [
+              "herde",
+              "weide"
+            ],
+            "oppose": [
+              "bleiben",
+              "opfer"
+            ]
+          }
+        },
+        {
+          "id": "torhild",
+          "location": {
+            "tile": "0,1",
+            "settlement": "s-bergnomaden"
+          },
+          "strengths": {
+            "lead": 0,
+            "favor": [
+              "feuer",
+              "magie",
+              "schau"
+            ],
+            "oppose": [
+              "pulver",
+              "handel"
+            ]
+          }
+        },
+        {
+          "id": "garmund",
+          "location": {
+            "tile": "0,1",
+            "settlement": "s-bergnomaden"
+          },
+          "strengths": {
+            "lead": -1,
+            "favor": [
+              "weg",
+              "erkundung",
+              "handel"
+            ],
+            "oppose": [
+              "bleiben"
+            ]
+          }
+        },
+        {
+          "id": "brandur",
+          "location": {
+            "tile": "0,1",
+            "settlement": "s-bergnomaden"
+          },
+          "strengths": {
+            "lead": 0,
+            "favor": [
+              "erz",
+              "pulver",
+              "befestigung"
+            ],
+            "oppose": [
+              "magie"
+            ]
+          }
+        }
+      ],
+      "trade": {
+        "routes": [],
+        "orders": []
+      },
+      "rivals": [
+        {
+          "people": "schaedelklan",
+          "destiny": null
+        },
+        {
+          "people": "talbund",
+          "destiny": null
+        }
+      ],
+      "outcome": null
     }
   }
 }

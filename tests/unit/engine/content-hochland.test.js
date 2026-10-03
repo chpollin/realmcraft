@@ -12,6 +12,7 @@ import { SCHEMAS, AGENTS, PHASES, KINDS, LIFE_STAGES, BANDS } from '../../../eng
 import { validate } from '../../../engine/content/schema.js';
 import { scoreEntwicklung, scoreEreignis, scoreBestimmung } from '../../../engine/content/budget.js';
 import { validateWorldPackage } from '../../../engine/content/validate.js';
+import { pfadOf } from '../../../engine/core/pfade.js';
 
 const DIR = fileURLToPath(new URL('../../../welten/hochland/', import.meta.url));
 const load = (file) => JSON.parse(readFileSync(join(DIR, file), 'utf8'));
@@ -204,7 +205,27 @@ const BUDGET = {
   bergschuetzen: [4, -1, 3],
   pulverwall: [8, -5, 3],
   bannfeuer: [8, -5, 3],
-  'schwarzer-zirkel': [9, -6, 3],
+  'schwarzer-zirkel': [9, -5, 4],
+  erdkeller: [3, -1, 2],
+  salzlecke: [4, -2, 2],
+  raeucherkammer: [3, -2, 1],
+  heuwirtschaft: [4, -1, 3],
+  almkaeserei: [4, -2, 2],
+  gastrecht: [3, -1, 2],
+  ahnenfeuer: [3, -1, 2],
+  sippenbund: [3, -1, 2],
+  landfrieden: [6, -2, 4],
+  wachtfeuer: [4, -1, 3],
+  fluchtburg: [3, 0, 3],
+  koehlerei: [2, 0, 2],
+  steinbruch: [3, 0, 3],
+  rennofen: [6, -3, 3],
+  kerbholz: [3, 0, 3],
+  spaeher: [3, 0, 3],
+  sternkunde: [3, 0, 3],
+  sagenhalle: [6, -2, 4],
+  kraeuterkunde: [3, 0, 3],
+  wetterzauber: [3, -1, 2],
 };
 
 test('every development passes scoreEntwicklung with the pinned budget', () => {
@@ -228,6 +249,20 @@ test('Pulverwall and Bannfeuer fill the same role at the same cost with differen
   assert.equal(sp.net, sb.net);
   assert.notDeepEqual(pulver.price, bann.price);
   assert.notEqual(pulver.kind, bann.kind);
+});
+
+// A new game finds something on every path before agents add more, and a
+// path that holds a higher tier holds enough of the tier below to unlock it.
+test('every path has seed achievements on its low tiers and enough to unlock its higher ones', () => {
+  const { unlock, paths } = regeln.pfade;
+  const env = { regeln, entwicklung: (ref) => byRef.get(ref) ?? byId.get(ref) };
+  for (const { id } of paths) {
+    const tiers = ents.filter((e) => e.tier >= 1 && pfadOf(env, e) === id).map((e) => e.tier);
+    const atLeast = (k) => tiers.filter((t) => t >= k).length;
+    assert.ok(tiers.filter((t) => t === 1).length >= unlock[1], `${id}: tier 1`);
+    assert.ok(tiers.includes(2), `${id}: tier 2`);
+    for (let k = 2; k <= Math.max(...tiers); k++) assert.ok(atLeast(k - 1) >= unlock[k - 1], `${id}: tier ${k} is reachable`);
+  }
 });
 
 test('the two lifestyles replace each other in one direction only', () => {

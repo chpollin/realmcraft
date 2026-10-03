@@ -8,7 +8,8 @@
 //
 // Assumptions beyond lib/harness.js (A1 to A9):
 // M1 The package hash covers welt.json, regeln.json and the content files, so
-//    regeln.json without its pfade block is the package from before M1.
+//    regeln.json without its pfade block and content without pfad fields is
+//    the package from before M1.
 // M2 Before `repin`, a transition on the changed package is refused with
 //    cli.world_drift; `repin` answers { changed: true, from, to }.
 // M3 A candidate offered before the path gate existed stays listed and can be
@@ -37,6 +38,11 @@ describe('migration of a campaign from before paths', { timeout: T_LONG, skip: R
     const regeln = JSON.parse(readFileSync(file, 'utf8'));
     delete regeln.pfade;
     writeFileSync(file, JSON.stringify(regeln, null, 2));
+    // Achievements from before M1 named no path either.
+    const contentFile = join(root, 'welten', WORLD, 'content', 'entwicklungen.json');
+    const content = JSON.parse(readFileSync(contentFile, 'utf8'));
+    for (const e of content.items) delete e.pfad;
+    writeFileSync(contentFile, JSON.stringify(content, null, 2));
     c = createCampaign({
       root,
       id: 'acc-migr',

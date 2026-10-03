@@ -61,10 +61,10 @@ The judges of the first live turns reported findings that count as M1 input besi
 
 | Kind | Finding | State |
 |---|---|---|
-| Balance | herds do not grow in mountain regions | open, M1 |
-| Balance | defence options are missing | open, M1 |
-| Balance | agent proposals lean towards exploration | open, M1 |
-| Balance | the dark path is too cheap | open, M1. Its prices are partly avoidable or one-off but counted like standing burdens ([world-packages.md](world-packages.md)) |
+| Balance | herds do not grow in mountain regions | answered in M1, pasture counts the land around an own settlement ([world-packages.md](world-packages.md)) |
+| Balance | defence options are missing | answered in M1, defensive achievements on the Militär path |
+| Balance | agent proposals lean towards exploration | open for the research agent's instructions (lane H), the fallback no longer explores more than it does anything else |
+| Balance | the dark path is too cheap | answered in M1, the minimum price counts only standing prices and a dependency weighs the lighter of payment and penalty ([data-contracts.md](data-contracts.md)) |
 | Narrative | the chronicle claimed a migration that did not happen | open, M1 |
 | Narrative | names drift between turns (Rauchschau and Psilschau) | open, M1 |
 | Narrative | stances get overwritten instead of continued | open, M1 |

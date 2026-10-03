@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DIRECTIONS, distance, key, parseKey, spiral } from '../../../engine/world/index.js';
 import { regionAt, tileOf } from '../../../engine/core/map.js';
 import { fallbackDraft } from '../../../engine/ai/fallback.js';
+import { RULES } from '../../../engine/core/rules.js';
 import { assertDraft, checkDraft } from '../../../engine/core/orders.js';
 import { emptyDraft, seal } from '../../../engine/core/turn.js';
 import { PLAYER, hochlandEnv, nextSeason, planning, withRolls } from '../../fixtures/engine/k1/views.js';
@@ -62,7 +63,7 @@ describe('fallbackDraft', () => {
     assert.equal(researchOrder(s, 'esk'), undefined, 'a running research is not redirected');
   });
 
-  it('treats a missing profile as all weights zero and ties by reference', () => {
+  it('treats a missing profile as all weights zero beside the nature of the people, ties in offer order', () => {
     const { env, state } = planning();
     const s = structuredClone(state);
     s.peoples.esk.agentProfile = 'unknown-profile';
@@ -71,9 +72,21 @@ describe('fallbackDraft', () => {
       { ref: 'salzpfad@1', offeredAt: 0, expiresAt: 4, origin: 'pool' },
       { ref: 'ahnensprache@1', offeredAt: 0, expiresAt: 4, origin: 'pool' },
     ];
-    const d = fallbackDraft(s, env, 'esk');
-    assert.equal(d.orders.find((o) => o.type === 'research.assign').params.development, 'ahnensprache@1');
-    assert.deepEqual(errorsOf(s, env, d, 'esk'), []);
+    const pick = (st) => fallbackDraft(st, env, 'esk').orders.find((o) => o.type === 'research.assign')?.params.development;
+    assert.equal(pick(s), 'salzpfad@1', 'equal weight, the first offer wins');
+    assert.deepEqual(errorsOf(s, env, fallbackDraft(s, env, 'esk'), 'esk'), []);
+    // The nature of the people leans: an Ausrichtung on a tag of the second offer puts it first.
+    s.peoples.esk.identity.ausrichtung = 'geist';
+    assert.equal(pick(s), 'ahnensprache@1');
+  });
+
+  it('declines a candidate whose tags the people rejects, even without another', () => {
+    const { env, state } = planning();
+    const s = structuredClone(state);
+    s.peoples.esk.developments.research = [];
+    // The handel profile of esk and its weakness krieg weigh the spear wall below zero.
+    s.peoples.esk.developments.candidates = [{ ref: 'speerwall@1', offeredAt: 0, expiresAt: 4, origin: 'pool' }];
+    assert.equal(fallbackDraft(s, env, 'esk').orders.some((o) => o.type === 'research.assign'), false);
   });
 
   it('explores unknown ground, three away from home with the direction following turn mod 6', () => {
@@ -160,13 +173,78 @@ describe('fallbackDraft', () => {
     assert.deepEqual(errorsOf(s, env, fallbackDraft(s, env, 'esk'), 'esk'), []);
   });
 
-  it('recruits only for a profile that weighs war', () => {
+  it('recruits in peace only for a profile that weighs war and only above the winter reserve', () => {
     const { env, state } = planning();
     const recruits = (st, pid) => fallbackDraft(st, env, pid).orders.some((o) => o.type === 'recruit');
-    assert.equal(recruits(state, 'glutreiter'), true);
-    const s = structuredClone(state);
+    const fed = structuredClone(state);
+    fed.peoples.glutreiter.resources.nahrung = 12;
+    assert.equal(recruits(fed, 'glutreiter'), true);
+    assert.equal(recruits(state, 'glutreiter'), false, 'five food is less than a winter of three clans after the recruit');
+    const s = structuredClone(fed);
     s.peoples.glutreiter.agentProfile = 'handel';
     assert.equal(recruits(s, 'glutreiter'), false);
+  });
+
+  it('recruits under threat whatever the profile, and moves defences to the front of the build list', () => {
+    const { env, state } = planning();
+    const { s } = standoff(state);
+    s.peoples.glutreiter.agentProfile = 'handel';
+    const d = fallbackDraft(s, env, 'glutreiter');
+    assert.ok(d.orders.some((o) => o.type === 'recruit'), 'a hostile unit next to home');
+    assert.deepEqual(errorsOf(s, env, d, 'glutreiter'), []);
+  });
+
+  // Free ground within founding reach of a people's settlements, computed
+  // here from the rules: buildable, in a region without settlement and
+  // without a foreign owner.
+  const freeWithin = (s, env, pid, range) => {
+    const world = env.world(s.map.seed);
+    const homes = s.map.settlements.filter((x) => x.people === pid).map((x) => parseKey(x.tile));
+    const settled = new Set(s.map.settlements.map((x) => x.regionId));
+    return Object.keys(s.map.known[pid]).filter((k) => {
+      const d = Math.min(...homes.map((h) => distance(h, parseKey(k))));
+      const region = regionAt(world, k);
+      return d >= 1 && d <= range && env.terrain(tileOf(world, k).terrain)?.buildable && !settled.has(region)
+        && (!s.map.control[region] || s.map.control[region] === pid);
+    });
+  };
+  const knowAround = (s, pid, radius) => {
+    const home = parseKey(s.map.settlements.find((x) => x.people === pid).tile);
+    for (const h of spiral(home, radius)) s.map.known[pid][key(h.q, h.r)] ??= 'seen';
+  };
+
+  it('founds a settlement on free ground within reach once it can spare clans', () => {
+    const { env, state } = planning();
+    const s = structuredClone(state);
+    knowAround(s, 'glutreiter', 6);
+    const free = freeWithin(s, env, 'glutreiter', 3);
+    assert.ok(free.length > 0, 'the fixture has free ground near glutreiter');
+    s.peoples.glutreiter.resources.nahrung = 12;
+    s.peoples.glutreiter.resources.material = 6;
+    const founds = (st) => fallbackDraft(st, env, 'glutreiter').orders.find((o) => o.type === 'found');
+    s.peoples.glutreiter.population.core = 3;
+    assert.equal(founds(s), undefined, 'three clans are too few to send one away');
+    s.peoples.glutreiter.population.core = 5;
+    const f = founds(s);
+    assert.ok(f && free.includes(f.params.tile), JSON.stringify(f));
+    assert.deepEqual(errorsOf(s, env, fallbackDraft(s, env, 'glutreiter'), 'glutreiter'), []);
+  });
+
+  it('moves a camp on into free ground when nothing lies within founding reach', () => {
+    const { env, state } = planning(1);
+    const s = structuredClone(state);
+    knowAround(s, PLAYER, 7);
+    // Settle every region within reach so that only ground further out stays free.
+    const world = env.world(s.map.seed);
+    const near = freeWithin(s, env, PLAYER, 3);
+    for (const region of new Set(near.map((k) => regionAt(world, k)))) s.map.control[region] = 'esk';
+    assert.deepEqual(freeWithin(s, env, PLAYER, 3), []);
+    const further = freeWithin(s, env, PLAYER, RULES.migrateRange);
+    assert.ok(further.length > 0, 'the fixture has free ground within a migration');
+    s.peoples[PLAYER].population.core = 5;
+    s.peoples[PLAYER].resources.nahrung = 12;
+    const m = fallbackDraft(s, env, PLAYER).orders.find((o) => o.type === 'migrate');
+    assert.ok(m && further.includes(m.params.tile), JSON.stringify(m));
   });
 
   it('migrates a camp that stands off pasture to the nearest pasture tile, and leaves a camp on pasture', () => {

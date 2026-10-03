@@ -14,13 +14,7 @@
   },
   "replaces": [],
   "spec": null,
-  "onAcquire": [
-    {
-      "op": "relation.delta",
-      "people": "neighbours",
-      "amount": -1
-    }
-  ],
+  "onAcquire": [],
   "origin": {
     "source": "world",
     "practiceTags": [],
@@ -106,6 +100,15 @@
           "value": 1
         }
       }
+    },
+    {
+      "op": "resource.flow",
+      "res": "nahrung",
+      "amount": -1,
+      "when": [
+        "herbst",
+        "winter"
+      ]
     }
   ]
 }

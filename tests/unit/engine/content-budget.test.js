@@ -33,7 +33,7 @@ test('Pulverwall and Bannfeuer reach the same net with different price kinds', (
   assert.ok(pulver.ok && bann.ok);
   const kinds = (r) => r.lines.filter((l) => l.side === 'price').map((l) => l.op).sort();
   assert.deepEqual(kinds(pulver), ['relation.delta', 'resource.flow']);
-  assert.deepEqual(kinds(bann), ['meter', 'order.restrict', 'relation.delta']);
+  assert.deepEqual(kinds(bann), ['meter', 'order.restrict', 'resource.flow']);
 });
 
 test('flow weight follows season count, resource value and scale', () => {
@@ -79,10 +79,13 @@ test('recurring triggers count with their hook frequency', () => {
   assert.equal(primitiveWeight({ op: 'trigger', on: 'winter', effects: [{ op: 'resource.delta', res: 'nahrung', amount: -2 }] }, noWinter), 0, 'no winter, no price');
 });
 
-test('a dependency counts only the harmful part of its penalty', () => {
-  const dep = (penalty) => primitiveWeight({ op: 'dependency', res: 'rauchkraut', amount: 1, penalty }, ctx);
-  assert.equal(dep([{ op: 'population.delta', amount: 3 }]), -9, 'a helpful penalty does not cancel the upkeep');
-  assert.equal(dep([{ op: 'population.delta', amount: -1 }]), -12);
+test('a dependency weighs the lighter of its payment and its penalty over the year', () => {
+  const dep = (penalty, amount = 1) => primitiveWeight({ op: 'dependency', res: 'rauchkraut', amount, penalty }, ctx);
+  assert.equal(dep([{ op: 'population.delta', amount: 3 }]), 0, 'a helpful penalty harms nothing, so the people need not pay');
+  assert.equal(dep([{ op: 'population.delta', amount: -1 }]), -9, 'payment -9 and penalty -3 x 3 are equal');
+  assert.equal(dep([{ op: 'loyalty.delta', target: 'all', amount: -1 }]), -3, 'the penalty is lighter than the payment');
+  assert.equal(dep([{ op: 'population.delta', amount: -2 }]), -9, 'the payment is lighter than the penalty');
+  assert.equal(dep([{ op: 'population.delta', amount: -2 }], 3), -18);
 });
 
 test('restrictions the kernel never charges weigh nothing', () => {
@@ -135,8 +138,20 @@ test('a meter scores its thresholds by sign and reach', () => {
   assert.equal(m([{ at: 0, effects: pop(-1) }], { decay: 1 }), -2, 'a decaying use meter does');
 });
 
+test('the minimum price of a tier counts only prices that bind while the development is held', () => {
+  const useMeter = { op: 'meter', id: 'm', min: 0, max: 5, rise: { on: 'use:x', amount: 1 }, decay: 0, thresholds: [{ at: 5, effects: [{ op: 'population.delta', amount: -1 }] }] };
+  const base = { ...load('entwicklung/filzjurten.json'), tier: 2, effects: [{ op: 'stat.mod', stat: 'wohlstand', amount: 1 }, { op: 'probe.mod', tags: ['zug'], amount: 2 }], replaces: [] };
+  const score = (price, onAcquire = []) => scoreEntwicklung({ ...base, price, onAcquire, cost: { research: 6, resources: {} } }, ctx);
+  const avoidable = score([useMeter], [{ op: 'standing.delta', amount: -1 }]);
+  assert.equal(avoidable.price, -3);
+  assert.deepEqual(avoidable.issues.map((i) => i.code), ['budget_price'], 'a use meter and a one-off burden leave the standing price at 0');
+  const held = score([useMeter, { op: 'resource.flow', res: 'nahrung', amount: -1, when: ['winter'] }]);
+  assert.equal(held.price, -3);
+  assert.deepEqual(held.issues, []);
+});
+
 test('dependency and shortfall trigger count as prices', () => {
-  assert.equal(primitiveWeight({ op: 'dependency', res: 'rauchkraut', amount: 1, penalty: [{ op: 'loyalty.delta', target: 'all', amount: -1 }] }, ctx), -10);
+  assert.equal(primitiveWeight({ op: 'dependency', res: 'rauchkraut', amount: 1, penalty: [{ op: 'loyalty.delta', target: 'all', amount: -1 }] }, ctx), -3);
   assert.equal(primitiveWeight({ op: 'trigger', on: 'shortfall:salz', effects: [{ op: 'population.delta', amount: -1 }] }, ctx), -2);
   assert.equal(primitiveWeight({ op: 'trigger', on: 'winter', effects: [{ op: 'resource.delta', res: 'nahrung', amount: 2 }] }, ctx), 2);
 });

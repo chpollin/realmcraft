@@ -938,7 +938,7 @@
     },
     {
       "id": "bannfeuer",
-      "note": "Tier 3 magic technique paid with a meter and a conditional order restriction instead of a flow.",
+      "note": "Tier 3 magic technique paid with a meter, a conditional order restriction and a seasonal flow instead of a year-round flow and a one-off relation loss.",
       "as": "world",
       "expect": {
         "verdict": "accepted",
@@ -965,13 +965,7 @@
         },
         "replaces": [],
         "spec": null,
-        "onAcquire": [
-          {
-            "op": "relation.delta",
-            "people": "neighbours",
-            "amount": -1
-          }
-        ],
+        "onAcquire": [],
         "origin": {
           "source": "world",
           "practiceTags": [],
@@ -1057,6 +1051,15 @@
                 "value": 1
               }
             }
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": -1,
+            "when": [
+              "herbst",
+              "winter"
+            ]
           }
         ]
       }
@@ -1293,15 +1296,15 @@
     },
     {
       "id": "rauchschau",
-      "note": "Tier 2 discipline with source rauchkraut, a meter price and an application paid in the source resource.",
+      "note": "Tier 2 discipline with source rauchkraut, a use meter and a winter flow as standing price, and an application paid in the source resource.",
       "as": "candidate",
       "expect": {
         "verdict": "accepted",
         "codes": [],
         "budget": {
           "effect": 4,
-          "price": -1,
-          "net": 3
+          "price": -2,
+          "net": 2
         }
       },
       "data": {
@@ -1381,7 +1384,7 @@
           "magie"
         ],
         "cost": {
-          "research": 9,
+          "research": 6,
           "resources": {}
         },
         "effects": [
@@ -1416,6 +1419,14 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": -1,
+            "when": [
+              "winter"
             ]
           }
         ]
@@ -2332,15 +2343,15 @@
     },
     {
       "id": "zugwache",
-      "note": "Tier 2 with a dependency price (-3 x amount x v plus the penalty weight).",
+      "note": "Tier 2 with a dependency price: the lighter of the payment (-3 x amount x v) and the penalty over every season of the year.",
       "as": "world",
       "expect": {
         "verdict": "accepted",
         "codes": [],
         "budget": {
           "effect": 6,
-          "price": -4,
-          "net": 2
+          "price": -3,
+          "net": 3
         }
       },
       "data": {
@@ -2373,7 +2384,7 @@
           "wege"
         ],
         "cost": {
-          "research": 6,
+          "research": 9,
           "resources": {}
         },
         "effects": [
@@ -2491,8 +2502,8 @@
         "codes": [],
         "budget": {
           "effect": 12,
-          "price": -5,
-          "net": 7
+          "price": -6,
+          "net": 6
         }
       },
       "data": {
@@ -2527,7 +2538,7 @@
           "krieg"
         ],
         "cost": {
-          "research": 35,
+          "research": 30,
           "resources": {}
         },
         "effects": [
@@ -2546,7 +2557,7 @@
           {
             "op": "dependency",
             "res": "erz",
-            "amount": 1,
+            "amount": 2,
             "penalty": [
               {
                 "op": "resource.delta",
@@ -8371,7 +8382,7 @@
     {
       "id": "salzschuld",
       "as": "world",
-      "note": "A dependency whose penalty helps (population.delta +1) would reward the shortfall: misplaced_effect at the penalty. The budget counts only the harmful part of a penalty, so the dependency weighs 1 x v 1 x -3 = -3 (0 before lane V). E 6, P -3, net 3, research 9.",
+      "note": "A dependency whose penalty helps (population.delta +1) would reward the shortfall: misplaced_effect at the penalty. The people would rather take the penalty than pay, so the dependency weighs 0, and the development carries no standing price and too much net.",
       "data": {
         "format": "realmcraft-entwicklung",
         "version": 1,
@@ -8428,12 +8439,14 @@
       "expect": {
         "verdict": "rejected",
         "codes": [
+          "budget_net",
+          "budget_price",
           "misplaced_effect"
         ],
         "budget": {
           "effect": 6,
-          "price": -3,
-          "net": 3
+          "price": 0,
+          "net": 6
         }
       }
     },

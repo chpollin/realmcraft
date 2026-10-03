@@ -181,11 +181,16 @@ export function primitiveWeight(p, ctx = {}) {
       return p.amount * resourceValue(p.res, ctx) * seasonFactor(p.when, ctx);
     case 'resource.delta':
       return p.amount * resourceValue(p.res, ctx) * W.perPoint;
-    // An unpaid dependency fires its penalty instead, so a helpful penalty
-    // would make the dependency free: only the harmful part of the penalty
-    // counts (the validator rejects a helpful one as misplaced_effect).
-    case 'dependency':
-      return p.amount * resourceValue(p.res, ctx) * W.perPoint + Math.min(0, sumWeights(p.penalty, ctx));
+    // Each season the people either pays or takes the penalty, never both, so
+    // the dependency weighs as the lighter of the two: the payment, or the
+    // harmful part of the penalty on every season of the year. A penalty that
+    // harms nothing leaves the dependency free (the validator rejects a
+    // helpful one as misplaced_effect).
+    case 'dependency': {
+      const pay = p.amount * resourceValue(p.res, ctx) * W.perPoint;
+      const penalty = roundWeight(Math.min(0, sumWeights(p.penalty, ctx)) * flowFactor(seasonCount(ctx), ctx));
+      return Math.max(pay, penalty);
+    }
     case 'order.unlock':
       return ctx.orders?.[p.order]?.standingOutcome ? W.withStandingOutcome : W.plain;
     case 'order.restrict': {
@@ -243,6 +248,12 @@ function hasStandingOutcome(app) {
   return success.some((p) => p.op === 'status.add' || p.op === 'unit.spawn' || p.op === 'region.control' || (p.op === 'population.delta' && p.amount > 0));
 }
 
+/**
+ * A price the people pays only when it uses something: a meter that rises
+ * on use: or a trigger on use:. It costs nothing while the use stays undone.
+ */
+export const useBound = (p) => (p.op === 'meter' && p.rise.on.startsWith('use:')) || (p.op === 'trigger' && p.on.startsWith('use:'));
+
 function tierRow(tier, ctx) {
   const rows = ctx.tiers?.length ? ctx.tiers : TIERS;
   return rows.find((r) => r.tier === Math.max(1, tier)) ?? rows[rows.length - 1];
@@ -267,6 +278,11 @@ export function scoreEntwicklung(ent, ctx = {}) {
   const issues = [];
   let effect = 0;
   let price = 0;
+  // The part of P that binds while the development is held. The tier's
+  // minimum price asks for this part: a one-off burden of onAcquire and a
+  // use-bound price count in P, but a people can take the one and avoid the
+  // other and keep the effects for free.
+  let standing = 0;
   const add = (path, op, weight, side) => {
     lines.push({ path, op, weight, side });
     if (side === 'effect') effect += weight;
@@ -274,7 +290,11 @@ export function scoreEntwicklung(ent, ctx = {}) {
   };
 
   (ent.effects ?? []).forEach((p, i) => add(`/effects/${i}`, p.op, primitiveWeight(p, ctx), 'effect'));
-  (ent.price ?? []).forEach((p, i) => add(`/price/${i}`, p.op, primitiveWeight(p, ctx), 'price'));
+  (ent.price ?? []).forEach((p, i) => {
+    const w = primitiveWeight(p, ctx);
+    add(`/price/${i}`, p.op, w, 'price');
+    if (!useBound(p)) standing += w;
+  });
   (ent.onAcquire ?? []).forEach((p, i) => {
     const w = primitiveWeight(p, ctx);
     add(`/onAcquire/${i}`, p.op, w, w >= 0 ? 'effect' : 'price');
@@ -318,7 +338,7 @@ export function scoreEntwicklung(ent, ctx = {}) {
   if (effect > row.effectMax) issues.push(issue('budget_effect', '', `effect ${effect} exceeds ${row.effectMax} for tier ${tier}`));
   const netOk = net >= row.netMin && net <= row.netMax;
   if (!netOk) issues.push(issue('budget_net', '', `net ${net} lies outside ${row.netMin}..${row.netMax} for tier ${tier}`));
-  if (price > row.priceMax) issues.push(issue('budget_price', '', `price ${price} is above the minimum price ${row.priceMax} for tier ${tier}`));
+  if (standing > row.priceMax) issues.push(issue('budget_price', '', `standing price ${standing} is above the minimum price ${row.priceMax} for tier ${tier}; one-off and use-bound prices do not count towards it`));
   // Research follows from net and tier; with net out of range there is no
   // valid research cost to compare against.
   if (netOk && ent.cost && ent.cost.research !== research) {

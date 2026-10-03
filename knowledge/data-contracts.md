@@ -93,16 +93,19 @@ Every primitive has an integer weight from `WEIGHTS`, grants in a `spec` are wei
 ```
 E = sum of positive weights over effects and onAcquire, plus SPEC_WEIGHTS of the grants     effect
 P = sum of negative weights over price and onAcquire, plus a burden shed through replaces    price, P <= 0
+S = the part of P from price primitives that are not use-bound                                 standing price
 N = E + P                                                                                      net value
 
 valid with the TIERS row of the tier (tier 0 uses the row of tier 1)
   E <= effectMax                      budget_effect
   netMin <= N <= netMax               budget_net
-  P <= priceMax                       budget_price
+  S <= priceMax                       budget_price
   cost.research = N × (tier + 1)      research_cost
 ```
 
-The weight rules that are not plain per-point weights were refined on 3 October 2026. A status counts the standing weight of its effects scaled by its duration within a year. A trigger counts its effects times the frequency of its hook. A dependency counts its upkeep plus only the harmful part of its penalty. A meter counts the helpful thresholds it can reach minus severity times rate of the harmful ones. A `duty` restriction and an empty restriction weigh 0. A scaled flow counts a benefit at twice the expected count and a burden at the expected count. A replaced development with negative net counts its net as effect. `node engine/cli.mjs budget <file>` prints the breakdown.
+The weight rules that are not plain per-point weights were refined on 3 October 2026. A status counts the standing weight of its effects scaled by its duration within a year. A trigger counts its effects times the frequency of its hook. A dependency weighs the lighter of its payment and its penalty taken in every season of the year, because a people either pays or suffers the penalty, and a penalty that harms nothing leaves the dependency free. A meter counts the helpful thresholds it can reach minus severity times rate of the harmful ones. A `duty` restriction and an empty restriction weigh 0. A scaled flow counts a benefit at twice the expected count and a burden at the expected count. A replaced development with negative net counts its net as effect. `node engine/cli.mjs budget <file>` prints the breakdown.
+
+The tier's minimum price is met only by the standing price `S`. A one-off burden in `onAcquire` and a use-bound price, a meter that rises on `use:` or a trigger on `use:`, still count in `P` but not in `S`, because a people can take the one and avoid the other while it keeps the effects. This rule and the dependency rule come from the balance work of M1 on the dark path ([world-packages.md](world-packages.md)).
 
 ## Validator
 
