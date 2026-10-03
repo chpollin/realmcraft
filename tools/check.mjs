@@ -18,7 +18,9 @@ function tracked(...patterns) {
 
 async function checkSyntax() {
   const run = promisify(execFile);
-  const files = tracked('*.js', '*.mjs');
+  // Saved workflows are script bodies for the Claude Code workflow runner
+  // (top-level await and return), not Node modules.
+  const files = tracked('*.js', '*.mjs', ':!.claude/workflows/**');
   const results = await Promise.all(
     files.map((f) =>
       run(process.execPath, ['--check', f], { cwd: ROOT }).then(
