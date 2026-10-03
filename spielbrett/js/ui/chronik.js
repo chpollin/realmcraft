@@ -7,8 +7,9 @@ import { dialogHead } from './dialoge.js';
 export function renderChronik(dlg, api) {
   const entries = api.model.chronik;
   dlg.replaceChildren(
-    dialogHead(dlg, 'Chronik', 'chronik'),
+    dialogHead(dlg, api.game?.t('view.chronik', 'Chronik') ?? 'Chronik', 'chronik'),
     el('div', { class: 'overlay-body' },
+      entries.length ? null : el('p', { class: 'chronik-leer', text: 'Der Chronist hat noch nichts niedergeschrieben.' }),
       el('ol', { class: 'chronik plain' }, ...entries.map((c, i) => el('li', { class: `chronik-eintrag${c.neu ? ' is-neu' : ''}` },
         el('p', { class: 'ce-zeit', text: `${c.saison}, Jahr ${c.jahr}` }),
         el('article', { 'aria-labelledby': `ce-${i}` },

@@ -14,7 +14,9 @@ export function renderTopbar(api) {
   document.getElementById('zeit').textContent = `${model.zeit.saison}, Jahr ${model.zeit.jahr}`;
   renderResources(api);
   renderDestinyChip(api);
-  const labels = { entwicklungen: ['Entwicklungen', 'E'], rat: ['Rat', 'R'], chronik: ['Chronik', 'C'] };
+  // A real campaign names its views from the world's labels (view.<id>).
+  const name = (id, fallback) => api.game?.t(`view.${id}`, fallback) ?? fallback;
+  const labels = { entwicklungen: [name('entwicklungen', 'Entwicklungen'), 'E'], rat: [name('rat', 'Rat'), 'R'], chronik: [name('chronik', 'Chronik'), 'C'] };
   for (const b of document.querySelectorAll('.kurz')) {
     const [label, key] = labels[b.dataset.dialog];
     b.classList.add('has-tip');
@@ -54,6 +56,7 @@ export function renderResources(api, { bump = [], fresh = [] } = {}) {
         el('span', { class: 'tip-zeile' }, el('span', { text: 'Vorrat' }), el('span', { text: String(r.wert) })),
         ...res.map((x) => el('span', { class: 'tip-zeile' }, el('span', { text: x.titel }), el('span', { class: 'down', text: signed(-x.menge) }))),
         ...(r.verlauf ?? []).map((v) => el('span', { class: 'tip-zeile' }, el('span', { text: v.grund }), el('span', { class: v.delta > 0 ? 'up' : 'down', text: signed(v.delta) }))),
+        ...(r.prognose ?? []).map((v) => el('span', { class: 'tip-zeile' }, el('span', { text: v.grund }), el('span', { class: v.delta > 0 ? 'up' : 'down', text: signed(v.delta) }))),
         el('span', { text: `${tWord[0].toUpperCase()}${tWord.slice(1)}, ${r.grund}` }),
       ];
       const firstSpecial = model.module.length && r === model.module[0];
@@ -82,6 +85,8 @@ export function renderDestinyChip(api, { freshIndex = -1 } = {}) {
 }
 
 export function budgetState(model) {
+  // A real campaign takes used and available slots from the kernel preview.
+  if (model.slots) return { used: { haupt: model.slots.main.used, neben: model.slots.minor.used }, max: { haupt: model.slots.main.max, neben: model.slots.minor.max } };
   const used = { haupt: 0, neben: 0 };
   for (const o of model.orders) if (o.art in used) used[o.art]++;
   return { used, max: BUDGET };
@@ -112,7 +117,10 @@ export function renderOrders(api, { freshId } = {}) {
       el('span', {},
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',
         el('span', { class: 'befehl-ziel', text: o.ziel })),
-      o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
+      o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.stale ? 'veraltet' : o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.stale ? 'warnung' : o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
+      o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': `${o.titel} würfeln`, onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': `${o.titel} neu würfeln`, onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.issues?.length ? withTip(el('span', { class: 'befehl-problem', tabindex: '0', 'data-issue': o.issues[0].code, 'aria-label': o.issues.map((i) => i.text ?? i.message).join(', ') }, icon('warnung', { size: 14 })), [el('span', { text: o.issues.map((i) => i.text ?? i.message).join(', ') })], o.issues.map((i) => el('span', { text: i.message })), { up: true }) : null,
       o.kosten?.length ? el('span', { class: 'costs' }, ...o.kosten.map((k) => el('span', { class: 'cost', 'aria-label': `${k.menge} ${k.key}` }, icon(k.key, { size: 14 }), String(k.menge)))) : null,
       locked ? null : el('button', { class: 'icon-btn', type: 'button', 'aria-label': `${o.titel} zurücknehmen`, onclick: () => api.removeOrder(o.id) }, icon('schliessen', { size: 16 })),
     )),
@@ -144,14 +152,19 @@ export function renderEndTurn(api) {
   const { model } = api;
   const b = document.getElementById('zug-beenden');
   const busy = model.phase === 'A';
-  const next = model.zugGelaufen ? nextSeason(model.zeit) : model.S.naechsteZeit;
+  const next = model.real ? model.naechsteZeit : model.zugGelaufen ? nextSeason(model.zeit) : model.S.naechsteZeit;
+  // In a real campaign the agents' round keeps planning open but the turn closed until the kernel opens it.
+  const waiting = model.real && !busy && model.kernPhase === 'agents';
+  const rolls = model.real && !busy && !waiting ? model.offeneWuerfe?.length ?? 0 : 0;
+  const title = busy ? 'Regelkern rechnet' : waiting ? 'Agenten arbeiten' : 'Zug beenden';
+  const sub = busy ? 'Befehle gesperrt' : waiting ? 'Zug öffnet nach der Agentenrunde' : rolls ? `${rolls} ${rolls === 1 ? 'Wurf' : 'Würfe'} offen` : `${next.saison}, Jahr ${next.jahr}`;
   b.replaceChildren(
-    el('span', { class: 'zb-titel', text: busy ? 'Regelkern rechnet' : 'Zug beenden' }),
-    el('span', { class: 'zb-sub', text: busy ? 'Befehle gesperrt' : `${next.saison}, Jahr ${next.jahr}` }),
-    icon(busy ? 'kern' : 'pfeil', { size: 22 }),
+    el('span', { class: 'zb-titel', text: title }),
+    el('span', { class: 'zb-sub', text: sub }),
+    icon(busy || waiting ? 'kern' : rolls ? 'wuerfel' : 'pfeil', { size: 22 }),
   );
-  b.setAttribute('aria-disabled', busy ? 'true' : 'false');
-  b.setAttribute('aria-label', busy ? 'Zug läuft, Befehle gesperrt' : `Zug beenden, weiter zu ${next.saison}, Jahr ${next.jahr}`);
+  b.setAttribute('aria-disabled', busy || waiting ? 'true' : 'false');
+  b.setAttribute('aria-label', busy ? 'Zug läuft, Befehle gesperrt' : waiting ? 'Agentenrunde läuft, der Zug öffnet danach' : rolls ? `Zug beenden, zuerst ${sub}` : `Zug beenden, weiter zu ${next.saison}, Jahr ${next.jahr}`);
   document.getElementById('zugleiste').classList.toggle('is-locked', busy);
 }
 

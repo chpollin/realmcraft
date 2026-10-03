@@ -24,6 +24,23 @@ function column(title, peopleCls, b, { own = false } = {}) {
     el('ol', { class: 'meilensteine plain' }, ...b.meilensteine.map((m) => milestone(m, { own }))));
 }
 
+/** Real campaign: the switch is the kernel order destiny.adopt, disabled with the kernel's reason. */
+function switchButton(api, w) {
+  const opt = api.game.previewOption({ type: 'destiny.adopt', params: { bestimmung: w.ref } });
+  const disabled = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
+  return el('div', { class: 'bs-aktion' },
+    el('button', {
+      class: opt.queued ? 'btn btn-quiet' : 'btn',
+      type: 'button',
+      'aria-disabled': disabled ? 'true' : 'false',
+      'data-order': 'destiny.adopt',
+      onclick: () => { if (!disabled) api.addCandidate(opt); },
+      onpointerenter: () => { if (!disabled) api.setPreview(opt.preview); },
+      onpointerleave: () => api.setPreview(null),
+    }, icon(opt.queued ? 'ja' : 'bestimmung', { size: 18 }), opt.queued ? 'In den Befehlen' : 'Bestimmung wechseln'),
+    opt.grund ? el('p', { class: 'bo-grund', text: opt.grund }) : null);
+}
+
 export function renderBestimmung(dlg, api) {
   const { model } = api;
   const own = model.bestimmung;
@@ -42,8 +59,8 @@ export function renderBestimmung(dlg, api) {
             el('h4', { class: 'world', text: w.name }),
             el('p', { class: 'v-weil' }, el('span', { class: 'v-weil-wort', text: 'weil ' }), w.weil),
             el('ol', { class: 'meilensteine plain klein' }, ...w.meilensteine.map((t) => milestone({ text: t, erreicht: false }, { own: false }))),
-            el('dl', { class: 'v-fakten' }, el('dt', { text: 'Preis' }), el('dd', { class: 'v-preis', text: w.preis })),
-            el('button', {
+            w.preis ? el('dl', { class: 'v-fakten' }, el('dt', { text: 'Preis' }), el('dd', { class: 'v-preis', text: w.preis })) : null,
+            model.real ? switchButton(api, w) : el('button', {
               class: queued ? 'btn btn-quiet' : 'btn',
               type: 'button',
               disabled: queued || model.phase === 'A',

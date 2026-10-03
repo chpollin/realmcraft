@@ -98,9 +98,9 @@ function branch(a, b, cls, width) {
 function nodeLabel(n) {
   switch (n.typ) {
     case 'emblem': return `${n.name}, Ursprung`;
-    case 'bekannt': return `${n.name}, bekannt, ${ART[n.art] ?? ''}`;
-    case 'forschung': return `${n.name}, in Forschung, ${n.fortschritt} von ${n.dauer} Saisons`;
-    case 'vorschlag': return `${n.name}, Vorschlag, ${ART[n.art] ?? ''}`;
+    case 'bekannt': return `${n.name}, bekannt, ${n.artName ?? ART[n.art] ?? ''}`;
+    case 'forschung': return `${n.name}, in Forschung, ${n.fortschritt} von ${n.dauer} ${n.einheit ?? 'Saisons'}`;
+    case 'vorschlag': return `${n.name}, Vorschlag, ${n.artName ?? ART[n.art] ?? ''}`;
     case 'eigen-vorschlag': return `${n.name}, eigene Richtung, wird geprüft`;
     case 'praxis': return `${n.name}, Praxis des Volkes`;
     default: return 'Eigene Richtung vorschlagen';
@@ -141,7 +141,7 @@ function drawNode(n, selected, model) {
     g.append(s('circle', { r: r + 4, class: 'b-ring-spur' }));
     g.append(s('circle', { r: r + 4, class: 'b-ring', 'stroke-dasharray': `${(c * frac).toFixed(1)} ${c.toFixed(1)}`, transform: 'rotate(-90)' }));
   }
-  g.append(svgIcon(n.art ?? 'technik', 24));
+  g.append(svgIcon(n.icon ?? n.art ?? 'technik', 24));
   const name = s('text', { y: r + 22, class: 'b-name' });
   name.textContent = n.name;
   g.append(name);
@@ -168,6 +168,7 @@ function sidePanel(api, n, nodes, rerender) {
     return a ? el('li', { class: pro ? 'pro' : 'contra', 'aria-label': `${a.name} ${pro ? 'dafür' : 'dagegen'}` }, portrait(a.id, a.name, { size: 40 }), el('span', { class: 'bs-hand', 'aria-hidden': 'true' }, icon(pro ? 'dafuer' : 'dagegen', { size: 14 }))) : null;
   })) : null;
 
+  if (n.typ === 'eigen' && model.real) return directionPanel(api);
   if (n.typ === 'eigen') {
     const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': 'Eigene Richtung' });
     return el('form', {
@@ -191,18 +192,19 @@ function sidePanel(api, n, nodes, rerender) {
   if (n.typ === 'emblem') return emblemPanel(api, nodes, model);
 
   return el('div', { class: 'baum-seite' },
-    el('h3', { class: 'world' }, n.typ === 'emblem' ? icon('bestimmung', { size: 22 }) : n.typ === 'praxis' ? icon('praxis', { size: 20 }) : icon(n.art ?? 'technik', { size: 22 }), n.typ === 'emblem' ? model.volk.name : n.name),
-    n.art ? el('p', { class: 'bs-art', text: `${ART[n.art]}${n.typ === 'forschung' ? ', in Forschung' : n.typ === 'vorschlag' ? ', Vorschlag' : n.typ === 'bekannt' ? ', bekannt' : ''}` }) : null,
-    n.kurz ? row('pfeil', 'Wirkung', el('span', { class: 'bs-wirkung' }, icon(n.kurz.icon, { size: 16 }), n.kurz.wert), el('span', { class: 'bs-text', text: n.wirkung })) : null,
-    n.typ === 'forschung' ? row('dauer', 'Fortschritt', el('span', { class: 'bs-wert', text: `${n.fortschritt} von ${n.dauer} Saisons` })) : null,
+    el('h3', { class: 'world' }, n.typ === 'emblem' ? icon('bestimmung', { size: 22 }) : n.typ === 'praxis' ? icon('praxis', { size: 20 }) : icon(n.icon ?? n.art ?? 'technik', { size: 22 }), n.typ === 'emblem' ? model.volk.name : n.name),
+    n.art ? el('p', { class: 'bs-art', text: `${n.artName ?? ART[n.art]}${n.typ === 'forschung' ? ', in Forschung' : n.typ === 'vorschlag' ? ', Vorschlag' : n.typ === 'bekannt' ? ', bekannt' : ''}` }) : null,
+    n.kurz ? row('pfeil', 'Wirkung', el('span', { class: 'bs-wirkung' }, icon(n.kurz.icon, { size: 16 }), n.kurz.wert), el('span', { class: 'bs-text', text: n.wirkung })) : n.wirkung ? row('pfeil', 'Wirkung', el('span', { class: 'bs-text', text: n.wirkung })) : null,
+    n.typ === 'forschung' ? row('dauer', 'Fortschritt', el('span', { class: 'bs-wert', text: `${n.fortschritt} von ${n.dauer} ${n.einheit ?? 'Saisons'}` })) : null,
     n.kosten?.length ? row('kosten', 'Kosten', costChips(api, n.kosten, { size: 16 })) : null,
-    n.dauer && n.typ !== 'forschung' ? row('dauer', 'Dauer', el('span', { class: 'bs-wert', text: `${n.dauer} ${n.dauer === 1 ? 'Saison' : 'Saisons'}` })) : null,
+    n.dauer && n.typ !== 'forschung' ? row('dauer', 'Dauer', el('span', { class: 'bs-wert', text: n.einheit ? `${n.dauer} ${n.einheit}` : `${n.dauer} ${n.dauer === 1 ? 'Saison' : 'Saisons'}` })) : null,
     n.preis ? row('preis', 'Preis', el('span', { class: 'bs-text', text: n.preis })) : null,
     n.weil ? row('praxis', 'Weil', el('span', { class: 'bs-weil world' }, el('span', { class: 'v-weil-wort', text: 'weil ' }), n.weil),
       el('span', { class: 'bs-text' }, [parent, weil].filter((x) => x && x.typ === 'praxis').map((x) => x.name).join(', '))) : null,
     n.eigen ? row('dauer', 'Status', el('span', { class: 'bs-text', text: 'Wird im Zwischenzug vom Forschungsagenten geprüft' })) : null,
     council,
-    n.typ === 'vorschlag' ? el('button', {
+    model.real ? kernelAction(api, n) : null,
+    !model.real && n.typ === 'vorschlag' ? el('button', {
       class: queued ? 'btn btn-quiet' : 'btn btn-primary',
       type: 'button',
       disabled: queued || model.phase === 'A',
@@ -214,6 +216,74 @@ function sidePanel(api, n, nodes, rerender) {
   );
 }
 
+/**
+ * Kernel order of a node in a real campaign: research a candidate or give a
+ * running research priority (research.assign), put a known institution in
+ * force (institute). Disabled with the kernel's reason; hover previews it.
+ */
+function kernelAction(api, n) {
+  const { game } = api;
+  let cand = null;
+  let label = '';
+  if (n.typ === 'vorschlag') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, 'Erforschen'];
+  else if (n.typ === 'forschung') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, 'Vorrang geben'];
+  else if (n.typ === 'bekannt' && n.art === 'institution' && !n.eingesetzt) [cand, label] = [{ type: 'institute', params: { development: n.ref } }, game.t('order.institute', 'Einsetzen')];
+  if (!cand) return null;
+  const opt = game.previewOption(cand);
+  const disabled = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
+  return el('div', { class: 'bs-aktion' },
+    el('button', {
+      class: opt.queued ? 'btn btn-quiet' : 'btn btn-primary',
+      type: 'button',
+      'aria-disabled': disabled ? 'true' : 'false',
+      'data-order': cand.type,
+      onclick: () => { if (!disabled) api.addCandidate(opt); },
+      onpointerenter: () => { if (!disabled) api.setPreview(opt.preview); },
+      onpointerleave: () => api.setPreview(null),
+    }, icon(opt.queued ? 'ja' : 'entwicklungen', { size: 18 }), opt.queued ? 'In den Befehlen' : label),
+    opt.grund ? el('p', { class: 'bo-grund', text: opt.grund }) : null);
+}
+
+/** Research direction of a real campaign: one to three tags of the world's vocabulary and a note (research.direct). */
+function directionPanel(api) {
+  const { game } = api;
+  const chosen = new Set();
+  const tags = Object.keys(game.env.vocabulary).sort((a, b) => game.t(`tag.${a}`, a).localeCompare(game.t(`tag.${b}`, b), 'de'));
+  const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': 'Notiz an die Forschung' });
+  const submit = el('button', { class: 'btn btn-primary', type: 'submit', disabled: true }, icon('entwicklungen', { size: 18 }), 'Vorschlagen');
+  const grund = el('p', { class: 'bo-grund' });
+  const cand = () => ({ type: 'research.direct', params: { tags: [...chosen], ...(ta.value.trim() ? { note: ta.value.trim() } : {}) } });
+  const check = () => {
+    const opt = chosen.size ? game.previewOption(cand()) : null;
+    submit.disabled = !opt || Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
+    grund.textContent = opt?.grund ?? '';
+  };
+  return el('form', {
+    class: 'baum-seite',
+    onsubmit: (ev) => {
+      ev.preventDefault();
+      if (!submit.disabled) api.addCandidate(cand());
+    },
+  },
+  el('h3', { class: 'world' }, icon('plus', { size: 20 }), 'Eigene Richtung'),
+  el('ul', { class: 'richtung-tags plain', 'aria-label': 'Schlagworte, bis zu drei' }, ...tags.map((g) => el('li', {},
+    el('label', { class: 'probe-option' },
+      el('input', {
+        type: 'checkbox',
+        'data-tag': g,
+        onchange: (e) => {
+          if (e.target.checked && chosen.size >= 3) e.target.checked = false;
+          else if (e.target.checked) chosen.add(g);
+          else chosen.delete(g);
+          check();
+        },
+      }),
+      el('span', { text: game.t(`tag.${g}`, g) }))))),
+  ta,
+  grund,
+  submit);
+}
+
 /** The emblem lists every development as buttons: an overview and a keyboard path into the tree. */
 function emblemPanel(api, nodes, model) {
   const group = (title, typ) => {
@@ -223,7 +293,7 @@ function emblemPanel(api, nodes, model) {
       el('h4', { text: title }),
       el('ul', { class: 'plain' }, ...list.map((n) => el('li', {},
         el('button', { class: 'bs-knopf', type: 'button', 'data-waehle': n.id },
-          icon(n.art ?? 'technik', { size: 18 }),
+          icon(n.icon ?? n.art ?? 'technik', { size: 18 }),
           el('span', { text: n.name }),
           n.kurz ? el('span', { class: 'bs-kurz' }, icon(n.kurz.icon, { size: 13 }), n.kurz.wert) : null)))));
   };

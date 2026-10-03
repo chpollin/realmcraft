@@ -16,6 +16,8 @@ const ZOOM_MAX = 2.4;
 const SQRT3 = Math.sqrt(3);
 
 const PEOPLE_TOKEN = { spieler: '--people-own', schaedelklan: '--people-schaedelklan', talbund: '--people-talbund' };
+// Peoples of other worlds have no colour token of their own and fall back to ink.
+const peopleToken = (volk) => PEOPLE_TOKEN[volk] ?? '--ink';
 const ORIGIN_TOKEN = {
   kern: '--origin-kern', welt: '--origin-welt', rivalen: '--origin-rivalen',
   forschung: '--origin-forschung', rat: '--origin-rat', chronist: '--origin-chronist',
@@ -395,6 +397,8 @@ export class MapView {
   }
 
   ownership() {
+    // A real campaign carries the kernel's region control per known tile.
+    if (this.model.owners instanceof Map) return this.model.owners;
     if (this.ownerVersion === this.model.ownerVersion && this.owners) return this.owners;
     const holdings = [];
     for (const u of this.model.units) holdings.push({ q: u.q, r: u.r, volk: u.volk, reach: u.art === 'lager' ? 3 : 1 });
@@ -423,11 +427,11 @@ export class MapView {
       if (!o) continue;
       ctx.beginPath();
       hexPath(ctx, c.x, c.y, s + 0.5);
-      ctx.fillStyle = col(PEOPLE_TOKEN[o], { a: 0.26 });
+      ctx.fillStyle = col(peopleToken(o), { a: 0.26 });
       ctx.fill();
       // Border on edges where ownership changes.
       const ns = neighbors(c.tile.q, c.tile.r);
-      ctx.strokeStyle = col(PEOPLE_TOKEN[o], { a: 0.95 });
+      ctx.strokeStyle = col(peopleToken(o), { a: 0.95 });
       ctx.lineWidth = Math.max(1.5, s * 0.07);
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -443,6 +447,8 @@ export class MapView {
   }
 
   threatAt(q, r) {
+    // Kernel threat layer: level 2 where a foreign unit or danger stands, 1 within its reach.
+    if (this.model.threat instanceof Map) return (this.model.threat.get(`${q},${r}`) ?? 0) / 2;
     let v = 0;
     for (const u of this.model.units) {
       if (u.volk !== 'schaedelklan') continue;
@@ -468,7 +474,7 @@ export class MapView {
 
   drawCampGlow(s) {
     const { ctx, model } = this;
-    const camp = model.units.find((u) => u.art === 'lager' && u.volk === 'spieler');
+    const camp = model.home ?? model.units.find((u) => u.art === 'lager' && u.volk === 'spieler');
     if (!camp) return;
     const p = this.hexScreen(camp.q, camp.r);
     const R = s * 4.2;
@@ -709,7 +715,7 @@ export class MapView {
       if (!model.known[hexKey(p.q, p.r)]) continue;
       const sp = this.hexScreen(p.q, p.r);
       if (sp.x < -60 || sp.y < -60 || sp.x > this.w + 60 || sp.y > this.h + 60) continue;
-      const tint = p.volk && p.volk !== 'spieler' ? col(PEOPLE_TOKEN[p.volk]) : col('--ink');
+      const tint = p.volk && p.volk !== 'spieler' ? col(peopleToken(p.volk)) : col('--ink');
       ctx.beginPath();
       ctx.arc(sp.x, sp.y, size * 0.62, 0, Math.PI * 2);
       const g = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, size * 0.62);
@@ -759,7 +765,7 @@ export class MapView {
       const p = this.hexScreen(u.q, u.r);
       const camp = u.art === 'lager';
       const R = Math.max(10, s * (camp ? 0.5 : 0.4));
-      const ring = col(PEOPLE_TOKEN[u.volk] ?? '--ink');
+      const ring = col(peopleToken(u.volk));
       const selected = sel && sel.kind === 'unit' && sel.id === u.id;
       ctx.save();
       ctx.shadowColor = col('--night-0', { a: 0.7 });
@@ -776,7 +782,7 @@ export class MapView {
       ctx.stroke();
       if (camp) {
         this.tokenShape(u.volk, p.x, p.y, R + 4);
-        ctx.strokeStyle = col(PEOPLE_TOKEN[u.volk], { a: 0.45 });
+        ctx.strokeStyle = col(peopleToken(u.volk), { a: 0.45 });
         ctx.lineWidth = 1.2;
         ctx.stroke();
       }

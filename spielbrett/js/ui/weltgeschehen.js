@@ -12,7 +12,8 @@ import { closeButton } from './kontext.js';
 import { withTip } from './tip.js';
 import { nextSeason } from './leiste.js';
 
-const STATUS = { wartet: 'wartet', arbeitet: 'arbeitet', fertig: 'fertig' };
+const STATUS = { wartet: 'wartet', arbeitet: 'arbeitet', fertig: 'fertig', gescheitert: 'gescheitert' };
+const STATE_CLASS = { fertig: 'done', arbeitet: 'working', gescheitert: 'failed' };
 
 export function renderWeltgeschehen(api) {
   const { model } = api;
@@ -28,24 +29,28 @@ export function renderWeltgeschehen(api) {
   panel.replaceChildren(
     el('div', { class: 'panel-kopf' },
       el('div', { class: 'panel-siegel' }, icon('welt', { size: 22 })),
-      el('h2', { id: 'wg-titel', text: 'Weltgeschehen' }),
+      el('h2', { id: 'wg-titel', text: api.game?.t('view.weltgeschehen', 'Weltgeschehen') ?? 'Weltgeschehen' }),
       el('p', { class: 'unter', text: `${zz.von.saison} ${zz.von.jahr} nach ${zz.nach.saison} ${zz.nach.jahr}` }),
       closeButton(() => api.setPanel(null), 'Weltgeschehen schließen')),
     el('p', { class: `phase ${phaseA ? 'a' : 'b'}`, role: 'status' },
       icon(phaseA ? 'schloss' : 'ja', { size: 16 }), zz.phaseTitel),
     el('div', { class: 'panel-body' },
-      el('ol', { class: 'agenten plain' }, ...ZWISCHENZUG.agenten.map((a) => {
-        const st = zz.agents[a.id];
-        return el('li', {
-          class: `agent is-${st.status === 'fertig' ? 'done' : st.status === 'arbeitet' ? 'working' : 'waiting'}`,
-          style: { '--origin': `var(--origin-${a.id})` },
-        },
-        el('span', { class: 'agent-siegel' }, icon(a.id, { size: 18 })),
-        el('span', { class: 'agent-name' }, a.name,
-          el('span', { class: 'agent-status', 'aria-label': STATUS[st.status] }, st.status === 'fertig' ? icon('ja', { size: 16 }) : null)),
-        st.status === 'arbeitet' ? el('span', { class: 'agent-taetigkeit', text: st.taetigkeit }) : null,
-        st.results.length ? el('ul', { class: 'ergebnisse plain' }, ...st.results.map((r) => resultRow(api, r))) : null);
-      }))));
+      el('ol', { class: 'agenten plain' }, ...agentRows(zz).map((a) => el('li', {
+        class: `agent is-${STATE_CLASS[a.status] ?? 'waiting'}`,
+        style: { '--origin': `var(--origin-${a.id})` },
+        'data-agent': a.step ?? a.id,
+      },
+      el('span', { class: 'agent-siegel' }, icon(a.id, { size: 18 })),
+      el('span', { class: 'agent-name' }, a.name,
+        el('span', { class: 'agent-status', 'aria-label': STATUS[a.status] ?? a.status }, a.status === 'fertig' ? icon('ja', { size: 16 }) : a.status === 'gescheitert' ? icon('nein', { size: 16 }) : null)),
+      a.status === 'arbeitet' || a.status === 'gescheitert' ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
+      a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r))) : null)))));
+}
+
+/** Agent rows: a real campaign brings them from status.json and the round report, the prototype from its timeline. */
+function agentRows(zz) {
+  if (zz.agenten) return zz.agenten;
+  return ZWISCHENZUG.agenten.map((a) => ({ ...a, ...zz.agents[a.id] }));
 }
 
 /** One result: icon, title and a compact badge; the reasoning sits in the tooltip, a rejection's reason stays visible. */

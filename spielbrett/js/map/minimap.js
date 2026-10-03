@@ -93,7 +93,7 @@ export class Minimap {
       const p = hexToPixel(u.q, u.r, BASE);
       ctx.beginPath();
       ctx.arc((p.x - this.ox) * this.k, (p.y - this.oy) * this.k, u.art === 'lager' ? 3.2 : 2.2, 0, Math.PI * 2);
-      ctx.fillStyle = col(u.volk === 'spieler' ? '--people-own' : u.volk === 'talbund' ? '--people-talbund' : '--people-schaedelklan');
+      ctx.fillStyle = col(u.volk === 'spieler' ? '--people-own' : u.volk === 'talbund' ? '--people-talbund' : u.volk === 'schaedelklan' ? '--people-schaedelklan' : '--ink');
       ctx.fill();
     }
     const v = this.view;
