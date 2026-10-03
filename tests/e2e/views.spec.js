@@ -1,7 +1,5 @@
-// E2E: Navigation (Tabs und Hash-Routing) und Inhalte der fünf Sichten.
-// Geschrieben gegen den Frontend-Vertrag, VOR der Implementierung (rot).
-import { test, expect } from '@playwright/test';
-import { FIXTURE_JSON, EXPECT, loadFile, waitForLoaded } from './_helpers.js';
+// E2E: Navigation (Tabs und Hash-Routing) und Inhalte der Sichten.
+import { test, expect, FIXTURE_JSON, EXPECT, loadFile, waitForLoaded } from './_helpers.js';
 
 test.describe('Sichten und Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -84,13 +82,19 @@ test.describe('Sichten und Navigation', () => {
     await expect(page.getByTestId('map-place')).toHaveCount(EXPECT.karteOrteCount);
   });
 
-  test('Historie-Sicht: 3 Einträge, Fähigkeiten und Besitz vorhanden', async ({ page }) => {
+  test('Historie-Sicht: 3 Einträge und Fähigkeiten vorhanden', async ({ page }) => {
     await page.locator('[data-tab="historie"]').click();
     await expect(page.locator('[data-view="historie"]')).toBeVisible();
 
     await expect(page.getByTestId('history-entry')).toHaveCount(EXPECT.historieCount);
-    // faehigkeit und besitz sind als Listen vorhanden (≥1 Eintrag).
     await expect(page.getByTestId('faehigkeit').first()).toBeVisible();
+  });
+
+  test('Lebenswelt-Sicht: Besitz vorhanden', async ({ page }) => {
+    await page.locator('[data-tab="lebenswelt"]').click();
+    await expect(page.locator('[data-view="lebenswelt"]')).toBeVisible();
+
+    await expect(page.getByTestId('lw-besitz')).toBeVisible();
     await expect(page.getByTestId('besitz').first()).toBeVisible();
   });
 });

@@ -1,12 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = Number(process.env.PORT) || 4173;
+// Own port and no server reuse, so a run never hits the game-master's live
+// server on 4173 (which mirrors the running campaign's savegame.json).
+const PORT = Number(process.env.PORT) || 4391;
 const baseURL = `http://localhost:${PORT}`;
 
-// E2E and visual specs live under tests/e2e and tests/visual as *.spec.js.
+const browser = {
+  ...devices['Desktop Chrome'],
+  ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
+};
+
 // Unit tests (node:test) live under tests/unit as *.test.js and are run separately.
 export default defineConfig({
-  testDir: './tests',
   testMatch: '**/*.spec.{js,mjs}',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -18,12 +23,21 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'], ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}) } },
+    { name: 'e2e', testDir: './tests/e2e', use: browser },
+    {
+      name: 'visual',
+      testDir: './tests/visual',
+      use: browser,
+      // Keeps the checked-in baseline names (<view>-chromium-<platform>.png)
+      // independent of the project name.
+      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}-chromium{-snapshotSuffix}{ext}',
+    },
   ],
   webServer: {
     command: 'node serve.mjs',
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    env: { PORT: String(PORT) },
+    reuseExistingServer: false,
     timeout: 30_000,
   },
 });

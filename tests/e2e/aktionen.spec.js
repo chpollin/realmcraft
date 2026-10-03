@@ -1,11 +1,7 @@
 // tests/e2e/aktionen.spec.js — Aktionsbrett, Trends und Lebensstand (Kapitel-4-Stand).
 // Geschrieben gegen den Frontend-Vertrag. Der Kapitel-4-Stand fuehrt runde,
 // trends und lebensstand; der Kapitel-3-Stand fuehrt sie nicht (graceful).
-import { test, expect } from '@playwright/test';
-import { join } from 'node:path';
-
-const ch3 = join(process.cwd(), 'examples', 'die-karren-kapitel-3.json');
-const ch4 = join(process.cwd(), 'examples', 'die-karren-kapitel-4.json');
+import { test, expect, FIXTURE_JSON as ch3, FIXTURE_CH4_JSON as ch4 } from './_helpers.js';
 
 test('Aktionsbrett zeigt die drei Vorhaben mit Ziel und Modifikator', async ({ page }) => {
   await page.goto('/');
@@ -31,11 +27,10 @@ test('Trends erscheinen an den Grundgrößen mit Richtung', async ({ page }) => 
   await page.getByTestId('load-input').setInputFiles(ch4);
   await expect(page.getByTestId('realm-name')).toContainText('Die Karren');
 
-  await expect(page.getByTestId('trend-nahrung')).toHaveText('▼');
-  await expect(page.getByTestId('trend-wissen')).toHaveText('▲');
-  await expect(page.getByTestId('trend-material')).toHaveText('→');
-  // Grund steht als Tooltip (title-Attribut).
-  await expect(page.getByTestId('trend-nahrung')).toHaveAttribute('title', /Bergboden|Stadt/);
+  // Trendzeile: Richtungszeichen, Richtung in Worten und der Grund als sichtbarer Text.
+  await expect(page.getByTestId('trend-nahrung')).toHaveText(/^▼ fallend — .*Bergboden/);
+  await expect(page.getByTestId('trend-wissen')).toHaveText(/^▲ steigend/);
+  await expect(page.getByTestId('trend-material')).toHaveText(/^→ gleichbleibend/);
 });
 
 test('Lebensstand erscheint an den Berater-Karten', async ({ page }) => {

@@ -1,7 +1,7 @@
 // E2E: Export-Bundle mit eingebetteten Bildern und Re-Import ohne API-Call.
-// Geschrieben gegen den Frontend-Vertrag, VOR der Implementierung (rot).
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   FIXTURE_JSON,
   loadFile,
   loadContent,

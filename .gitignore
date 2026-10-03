@@ -23,3 +23,6 @@ savegame.json
 Thumbs.db
 .vscode/
 .idea/
+
+# Claude Code runtime lock (machine-local)
+.claude/scheduled_tasks.lock

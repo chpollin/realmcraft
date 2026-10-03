@@ -1,47 +1,42 @@
 # Visual Tests (Playwright)
 
-Visual-Regression-Specs fuer die fuenf RealmCraft-Views, in fester Reihenfolge:
-`lage`, `berater`, `welt`, `karte`, `historie`.
+Visual-Regression-Specs fuer sechs Dashboard-Views, je eine Spec in fester Reihenfolge:
+`lage`, `berater`, `welt`, `karte`, `historie`, `armee` (Reiter "Curriculum").
+Sie laufen als eigenes Playwright-Projekt `visual`, getrennt vom Projekt `e2e`.
 
-## Vertrags-Bezug
+## Ablauf je Spec
 
-Die Specs greifen ausschliesslich auf die im `docs/Frontend-Contract.md`
-definierten Hooks zu:
+1. `openApp` isoliert die Seite mit `isolate()` aus `tests/e2e/_helpers.js`. Die Live-`savegame.json`, das Demo-Manifest samt Einzelstand-Fallback und `/env.js` antworten leer, damit weder die laufende Partie noch ein lokaler API-Key das Bild bestimmt.
+2. `loadFixture` laedt `examples/die-karren-kapitel-3.json` ueber `[data-testid=load-input]` und wartet auf `[data-testid=realm-name]`.
+3. `gotoView` schaltet ueber den Hash-Router (`#/<view>`) und wartet, bis `section[data-view=<view>]` sichtbar ist.
+4. Vor dem Snapshot werden Web-Fonts (kurzer Timeout) und zwei Animation-Frames abgewartet.
 
-- Laden des Beispielstands ueber das Datei-Input `[data-testid=load-input]`
-  (Fixture: `examples/die-karren-kapitel-3.json`).
-- View-Wechsel ueber den Hash-Router (`#/lage`, `#/berater`, `#/welt`,
-  `#/karte`, `#/historie`).
-- View-Container `[data-testid=view-<name>]` als Sichtbarkeits-Anker.
-- Ready-Hook `window.__realmcraft__.ready === true` nach dem Laden.
+Verglichen wird mit `animations: "disabled"` und `maxDiffPixelRatio: 0.02`. Portraits (`[data-testid=advisor-portrait]`) und Kartengrafik (`[data-testid=map-image]`) sind maskiert.
 
-## Stabilisierung
+## Baselines
 
-- Warten auf Google Fonts (`document.fonts.ready`, kurzer Timeout) vor jedem
-  Snapshot, plus RAF-Tick zum Layout-Settle.
-- `animations: "disabled"` und `maxDiffPixelRatio: 0.02` pro Snapshot.
-- Maskierung instabiler Bildbereiche (Platzhalter-Portraits, Kartengrafik)
-  via `mask`-Option, damit die Baselines deterministisch bleiben.
+Die Baselines sind eingecheckt unter
+`tests/visual/<spec>.spec.js-snapshots/<view>-chromium-<plattform>.png`.
+Der Name haengt nicht am Projektnamen (`snapshotPathTemplate` in `playwright.config.mjs`).
+Baselines gibt es derzeit nur fuer `win32`. Auf einer anderen Plattform fehlen sie und muessen dort erst erzeugt werden.
 
-## Baselines erzeugen
-
-Baselines werden im Verify-Schritt erzeugt (nicht eingecheckt von diesem
-Modul). Erzeugen bzw. aktualisieren:
+Vergleich gegen die Baselines:
 
 ```sh
-npx playwright test tests/visual --update-snapshots
+npm run test:visual
 ```
 
-Vergleich gegen bestehende Baselines:
+Baselines nach einer gewollten UI-Aenderung neu schreiben und die geaenderten PNGs pruefen, bevor sie committet werden:
 
 ```sh
-npx playwright test tests/visual
+npm run test:visual:update
 ```
 
-Die Baseline-PNGs landen unter
-`tests/visual/<spec>.spec.js-snapshots/<view>-<browser>-<plattform>.png`.
+## Browser und Port
 
-## Abhaengigkeiten
+Playwright startet `serve.mjs` selbst auf Port 4391 (ueberschreibbar mit `PORT`) und nutzt nie einen laufenden Server, auch nicht den Live-Server des Spielleiters auf 4173.
+Fehlt das von Playwright mitgelieferte Chromium, laeuft der Test mit dem installierten Chrome:
 
-Einzige Dev-Abhaengigkeit: `@playwright/test`. Keine externen
-Laufzeit-Abhaengigkeiten (Vertragsregel).
+```sh
+PLAYWRIGHT_CHANNEL=chrome npm run test:visual
+```

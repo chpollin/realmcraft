@@ -1,7 +1,7 @@
 // E2E: Laden von Speicherständen (Hybrid-Markdown, reines JSON, Fehlerfall).
-// Geschrieben gegen den Frontend-Vertrag, VOR der Implementierung (rot).
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   FIXTURE_MD,
   FIXTURE_JSON,
   EXPECT,

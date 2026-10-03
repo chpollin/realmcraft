@@ -6,14 +6,20 @@
   "type": "module",
   "scripts": {
     "serve": "node serve.mjs",
-    "test": "npm run test:unit && npm run test:e2e",
+    "check": "node tools/check.mjs",
+    "validate:savegame": "node tools/check.mjs savegame.json",
+    "test": "npm run check && npm run test:unit",
     "test:unit": "node --test \"tests/unit/**/*.test.js\"",
-    "test:e2e": "playwright test",
-    "test:strategy": "node --test tests/unit/strategy.test.js && playwright test tests/e2e/strategy.spec.js",
+    "test:e2e": "playwright test --project=e2e",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:strategy": "node --test tests/unit/strategy.test.js && playwright test --project=e2e tests/e2e/strategy.spec.js",
     "test:nachtmeer": "node --test tests/unit/nachtmeer.test.js tests/unit/nachtmeer-presentation.test.js",
     "simulate:nachtmeer": "node design/nachtmeer-simulate.mjs",
-    "test:visual:update": "playwright test --update-snapshots",
     "report": "playwright show-report"
+  },
+  "engines": {
+    "node": ">=21"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",

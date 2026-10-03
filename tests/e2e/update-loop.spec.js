@@ -2,19 +2,9 @@
 // Jeder Test laeuft in eigenem Browser-Kontext (frische localStorage).
 // Testids und Format folgen dem Frontend-Vertrag: Kapitel-Badge "chapter"
 // traegt roemische Ziffern (z.B. "Kapitel IV").
-import { test, expect } from '@playwright/test';
-import { join } from 'node:path';
-
-const ch3 = join(process.cwd(), 'examples', 'die-karren-kapitel-3.json');
-const ch4 = join(process.cwd(), 'examples', 'die-karren-kapitel-4.json');
-
-// Im Serve-Modus lädt die App beim Start die Live-savegame.json (laufende Partie)
-// und legt sie als ersten History-Eintrag ab. Das verfälscht hier jeden Test, der
-// von leerer Historie ausgeht (erstes Laden, Auto-Restore, Kapitel-Index). Den
-// Live-Stand isolieren, damit jeder Test allein über die geladenen Fixtures bestimmt.
-test.beforeEach(async ({ page }) => {
-  await page.route('**/savegame.json', (r) => r.fulfill({ status: 404, body: '' }));
-});
+// Die Isolation aus _helpers.js haelt die Live-savegame.json fern, die sonst als
+// erster History-Eintrag jeden Test verfaelschte, der von leerer Historie ausgeht.
+import { test, expect, FIXTURE_JSON as ch3, FIXTURE_CH4_JSON as ch4 } from './_helpers.js';
 
 test('erstes Laden zeigt kein Delta-Banner', async ({ page }) => {
   await page.goto('/');

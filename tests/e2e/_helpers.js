@@ -1,21 +1,50 @@
-// Gemeinsame Test-Helfer für die RealmCraft E2E-Specs.
-// Reine Helfer ohne Seiteneffekte auf die App; binden ausschließlich an den
-// Frontend-Vertrag (data-testid, Hash-Routen, Test-Hooks, Mock-Pixel).
+// Gemeinsame Test-Helfer für die RealmCraft-Dashboard-Specs (E2E und Visual).
+// Binden ausschließlich an den Frontend-Vertrag (data-testid, Hash-Routen,
+// Test-Hooks, Mock-Pixel).
+import { test as base, expect } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { MOCK_PIXEL_BASE64 } from '../fixtures/mock-pixel.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Repo-Root von tests/e2e/ aus: zwei Ebenen hoch.
 export const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
-// Pfade zur Test-Fixture (Beispielstand "Die Karren", Kapitel 3).
+// Beispielstand "Die Karren", Kapitel 3 (kanonische Fixture) und Kapitel 4
+// (führt runde, trends und lebensstand).
 export const FIXTURE_MD = path.join(REPO_ROOT, 'examples', 'die-karren-kapitel-3.md');
 export const FIXTURE_JSON = path.join(REPO_ROOT, 'examples', 'die-karren-kapitel-3.json');
+export const FIXTURE_CH4_JSON = path.join(REPO_ROOT, 'examples', 'die-karren-kapitel-4.json');
 
-// Einheitliches Mock-Pixel: 1x1 PNG als base64 (laut Auftrag/Vertrag).
-export const MOCK_PIXEL =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+export const MOCK_PIXEL = MOCK_PIXEL_BASE64;
+
+/**
+ * Schottet die Seite vom Server-Zustand ab, bevor sie lädt. Die App lädt sonst
+ * beim Start die live geschriebene savegame.json der laufenden Partie oder,
+ * ohne sie, den Demo-Stand aus dem Manifest bzw. dessen Einzelstand-Fallback;
+ * /env.js reicht einen lokalen Gemini-Key aus .env durch. Jeder dieser Wege
+ * machte das Ergebnis vom Arbeitsplatz abhängig. Specs, die Live-Modus oder
+ * Demo gezielt prüfen, registrieren danach eigene Routen; die zuletzt
+ * registrierte Route gewinnt.
+ */
+export async function isolate(page) {
+  const notFound = (route) => route.fulfill({ status: 404, body: '' });
+  await page.route('**/savegame.json', notFound);
+  await page.route('**/examples/demo/manifest.json', notFound);
+  await page.route('**/examples/die-gestrandeten.json', notFound);
+  await page.route('**/env.js', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
+  );
+}
+
+// Dashboard-Specs importieren test von hier, damit keine Spec die Isolation vergisst.
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    await isolate(page);
+    await use(page);
+  },
+});
+export { expect };
 
 // Erwartungswerte aus der Fixture (Vertrag §DOM und Beispielstand).
 export const EXPECT = {

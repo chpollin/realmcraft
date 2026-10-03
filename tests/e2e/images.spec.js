@@ -1,7 +1,7 @@
 // E2E: Bildgenerierung (Portrait, Karte) mit gemockter Gemini-API und Cache.
-// Geschrieben gegen den Frontend-Vertrag, VOR der Implementierung (rot).
-import { test, expect } from '@playwright/test';
 import {
+  test,
+  expect,
   FIXTURE_JSON,
   loadFile,
   waitForLoaded,

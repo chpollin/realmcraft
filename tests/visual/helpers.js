@@ -1,37 +1,11 @@
 // tests/visual/helpers.js
 //
 // Geteilte Hilfsfunktionen fuer die Playwright-Visual-Specs von RealmCraft.
-//
-// Alle Selektoren und Routen folgen exakt docs/Frontend-Contract.md:
-//   - Speicherstand laden ueber das Datei-Input [data-testid="load-input"]
-//     (setInputFiles mit examples/die-karren-kapitel-3.json).
-//   - Hash-Routing: #/lage #/berater #/welt #/karte #/historie;
-//     ohne/unbekannt -> #/lage. hashchange schaltet die View.
-//   - Views: <section data-view="lage"> ... <section data-view="historie">;
-//     inaktive Views tragen das Attribut hidden, die aktive nicht.
-//   - Leerzustand vor dem Laden: [data-testid="empty-state"] sichtbar.
-//   - Aktiver Tab: [data-tab="..."] mit aria-current="page".
-//
-// Keine externen Laufzeit-Abhaengigkeiten (nur @playwright/test als Dev-Tool).
+// Selektoren und Routen folgen docs/Frontend-Contract.md: Laden ueber
+// [data-testid="load-input"], Hash-Routing #/<view>, aktive View als
+// <section data-view="..."> ohne hidden.
 
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Repo-Wurzel: tests/visual/ -> ../../
-export const REPO_ROOT = path.resolve(__dirname, "..", "..");
-
-// Kanonische Test-Fixture (Beispielstand "Die Karren", Kapitel 3).
-export const FIXTURE_JSON = path.resolve(
-  REPO_ROOT,
-  "examples",
-  "die-karren-kapitel-3.json"
-);
-
-// View-Reihenfolge laut Aufgabe / Vertrag.
-export const VIEWS = ["lage", "berater", "welt", "karte", "historie"];
+import { FIXTURE_JSON, isolate } from "../e2e/_helpers.js";
 
 // Kurzer, fester Timeout fuers Warten auf Google Fonts (ms).
 const FONT_TIMEOUT = 1500;
@@ -42,6 +16,7 @@ const FONT_TIMEOUT = 1500;
  * gesetzte baseURL aufgeloest.
  */
 export async function openApp(page) {
+  await isolate(page);
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
   // Datei-Input und Leerzustand muessen vorhanden sein, bevor geladen wird.
   await page.waitForSelector('[data-testid="load-input"]', {
