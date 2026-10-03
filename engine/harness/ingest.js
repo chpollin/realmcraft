@@ -1,7 +1,7 @@
 // Ingest of one agent proposal into the campaign (Agentenvertrag, "Einlesen").
 // Pure: state, library and files go in and come out, the CLI does the IO.
 //
-//   ingestProposal(state, env, proposal, { task, library, consent }) ->
+//   ingestProposal(state, env, proposal, { task, library, consent, fog }) ->
 //     { ok, verdict, hash, issues, items, state, library, drafts, texts, events }
 //
 // verdict: accepted | partial | rejected | duplicate | deferred. Deferred means
@@ -15,9 +15,12 @@ import { hasErrors, issue } from '../core/issues.js';
 import { createContext, finish, noteChange, notice, setMember, setPeople } from '../core/log.js';
 import { clone, findMember, kern, peopleIds } from '../core/state.js';
 import { applyOnceList, setKern } from '../core/effects.js';
+import { offerDestiny } from '../core/bestimmung.js';
 import { evalCondition } from '../core/conditions.js';
 import { checkDraft, orderContext } from '../core/orders.js';
 import { computeDerived } from '../core/derive.js';
+import { projectFor } from '../core/project.js';
+import { reservedKeyPaths } from '../core/canon.js';
 import { appendToLibrary, createLibrary, refOf } from '../content/library.js';
 import { validateProposal } from '../content/validate.js';
 
@@ -28,6 +31,11 @@ const INGESTED_TURNS = 8;
 const TEXT_TYPES = new Set(['narrative', 'voice', 'stance', 'memory', 'finding', 'image']);
 
 const stem = (turn) => `T${String(turn).padStart(4, '0')}`;
+
+/** Whether a proposal carries any item beyond text, which changes state and needs its task's limits. */
+export function changesState(proposal) {
+  return (Array.isArray(proposal?.items) ? proposal.items : []).some((i) => !TEXT_TYPES.has(i?.type));
+}
 
 /** Whether the phase admits an item of this agent: agents all, planning text only, resolving the world cards. */
 export function phaseAllows(phase, agent, type) {
@@ -62,8 +70,20 @@ function pruneIngested(ingested, turn) {
   return out;
 }
 
-export function ingestProposal(state, env, proposal, { task = null, library = createLibrary(), consent = [] } = {}) {
-  const v = validateProposal(proposal, { state, task: task ?? undefined, regeln: env.regeln, welt: env.welt, library });
+/**
+ * holder: the { library } object the env resolves through; it follows the
+ * library while items are stored. fog (default true) checks drafted AI orders on the people's projection, as
+ * seal and apply do; replay passes false for journal entries written before
+ * that rule, so their recorded hashes still reproduce.
+ */
+export function ingestProposal(state, env, proposal, { task = null, library = createLibrary(), consent = [], fog = true, holder = null } = {}) {
+  const reserved = reservedKeyPaths(proposal);
+  if (reserved.length) {
+    return failed(state, library, 'rejected', null, reserved.map((path) => issue('format', path, 'a reserved name cannot serve as an id or key')));
+  }
+  // requireTask: the validator refuses state-changing items without the task
+  // whose limits they answer to; journal entries before that rule replay without it.
+  const v = validateProposal(proposal, { state, task: task ?? undefined, regeln: env.regeln, welt: env.welt, library, requireTask: fog });
   if (v.duplicate) return { ok: true, verdict: 'duplicate', hash: v.hash, issues: [], items: [], state, library, drafts: {}, texts: [], events: [] };
   if (hasErrors(v.issues)) return failed(state, library, 'rejected', v.hash, v.issues, v.items.map((it) => ({ ...it, type: proposal?.items?.[it.index]?.type ?? null, title: '' })));
 
@@ -85,6 +105,9 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
     try {
       const r = appendToLibrary(run.lib, data, { turn: tc.turn, source });
       run.lib = r.library;
+      // The env resolves agent content through the holder, so content stored
+      // by this proposal is known to the rules that check its later items.
+      if (holder) holder.library = run.lib;
       return { ref: r.ref, added: r.added };
     } catch (err) {
       return { error: issue('duplicate', '/data', err.message) };
@@ -112,11 +135,12 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         return [];
       }
       case 'bestimmung': {
+        // A destiny becomes adoptable only as an offer to its people (Regelkern section 13).
+        if (!people(pid)) return bad('target', '', `a destiny is offered to a people, the proposal names ${JSON.stringify(pid)}`);
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
-        const e = notice(tc, 'ingest.bestimmung', { kind: 'people', id: pid ?? tc.state.campaign.player }, `destiny ${stored.ref} offered`, { ...meta, people: pid ?? undefined });
-        if (!pid) hide(e);
-        return [];
+        const refused = offerDestiny(tc, pid, stored.ref, 'agent', { path: `${base}/data`, refs: meta.refs });
+        return refused;
       }
       case 'event': {
         if (tc.state.eventPool.length >= MAX_POOL) return bad('limit', '', `the event pool holds ${MAX_POOL} cards`);
@@ -162,7 +186,7 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         const p = people(pid);
         if (!p || p.controller !== 'ai') return bad('target', '', 'orders are accepted for AI peoples only');
         const draft = { ...clone(item.data), sealed: true };
-        const chk = checkDraft(state, env, draft, { as: pid, mode: 'preview' });
+        const chk = checkDraft(fog ? projectFor(state, env, pid) : state, env, draft, { as: pid, mode: 'preview' });
         if (hasErrors(chk.issues)) return chk.issues.filter((i) => i.severity === 'error').map((i) => ({ ...i, path: `${base}/data${i.path}` }));
         run.drafts[pid] = draft;
         hide(notice(tc, 'ingest.orders', { kind: 'people', id: pid }, 'orders drafted for the coming season', meta));
@@ -194,7 +218,8 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       }
       case 'correction': {
         if (item.needsConsent && !consent.includes(proposal.proposalId)) return bad('consent.required', '', `the correction of finding ${item.finding} waits for the player's consent`);
-        const target = item.people ?? proposal.people;
+        // The validator checked the corrected item against item.people alone.
+        const target = item.people ?? null;
         const reason = `correction of finding ${item.finding}`;
         let found;
         if (item.item.type === 'effects') {
@@ -205,8 +230,11 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
           found = applyItem(item.item, target, `${base}/item`);
         }
         if (found.length) return found;
-        if (item.needsConsent) notice(tc, 'ingest.consent', { kind: 'campaign', id: tc.state.campaign.id }, `player consented to ${proposal.proposalId}`, { source: 'player', refs: [proposal.proposalId, item.finding] });
-        notice(tc, 'ingest.correction', { kind: 'campaign', id: tc.state.campaign.id }, reason, { refs: [proposal.proposalId, item.finding] });
+        // Shown to the corrected people (and the consenting player), never to all.
+        const player = tc.state.campaign.player;
+        if (item.needsConsent) notice(tc, 'ingest.consent', { kind: 'campaign', id: tc.state.campaign.id }, `player consented to ${proposal.proposalId}`, { source: 'player', refs: [proposal.proposalId, item.finding], people: player });
+        const e = notice(tc, 'ingest.correction', { kind: 'campaign', id: tc.state.campaign.id }, reason, { refs: [proposal.proposalId, item.finding], people: target ?? undefined });
+        if (!target) hide(e);
         return [];
       }
       default:

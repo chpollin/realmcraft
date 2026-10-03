@@ -103,6 +103,17 @@ describe('fog', { timeout: T_SHORT }, () => {
     assert.deepEqual(leaks(events, s, player), []);
   });
 
+  it('the projected events carry no trade bookkeeping and no draw history of another people', () => {
+    const s = c.state();
+    const player = s.campaign.player;
+    const foreign = Object.keys(s.peoples).filter((id) => id !== player);
+    const shown = collect(c.viewEvents(player, lastTurn), (e) => isObj(e) && 'target' in e && 'change' in e);
+    assert.deepEqual(shown.filter((e) => e.kind === 'trade.seq' || e.kind === 'event.history-total'), []);
+    for (const e of shown.filter((x) => x.kind === 'event.history')) {
+      assert.deepEqual(foreign.filter((f) => JSON.stringify(e.change).includes(`"${f}"`)), [], `event ${e.id} names a foreign people`);
+    }
+  });
+
   it('tasks working for the player carry only the player projection', () => {
     const s = c.state();
     const player = s.campaign.player;

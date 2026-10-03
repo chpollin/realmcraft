@@ -29,6 +29,7 @@ import {
   addPeople, addResource, changeLoyalty, noteChange, setControl, setMember, setPeople, setRelation, record,
 } from './log.js';
 import { distance, parseKey, reveal, regionInfo, tileAt } from '../world/index.js';
+import { RESERVED_KEYS } from './canon.js';
 
 /**
  * Standing primitives of a people: [{ effect, source }] where source is
@@ -214,8 +215,10 @@ export function applyOnce(tc, pid, e, ctx = {}) {
     case 'flag.set':
       return setKern(tc, pid, `flags.${e.flag.replace('.', '~')}`, e.value, reason, { ...opts, kind: 'flag.set' });
     case 'meter.delta': {
+      // Runtime guard behind makeEnv and ingest: an inherited name is never a meter.
+      if (RESERVED_KEYS.has(e.meter)) return skip(`${e.meter} cannot name a meter`);
       const [min, max] = meterBounds(standingOf(tc.s0, tc.env, pid), e.meter);
-      if (people.meters[e.meter] === undefined) people.meters[e.meter] = clamp(0, min, max);
+      if (!Object.hasOwn(people.meters, e.meter)) people.meters[e.meter] = clamp(0, min, max);
       return addPeople(tc, pid, `meters.${e.meter}`, e.amount, reason, { ...opts, min, max, kind: 'meter.change' }).applied !== 0;
     }
     case 'reveal':

@@ -67,9 +67,14 @@ function bagProblem(ox, bag, what) {
 const holds = (people, bag) => Object.entries(bag).every(([res, n]) => (people.resources[res] ?? 0) >= n);
 const involves = (x, pid) => x.a === pid || x.b === pid;
 
-// A slice change is logged as a list insertion or removal on the campaign.
+// A slice change is logged as a list insertion or removal on the campaign. It
+// is visible only to the peoples party to it; bookkeeping without a party
+// (ledger creation, sequence counter) reaches no projection, because record()
+// would otherwise show every entry without a people to all and so tell any
+// people that and how often others trade.
 function logGlobal(tc, kind, field, before, after, reason, people = []) {
-  noteChange(tc, kind, { kind: 'campaign', id: tc.state.campaign.id }, `modules.handel.${field}`, before, after, reason, { people });
+  const entry = noteChange(tc, kind, { kind: 'campaign', id: tc.state.campaign.id }, `modules.handel.${field}`, before, after, reason, { people });
+  if (people.length === 0) entry.visibleTo = [];
 }
 
 function liveSlice(tc) {
@@ -249,7 +254,7 @@ function globalHook(tc) {
     if (after === before) continue;
     slice.prices[res] = after;
     noteChange(tc, 'market.price', { kind: 'campaign', id: tc.state.campaign.id }, `modules.handel.prices.${res}`, before, after,
-      `the market for ${res} moves (net ${net > 0 ? '+' : ''}${net})`, { visibleTo: 'all' });
+      `the market for ${res} moves ${net > 0 ? 'up' : 'down'}`, { visibleTo: 'all' });
   }
 }
 
@@ -281,6 +286,8 @@ export default {
     },
     // Besides the own offers and contracts a projection carries which contacts
     // trade and where their market towns lie, so previews give the same result as on the full state.
+    // The price list is the public market; the sequence counter and the offers
+    // and contracts of other peoples stay in the kernel.
     project(state, env, pid) {
       const slice = sliceOf(state);
       const traders = peopleIds(state).filter((o) => o !== pid && relation(state, pid, o)?.contact === true

@@ -30,7 +30,9 @@ export const TASK_DEFS = Object.freeze({
       allowedPrimitives: arr({ enum: [...STANDING_OPS, ...ONCE_OPS] }, STANDING_OPS.length + ONCE_OPS.length),
       tags: arr(ref('tag'), 200),
       budget: arr(obj({ tier: int(1, MAX_TIER), effectMax: int(1, 99), netMin: int(-99, 99), netMax: int(-99, 99), priceMax: int(-99, 0) }), MAX_TIER),
-    }),
+      // Default absent: slot capacity of the season for a task that drafts orders (rival).
+      slots: obj({ main: int(0, 9), minor: int(0, 9) }),
+    }, ['slots']),
     note: text(1000),
   }, ['note']),
 });

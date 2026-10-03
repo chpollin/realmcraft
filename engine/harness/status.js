@@ -135,3 +135,23 @@ export function recordVerdict(dir, stepId, { proposalId, kind, title, verdict, b
     return status;
   }, lock);
 }
+
+/**
+ * Brings status.json in line with the campaign state after a kernel
+ * transition: the phase always follows the state. When apply moves to a new
+ * turn, the steps of the resolved turn (phase B before it, the world step of
+ * phase A) move to `resolved`, so the dashboard can show the round that just
+ * ended; open drops them when planning starts.
+ */
+export function followState(dir, state, { lock } = {}) {
+  return commit(dir, (cur) => {
+    const base = { format: 'realmcraft-status', version: 1, campaign: state.campaign.id, turn: state.turn, phase: state.phase, steps: [] };
+    if (!cur) return base;
+    if (cur.turn !== state.turn) {
+      return cur.turn === state.turn - 1 && state.phase === 'agents' ? { ...base, resolved: { turn: cur.turn, steps: cur.steps } } : base;
+    }
+    const next = { ...structuredClone(cur), phase: state.phase };
+    if (state.phase === 'planning') delete next.resolved;
+    return next;
+  }, lock);
+}

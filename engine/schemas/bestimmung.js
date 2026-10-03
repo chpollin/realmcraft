@@ -39,7 +39,11 @@ export const BESTIMMUNG_DEFS = Object.freeze({
     milestones: arr(obj({ id: ref('id'), text: text(140, 2), predicate: ref('predicate') }), 4, 3),
   }),
   // Per-people state. progress counts consecutive seasons for holds and is 0 otherwise.
+  // offers (absent = none): the destinies the people may adopt at the moment, at most two.
+  // difficulty (absent = computed by the kernel on demand): difficulty of the destiny, the tie-break of a shared victory.
   bestimmungState: obj({
+    offers: arr(obj({ ref: ref('ref'), offeredAt: ref('turn'), origin: { enum: ['agent', 'pool'] } }), 2),
+    difficulty: int(0, 999),
     ref: ref('ref'),
     adoptedAt: ref('turn'),
     milestones: arr(obj({ id: ref('id'), reached: { type: 'boolean' }, reachedAt: nullable(ref('turn')), progress: int(0, 99) }), 4, 3),
@@ -49,7 +53,7 @@ export const BESTIMMUNG_DEFS = Object.freeze({
       endedAt: ref('turn'),
       outcome: { enum: ['fulfilled', 'switched', 'abandoned'] },
     }), 20),
-  }),
+  }, ['offers', 'difficulty']),
 });
 
 export const bestimmung = bundle('bestimmung/1', BESTIMMUNG_DEFS.bestimmung, COMMON_DEFS, BESTIMMUNG_DEFS);

@@ -10,16 +10,37 @@
 //   ingest [<proposalFile>] [--consent <proposalId>]
 //   validate <path> [--campaign <cid> | --world <id>]       budget <file>
 //   replay [--to <turn>]              schema <name>
+//   repin                             pin the campaign to the current world package
 //
-// Exit codes: 0 ok, 2 rejected or invalid, 3 missing input (player roll,
-// file, campaign), 4 phase, revision or tamper conflict, 5 replay mismatch.
+// Exit codes: 0 ok, 1 internal error (an exception the kernel did not turn
+// into an issue; the output carries its stack as cli.error), 2 rejected or
+// invalid, 3 missing input (player roll, file, campaign), 4 phase, revision,
+// world or tamper conflict, 5 replay mismatch.
 // Root: REALMCRAFT_ROOT or the working directory; campaigns/<cid> and
 // welten/<worldId> below it (worlds fall back to the repository's welten/).
 //
 // Every transition (new, seal, apply, open, ingest) appends to
-// log/journal.json { op, turn, revAfter, hashAfter, input }. The journal is
-// the replay source and the tamper anchor: a transition on a state.json whose
-// hash differs from the last journal entry is refused.
+// log/journal.json. Entries of format 2 form a hash chain: each carries the
+// hash of its predecessor and its own hash, and anchors next to the state
+// hash the library prefix, the drafts and rolls it leaves and the world
+// package. A transition on files that do not match the last entry is refused.
+// The chain detects edits made outside the kernel; whoever rewrites the whole
+// chain can forge it, and replay is the full proof of a campaign.
+//
+// A world package that changed since the campaign was pinned refuses every
+// transition until `repin` validates the package and pins the campaign to it.
+// repin is itself a journalled transition with an anchor of the repinned
+// state, and replay starts from the last such anchor, because the steps
+// before it ran on a package that no longer exists.
+//
+// One campaign lock serialises transitions, rolls and stored previews. A
+// commit writes library, journal and state in this order, then its own files
+// (drafts, reports, texts), then the views; an interrupted commit is rolled
+// forward from its journal entry by the next transition.
+//
+// Rolls live in the append-only ledger rolls.json. A draft's rolls are
+// derived from it: a probe keeps the first value rolled for its fingerprint,
+// and a roll whose probe left the draft or changed is listed as withdrawn.
 
 import { copyFileSync, existsSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -28,13 +49,15 @@ import { SCHEMAS } from './schemas/index.js';
 import { validate as schemaIssues } from './content/schema.js';
 import { issue, hasErrors } from './core/issues.js';
 import { bareCode, kissue } from './core/codes.js';
+import { hashValue } from './core/hash.js';
+import { reservedKeyPaths } from './core/canon.js';
 import { makeEnv } from './core/env.js';
 import { calendarOf } from './core/calendar.js';
 import { peopleIds } from './core/state.js';
 import { checkDraft } from './core/orders.js';
 import { resolveProbe, calculation } from './core/probes.js';
 import { projectFor, projectEvents } from './core/project.js';
-import { apply, createCampaign, emptyDraft, open, preview, seal, stateHash } from './core/turn.js';
+import { apply, createCampaign, emptyDraft, open, preview, repin, seal, stateHash } from './core/turn.js';
 import { appendToLibrary, createLibrary, resolveRef } from './content/library.js';
 import {
   validateBestimmung, validateCampaign, validateDraft, validateEntwicklung, validateEreignis, validateProposal, validateWorldPackage,
@@ -43,14 +66,19 @@ import { scoreEntwicklungStandalone, scoreEreignis } from './content/budget.js';
 import {
   LAYOUT, campaignDir, ensureLayout, readJson, turnStem, withLock, writeJsonAtomic, writeState,
 } from './harness/io.js';
-import { initTurnStatus, recordVerdict } from './harness/status.js';
+import { followState, initTurnStatus, recordVerdict } from './harness/status.js';
 import { buildJudgeTask, buildTasks } from './harness/tasks.js';
-import { ingestProposal } from './harness/ingest.js';
+import { changesState, ingestProposal } from './harness/ingest.js';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BOOLEAN_FLAGS = new Set(['json']);
 const PACK_FILES = ['welt', 'regeln', 'labels', 'style'];
 const CONTENT = ['entwicklungen', 'ereignisse', 'bestimmungen'];
+// Same pattern the dev server accepts; it keeps a campaign id from naming a
+// path outside campaigns/ or a Windows alias of another folder.
+const CID = /^[a-z][a-z0-9-]{1,40}$/;
+const JOURNAL_FORMAT = 2;
+const ROLLS = 'rolls.json';
 
 // --- small helpers -----------------------------------------------------------
 
@@ -77,12 +105,12 @@ const ok = (data = {}, text = '') => ({ code: 0, issues: [], data, text });
 const cliIssue = (code, path, message, severity = 'error') => issue(code, path, message, { severity });
 const errorsOf = (issues) => issues.filter((i) => i.severity === 'error');
 
-// Exit code of kernel issues: phase, revision and tamper conflicts are 4, a
-// missing player roll alone is 3, everything else 2.
+// Exit code of kernel issues: phase, revision, world and tamper conflicts are
+// 4, a missing player roll alone is 3, everything else 2.
 function exitFor(issues) {
   const errors = errorsOf(issues).map(bareCode);
   if (!errors.length) return 0;
-  if (errors.some((c) => ['phase', 'finished', 'tamper', 'cli.stale_rev'].includes(c))) return 4;
+  if (errors.some((c) => ['phase', 'finished', 'tamper', 'cli.stale_rev', 'cli.world_drift', 'cli.interrupted'].includes(c))) return 4;
   if (errors.every((c) => c === 'roll_missing')) return 3;
   return 2;
 }
@@ -117,11 +145,22 @@ function moveFile(from, to) {
   }
 }
 
+// Files after the state are bookkeeping a later command can redo; their
+// failure becomes a warning instead of undoing a committed transition.
+function soft(issues, what, fn) {
+  try {
+    fn();
+  } catch (err) {
+    issues.push(cliIssue('cli.downstream', '', `${what} not written: ${err.message}`, 'warning'));
+  }
+}
+
 // --- worlds and campaigns ----------------------------------------------------
 
 const rootOf = () => resolve(process.env.REALMCRAFT_ROOT ?? process.cwd());
 
 function worldDirFor(root, worldId) {
+  if (!CID.test(String(worldId))) return null;
   for (const base of [join(root, 'welten'), join(REPO, 'welten')]) {
     const dir = join(base, worldId);
     if (existsSync(join(dir, 'welt.json'))) return dir;
@@ -162,6 +201,7 @@ function buildEnv(pack, holder) {
 
 function loadCampaign(root, cid) {
   if (!cid) return { error: fail(3, [cliIssue('cli.missing_input', '/campaign', 'a command needs --campaign <cid>')]) };
+  if (!CID.test(cid)) return { error: fail(2, [cliIssue('format', '/campaign', `campaign id "${cid}" must match ${CID.source}`)]) };
   const dir = campaignDir(root, cid);
   if (!existsSync(join(dir, LAYOUT.state))) return { error: fail(3, [cliIssue('cli.no_campaign', '/campaign', `no campaign "${cid}" under ${join(root, 'campaigns')}`)]) };
   const state = readJson(join(dir, LAYOUT.state));
@@ -176,27 +216,134 @@ function loadCampaign(root, cid) {
   const holder = { library };
   const env = buildEnv(pack, holder);
   const warnings = [];
-  if ((lock?.hash ?? state.campaign.world.hash) !== env.hash) warnings.push(cliIssue('cli.world_drift', '/world', `world package "${worldId}" differs from the one the campaign was created with`, 'warning'));
-  return { c: { root, cid, dir, state, library, lock, pack, env, holder, worldDir, warnings } };
+  const drift = (lock?.hash ?? state.campaign.world.hash) !== env.hash;
+  if (drift) warnings.push(cliIssue('cli.world_drift', '/world', `world package "${worldId}" differs from the one the campaign was created with`, 'warning'));
+  return { c: { root, cid, dir, state, library, lock, pack, env, holder, worldDir, warnings, drift } };
 }
 
-// --- journal, views, index ---------------------------------------------------
+// --- journal -----------------------------------------------------------------
 
 const journalPath = (dir) => join(dir, LAYOUT.log, 'journal.json');
 const readJournal = (dir) => readJson(journalPath(dir), { fallback: null });
+// Entries before format 2 carry no hash of their own and hash as a whole.
+const entryHash = (e) => e.hash ?? hashValue(e);
+const libraryAnchor = (library, count = library.entries.length) => hashValue(library.entries.slice(0, count));
 
-function appendJournal(c, entry) {
-  const journal = readJournal(c.dir) ?? [];
-  writeJsonAtomic(journalPath(c.dir), [...journal, entry]);
+/** A format-2 journal entry chained to the last entry of `journal`. */
+function chainEntry(journal, c, fields, { library, drafts }) {
+  const prev = journal.at(-1);
+  const body = {
+    ...fields,
+    kernel: JOURNAL_FORMAT,
+    prev: prev ? entryHash(prev) : null,
+    libraryCount: library.entries.length,
+    libraryHash: libraryAnchor(library),
+    draftsHash: hashValue(drafts),
+    rolls: rollsAnchor(c.dir),
+    worldHash: c.env.hash,
+  };
+  return { ...body, hash: hashValue(body) };
 }
 
-function guard(c) {
-  const journal = readJournal(c.dir);
-  const last = journal?.at(-1);
-  if (!last) return [kissue('tamper', '/state', 'the campaign has no journal, its state cannot be verified')];
-  if (stateHash(c.state) !== last.hashAfter) return [kissue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)')];
+/** Problems of the chain itself: an edited entry, a broken link, a revision that does not rise. */
+function chainIssues(journal) {
+  const bad = (i, why) => [kissue('tamper', `/journal/${i}`, `log/journal.json entry ${i} ${why}`)];
+  for (let i = 0; i < journal.length; i++) {
+    const e = journal[i];
+    if (i > 0 && Number.isInteger(journal[i - 1].revAfter) && !(e.revAfter > journal[i - 1].revAfter)) return bad(i, 'does not raise the revision');
+    if (e.kernel === undefined) {
+      if (i > 0 && journal[i - 1].kernel !== undefined) return bad(i, 'drops the hash chain');
+      continue;
+    }
+    const { hash, ...body } = e;
+    if (hash !== hashValue(body)) return bad(i, 'was edited after it was written');
+    if (body.prev !== (i ? entryHash(journal[i - 1]) : null)) return bad(i, 'does not follow its predecessor');
+  }
   return [];
 }
+
+// --- rolls ledger ------------------------------------------------------------
+
+const rollsPath = (dir) => join(dir, ROLLS);
+
+/**
+ * The ledger entries. A campaign from before the ledger has none on disk;
+ * its stored player draft of the current turn seeds the ledger once, so rolls
+ * entered before the upgrade stay valid.
+ */
+function readRolls(c) {
+  const held = readJson(rollsPath(c.dir), { fallback: null });
+  if (held) return held.entries;
+  const pid = c.state.campaign.player;
+  const draft = tryJson(join(c.dir, LAYOUT.drafts, `${pid}.json`)).value;
+  if (!draft || draft.turn !== c.state.turn || typeof draft.rolls !== 'object' || draft.rolls === null) return [];
+  const out = [];
+  for (const w of Array.isArray(draft.withdrawn) ? draft.withdrawn : []) out.push({ turn: draft.turn, people: pid, probe: w.probe, fingerprint: w.fingerprint, value: w.value });
+  for (const [probe, r] of Object.entries(draft.rolls)) out.push({ turn: draft.turn, people: pid, probe, fingerprint: r.fingerprint, value: r.value });
+  return out;
+}
+
+function writeRolls(dir, entries) {
+  writeJsonAtomic(rollsPath(dir), { format: 'realmcraft-rolls', version: 1, entries });
+}
+
+// The anchor a transition records: count and hash of the ledger so far.
+// Later rolls only append, so the prefix stays checkable.
+function rollsAnchor(dir) {
+  const held = readJson(rollsPath(dir), { fallback: null });
+  const entries = held?.entries ?? [];
+  return { count: entries.length, hash: hashValue(entries) };
+}
+
+const isRollValue = (v) => Number.isInteger(v) && v >= 1 && v <= 10;
+
+/**
+ * The player's draft with rolls and withdrawn taken from the ledger. A probe
+ * keeps the value the ledger holds for its id and fingerprint. An incoming
+ * value counts only for a probe the ledger has no roll for, and only when
+ * `adopt` is set (a draft the player submits); it becomes a new ledger entry.
+ * An incoming roll whose probe left the draft or changed stays as it is, so
+ * the check reports it as roll_stale until the player drops it; a ledger roll
+ * no longer in the draft is listed as withdrawn. Returns { draft, added,
+ * kept } (kept: probes whose incoming value was ignored for the held one).
+ */
+function reconcileRolls(view, env, draft, pid, ledger, { incoming = draft.rolls, adopt = false } = {}) {
+  const turn = view.turn;
+  const chk = checkDraft(view, env, { ...draft, rolls: {}, withdrawn: [] }, { as: pid, mode: 'preview' });
+  const probes = new Map(chk.probes.filter((x) => x.roller === 'player').map((p) => [p.id, p]));
+  const mine = ledger.filter((r) => r.turn === turn && r.people === pid);
+  const offered = incoming && typeof incoming === 'object' ? incoming : {};
+  const rolls = {};
+  const added = [];
+  const kept = [];
+  for (const p of probes.values()) {
+    const held = mine.find((r) => r.probe === p.id && r.fingerprint === p.fingerprint);
+    const inc = Object.hasOwn(offered, p.id) ? offered[p.id] : null;
+    if (held) {
+      rolls[p.id] = { value: held.value, fingerprint: p.fingerprint };
+      if (inc && inc.fingerprint === p.fingerprint && inc.value !== held.value) kept.push(p.id);
+    } else if (adopt && inc && inc.fingerprint === p.fingerprint && isRollValue(inc.value)) {
+      rolls[p.id] = { value: inc.value, fingerprint: p.fingerprint };
+      added.push({ turn, people: pid, probe: p.id, fingerprint: p.fingerprint, value: inc.value });
+    }
+  }
+  for (const [id, r] of Object.entries(offered)) {
+    if (Object.hasOwn(rolls, id) || !r || typeof r !== 'object') continue;
+    if (!probes.has(id) || probes.get(id).fingerprint !== r.fingerprint) rolls[id] = { value: r.value, fingerprint: r.fingerprint };
+  }
+  const usedKey = new Set(Object.entries(rolls).map(([id, r]) => `${id}|${r.fingerprint}`));
+  const seen = new Set();
+  const withdrawn = [];
+  for (const r of [...mine, ...added]) {
+    const k = `${r.probe}|${r.fingerprint}`;
+    if (usedKey.has(k) || seen.has(k)) continue;
+    seen.add(k);
+    withdrawn.push({ probe: r.probe, value: r.value, fingerprint: r.fingerprint });
+  }
+  return { draft: { ...draft, rolls, withdrawn: withdrawn.slice(-16) }, added, kept };
+}
+
+// --- views, index, tasks -----------------------------------------------------
 
 function writeViews(c, state) {
   for (const pid of peopleIds(state)) writeJsonAtomic(join(c.dir, LAYOUT.view, `${pid}.json`), projectFor(state, c.env, pid));
@@ -237,21 +384,200 @@ function writeTasks(c, state, phase = state.phase) {
   for (const { path, task } of buildTasks(state, c.env, { library: c.library, phase })) writeJsonAtomic(join(c.dir, path), task);
 }
 
-// State, journal, views and bookkeeping of one transition.
-function commit(c, { op, next, input, events, library = c.library, extraFiles }) {
-  const w = writeState(c.dir, next, { expectRev: c.state.rev });
+// --- transitions -------------------------------------------------------------
+
+const draftPath = (c, pid) => join(c.dir, LAYOUT.drafts, `${pid}.json`);
+
+/** Stored drafts of the current turn; drafts of an earlier turn are left over and ignored. */
+function draftsOf(c, turn = c.state.turn) {
+  const out = {};
+  for (const n of listJson(join(c.dir, LAYOUT.drafts))) {
+    const d = tryJson(join(c.dir, LAYOUT.drafts, n)).value;
+    if (d && d.turn === turn) out[n.slice(0, -5)] = d;
+  }
+  return out;
+}
+
+// The files a transition writes besides the state, per operation. They run
+// after the state is written and again when an interrupted commit is rolled
+// forward, so each must be repeatable.
+const POST = {
+  open: () => {},
+  repin(cc) {
+    const lock = readJson(join(cc.dir, LAYOUT.worldLock), { fallback: {} });
+    writeJsonAtomic(join(cc.dir, LAYOUT.worldLock), { ...lock, id: cc.env.welt.id, version: cc.env.welt.version, hash: cc.env.hash });
+  },
+  seal(cc, res) {
+    for (const [pid, d] of Object.entries(res.drafts)) writeJsonAtomic(draftPath(cc, pid), d);
+  },
+  apply(cc, res, entry) {
+    writeJsonAtomic(join(cc.dir, LAYOUT.log, `${turnStem(entry.turn)}.json`), res.report);
+    for (const n of listJson(join(cc.dir, LAYOUT.drafts))) unlinkSync(join(cc.dir, LAYOUT.drafts, n));
+  },
+  ingest(cc, res) {
+    for (const [pid, d] of Object.entries(res.drafts)) writeJsonAtomic(draftPath(cc, pid), d);
+    // Texts of several proposals (or several items) for one file add up.
+    for (const t of res.texts) {
+      const full = join(cc.dir, t.path);
+      mkdirSync(dirname(full), { recursive: true });
+      const old = existsSync(full) ? readText(full) : '';
+      writeFileSync(full, old ? `${old.replace(/\s*$/, '')}\n\n${t.text}` : t.text);
+    }
+  },
+};
+
+/** Drafts on disk once the transition's own files are written. */
+function draftsAfter(cc, op, res) {
+  if (op === 'apply') return {};
+  if (op === 'seal' || op === 'ingest') return { ...draftsOf(cc), ...res.drafts };
+  return draftsOf(cc);
+}
+
+/** Views, index, tasks and status: rebuilt from the state, never fatal. */
+function downstream(cc, next, events, issues, { op }) {
+  soft(issues, 'views', () => writeViews(cc, next));
+  soft(issues, 'event views', () => writeEventViews(cc, next, events ?? []));
+  soft(issues, 'campaign index', () => upsertIndex(cc, next));
+  if (op !== 'ingest') soft(issues, 'tasks', () => writeTasks({ ...cc, library: cc.holder.library }, next));
+  soft(issues, 'status', () => followState(cc.dir, next));
+}
+
+/**
+ * Library, journal, state, own files, views. Nothing is written when the new
+ * state fails its schema; a state write that fails after the journal entry
+ * takes the entry back. Returns { issues, entry }.
+ */
+function commit(cc, { op, next, input, res, events, library = cc.library }) {
+  const bad = schemaIssues(SCHEMAS.campaign, next);
+  if (bad.length) return { issues: bad };
+  const journal = readJournal(cc.dir) ?? [];
+  // The first chained entry after a journal of an older kernel anchors the
+  // state it starts from: the older steps need not replay on this kernel.
+  const fields = { op, turn: cc.state.turn, revAfter: next.rev, hashAfter: stateHash(next), input };
+  if (journal.length && journal.at(-1).kernel === undefined) {
+    fields.base = { anchor: `anchors/kernel${JOURNAL_FORMAT}-r${cc.state.rev}.json`, libraryCount: cc.library.entries.length };
+    writeJsonAtomic(join(cc.dir, fields.base.anchor), cc.state);
+  }
+  if (library !== cc.library) writeJsonAtomic(join(cc.dir, LAYOUT.library), library);
+  const entry = chainEntry(journal, cc, fields, { library, drafts: draftsAfter(cc, op, res) });
+  writeJsonAtomic(journalPath(cc.dir), [...journal, entry]);
+  const w = writeState(cc.dir, next, { expectRev: cc.state.rev, validate: false });
+  if (!w.ok) {
+    writeJsonAtomic(journalPath(cc.dir), journal);
+    return { issues: w.issues };
+  }
+  cc.holder.library = library;
+  const issues = [];
+  soft(issues, `${op} files`, () => POST[op](cc, res, entry));
+  downstream(cc, next, events, issues, { op });
+  return { issues, entry };
+}
+
+/** One journal step from a state: { state, library, res }. Shared by replay and roll-forward. */
+function runStep(state, env, e, library, holder) {
+  if (e.op === 'open') {
+    const res = open(state, env);
+    return { state: res.state, library, res };
+  }
+  if (e.op === 'seal') {
+    const res = seal(state, env, e.input.drafts);
+    return { state: res.state, library, res };
+  }
+  if (e.op === 'apply') {
+    const res = apply(state, env, e.input.drafts);
+    return { state: res.state, library, res };
+  }
+  if (e.op === 'repin') {
+    const res = repin(state, env);
+    return { state: res.state, library, res };
+  }
+  if (e.op === 'ingest') {
+    holder.library = library;
+    const res = ingestProposal(state, env, e.input.proposal, { task: e.input.task, library, consent: e.input.consent, fog: (e.kernel ?? 1) >= 2, holder: (e.kernel ?? 1) >= 2 ? holder : null });
+    holder.library = res.library;
+    return { state: res.state, library: res.library, res };
+  }
+  throw new Error(`unknown journal operation ${e.op}`);
+}
+
+/**
+ * A commit that wrote its journal entry but not the state: the state still
+ * matches the entry before. The step is run again from the library prefix the
+ * earlier entry anchored and must reproduce the recorded hash.
+ */
+function rollForward(cc, journal) {
+  const last = journal.at(-1);
+  const before = journal.at(-2);
+  if (!before || !last.kernel || !POST[last.op] || stateHash(cc.state) !== before.hashAfter) return null;
+  const count = before.libraryCount ?? cc.library.entries.length;
+  const library = { ...cc.library, entries: cc.library.entries.slice(0, count) };
+  let step;
+  try {
+    step = runStep(cc.state, cc.env, last, library, cc.holder);
+  } catch (err) {
+    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} could not be repeated: ${err.message}`)];
+  }
+  if (stateHash(step.state) !== last.hashAfter) {
+    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} does not reproduce its journal entry`)];
+  }
+  if (step.library !== library) writeJsonAtomic(join(cc.dir, LAYOUT.library), step.library);
+  const w = writeState(cc.dir, step.state, { expectRev: cc.state.rev, validate: false });
   if (!w.ok) return w.issues;
-  if (library !== c.library) writeJsonAtomic(join(c.dir, LAYOUT.library), library);
-  for (const f of extraFiles ?? []) f();
-  appendJournal(c, { op, turn: c.state.turn, revAfter: next.rev, hashAfter: stateHash(next), input });
-  writeViews(c, next);
-  writeEventViews(c, next, events ?? []);
-  upsertIndex(c, next);
+  const issues = [cliIssue('cli.recovered', '/journal', `the interrupted ${last.op} of turn ${last.turn} was completed`, 'warning')];
+  const cc2 = { ...cc, state: step.state, library: step.library };
+  soft(issues, `${last.op} files`, () => POST[last.op](cc2, step.res, last));
+  downstream(cc2, step.state, step.res.events, issues, { op: last.op });
+  cc.state = step.state;
+  cc.library = step.library;
+  cc.holder.library = step.library;
+  cc.warnings.push(...issues);
   return [];
 }
 
-const draftsOf = (dir) => Object.fromEntries(listJson(join(dir, LAYOUT.drafts)).map((n) => [n.slice(0, -5), readJson(join(dir, LAYOUT.drafts, n))]));
-const draftPath = (c, pid) => join(c.dir, LAYOUT.drafts, `${pid}.json`);
+/** The campaign files match the journal; an interrupted commit is completed first. */
+function guard(cc, { allowDrift = false } = {}) {
+  const journal = readJournal(cc.dir);
+  if (!journal?.length) return [kissue('tamper', '/state', 'the campaign has no journal, its state cannot be verified')];
+  const chain = chainIssues(journal);
+  if (chain.length) return chain;
+  let last = journal.at(-1);
+  if (stateHash(cc.state) !== last.hashAfter) {
+    const rolled = rollForward(cc, journal);
+    if (rolled === null) return [kissue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)')];
+    if (rolled.length) return rolled;
+    last = journal.at(-1);
+  }
+  if (last.kernel !== undefined) {
+    // An interrupted ingest may leave library entries no state refers to yet.
+    if (cc.library.entries.length > last.libraryCount) cc.library = { ...cc.library, entries: cc.library.entries.slice(0, last.libraryCount) };
+    if (cc.library.entries.length !== last.libraryCount || libraryAnchor(cc.library) !== last.libraryHash) {
+      return [kissue('tamper', '/library', 'library.json was changed outside the kernel')];
+    }
+    cc.holder.library = cc.library;
+    const held = readJson(rollsPath(cc.dir), { fallback: null })?.entries ?? [];
+    if (held.length < last.rolls.count || hashValue(held.slice(0, last.rolls.count)) !== last.rolls.hash) {
+      return [kissue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`)];
+    }
+    if (!allowDrift && last.worldHash !== cc.env.hash) return [cliIssue('cli.world_drift', '/world', 'the world package changed since the last transition; restore it or run repin')];
+  }
+  if (!allowDrift && cc.drift) return [cliIssue('cli.world_drift', '/world', 'the world package differs from the one the campaign is pinned to; restore it or run repin')];
+  return [];
+}
+
+/** Runs fn on a freshly loaded campaign under the campaign lock. */
+function locked(c, fn, { verify = true, allowDrift = false } = {}) {
+  return withLock(c.dir, 'campaign', () => {
+    const fresh = loadCampaign(c.root, c.cid);
+    if (fresh.error) return fresh.error;
+    const cc = fresh.c;
+    if (verify) {
+      const t = guard(cc, { allowDrift });
+      if (t.length) return fail(exitFor(t), t);
+    }
+    const r = fn(cc);
+    return { ...r, issues: [...cc.warnings.filter((w) => bareCode(w) !== 'cli.world_drift'), ...(r.issues ?? [])] };
+  });
+}
 
 const outcome = (res, extra = {}) => ({ code: res.code, issues: res.issues, data: res.data ?? {}, text: res.text ?? '', ...extra });
 
@@ -262,6 +588,7 @@ function cmdNew(a) {
   const [worldId] = a.positional;
   const cid = flag(a, 'id');
   if (!worldId || !cid) return fail(3, [cliIssue('cli.missing_input', '', 'usage: new <worldId> --seed <n> --as <template> --id <cid>')]);
+  if (!CID.test(cid)) return fail(2, [cliIssue('format', '/id', `campaign id "${cid}" must match ${CID.source}`)]);
   const worldDir = worldDirFor(root, worldId);
   if (!worldDir) return fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`)]);
   const { pack, problems } = loadPack(worldDir);
@@ -269,9 +596,17 @@ function cmdNew(a) {
   if (hasErrors(checked)) return fail(2, checked);
 
   const dir = campaignDir(root, cid);
-  if (existsSync(join(dir, LAYOUT.state))) return fail(2, [cliIssue('duplicate', '/id', `campaign "${cid}" already exists`)]);
+  // Windows folds case and trailing dots, so another spelling of an existing id is the same folder.
+  const taken = existsSync(join(root, 'campaigns'))
+    && readdirSync(join(root, 'campaigns')).some((n) => n.toLowerCase().replace(/[. ]+$/, '') === cid);
+  if (existsSync(join(dir, LAYOUT.state)) || taken) return fail(2, [cliIssue('duplicate', '/id', `campaign "${cid}" already exists`)]);
   const holder = { library: packLibrary(pack) };
-  const env = buildEnv(pack, holder);
+  let env;
+  try {
+    env = buildEnv(pack, holder);
+  } catch (err) {
+    return fail(2, [cliIssue('format', '/world', err.message)]);
+  }
   const seedArg = flag(a, 'seed');
   const fromState = flag(a, 'from-state');
 
@@ -282,7 +617,7 @@ function cmdNew(a) {
     const r = tryJson(resolve(fromState));
     if (r.error) return fail(3, [cliIssue('cli.missing_input', '/from-state', r.error)]);
     state = { ...r.value, campaign: { ...r.value.campaign, id: cid } };
-    const bad = schemaIssues(SCHEMAS.campaign, state);
+    const bad = [...schemaIssues(SCHEMAS.campaign, state), ...reservedKeyPaths(state).map((p) => cliIssue('format', p, 'a reserved name cannot serve as an id or key'))];
     if (bad.length) return fail(2, bad);
     seed = state.map.seed;
     player = state.campaign.player;
@@ -308,14 +643,17 @@ function cmdNew(a) {
     rulesVersion: state.rulesVersion,
   });
   writeJsonAtomic(join(dir, LAYOUT.library), holder.library);
+  writeRolls(dir, []);
   if (fromState) writeJsonAtomic(join(dir, 'anchor.json'), state);
-  appendJournal(c, { op: 'new', turn: state.turn, revAfter: state.rev, hashAfter: stateHash(state), input: fromState ? { anchor: 'anchor.json' } : {} });
-  writeViews(c, state);
-  writeEventViews(c, state, state.chronicle);
-  upsertIndex(c, state);
-  writeTasks(c, state);
-  initTurnStatus(dir, state.turn);
-  return ok({ campaign: cid, world: worldId, player, turn: state.turn, phase: state.phase, rev: state.rev, dir }, `campaign ${cid} created at turn ${state.turn}, phase ${state.phase}`);
+  const entry = chainEntry([], c, { op: 'new', turn: state.turn, revAfter: state.rev, hashAfter: stateHash(state), input: fromState ? { anchor: 'anchor.json' } : {} }, { library: holder.library, drafts: {} });
+  writeJsonAtomic(journalPath(dir), [entry]);
+  const issues = [];
+  soft(issues, 'views', () => writeViews(c, state));
+  soft(issues, 'event views', () => writeEventViews(c, state, state.chronicle));
+  soft(issues, 'campaign index', () => upsertIndex(c, state));
+  soft(issues, 'tasks', () => writeTasks(c, state));
+  soft(issues, 'status', () => initTurnStatus(dir, state.turn));
+  return { ...ok({ campaign: cid, world: worldId, player, turn: state.turn, phase: state.phase, rev: state.rev, dir }, `campaign ${cid} created at turn ${state.turn}, phase ${state.phase}`), issues };
 }
 
 // --- reading commands --------------------------------------------------------
@@ -324,19 +662,23 @@ function playerOf(c, a) {
   return flag(a, 'as') ?? c.state.campaign.player;
 }
 
+const storedDraft = (c, pid) => {
+  const stored = tryJson(draftPath(c, pid)).value;
+  return stored && stored.turn === c.state.turn ? stored : emptyDraft(c.state, pid);
+};
+
 function openProbes(c, pid) {
   const { state } = c;
   if (!['planning', 'agents'].includes(state.phase) || pid !== state.campaign.player) return [];
-  const stored = tryJson(draftPath(c, pid)).value;
-  const draft = stored && stored.turn === state.turn ? stored : emptyDraft(state, pid);
-  const chk = checkDraft(state, c.env, draft, { as: pid, mode: 'preview' });
+  const draft = storedDraft(c, pid);
+  const chk = checkDraft(projectFor(state, c.env, pid), c.env, draft, { as: pid, mode: 'preview' });
   return chk.probes.filter((p) => p.roller === 'player' && !draft.rolls[p.id]).map((p) => p.id);
 }
 
 function cmdStatus(c, a) {
   const { state } = c;
   const pid = playerOf(c, a);
-  if (!state.peoples[pid]) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
+  if (!Object.hasOwn(state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
   const view = projectFor(state, c.env, pid);
   const p = view.peoples[pid];
   const cal = calendarOf(c.env.regeln, state.turn);
@@ -357,11 +699,13 @@ function cmdStatus(c, a) {
     tasks,
     proposals: waiting,
   };
-  return ok(data, `${state.campaign.id}: turn ${state.turn} (${cal.season} ${cal.year}), phase ${state.phase}, rev ${state.rev}, ${state.status}`);
+  return { ...ok(data, `${state.campaign.id}: turn ${state.turn} (${cal.season} ${cal.year}), phase ${state.phase}, rev ${state.rev}, ${state.status}`), issues: c.warnings };
 }
 
+// The preview runs on the people's projection, as seal and apply check it,
+// so its errors never reveal what the people cannot see.
 function previewResult(c, pid, draft) {
-  const pv = preview(c.state, c.env, draft, { as: pid });
+  const pv = preview(projectFor(c.state, c.env, pid), c.env, draft, { as: pid });
   const errors = errorsOf(pv.issues);
   const rollsMissing = (pv.unresolved ?? []).some((u) => u.probe);
   let code = 0;
@@ -370,55 +714,62 @@ function previewResult(c, pid, draft) {
   return { code, issues: pv.issues, data: { ...pv, issues: undefined } };
 }
 
+const draftPhaseIssue = (state) => (!['planning', 'agents'].includes(state.phase) || state.status === 'ended'
+  ? cliIssue('phase', '/phase', `drafts and rolls are accepted in planning or agents, the campaign is in ${state.phase}`)
+  : null);
+
 function cmdPreview(c, a) {
-  const { state } = c;
-  const pid = flag(a, 'as') ?? state.campaign.player;
-  if (!state.peoples[pid]) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
+  const pid = flag(a, 'as') ?? c.state.campaign.player;
+  if (!Object.hasOwn(c.state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
   const file = flag(a, 'draft');
-  let draft;
-  if (file) {
-    const r = tryJson(resolve(file));
-    if (r.error) return fail(3, [cliIssue('cli.missing_input', '/draft', r.error)]);
-    draft = { ...r.value, sealed: false };
-    if (pid !== state.campaign.player) return fail(2, [cliIssue('target', '/as', 'only the player people stores a draft')]);
-    if (!['planning', 'agents'].includes(state.phase) || state.status === 'ended') {
-      return fail(4, [cliIssue('phase', '/phase', `drafts are accepted in planning or agents, the campaign is in ${state.phase}`)]);
-    }
+  if (!file) {
+    const res = previewResult(c, pid, storedDraft(c, pid));
+    return outcome(res, { text: `preview for ${pid}: ${res.data.probes.length} probes, ${errorsOf(res.issues).length} errors` });
+  }
+  const r = tryJson(resolve(file));
+  if (r.error) return fail(3, [cliIssue('cli.missing_input', '/draft', r.error)]);
+  if (pid !== c.state.campaign.player) return fail(2, [cliIssue('target', '/as', 'only the player people stores a draft')]);
+  return locked(c, (cc) => {
+    const phase = draftPhaseIssue(cc.state);
+    if (phase) return fail(4, [phase]);
+    const incoming = r.value;
+    const view = projectFor(cc.state, cc.env, pid);
     // A draft that does not parse as a draft or names another turn is not stored.
-    const shape = errorsOf(checkDraft(state, c.env, draft, { as: pid, mode: 'preview' }).issues);
+    const shape = errorsOf(checkDraft(view, cc.env, { ...incoming, sealed: false }, { as: pid, mode: 'preview' }).issues);
     if (shape.some((i) => i.code.startsWith('schema.') || ['format', 'stale'].includes(i.code))) return fail(2, shape);
-  } else {
-    const stored = tryJson(draftPath(c, pid)).value;
-    draft = stored && stored.turn === state.turn ? stored : emptyDraft(state, pid);
-  }
-  const res = previewResult(c, pid, draft);
-  if (file) {
-    withLock(c.dir, 'drafts', () => writeJsonAtomic(draftPath(c, pid), draft));
+    const ledger = readRolls(cc);
+    const rec = reconcileRolls(view, cc.env, { ...incoming, sealed: false }, pid, ledger, { adopt: true });
+    if (rec.added.length || !existsSync(rollsPath(cc.dir))) writeRolls(cc.dir, [...ledger, ...rec.added]);
+    writeJsonAtomic(draftPath(cc, pid), rec.draft);
+    const res = previewResult(cc, pid, rec.draft);
+    const kept = rec.kept.map((id) => cliIssue('duplicate', `/rolls/${id}`, `probe ${id} keeps its first roll ${rec.draft.rolls[id].value}`, 'warning'));
+    res.issues = [...kept, ...res.issues];
     res.data.stored = true;
-  }
-  return outcome(res, { text: `preview for ${pid}: ${res.data.probes.length} probes, ${errorsOf(res.issues).length} errors` });
+    res.data.draft = rec.draft;
+    return outcome(res, { text: `preview for ${pid}: ${res.data.probes.length} probes, ${errorsOf(res.issues).length} errors` });
+  });
 }
 
 function cmdRoll(c, a) {
-  const { state } = c;
   const [probeId, raw] = a.positional;
   const value = Number(raw);
   if (!probeId || raw === undefined) return fail(3, [cliIssue('cli.missing_input', '', 'usage: roll <probeId> <1-10>')]);
-  if (!Number.isInteger(value) || value < 1 || value > 10) return fail(2, [cliIssue('format', '/value', 'a roll is an integer from 1 to 10')]);
-  if (!['planning', 'agents'].includes(state.phase) || state.status === 'ended') {
-    return fail(4, [cliIssue('phase', '/phase', `rolls are accepted in planning or agents, the campaign is in ${state.phase}`)]);
-  }
-  const pid = state.campaign.player;
-  return withLock(c.dir, 'drafts', () => {
-    const stored = tryJson(draftPath(c, pid)).value;
-    const draft = stored && stored.turn === state.turn ? stored : emptyDraft(state, pid);
-    const chk = checkDraft(state, c.env, draft, { as: pid, mode: 'preview' });
+  if (!isRollValue(value)) return fail(2, [cliIssue('format', '/value', 'a roll is an integer from 1 to 10')]);
+  return locked(c, (cc) => {
+    const phase = draftPhaseIssue(cc.state);
+    if (phase) return fail(4, [phase]);
+    const pid = cc.state.campaign.player;
+    const view = projectFor(cc.state, cc.env, pid);
+    const ledger = readRolls(cc);
+    const rec = reconcileRolls(view, cc.env, storedDraft(cc, pid), pid, ledger);
+    const chk = checkDraft(view, cc.env, rec.draft, { as: pid, mode: 'preview' });
     const probe = chk.probes.find((p) => p.id === probeId && p.roller === 'player');
     if (!probe) return fail(2, [cliIssue('target', '/probe', `no probe "${probeId}" the player rolls in the current draft`)]);
-    const held = draft.rolls[probeId];
-    if (held && held.fingerprint === probe.fingerprint) return fail(2, [cliIssue('duplicate', '/probe', `probe ${probeId} was already rolled (${held.value})`)]);
-    const next = { ...draft, sealed: false, rolls: { ...draft.rolls, [probeId]: { value, fingerprint: probe.fingerprint } } };
-    writeJsonAtomic(draftPath(c, pid), next);
+    const held = rec.draft.rolls[probeId];
+    if (held) return fail(2, [cliIssue('duplicate', '/probe', `probe ${probeId} was already rolled (${held.value})`)]);
+    const entry = { turn: cc.state.turn, people: pid, probe: probeId, fingerprint: probe.fingerprint, value };
+    writeRolls(cc.dir, [...ledger, entry]);
+    writeJsonAtomic(draftPath(cc, pid), { ...rec.draft, sealed: false, rolls: { ...rec.draft.rolls, [probeId]: { value, fingerprint: probe.fingerprint } } });
     const resolved = resolveProbe(probe, value);
     return ok({ probe: { ...resolved, calculation: calculation(resolved) }, band: resolved.band, natural: resolved.natural, margin: resolved.margin }, calculation(resolved));
   });
@@ -426,69 +777,76 @@ function cmdRoll(c, a) {
 
 // --- transitions -------------------------------------------------------------
 
-function transition(c, fn) {
-  return withLock(c.dir, 'campaign', () => {
-    const fresh = loadCampaign(c.root, c.cid);
-    if (fresh.error) return fresh.error;
-    const cc = fresh.c;
-    const t = guard(cc);
-    if (t.length) return fail(4, t);
-    const r = fn(cc);
-    return { ...r, issues: [...cc.warnings, ...(r.issues ?? [])] };
-  });
-}
-
 function cmdSeal(c) {
-  return transition(c, (cc) => {
-    const drafts = draftsOf(cc.dir);
+  return locked(c, (cc) => {
+    const drafts = draftsOf(cc);
+    const pid = cc.state.campaign.player;
+    if (cc.state.phase === 'planning' && drafts[pid]) {
+      // The player's rolls must be the ledger's: a value edited in the draft file is refused.
+      const ledger = readRolls(cc);
+      const rec = reconcileRolls(projectFor(cc.state, cc.env, pid), cc.env, drafts[pid], pid, ledger);
+      const stored = drafts[pid].rolls ?? {};
+      const edited = Object.keys({ ...stored, ...rec.draft.rolls })
+        .filter((id) => stored[id]?.value !== rec.draft.rolls[id]?.value || stored[id]?.fingerprint !== rec.draft.rolls[id]?.fingerprint);
+      if (edited.length) return fail(4, [kissue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`)]);
+      drafts[pid] = rec.draft;
+    }
     const res = seal(cc.state, cc.env, drafts);
     if (!res.ok) return fail(exitFor(res.issues), res.issues);
-    const files = () => {
-      for (const [pid, d] of Object.entries(res.drafts)) writeJsonAtomic(draftPath(cc, pid), d);
-      writeTasks(cc, res.state);
-    };
-    const bad = commit(cc, { op: 'seal', next: res.state, input: { drafts }, events: res.events, extraFiles: [files] });
-    if (bad.length) return fail(2, bad);
-    return ok({ turn: res.state.turn, phase: res.state.phase, rev: res.state.rev, substitutions: res.substitutions, draws: res.state.eventDraws }, `sealed turn ${res.state.turn}, rev ${res.state.rev}`);
+    const done = commit(cc, { op: 'seal', next: res.state, input: { drafts }, res, events: res.events });
+    if (!done.entry) return fail(2, done.issues);
+    return { ...ok({ turn: res.state.turn, phase: res.state.phase, rev: res.state.rev, substitutions: res.substitutions, draws: res.state.eventDraws }, `sealed turn ${res.state.turn}, rev ${res.state.rev}`), issues: done.issues };
   });
 }
 
 function cmdApply(c, a) {
-  return transition(c, (cc) => {
+  return locked(c, (cc) => {
     const expect = flag(a, 'expect-rev');
     if (expect !== undefined && Number(expect) !== cc.state.rev) {
       return fail(4, [cliIssue('cli.stale_rev', '/rev', `state is at revision ${cc.state.rev}, expected ${expect}`)]);
     }
     if (cc.state.status === 'ended') return fail(4, [cliIssue('finished', '', 'the campaign has ended')]);
     if (cc.state.phase !== 'resolving') return fail(4, [cliIssue('phase', '/phase', `apply needs resolving, the campaign is in ${cc.state.phase}`)]);
-    const drafts = draftsOf(cc.dir);
+    const drafts = draftsOf(cc);
     const res = apply(cc.state, cc.env, drafts);
     if (!res.ok) return fail(exitFor(res.issues), res.issues);
     const resolved = cc.state.turn;
-    const files = () => {
-      writeJsonAtomic(join(cc.dir, LAYOUT.log, `${turnStem(resolved)}.json`), res.report);
-      for (const n of listJson(join(cc.dir, LAYOUT.drafts))) unlinkSync(join(cc.dir, LAYOUT.drafts, n));
-      writeTasks(cc, res.state);
-      initTurnStatus(cc.dir, res.state.turn);
-    };
-    const bad = commit(cc, { op: 'apply', next: res.state, input: { drafts }, events: res.events, extraFiles: [files] });
-    if (bad.length) return fail(2, bad);
+    const done = commit(cc, { op: 'apply', next: res.state, input: { drafts }, res, events: res.events });
+    if (!done.entry) return fail(2, done.issues);
     const data = {
       resolved, turn: res.state.turn, phase: res.state.phase, rev: res.state.rev, status: res.state.status, result: res.state.result ?? null,
       orders: res.report.sections.orders, probes: res.report.sections.probes,
     };
-    return ok(data, `resolved turn ${resolved}, now turn ${res.state.turn} in phase ${res.state.phase}, rev ${res.state.rev}`);
+    return { ...ok(data, `resolved turn ${resolved}, now turn ${res.state.turn} in phase ${res.state.phase}, rev ${res.state.rev}`), issues: done.issues };
   });
 }
 
 function cmdOpen(c) {
-  return transition(c, (cc) => {
+  return locked(c, (cc) => {
     const res = open(cc.state, cc.env);
     if (!res.ok) return fail(exitFor(res.issues), res.issues);
-    const bad = commit(cc, { op: 'open', next: res.state, input: {}, events: res.events });
-    if (bad.length) return fail(2, bad);
-    return ok({ turn: res.state.turn, phase: res.state.phase, rev: res.state.rev }, `turn ${res.state.turn} is open for planning`);
+    const done = commit(cc, { op: 'open', next: res.state, input: {}, res, events: res.events });
+    if (!done.entry) return fail(2, done.issues);
+    return { ...ok({ turn: res.state.turn, phase: res.state.phase, rev: res.state.rev }, `turn ${res.state.turn} is open for planning`), issues: done.issues };
   });
+}
+
+function cmdRepin(c) {
+  return locked(c, (cc) => {
+    const checked = validateWorldPackage(cc.pack);
+    if (hasErrors(checked)) return fail(2, checked);
+    const from = cc.lock?.hash ?? cc.state.campaign.world.hash;
+    if (from === cc.env.hash && cc.state.campaign.world.hash === cc.env.hash) {
+      return ok({ rev: cc.state.rev, hash: cc.env.hash, changed: false }, `campaign is pinned to ${cc.env.hash} already`);
+    }
+    const res = repin(cc.state, cc.env);
+    if (!res.ok) return fail(exitFor(res.issues), res.issues);
+    const anchor = `anchors/repin-r${res.state.rev}.json`;
+    writeJsonAtomic(join(cc.dir, anchor), res.state);
+    const done = commit(cc, { op: 'repin', next: res.state, input: { from, to: cc.env.hash, anchor }, res, events: res.events });
+    if (!done.entry) return fail(2, done.issues);
+    return { ...ok({ rev: res.state.rev, from, to: cc.env.hash, changed: true }, `campaign re-pinned from ${from} to ${cc.env.hash}`), issues: done.issues };
+  }, { allowDrift: true });
 }
 
 // --- tasks and ingest --------------------------------------------------------
@@ -511,8 +869,10 @@ function cmdTasks(c, a) {
 function taskFor(c, proposal, state) {
   const agent = proposal?.agent;
   const turn = proposal?.turn;
-  if (typeof agent !== 'string' || !Number.isInteger(turn)) return null;
-  const file = join(c.dir, LAYOUT.tasks, turnStem(turn), `${agent}-${proposal.people ?? 'all'}.json`);
+  if (typeof agent !== 'string' || !Number.isInteger(turn) || !CID.test(agent)) return null;
+  const people = proposal.people ?? 'all';
+  if (!CID.test(String(people))) return null;
+  const file = join(c.dir, LAYOUT.tasks, turnStem(turn), `${agent}-${people}.json`);
   const held = tryJson(file).value;
   if (held) return held;
   if (turn !== state.turn) return null;
@@ -520,75 +880,109 @@ function taskFor(c, proposal, state) {
   return wanted.find((w) => w.task.agent === agent && w.task.people === (proposal.people ?? null))?.task ?? null;
 }
 
+/**
+ * Files an ingest may read: only proposals inside agents/proposals/. Anything
+ * else would let ingest move an arbitrary file into the campaign.
+ */
+function proposalFiles(cc, a) {
+  const propDir = resolve(cc.dir, LAYOUT.proposals);
+  if (!a.positional.length) return { files: listJson(propDir).map((n) => join(propDir, n)), refused: [] };
+  const files = [];
+  const refused = [];
+  for (const f of a.positional) {
+    const full = resolve(f);
+    const rel = relative(propDir, full);
+    if (!rel || rel.startsWith('..') || isAbsolute(rel) || /[\\/]/.test(rel) || !rel.endsWith('.json')) refused.push(f);
+    else files.push(full);
+  }
+  return { files, refused };
+}
+
+// The envelope ties a proposal to its file and its agent: the file is named
+// by the proposal id, and the id starts with the agent.
+function envelopeIssues(id, proposal) {
+  const out = [];
+  if (!proposal || typeof proposal !== 'object' || Array.isArray(proposal)) return [cliIssue('format', '', 'a proposal must be an object')];
+  if (proposal.proposalId !== id) out.push(cliIssue('format', '/proposalId', `the file ${id}.json carries proposal "${proposal.proposalId}"`));
+  if (typeof proposal.proposalId === 'string' && proposal.proposalId.split('.')[0] !== proposal.agent) {
+    out.push(cliIssue('format', '/agent', `proposal "${proposal.proposalId}" names agent "${proposal.agent}"`));
+  }
+  return out;
+}
+
 function cmdIngest(c, a) {
-  return transition(c, (cc) => {
+  return locked(c, (cc) => {
     const consent = (a.flags.consent ?? []).flatMap((s) => String(s).split(','));
-    const propDir = join(cc.dir, LAYOUT.proposals);
-    const files = a.positional.length ? a.positional.map((f) => resolve(f)) : listJson(propDir).map((n) => join(propDir, n));
+    const { files, refused } = proposalFiles(cc, a);
     const reports = [];
-    const issues = [];
-    let state = cc.state;
-    let library = cc.library;
+    const issues = refused.map((f) => cliIssue('target', '/file', `${f} is not a proposal file in ${LAYOUT.proposals}/`));
+    for (const f of refused) reports.push({ proposalId: f, verdict: 'refused', issues: [] });
     for (const file of files) {
       const id = file.split(/[\\/]/).pop().replace(/\.json$/, '');
       const read = tryJson(file);
       if (read.error) {
         issues.push(cliIssue('cli.missing_input', `/${id}`, read.error));
-        reports.push({ proposalId: id, verdict: read.missing ? 'missing' : 'rejected', issues: [cliIssue('format', '', read.error)] });
+        reports.push({ proposalId: id, verdict: read.missing ? 'missing' : 'rejected', issues: [cliIssue('format', '', read.error)].map(norm) });
         if (!read.missing) moveFile(file, join(cc.dir, 'agents', 'rejected', `${id}.json`));
         continue;
       }
       const proposal = read.value;
-      const task = taskFor({ ...cc, library }, proposal, state);
-      cc.holder.library = library;
-      const res = ingestProposal(state, cc.env, proposal, { task, library, consent });
+      const state = cc.state;
+      const task = taskFor(cc, proposal, state);
+      let res;
+      const envelope = envelopeIssues(id, proposal);
+      if (!envelope.length && !task && changesState(proposal)) {
+        envelope.push(cliIssue('target', '/proposalId', `no task of turn ${proposal.turn} for ${proposal.agent}${proposal.people ? ` ${proposal.people}` : ''}; items that change state need one`));
+      }
+      if (envelope.length) res = { verdict: 'rejected', issues: envelope, items: [] };
+      else {
+        cc.holder.library = cc.library;
+        res = ingestProposal(state, cc.env, proposal, { task, library: cc.library, consent, holder: cc.holder });
+        if (res.verdict !== 'accepted' && res.verdict !== 'partial') cc.holder.library = cc.library;
+      }
       const report = { proposalId: id, agent: proposal?.agent ?? null, verdict: res.verdict, issues: res.issues.map(norm), items: res.items.map((i) => ({ index: i.index, type: i.type, title: i.title, verdict: i.verdict, budget: i.budget, issues: i.issues.map(norm) })) };
       if (res.verdict === 'deferred') {
         reports.push(report);
         issues.push(...res.issues);
         continue;
       }
-      const dest = res.verdict === 'rejected' ? 'rejected' : 'ingested';
       if (res.verdict === 'accepted' || res.verdict === 'partial') {
-        const task2 = task;
-        const extra = () => {
-          for (const [pid, d] of Object.entries(res.drafts)) writeJsonAtomic(draftPath(cc, pid), d);
-          for (const t of res.texts) {
-            const full = join(cc.dir, t.path);
-            mkdirSync(dirname(full), { recursive: true });
-            writeFileSync(full, t.text);
-          }
-        };
-        const bad = commit({ ...cc, state, library }, { op: 'ingest', next: res.state, library: res.library, input: { proposal, task: task2, consent: consent.includes(proposal.proposalId) ? [proposal.proposalId] : [] }, events: res.events, extraFiles: [extra] });
-        if (bad.length) {
-          issues.push(...bad);
-          reports.push({ ...report, verdict: 'rejected', issues: bad.map(norm) });
+        const input = { proposal, task, consent: consent.includes(proposal.proposalId) ? [proposal.proposalId] : [] };
+        const done = commit(cc, { op: 'ingest', next: res.state, library: res.library, input, res, events: res.events });
+        if (!done.entry) {
+          issues.push(...done.issues);
+          reports.push({ ...report, verdict: 'rejected', issues: done.issues.map(norm) });
           continue;
         }
-        state = res.state;
-        library = res.library;
-        cc.state = state;
+        issues.push(...done.issues);
+        cc.state = res.state;
+        cc.library = res.library;
       }
-      writeJsonAtomic(join(cc.dir, LAYOUT.verdicts, `${id}.json`), report);
-      moveFile(file, join(cc.dir, 'agents', dest, `${id}.json`));
-      if (res.verdict !== 'duplicate') {
-        initTurnStatus(cc.dir, state.turn);
-        const step = `${proposal.agent}-${proposal.people ?? 'all'}`;
-        for (const it of res.items) {
-          recordVerdict(cc.dir, step, {
-            proposalId: proposal.proposalId, kind: it.type, title: it.title || it.type, verdict: it.verdict === 'accepted' ? 'accepted' : 'rejected',
-            budget: it.budget, reason: it.issues.find((i) => i.severity === 'error')?.message ?? null,
-          });
-        }
+      const dest = res.verdict === 'rejected' ? 'rejected' : 'ingested';
+      const verdictPath = join(cc.dir, LAYOUT.verdicts, `${id}.json`);
+      // A duplicate repeats a proposal already filed; its first verdict stays.
+      if (res.verdict !== 'duplicate' || !existsSync(verdictPath)) writeJsonAtomic(verdictPath, report);
+      moveFile(file, join(cc.dir, 'agents', dest, res.verdict === 'duplicate' && existsSync(join(cc.dir, 'agents', dest, `${id}.json`)) ? `${id}.duplicate.json` : `${id}.json`));
+      if (res.verdict !== 'duplicate' && proposal && typeof proposal.agent === 'string') {
+        soft(issues, 'status', () => {
+          initTurnStatus(cc.dir, cc.state.turn);
+          const step = `${proposal.agent}-${proposal.people ?? 'all'}`;
+          for (const it of res.items) {
+            recordVerdict(cc.dir, step, {
+              proposalId: proposal.proposalId, kind: it.type, title: it.title || it.type, verdict: it.verdict === 'accepted' ? 'accepted' : 'rejected',
+              budget: it.budget, reason: it.issues.find((i) => i.severity === 'error')?.message ?? null,
+            });
+          }
+        });
       }
       if (res.verdict === 'rejected') issues.push(...res.issues);
       reports.push(report);
     }
-    const hasRejected = reports.some((r) => r.verdict === 'rejected');
+    const hasRejected = reports.some((r) => r.verdict === 'rejected' || r.verdict === 'refused');
     const hasDeferred = reports.some((r) => r.verdict === 'deferred');
     const hasMissing = reports.some((r) => r.verdict === 'missing');
     const code = hasRejected ? 2 : hasDeferred ? 4 : hasMissing ? 3 : 0;
-    return { code, issues: issues.length ? issues : [], data: { proposals: reports, rev: state.rev }, text: reports.map((r) => `${r.proposalId}: ${r.verdict}`).join('\n') || 'no proposals' };
+    return { code, issues, data: { proposals: reports, rev: cc.state.rev }, text: reports.map((r) => `${r.proposalId}: ${r.verdict}`).join('\n') || 'no proposals' };
   });
 }
 
@@ -666,6 +1060,8 @@ function cmdSchema(a) {
 function cmdReplay(c, a) {
   const journal = readJournal(c.dir);
   if (!journal?.length) return fail(5, [cliIssue('replay.mismatch', '/journal', 'the campaign has no journal')]);
+  const chain = chainIssues(journal);
+  if (chain.length) return fail(5, chain.map((i) => cliIssue('replay.mismatch', i.path, i.message)));
   const to = flag(a, 'to') === undefined ? undefined : Number(flag(a, 'to'));
   const lock = c.lock;
   if (!lock) return fail(5, [cliIssue('replay.mismatch', '/world.lock', 'world.lock.json is missing')]);
@@ -674,26 +1070,43 @@ function cmdReplay(c, a) {
   let state = null;
   const steps = [];
   const mismatch = (i, e, why) => fail(5, [cliIssue('replay.mismatch', `/journal/${i}`, `${e.op} at turn ${e.turn}: ${why}`)], { data: { steps } });
+  // Steps before the last repin ran on another world package, steps before a
+  // base anchor on an older kernel; replay starts at the latest such anchor,
+  // which the hash chain ties to the journal.
+  let from = 0;
+  journal.forEach((e, i) => {
+    if (e.op === 'repin' || e.base) from = i;
+  });
   for (const [i, e] of journal.entries()) {
+    if (i < from) continue;
     if (to !== undefined && state && state.turn >= to) break;
     try {
-      if (e.op === 'new') {
-        state = e.input?.anchor ? readJson(join(c.dir, e.input.anchor)) : createCampaign(c.env, { id: lock.campaign, seed: lock.seed, player: lock.player }).state;
-      } else if (e.op === 'open') state = open(state, c.env).state;
-      else if (e.op === 'seal') state = seal(state, c.env, e.input.drafts).state;
-      else if (e.op === 'apply') state = apply(state, c.env, e.input.drafts).state;
-      else if (e.op === 'ingest') {
-        const res = ingestProposal(state, c.env, e.input.proposal, { task: e.input.task, library, consent: e.input.consent });
-        state = res.state;
-        library = res.library;
+      if (i === from && e.op === 'repin') {
+        state = readJson(join(c.dir, e.input.anchor));
+        library = { ...c.library, entries: c.library.entries.slice(0, e.libraryCount) };
         c.holder.library = library;
-      } else return mismatch(i, e, 'unknown operation');
+      } else if (i === from && e.base) {
+        state = readJson(join(c.dir, e.base.anchor));
+        if (stateHash(state) !== journal[i - 1].hashAfter) return mismatch(i, e, 'the base anchor differs from the entry before it');
+        library = { ...c.library, entries: c.library.entries.slice(0, e.base.libraryCount) };
+        c.holder.library = library;
+        const step = runStep(state, c.env, e, library, c.holder);
+        state = step.state;
+        library = step.library;
+      } else if (e.op === 'new') {
+        state = e.input?.anchor ? readJson(join(c.dir, e.input.anchor)) : createCampaign(c.env, { id: lock.campaign, seed: lock.seed, player: lock.player }).state;
+      } else {
+        const step = runStep(state, c.env, e, library, c.holder);
+        state = step.state;
+        library = step.library;
+      }
     } catch (err) {
       return mismatch(i, e, `kernel error ${err.message}`);
     }
     const h = stateHash(state);
     steps.push({ op: e.op, turn: e.turn, rev: state.rev, hash: h });
     if (h !== e.hashAfter) return mismatch(i, e, `hash ${h} differs from the journal ${e.hashAfter}`);
+    if (e.kernel !== undefined && libraryAnchor(library) !== e.libraryHash) return mismatch(i, e, 'the replayed library differs from the journal');
   }
   if (to === undefined && stateHash(state) !== stateHash(c.state)) return mismatch(journal.length - 1, journal.at(-1), 'the replayed state differs from state.json');
   return ok({ steps: steps.length, turn: state.turn, rev: state.rev, hash: stateHash(state) }, `replayed ${steps.length} transitions to turn ${state.turn}, rev ${state.rev}`);
@@ -701,7 +1114,7 @@ function cmdReplay(c, a) {
 
 // --- main --------------------------------------------------------------------
 
-const NEEDS_CAMPAIGN = new Set(['status', 'preview', 'roll', 'seal', 'apply', 'open', 'tasks', 'ingest', 'replay']);
+const NEEDS_CAMPAIGN = new Set(['status', 'preview', 'roll', 'seal', 'apply', 'open', 'tasks', 'ingest', 'replay', 'repin']);
 
 function run(argv) {
   const a = parseArgs(argv);
@@ -717,20 +1130,18 @@ function run(argv) {
   const loaded = loadCampaign(rootOf(), flag(a, 'campaign'));
   if (loaded.error) return loaded.error;
   const c = loaded.c;
-  const r = (() => {
-    switch (cmd) {
-      case 'status': return cmdStatus(c, a);
-      case 'preview': return cmdPreview(c, a);
-      case 'roll': return cmdRoll(c, a);
-      case 'seal': return cmdSeal(c);
-      case 'apply': return cmdApply(c, a);
-      case 'open': return cmdOpen(c);
-      case 'tasks': return cmdTasks(c, a);
-      case 'ingest': return cmdIngest(c, a);
-      default: return cmdReplay(c, a);
-    }
-  })();
-  return r;
+  switch (cmd) {
+    case 'status': return cmdStatus(c, a);
+    case 'preview': return cmdPreview(c, a);
+    case 'roll': return cmdRoll(c, a);
+    case 'seal': return cmdSeal(c);
+    case 'apply': return cmdApply(c, a);
+    case 'open': return cmdOpen(c);
+    case 'tasks': return cmdTasks(c, a);
+    case 'ingest': return cmdIngest(c, a);
+    case 'repin': return cmdRepin(c);
+    default: return cmdReplay(c, a);
+  }
 }
 
 function main() {

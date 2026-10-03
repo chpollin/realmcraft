@@ -46,3 +46,28 @@ function write(v, path) {
 export function canonEqual(a, b) {
   return canon(a) === canon(b);
 }
+
+// Names every plain object inherits. The id patterns admit "constructor", and
+// as a people, meter, resource or order id it would read the inherited member
+// instead of an own value, so the kernel refuses such ids at its inputs.
+export const RESERVED_KEYS = Object.freeze(new Set([...Object.getOwnPropertyNames(Object.prototype), 'prototype']));
+
+/** JSON paths of object keys or string values that equal a reserved name, at most `max`. */
+export function reservedKeyPaths(value, max = 8) {
+  const out = [];
+  const walk = (v, path) => {
+    if (out.length >= max) return;
+    if (typeof v === 'string') {
+      if (RESERVED_KEYS.has(v)) out.push(path || '/');
+    } else if (Array.isArray(v)) {
+      v.forEach((x, i) => walk(x, `${path}/${i}`));
+    } else if (v && typeof v === 'object') {
+      for (const k of Object.keys(v)) {
+        if (RESERVED_KEYS.has(k)) out.push(`${path}/${k}`);
+        else walk(v[k], `${path}/${k}`);
+      }
+    }
+  };
+  walk(value, '');
+  return out;
+}

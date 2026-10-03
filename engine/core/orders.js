@@ -30,10 +30,11 @@ import { standingOf, ofOp, applyOnceList, setKern } from './effects.js';
 import { buildProbe, gatherModifiers, probeId, softcapIssues } from './probes.js';
 import { validate as validateSchema } from '../content/schema.js';
 import { draft as DRAFT_SCHEMA } from '../schemas/draft.js';
+import { reservedKeyPaths } from './canon.js';
 import {
   homeSettlement, knownEntry, settlementsOf, controlledRegions, kern, unitsOn,
 } from './state.js';
-import { addPeople, noteChange, setControl, setPeople } from './log.js';
+import { addPeople, noteChange, notice, setControl, setPeople } from './log.js';
 import { activeModules, moduleOrders } from '../modules/index.js';
 import { regionAt, tileOf, route } from './map.js';
 import { distance, parseKey, reveal, key as tileKey } from '../world/index.js';
@@ -42,7 +43,12 @@ import { ORDERS as RESEARCH_ORDERS } from './research.js';
 import { ORDERS as EVENT_ORDERS, eventProbeSpec } from './events.js';
 import { ORDERS as BESTIMMUNG_ORDERS } from './bestimmung.js';
 
+// Probe subjects the kernel uses for its own probes (events.js world event and
+// life rolls, council.js hollow loyalty); an order with such an id would share
+// its probe id with a kernel probe.
 const RESERVED_IDS = new Set(['event']);
+const KERNEL_PROBE_SUBJECT = /^(life|hollow)-\d+$/;
+const reservedOrderId = (id) => RESERVED_IDS.has(id) || KERNEL_PROBE_SUBJECT.test(id);
 
 export function orderContext(state, env, pid, extra = {}) {
   const standing = standingOf(state, env, pid);
@@ -135,11 +141,19 @@ const CORE_ORDERS = {
       return [];
     },
     plan: () => ({ costs: { ...RULES.foundCost }, probe: null }),
-    resolve(tc, ox, o) {
+    resolve(tc, ox, o, plan) {
+      const region = regionAt(ox.world, o.params.tile);
+      // The check saw the people's projection; a hidden owner or a founder
+      // earlier in the same season decides here, and the settlers stay home.
+      const owner = tc.state.map.control[region];
+      if ((owner && owner !== ox.pid) || tc.state.map.settlements.some((s) => s.regionId === region)) {
+        notice(tc, 'order.blocked', { kind: 'region', id: region }, `order ${o.id}: the region is taken, no settlement is founded and its costs return`, { people: ox.pid });
+        for (const [res, n] of Object.entries(plan?.costs ?? {})) if (n > 0) addPeople(tc, ox.pid, `resources.${res}`, n, `order ${o.id}: costs of the blocked founding return`, { kind: 'resource.change' });
+        return;
+      }
       const lw = ox.env.entwicklung(ox.people.lebensweise);
       const type = lw?.spec?.settlement ?? 'village';
       const n = tc.state.map.settlements.filter((s) => s.people === ox.pid).length + 1;
-      const region = regionAt(ox.world, o.params.tile);
       const s = {
         id: `s-${ox.pid}-${tc.turn}-${n}`.slice(0, 41),
         name: (o.params.name && String(o.params.name).slice(0, 60)) || `${ox.people.name.slice(0, 50)} ${n}`,
@@ -388,6 +402,8 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   const out = { issues, entries: [], probes: [], eventProbe: null, costs: {}, slots: null, assign: {}, unresolved: [] };
   issues.push(...assertDraft(draft));
   if (hasErrors(issues)) return out;
+  for (const path of reservedKeyPaths(draft)) issues.push(issue('format', path, 'a reserved name cannot serve as an id or key'));
+  if (hasErrors(issues)) return out;
   const pid = as ?? draft.people;
   if (draft.people !== pid || !state.peoples[pid] || !state.peoples[pid].developments) {
     issues.push(issue('format', '/people', `draft is for ${draft.people}, not ${pid}`));
@@ -424,7 +440,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
     const errors = [];
     const entry = { index, order, def: null, origin: null, slot: null, tags: [], plan: null, vote: null, probe: null, venture: false, errors };
     out.entries.push(entry);
-    if (seenIds.has(order.id) || RESERVED_IDS.has(order.id)) errors.push(issue('duplicate', `${path}/id`, `order id ${order.id} is used twice or reserved`));
+    if (seenIds.has(order.id) || reservedOrderId(order.id)) errors.push(issue('duplicate', `${path}/id`, `order id ${order.id} is used twice or reserved`));
     seenIds.add(order.id);
     const reg1 = reg[order.type];
     if (!reg1) {

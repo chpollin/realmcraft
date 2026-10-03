@@ -94,10 +94,12 @@ export function record(tc, kind, target, change, reason, opts = {}) {
   return entry;
 }
 
+// Own properties only: a key such as "constructor" would otherwise read the
+// inherited Object member and turn a meter or stock into a function.
 function getPath(obj, path) {
   let o = obj;
   for (const k of path.split('.')) {
-    if (o == null) return undefined;
+    if (o == null || typeof o !== 'object' || !Object.hasOwn(o, k)) return undefined;
     o = o[k];
   }
   return o;
@@ -105,9 +107,10 @@ function getPath(obj, path) {
 
 function setPath(obj, path, value) {
   const keys = path.split('.');
+  if (keys.includes('__proto__')) throw new RangeError(`setPath: reserved key in ${path}`);
   let o = obj;
   for (let i = 0; i < keys.length - 1; i++) {
-    if (o[keys[i]] == null || typeof o[keys[i]] !== 'object') o[keys[i]] = {};
+    if (!Object.hasOwn(o, keys[i]) || o[keys[i]] == null || typeof o[keys[i]] !== 'object') o[keys[i]] = {};
     o = o[keys[i]];
   }
   const last = keys[keys.length - 1];

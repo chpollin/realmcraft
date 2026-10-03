@@ -6,7 +6,7 @@ import { clamp, peopleIds, settlementsOf } from './state.js';
 import { statsOf } from './stats.js';
 import { ofOp, standingOf } from './effects.js';
 import { forecast, popCap, stockCaps } from './economy.js';
-import { unitStats } from './military.js';
+import { specOf } from './military.js';
 import { knownRegions, roadLayer, threatLayer } from './map.js';
 import { catalogueFor, orderContext, slotCapacity } from './orders.js';
 import { activeModules } from '../modules/index.js';
@@ -26,7 +26,9 @@ export function mapLayers(state, env, pid) {
     const owner = state.map.control[region];
     if (owner) control[region] = owner;
   }
-  const mobility = (people, unit) => unitStats(state, env, people, unit).mobility;
+  // Foreign units are seen as their type: the owner's hidden modifiers (its
+  // developments and statuses) must not shape what this people learns of their reach.
+  const mobility = (people, unit) => Math.max(0, specOf(env, unit).mobility ?? 1);
   const handel = activeModules(state, env, pid).find((m) => m.id === 'handel');
   return {
     control,

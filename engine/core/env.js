@@ -11,6 +11,7 @@
 
 import { createWorld } from '../world/index.js';
 import { hashValue } from './hash.js';
+import { reservedKeyPaths } from './canon.js';
 
 const items = (x) => (Array.isArray(x) ? x : Array.isArray(x?.items) ? x.items : []);
 const refOf = (o) => `${o.id}@${o.rev}`;
@@ -18,6 +19,8 @@ const refOf = (o) => `${o.id}@${o.rev}`;
 export function makeEnv({ welt, regeln, content = {}, resolve = null, labels = null, hash = null }) {
   if (!welt || !welt.generation) throw new TypeError('makeEnv: welt.json is required');
   if (!regeln || !regeln.calendar) throw new TypeError('makeEnv: regeln.json is required');
+  const reserved = reservedKeyPaths({ welt, regeln, content });
+  if (reserved.length) throw new TypeError(`makeEnv: reserved name used as an id or key at ${reserved.join(', ')}`);
   const pkg = {
     entwicklungen: items(content.entwicklungen),
     ereignisse: items(content.ereignisse),

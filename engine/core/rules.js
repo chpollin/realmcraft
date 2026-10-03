@@ -138,6 +138,8 @@ export const RULES = Object.freeze({
   loyaltyDecay: 0,
   machtprobeCap: 2,
   knowledgeSpendDefault: 2,
+  // A people collapses when population.core falls below this; 1 is the long-standing rule (collapse at core 0).
+  collapseCore: 1,
   approvalBounds: Object.freeze({ min: -5, max: 5, start: 0 }),
 
   // Handel.
@@ -151,7 +153,7 @@ export const RULES = Object.freeze({
 
 /**
  * Optional regeln.tuning value with the kernel default. Keys: spoilage,
- * loyaltyDecay, machtprobeCap, knowledgeSpend, approval, eventBands (as
+ * loyaltyDecay, machtprobeCap, knowledgeSpend, collapseCore, approval, eventBands (as
  * [[min, max], ...] by band), terrainDefense(terrain), yieldFactor(terrain,
  * season, res), featureYield(key) -> { res, amount } | null.
  */
@@ -162,6 +164,7 @@ export function tune(env, key, ...args) {
     case 'loyaltyDecay': return t.loyaltyDecay ?? RULES.loyaltyDecay;
     case 'machtprobeCap': return t.machtprobeCap ?? RULES.machtprobeCap;
     case 'knowledgeSpend': return t.knowledgeSpend ?? RULES.knowledgeSpendDefault;
+    case 'collapseCore': return t.collapseCore ?? RULES.collapseCore;
     case 'approval': return t.approval ?? RULES.approvalBounds;
     case 'eventBands':
       return t.eventBands ? [...t.eventBands].sort((a, b) => a.band - b.band).map((b) => [b.roll.min, b.roll.max]) : RULES.eventBands;

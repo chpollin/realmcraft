@@ -205,3 +205,29 @@ Dokumentation
 ### Offen
 
 - Der dunkle Pfad bleibt in seinen Zahlen unverändert, `blutritus` und `schuldknechtschaft` mit Netto 2 und Forschung 6, `schwarzer-zirkel` mit Netto 3 und Forschung 12. Seine Preise sind teils vermeidbar oder einmalig, werden aber wie stehende Lasten gezählt. Der Meter `furcht` von `blutritus` erreicht seine Schwelle 4 nur bei vier Nutzungen ohne Pause, weil jede Saison ohne Nutzung ihn um 1 senkt, und bleibt bei einer Nutzung jede zweite Saison unter 2. Die Meter `aufruhr` und `glutzehrung` haben Verfall 0 und lösen ihre Schwelle in einer Kampagne höchstens einmal aus. Die `dependency` von `schwarzer-zirkel` zählt Unterhalt −3 und Strafe −1 zusammen, ein Volk trägt je Saison aber nur eines von beiden. Wer jeweils die billigere Seite ansetzt, käme auf −3 statt −4, Netto 4 und Forschung 16. Ob das Budget vermeidbare und einmalige Lasten anders gewichten soll, ist eine Entscheidung der Orchestrierung.
+
+## Ergänzung vom 2026-10-03, Kern- und CLI-Integrität (Lane K)
+
+Anlass waren die Befunde der Prüfung von Regelkern und Kommandozeile, also eine nur beratende Siegelsperre, Neuwürfe über eine eingereichte Vorschau, ein fälschbarer Manipulationsschutz und Lecks im Sichtfilter. Jedes neue Feld ist optional und additiv, darum bleibt `SCHEMA_VERSION` bei 2 und jeder vorher geschriebene Zustand gültig.
+
+| Schema | Feld | bisher | neu | Grund | Lanes |
+|---|---|---|---|---|---|
+| `campaign.js` | `sealed` | fehlte | optional, Volks-id auf Hash des versiegelten Entwurfs, gesetzt von `seal`, entfernt von `apply` | `apply` löst genau die Entwürfe auf, deren Hash `seal` festgehalten hat, ein auf der Platte geänderter Entwurf ergibt `tamper` | K, Q |
+| `bestimmung.js` | `bestimmungState.offers` | fehlte | optional, höchstens zwei Einträge `{ ref, offeredAt, origin }` mit `origin` gleich `agent` oder `pool`, fehlend heißt kein Angebot | `destiny.adopt` verlangt nach Regelkern Abschnitt 13 die Praxisbedingung und ein Angebot, das Angebot schließt die Bestimmungen anderer Völker aus | K, F, Agenten |
+| `bestimmung.js` | `bestimmungState.difficulty` | fehlte | optional, ganzzahlig 0 bis 999, bei der Annahme gemessen, fehlend misst der Kern bei Bedarf | Gleichstand mehrerer Sieger entscheidet die höhere Schwierigkeit | K |
+| `status.js` | `resolved` | fehlte | optional `{ turn, steps }`, von `apply` mit den Schritten der aufgelösten Runde gesetzt, von `open` entfernt | das Dashboard zeigt die abgeschlossene Runde einschließlich des Weltschritts der Phase A bis zur nächsten Planung, `phase` folgt bei jedem Übergang dem Zustand | F |
+| `status.js` | `$defs.steps` | inline | als Definition herausgezogen | Wiederverwendung in `resolved` | keine |
+| `task.js` | `limits.slots` | fehlte | optional `{ main, minor }`, nur im Auftrag `rival` | Rivalen planen innerhalb der Kapazität der Saison, Befehle mit Platz `free` belegen keinen Platz | Agenten |
+
+Ohne Schemaänderung kamen hinzu:
+
+- Der Auftrag `rival` trägt in `context.orders` je verfügbarem Befehl die Parameter, bis zu sechs gültige Zielbelegungen und ein Beispiel. Jede Belegung besteht die Prüfung des Befehls auf der Projektion des Volkes. `limits.tags` enthält nur noch Tags aus `regeln.vocabulary`, weil der Validator jeden anderen Tag abweist.
+- Die Vorschau liefert `council` mit den sicheren Folgen für Loyalität je Ratsmitglied und für Meter wie `zustimmung`, je Befehl in `orders[].council` und als Summe unter der Kappung je Runde. Befehle, deren Folge von einer Probe abhängt, tragen `depends`.
+- `log/journal.json` schreibt Einträge im Format 2. Jeder Eintrag trägt `kernel`, `prev` (Hash des Vorgängers), `hash`, `libraryCount` und `libraryHash` des Bibliothekspräfixes, `draftsHash`, `rolls` mit Zahl und Hash des Würfelbuchs und `worldHash`. Der erste solche Eintrag nach einem älteren Journal trägt `base` mit einem Anker des Ausgangszustands unter `anchors/`.
+- `rolls.json` ist das Würfelbuch der Kampagne, nur fortschreibbar, mit Einträgen `{ turn, people, probe, fingerprint, value }`. Die Würfe eines Spielerentwurfs werden daraus abgeleitet.
+- Der Befehl `repin` bindet eine Kampagne nach geprüftem Weltpaket an dessen aktuellen Hash, schreibt einen Protokolleintrag `campaign.repin` mit Quelle `player` und einen Anker unter `anchors/`, aus dem `replay` startet. Ein geändertes Weltpaket sperrt jeden Übergang bis zu diesem Schritt.
+- Ids, die einen Namen von `Object.prototype` tragen (`constructor`), weist der Kern in Weltpaket, Entwurf und Vorschlag ab. Befehls-ids der Form `life-N` und `hollow-N` sind reserviert, weil Kernproben diese Subjekte tragen.
+
+Bestehende Kampagnen bleiben ladbar. Ein Journal ohne Kette wird angenommen, der nächste Übergang beginnt die Kette und verankert den Zustand, von dem er ausgeht. Ein gespeicherter Spielerentwurf mit Würfen der laufenden Runde füllt das Würfelbuch beim ersten Zugriff. Hat sich das Weltpaket seit dem Anlegen geändert, ist vor dem nächsten Übergang `repin` nötig.
+
+Offen bleibt, dass `engine/schemas/world.js` `tuning.collapseCore` noch nicht kennt. Der Kern liest den Wert mit Ausgangswert 1, also Untergang erst bei null Sippen, aber kein Weltpaket kann ihn setzen, bis das Weltschema das Feld aufnimmt.
