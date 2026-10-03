@@ -13,6 +13,7 @@ import { server, turnStem } from '../data/server.js';
 import { ackKey, buildCards, deltaChips, pickReactions, slotIcon, unacknowledged } from '../data/ereignisse.js';
 import { dialogHead } from './dialoge.js';
 import { withTip } from './tip.js';
+import { t } from '../i18n/index.js';
 
 const RETRY_MS = 700;
 const memory = new Map();
@@ -56,7 +57,6 @@ export function initEreignisse(api) {
   let run = 0;
   const offered = new Set();
 
-  const t = (key, fallback) => game.t(key, fallback);
   const otherOpen = () => [...document.querySelectorAll('dialog[open]')].some((d) => d !== dlg);
   const turnKey = () => ackKey(game.cid, game.view.turn);
 
@@ -88,7 +88,7 @@ export function initEreignisse(api) {
       events = await fetchEvents(view.turn);
     }
     const report = game.report?.turn === view.turn - 1 ? game.report.events ?? [] : [];
-    return buildCards({ view: game.view, env: game.env, t: game.t, events: [...(events ?? []), ...report], draft: game.draft });
+    return buildCards({ view: game.view, env: game.env, t, events: [...(events ?? []), ...report], draft: game.draft });
   }
 
   async function sync({ retry = false } = {}) {
@@ -147,12 +147,12 @@ export function initEreignisse(api) {
   function choiceBlock(card) {
     const { choice } = card;
     const locked = api.model.phase === 'A';
-    return el('section', { class: 'ereignis-wahl', 'aria-label': t('ereignis.entscheidung', 'Entscheidung') },
-      el('p', { class: 'ereignis-frist' }, icon('dauer', { size: 16 }), `${t('ereignis.frist', 'Entscheidung bis')} ${choice.frist.saison}`),
+    return el('section', { class: 'ereignis-wahl', 'aria-label': t('ereignis.entscheidung') },
+      el('p', { class: 'ereignis-frist' }, icon('dauer', { size: 16 }), `${t('ereignis.frist')} ${choice.frist.saison}`),
       el('div', { class: 'ereignis-optionen' }, ...choice.optionen.map((o, i) => {
         const chosen = choice.gewaehlt === o.id;
         const deltas = kernelDeltas(choice.choiceId, o.id);
-        const kernel = deltaChips(deltas, game.t);
+        const kernel = deltaChips(deltas, t);
         const folgen = [...kernel, ...o.folgen.filter((f) => !(f.store && kernel.length))];
         const hasPreview = Object.keys(deltas).length > 0;
         const show = () => { if (hasPreview && !locked) api.setPreview({ deltas, tiles: [] }); };
@@ -183,7 +183,7 @@ export function initEreignisse(api) {
     const picked = pickReactions(card, options, devTagsOf);
     if (!picked.length) return null;
     const locked = api.model.phase === 'A';
-    return el('div', { class: 'ereignis-reaktionen', role: 'group', 'aria-label': t('ereignis.reaktion', 'In die Befehle aufnehmen') },
+    return el('div', { class: 'ereignis-reaktionen', role: 'group', 'aria-label': t('ereignis.reaktion') },
       ...picked.map((o, i) => {
         const taken = Boolean(o.queued);
         const btn = el('button', {
@@ -230,7 +230,7 @@ export function initEreignisse(api) {
         card.choice ? choiceBlock(card) : null,
         reactionBlock(card)),
       el('footer', { class: 'ereignis-fuss' },
-        el('button', { class: 'btn btn-primary btn-gross', type: 'button', 'data-fokus': 'weiter', onclick: next }, t('ereignis.weiter', 'Weiter'), icon('pfeil', { size: 18 }))));
+        el('button', { class: 'btn btn-primary btn-gross', type: 'button', 'data-fokus': 'weiter', onclick: next }, t('ereignis.weiter'), icon('pfeil', { size: 18 }))));
     if (focused) dlg.querySelector(`[data-fokus="${focused}"]`)?.focus();
   }
 

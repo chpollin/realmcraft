@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="data:,">
-  <title>Spielbrett der Grauen Kämme</title>
+  <title>RealmCraft</title>
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
@@ -20,35 +20,36 @@
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <a class="skip" href="#ortsliste">Zur Liste der Orte und Einheiten</a>
+  <a class="skip" href="#ortsliste" data-t="board.page.skip"></a>
 
   <header class="leiste">
     <div class="volk">
       <h1 class="volk-name" id="volk-name"></h1>
       <p class="zeit" id="zeit"></p>
     </div>
-    <ul class="ressourcen" id="ressourcen" role="list" aria-label="Vorräte"></ul>
+    <ul class="ressourcen" id="ressourcen" role="list" data-t-aria-label="board.topbar.stores"></ul>
     <button class="bestimmung-kurz has-tip" id="bestimmung-kurz" type="button" aria-keyshortcuts="B" aria-haspopup="dialog"></button>
-    <nav class="kurzwahl" aria-label="Übersichten">
+    <nav class="kurzwahl" data-t-aria-label="board.topbar.overviews">
       <button class="kurz" type="button" data-dialog="entwicklungen" aria-keyshortcuts="E" aria-haspopup="dialog"></button>
       <button class="kurz" type="button" data-dialog="rat" aria-keyshortcuts="R" aria-haspopup="dialog"></button>
       <button class="kurz" type="button" data-dialog="chronik" aria-keyshortcuts="C" aria-haspopup="dialog"></button>
     </nav>
+    <div class="sprache" id="sprache" role="radiogroup" data-t-aria-label="board.lang.group"></div>
   </header>
 
   <main class="brett" id="brett">
-    <canvas id="karte" tabindex="0" role="application" aria-roledescription="Karte"
-      aria-label="Karte des Hochlands. Pfeiltasten verschieben die Ansicht, Plus und Minus zoomen, Eingabe wählt das Feld in der Mitte."></canvas>
+    <canvas id="karte" tabindex="0" role="application" data-t-aria-roledescription="board.map.role"
+      data-t-aria-label="board.map.label"></canvas>
     <div class="vignette" aria-hidden="true"></div>
 
-    <div class="kartenwerkzeug ebenen" role="radiogroup" aria-label="Kartenebene" id="ebenen"></div>
+    <div class="kartenwerkzeug ebenen" role="radiogroup" data-t-aria-label="board.layer.group" id="ebenen"></div>
 
-    <aside class="ratsleiste" id="ratsleiste" aria-label="Rat"></aside>
+    <aside class="ratsleiste" id="ratsleiste" data-t-aria-label="board.council.bar"></aside>
 
     <div class="kartenwerkzeug zoom" id="zoom"></div>
     <canvas class="minimap" id="minimap" aria-hidden="true"></canvas>
 
-    <nav class="ortsliste" id="ortsliste" aria-label="Orte und Einheiten auf der Karte" tabindex="-1"></nav>
+    <nav class="ortsliste" id="ortsliste" data-t-aria-label="board.list.label" tabindex="-1"></nav>
 
     <div class="chronikband" id="chronikband" hidden></div>
     <div class="saisonkarte" id="saisonkarte" aria-hidden="true" hidden></div>
@@ -59,12 +60,12 @@
 
   <footer class="zugleiste" id="zugleiste">
     <section class="zug-bereich" aria-labelledby="befehle-titel">
-      <h2 class="sr-only" id="befehle-titel">Befehle dieses Zuges</h2>
+      <h2 class="sr-only" id="befehle-titel" data-t="board.orders.heading"></h2>
       <div class="budget" id="budget"></div>
       <ol class="befehle plain" id="befehle"></ol>
     </section>
     <section aria-labelledby="meldungen-titel" class="meldungen-bereich">
-      <h2 class="sr-only" id="meldungen-titel">Meldungen</h2>
+      <h2 class="sr-only" id="meldungen-titel" data-t="board.messages.heading"></h2>
       <ul class="meldungen plain" id="meldungen"></ul>
     </section>
     <div class="blocker" id="blocker"></div>

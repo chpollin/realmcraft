@@ -21,6 +21,8 @@ import { renderBestimmung } from './ui/bestimmung.js';
 import { renderProbe } from './ui/probe.js';
 import { closePinnedTip } from './ui/tip.js';
 import { issueText } from './data/adapter.js';
+import { t, onLanguage, applyStatic } from './i18n/index.js';
+import { renderSprache } from './ui/sprache.js';
 
 const DIALOGS = {
   entwicklungen: renderBaum,
@@ -30,12 +32,7 @@ const DIALOGS = {
   probe: renderProbe,
 };
 const SHORTCUTS = { e: 'entwicklungen', r: 'rat', c: 'chronik', b: 'bestimmung' };
-const LAYERS = [
-  ['gelaende', 'Gelände'],
-  ['besitz', 'Besitz'],
-  ['bedrohung', 'Bedrohung'],
-  ['handel', 'Handel'],
-];
+const LAYERS = ['gelaende', 'besitz', 'bedrohung', 'handel'];
 
 export function startBoard(model, game) {
   const canvas = document.getElementById('karte');
@@ -55,7 +52,7 @@ export function startBoard(model, game) {
       return r.wert - reserved;
     },
     resourceName(k) {
-      return resourceByKey(model, k)?.name ?? game?.t(`resource.${k}`, k) ?? k;
+      return resourceByKey(model, k)?.name ?? t(`resource.${k}`, k);
     },
 
     select(sel, { fly = false, keepPanel = false } = {}) {
@@ -89,7 +86,7 @@ export function startBoard(model, game) {
         }
         const res = game.addOption(opt);
         api.setPreview(null);
-        api.announce(res.grund ? `${opt.titel}: ${res.grund}` : `${opt.titel} in die Befehle aufgenommen`);
+        api.announce(res.grund ? t.fmt('board.announce.refused', { title: opt.titel, reason: res.grund }) : t.fmt('board.announce.added', { title: opt.titel }));
         return;
       }
       if (opt.probe) {
@@ -117,10 +114,10 @@ export function startBoard(model, game) {
       const res = game.addOption(opt, { roll, extra });
       api.setPreview(null);
       if (res.grund) {
-        api.announce(`${opt.titel}: ${res.grund}`);
+        api.announce(t.fmt('board.announce.refused', { title: opt.titel, reason: res.grund }));
         return null;
       }
-      api.announce(`${opt.titel} in die Befehle aufgenommen`);
+      api.announce(t.fmt('board.announce.added', { title: opt.titel }));
       return res.id;
     },
 
@@ -130,7 +127,7 @@ export function startBoard(model, game) {
       renderOrders(api, { freshId: order.id });
       renderResources(api);
       renderKontext(api);
-      api.announce(`${order.titel} in die Befehle aufgenommen`);
+      api.announce(t.fmt('board.announce.added', { title: order.titel }));
     },
 
     removeOrder(id) {
@@ -142,7 +139,7 @@ export function startBoard(model, game) {
         renderResources(api);
         renderKontext(api);
       }
-      if (o) api.announce(`${o.titel} zurückgenommen`);
+      if (o) api.announce(t.fmt('board.announce.removed', { title: o.titel }));
       document.getElementById('befehle').querySelector('button')?.focus() ?? document.getElementById('zug-beenden').focus();
     },
 
@@ -223,12 +220,12 @@ export function startBoard(model, game) {
       renderOrders(api);
       renderEndTurn(api);
       renderKontext(api);
-      if (p !== 'A') document.getElementById('zeit').textContent = `${model.zeit.saison}, Jahr ${model.zeit.jahr}`;
+      if (p !== 'A') document.getElementById('zeit').textContent = t.fmt('board.time', { season: model.zeit.saison, year: model.zeit.jahr });
     },
 
     seasonCard(z) {
       const card = document.getElementById('saisonkarte');
-      card.replaceChildren(el('span', { class: 's-name', text: z.saison }), el('span', { class: 's-jahr', text: `Jahr ${z.jahr}` }));
+      card.replaceChildren(el('span', { class: 's-name', text: z.saison }), el('span', { class: 's-jahr', text: t.fmt('board.year', { year: z.jahr }) }));
       card.hidden = false;
       if (prefersReducedMotion()) {
         setTimeout(() => { card.hidden = true; }, 1600);
@@ -254,7 +251,7 @@ export function startBoard(model, game) {
         } else {
           for (const c of model.chronik) c.neu = c.turn === entry.turn;
         }
-        api.announce(`Chronik, ${entry.titel}. ${entry.text}`);
+        api.announce(t.fmt('board.announce.chronicle', { title: entry.titel, text: entry.text }));
         setTimeout(() => band.classList.add('is-fading'), 9000);
         setTimeout(() => { band.hidden = true; }, 9600);
       };
@@ -287,7 +284,7 @@ export function startBoard(model, game) {
       const { probleme } = game.blockers();
       if (probleme.length) {
         renderBlocker(api, { open: true });
-        api.announce(`Zug kann nicht enden: ${probleme.length === 1 ? 'ein Problem' : `${probleme.length} Probleme`}`);
+        api.announce(t.fmt('board.announce.cannot-end', { reason: t.plural('board.announce.problems', probleme.length) }));
         document.querySelector('#blocker-liste button')?.focus();
         return;
       }
@@ -297,24 +294,24 @@ export function startBoard(model, game) {
         return;
       }
       if (!can.ok) {
-        api.announce(`Zug kann nicht enden: ${can.reason}`);
+        api.announce(t.fmt('board.announce.cannot-end', { reason: can.reason }));
         document.getElementById('zug-beenden').dataset.grund = can.reason;
         return;
       }
       for (const d of document.querySelectorAll('dialog[open]')) d.close();
       const res = await game.seal();
       if (!res.ok) {
-        const why = [...new Set((res.issues ?? []).filter((i) => i.severity === 'error').map((i) => issueText(i, game.t)))].join(', ');
-        api.announce(`Zug nicht versiegelt: ${why}`);
+        const why = [...new Set((res.issues ?? []).filter((i) => i.severity === 'error').map((i) => issueText(i, t)))].join(', ');
+        api.announce(t.fmt('board.announce.not-sealed', { reason: why }));
         return;
       }
-      api.announce('Befehle versiegelt, die Spielleitung löst die Runde mit /zug auf');
+      api.announce(t('board.announce.sealed'));
     },
   };
 
   function announceSelection() {
     const h = document.getElementById('kontext-titel');
-    if (h) api.announce(`Ausgewählt ${h.textContent}`);
+    if (h) api.announce(t.fmt('board.announce.selected', { name: h.textContent }));
   }
 
   function refreshPanels() {
@@ -341,7 +338,7 @@ export function startBoard(model, game) {
 
   const ebenen = document.getElementById('ebenen');
   function renderLayers() {
-    ebenen.replaceChildren(...LAYERS.map(([id, label]) => el('button', {
+    ebenen.replaceChildren(...LAYERS.map((id) => el('button', {
       class: 'ebene',
       type: 'button',
       role: 'radio',
@@ -349,7 +346,7 @@ export function startBoard(model, game) {
       tabindex: model.layer === id ? '0' : '-1',
       'data-ebene': id,
       onclick: () => setLayer(id),
-    }, icon(id, { size: 17 }), el('span', { class: 'ebene-label', text: label }))));
+    }, icon(id, { size: 17 }), el('span', { class: 'ebene-label', text: t(`board.layer.${id}`) }))));
   }
   function setLayer(id) {
     model.layer = id;
@@ -358,22 +355,23 @@ export function startBoard(model, game) {
     api.view.changed();
   }
   ebenen.addEventListener('keydown', (e) => {
-    const i = LAYERS.findIndex(([id]) => id === model.layer);
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); setLayer(LAYERS[(i + 1) % LAYERS.length][0]); }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setLayer(LAYERS[(i + LAYERS.length - 1) % LAYERS.length][0]); }
+    const i = LAYERS.indexOf(model.layer);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); setLayer(LAYERS[(i + 1) % LAYERS.length]); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setLayer(LAYERS[(i + LAYERS.length - 1) % LAYERS.length]); }
   });
   renderLayers();
 
   const ortsliste = document.getElementById('ortsliste');
+  // Labelled through data-t-aria-label, so a change of language relabels them in place.
   document.getElementById('zoom').replaceChildren(
-    el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Hineinzoomen (Plus)', onclick: () => api.view.zoomAt(1.25) }, icon('plus', { size: 18 })),
-    el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Herauszoomen (Minus)', onclick: () => api.view.zoomAt(0.8) }, icon('minus', { size: 18 })),
+    el('button', { class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.in', onclick: () => api.view.zoomAt(1.25) }, icon('plus', { size: 18 })),
+    el('button', { class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.out', onclick: () => api.view.zoomAt(0.8) }, icon('minus', { size: 18 })),
     el('button', {
-      class: 'icon-btn', type: 'button', 'aria-label': 'Zum Lager',
+      class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.home',
       onclick: () => { const c = home(); if (c) api.view.flyTo(c.q, c.r, { zoom: 1.15 }); },
     }, icon('ziel', { size: 18 })),
     el('button', {
-      class: 'icon-btn', type: 'button', 'aria-label': 'Liste der Orte und Einheiten', 'aria-pressed': 'false', 'aria-controls': 'ortsliste',
+      class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.list', 'aria-pressed': 'false', 'aria-controls': 'ortsliste',
       onclick: (e) => {
         const open = ortsliste.classList.toggle('is-open');
         e.currentTarget.setAttribute('aria-pressed', String(open));
@@ -426,7 +424,7 @@ export function startBoard(model, game) {
         if (turned) api.seasonCard(model.zeit);
         if (model.zz) api.setPanel(model.panel ?? 'welt');
         else refreshPanels();
-        api.announce(`${model.zeit.saison}, Jahr ${model.zeit.jahr}, ${game.t(`phase.${model.kernPhase}`, model.kernPhase)}`);
+        api.announce(t.fmt('board.announce.season', { time: t.fmt('board.time', { season: model.zeit.saison, year: model.zeit.jahr }), phase: t(`phase.${model.kernPhase}`, model.kernPhase) }));
       } else if (kind === 'status' || kind === 'report') {
         if (kind === 'report') {
           renderResources(api, { bump: model.ressourcen.filter((r) => r.verlauf?.length).map((r) => r.key) });
@@ -507,8 +505,31 @@ export function startBoard(model, game) {
     document.documentElement.style.setProperty('--leiste-h', `${Math.round(e.target.getBoundingClientRect().height)}px`);
   }).observe(document.querySelector('.leiste'));
 
+  /* Language: everything visible is rendered again in place, no reload. Modal
+     dialogs keep the rest of the page inert, so none is open while it changes. */
+
+  onLanguage(() => {
+    game?.relabel();
+    applyStatic();
+    renderSprache();
+    renderLayers();
+    renderTopbar(api);
+    renderOrders(api);
+    renderMessages(api);
+    renderEndTurn(api);
+    renderOrtsliste(api);
+    renderRatsleiste(api);
+    refreshPanels();
+    api.setPhase(model.phase);
+    api.view.changed();
+    minimap.draw();
+    api.announce(t('board.announce.language'));
+  });
+
   /* First render */
 
+  applyStatic();
+  renderSprache();
   renderTopbar(api);
   renderOrders(api);
   renderMessages(api);

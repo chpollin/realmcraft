@@ -12,11 +12,9 @@ import { closeButton } from './kontext.js';
 import { withTip } from './tip.js';
 import { nextSeason } from './leiste.js';
 import { formatDuration } from '../data/game.js';
+import { t } from '../i18n/index.js';
 
 const STATE_CLASS = { fertig: 'done', arbeitet: 'working', gescheitert: 'failed' };
-// The turn command is the one the game master runs again after a failed step.
-const RETRY_HINT = 'erneut mit /zug';
-const SEVERITY_TEXT = { info: 'Hinweis', warn: 'Warnung', severe: 'schwer' };
 
 export function renderWeltgeschehen(api) {
   const { model } = api;
@@ -38,15 +36,15 @@ export function renderWeltgeschehen(api) {
   panel.replaceChildren(
     el('div', { class: 'panel-kopf' },
       el('div', { class: 'panel-siegel' }, icon('welt', { size: 22 })),
-      el('h2', { id: 'wg-titel', text: api.game?.t('view.weltgeschehen', 'Weltgeschehen') ?? 'Weltgeschehen' }),
-      el('p', { class: 'unter', text: `${zz.von.saison} ${zz.von.jahr} nach ${zz.nach.saison} ${zz.nach.jahr}` }),
-      closeButton(() => api.setPanel(null), 'Weltgeschehen schließen')),
+      el('h2', { id: 'wg-titel', text: t('view.weltgeschehen') }),
+      el('p', { class: 'unter', text: t.fmt('board.world.span', { from: `${zz.von.saison} ${zz.von.jahr}`, to: `${zz.nach.saison} ${zz.nach.jahr}` }) }),
+      closeButton(() => api.setPanel(null), t('board.world.close'))),
     el('p', { class: `phase ${phaseA ? 'a' : 'b'}`, role: 'status' },
       icon(phaseA ? 'schloss' : 'ja', { size: 16 }), zz.phaseTitel),
     el('div', { class: 'panel-body' },
       kern ? kernGroup(api, zz, kern) : null,
       others.length ? el('section', { 'aria-labelledby': 'wg-agenten' },
-        el('h3', { id: 'wg-agenten', text: 'Agenten' }),
+        el('h3', { id: 'wg-agenten', text: t('board.world.agents') }),
         el('ol', { class: 'agenten plain' }, ...others.map((a) => agentItem(api, a)))) : null));
   const body = panel.querySelector('.panel-body');
   body.scrollTop = scroll;
@@ -68,19 +66,19 @@ function counters(a) {
   const no = countOf(a, 'abgelehnt');
   if (!ok && !no) return null;
   return el('span', { class: 'zaehler' },
-    ok ? el('span', { class: 'z-ok', 'aria-label': `${ok} angenommen` }, icon('ja', { size: 14 }), String(ok)) : null,
-    no ? el('span', { class: 'z-nein', 'aria-label': `${no} abgelehnt` }, icon('nein', { size: 14 }), String(no)) : null);
+    ok ? el('span', { class: 'z-ok', 'aria-label': t.fmt('board.world.accepted-n', { n: ok }) }, icon('ja', { size: 14 }), String(ok)) : null,
+    no ? el('span', { class: 'z-nein', 'aria-label': t.fmt('board.world.rejected-n', { n: no }) }, icon('nein', { size: 14 }), String(no)) : null);
 }
 
 /** State as a label: waiting is grey text, running pulses on the seal, done carries the duration, failed names the retry. */
 function statusMark(a) {
-  if (a.status === 'wartet') return el('span', { class: 'agent-status wartet', text: 'wartet' });
-  if (a.status === 'arbeitet') return el('span', { class: 'agent-status laeuft', text: 'arbeitet' });
+  if (a.status === 'wartet') return el('span', { class: 'agent-status wartet', text: t('board.agent.wartet') });
+  if (a.status === 'arbeitet') return el('span', { class: 'agent-status laeuft', text: t('board.agent.arbeitet') });
   if (a.status === 'fertig') {
     const dauer = formatDuration(a.dauer);
-    return el('span', { class: 'agent-status fertig', 'aria-label': `fertig${dauer ? `, ${dauer}` : ''}` }, icon('ja', { size: 16 }), dauer ? el('span', { class: 'dauer', text: dauer }) : null);
+    return el('span', { class: 'agent-status fertig', 'aria-label': [t('board.agent.fertig'), dauer].filter(Boolean).join(', ') }, icon('ja', { size: 16 }), dauer ? el('span', { class: 'dauer', text: dauer }) : null);
   }
-  return el('span', { class: 'agent-status gescheitert' }, icon('nein', { size: 16 }), 'gescheitert');
+  return el('span', { class: 'agent-status gescheitert' }, icon('nein', { size: 16 }), t('board.agent.gescheitert'));
 }
 
 const sigil = (a) => el('span', { class: 'agent-siegel' }, icon(a.role === 'judge' ? 'schild' : a.id, { size: 18 }));
@@ -95,7 +93,7 @@ function kernGroup(api, zz, a) {
   },
   el('summary', { 'data-fk': 'kern' },
     sigil(a),
-    el('span', { class: 'agent-name', text: 'Kern-Ergebnisse' }),
+    el('span', { class: 'agent-name', text: t('board.world.kernel-results') }),
     counters(a),
     statusMark(a),
     icon('trendAb', { size: 16, cls: 'wg-chevron' })),
@@ -106,7 +104,8 @@ function kernGroup(api, zz, a) {
   return details;
 }
 
-const retryHint = () => el('span', { class: 'agent-hinweis' }, icon('pfeil', { size: 14 }), RETRY_HINT);
+// The turn command is the one the game master runs again after a failed step.
+const retryHint = () => el('span', { class: 'agent-hinweis' }, icon('pfeil', { size: 14 }), t('board.world.retry'));
 
 function agentItem(api, a) {
   const failed = a.status === 'gescheitert';
@@ -118,7 +117,7 @@ function agentItem(api, a) {
   sigil(a),
   el('span', { class: 'agent-kopf' }, el('span', { class: 'agent-name', text: a.name }), a.role === 'agent' ? counters(a) : null, statusMark(a)),
   // A rival's content stays hidden (fog of war), only that it acts is shown.
-  a.role === 'rival' && (a.status === 'arbeitet' || a.status === 'fertig') ? el('span', { class: 'agent-plant', text: 'plant' }) : null,
+  a.role === 'rival' && (a.status === 'arbeitet' || a.status === 'fertig') ? el('span', { class: 'agent-plant', text: t('board.world.plans') }) : null,
   a.role !== 'rival' && (a.status === 'arbeitet' || failed) && a.taetigkeit ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
   failed ? retryHint() : null,
   a.role !== 'rival' && a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r, a))) : null);
@@ -130,12 +129,17 @@ function resultRow(api, r, a) {
   const badge = r.delta !== undefined
     ? el('span', { class: `delta ${r.delta > 0 ? 'up' : 'down'}`, text: signed(r.delta) })
     : r.severityText ? el('span', { class: 'erg-schwere', text: r.severityText })
-      : r.budget ? el('span', { class: 'erg-budget', 'aria-label': `Budget ${r.budget}`, text: r.budget.replace(' von ', '/') }) : null;
+      : r.budget ? el('span', { class: 'erg-budget', 'aria-label': t.fmt('board.world.budget', { budget: r.budget }), text: r.budget.replace(' von ', '/') }) : null;
   const btn = el('button', {
     class: `ergebnis ${r.cls}${severity}`,
     type: 'button',
     'data-fk': `${a.step ?? a.id}:${r.proposalId ?? ''}:${r.titel}`,
-    'aria-label': `${r.titel}${r.delta !== undefined ? ` ${signed(r.delta)}` : ''}${r.severityText ? `, ${r.severityText}` : ''}${r.cls === 'abgelehnt' ? ', abgelehnt' : r.cls === 'angenommen' ? ', angenommen' : ''}${r.pos ? ', auf der Karte zeigen' : ''}`,
+    'aria-label': [
+      `${r.titel}${r.delta !== undefined ? ` ${signed(r.delta)}` : ''}`,
+      r.severityText,
+      r.cls === 'abgelehnt' || r.cls === 'angenommen' ? t(`board.world.${r.cls}`) : null,
+      r.pos ? t('board.world.show-on-map') : null,
+    ].filter(Boolean).join(', '),
     onclick: () => {
       if (!r.pos) return;
       const sel = r.selKind ? { kind: r.selKind, id: r.selId, q: r.pos.q, r: r.pos.r } : { kind: 'tile', q: r.pos.q, r: r.pos.r };
@@ -169,7 +173,7 @@ export function runZwischenzug(api) {
   for (const u of model.units.filter((x) => x.volk === 'spieler')) model.known = reveal(model.known, u, u.art === 'lager' ? 4 : u.art === 'spaeher' ? 3 : 2, model.world);
   api.setPanel('welt');
   if (!model.meldungen.some((m) => m.id === 'weltgeschehen')) {
-    model.meldungen.unshift({ id: 'weltgeschehen', art: 'welt', titel: 'Weltgeschehen', text: 'Was die Agenten in diesem Zwischenzug taten und was der Prüfer zuließ.' });
+    model.meldungen.unshift({ id: 'weltgeschehen', art: 'welt', titel: t('view.weltgeschehen'), text: t('board.world.demo-message') });
     api.refreshMessages({ freshId: 'weltgeschehen' });
   }
 
@@ -218,8 +222,8 @@ export function runZwischenzug(api) {
       const m = model.S.modulRessourcen.find((x) => x.key === e.key);
       if (m && !model.module.some((x) => x.key === e.key)) model.module.push({ ...m, wert: 1, neu: true });
       api.refreshResources({ fresh: [e.key] });
-      push(e.agent, { cls: 'info', icon: e.key, titel: `${m?.name ?? e.key} entdeckt`, info: m?.grund });
-      api.announce(`Neue Ressource ${m?.name ?? e.key}`);
+      push(e.agent, { cls: 'info', icon: e.key, titel: t.fmt('board.world.discovered', { name: m?.name ?? e.key }), info: m?.grund });
+      api.announce(t.fmt('board.world.new-resource', { name: m?.name ?? e.key }));
     },
     meilenstein(e) {
       const ms = model.bestimmung.meilensteine;
@@ -231,10 +235,10 @@ export function runZwischenzug(api) {
       }
       api.refreshDestiny(i);
       const id = `meilenstein-${i}`;
-      model.meldungen.unshift({ id, art: 'meilenstein', titel: 'Meilenstein erreicht', text: e.text, aktion: 'Ansehen', dialog: 'bestimmung' });
+      model.meldungen.unshift({ id, art: 'meilenstein', titel: t('board.world.milestone'), text: e.text, aktion: t('ereignis.ansehen'), dialog: 'bestimmung' });
       api.refreshMessages({ freshId: id });
-      push(e.agent, { cls: 'angenommen', icon: 'meilenstein', titel: e.text, info: `Meilenstein von ${model.bestimmung.name}` });
-      api.announce(`Meilenstein erreicht, ${e.text}`);
+      push(e.agent, { cls: 'angenommen', icon: 'meilenstein', titel: e.text, info: t.fmt('board.world.milestone-of', { name: model.bestimmung.name }) });
+      api.announce(t.fmt('board.world.milestone-reached', { text: e.text }));
     },
     chronik(e) {
       api.streamChronicle(e);
@@ -247,9 +251,9 @@ export function runZwischenzug(api) {
         titel: e.titel,
         budget: ok ? e.urteil.budget : null,
         grund: ok ? null : e.urteil.grund,
-        info: `${e.text}${ok && e.urteil.budget ? ` Budget ${e.urteil.budget}.` : ''}`,
+        info: `${e.text}${ok && e.urteil.budget ? ` ${t.fmt('board.world.budget', { budget: e.urteil.budget })}.` : ''}`,
       };
-      if (e.befund) Object.assign(row, { severity: e.befund, severityText: SEVERITY_TEXT[e.befund], icon: e.befund === 'info' ? 'ja' : 'warnung', budget: null });
+      if (e.befund) Object.assign(row, { severity: e.befund, severityText: t(`severity.${e.befund}`), icon: e.befund === 'info' ? 'ja' : 'warnung', budget: null });
       const k = e.karte;
       if (k) {
         if (k.art === 'ort-neu') {
@@ -316,8 +320,8 @@ export function runZwischenzug(api) {
 /** The kernel would refuse an occupied or impassable target; the prototype nudges instead. */
 function snapFree(model, target, self) {
   for (const h of spiral(target, 3)) {
-    const t = tileAt(model.world, h.q, h.r);
-    const def = model.terrains.get(t.terrain);
+    const tile = tileAt(model.world, h.q, h.r);
+    const def = model.terrains.get(tile.terrain);
     if (!def || def.water || typeof def.moveCost !== 'number') continue;
     const busy = model.units.some((u) => u !== self && u.q === h.q && u.r === h.r) || model.places.some((p) => p.q === h.q && p.r === h.r);
     if (!busy) return h;

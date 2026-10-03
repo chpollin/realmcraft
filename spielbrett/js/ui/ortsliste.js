@@ -4,6 +4,7 @@
 import { el } from '../dom.js';
 import { icon } from '../icons.js';
 import { peopleName, tileInfo } from '../model.js';
+import { t } from '../i18n/index.js';
 
 export function renderOrtsliste(api) {
   const { model } = api;
@@ -20,9 +21,9 @@ export function renderOrtsliste(api) {
       },
     }, icon(o.art, { size: 18 }), o.name, el('span', { class: 'meta', text: meta })));
   nav.replaceChildren(
-    el('h2', { text: 'Einheiten' }),
-    el('ul', { role: 'list' }, ...units.map((u) => item(u, 'unit', peopleName(model, u.volk) === model.volk.name ? 'eigene' : peopleName(model, u.volk)))),
-    el('h2', { text: 'Orte' }),
+    el('h2', { text: t('board.list.units') }),
+    el('ul', { role: 'list' }, ...units.map((u) => item(u, 'unit', peopleName(model, u.volk) === model.volk.name ? t('board.list.own') : peopleName(model, u.volk)))),
+    el('h2', { text: t('board.list.places') }),
     el('ul', { role: 'list' }, ...places.map((p) => item(p, 'place', tileInfo(model, p.q, p.r).regionName))),
   );
 }

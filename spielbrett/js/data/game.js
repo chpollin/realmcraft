@@ -5,7 +5,8 @@
 // agents' writes (view, status, chronicle, report) back onto the board.
 
 import { buildEnv, previewDraft, bandOf, eventBand, eventBands, SUCCESS_BANDS, sameWorld, CONTENT_FILES } from './kernel.js';
-import { makeLabels, bandKey } from './labels.js';
+import { bandKey, LANGUAGES } from './labels.js';
+import { t, setWorldLabels } from '../i18n/index.js';
 import { server, turnStem } from './server.js';
 import { adaptView, orderRows, resourceRows, messages, issueText, describeParams, seasonOf, boardPhase, volkOf, previewDeltas, blockersOf } from './adapter.js';
 import { draftFor, withOrder, withoutOrder, withReplacedOrder, withoutRoll, withRoll, withMandate, withChoice, withAssign, openRolls } from './draft.js';
@@ -21,6 +22,7 @@ export const originOf = (agentOrSource) => {
   const head = a.split(/[-.]/)[0];
   return ORIGIN[head] ?? 'kern';
 };
+// Agent states of status.json on the board's state ids; their names are board labels (board.agent.<id>).
 const STEP_STATE = { waiting: 'wartet', running: 'arbeitet', done: 'fertig', failed: 'gescheitert' };
 const POSITIONAL = new Set(['tile', 'settlement', 'unit', 'region']);
 const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
@@ -95,12 +97,12 @@ export function shapeSteps(steps, { t, peopleName = () => null, positions = new 
           proposalId: p.proposalId,
           kind: p.kind,
           severity,
-          severityText: severity ? t(`severity.${severity}`, { info: 'Hinweis', warn: 'Warnung', severe: 'schwer' }[severity]) : null,
+          severityText: severity ? t(`severity.${severity}`, severity) : null,
           // Items of one proposal share its id, so only an accepted item points at the place the change took.
           pos: cls === 'angenommen' ? positions.get(p.proposalId) ?? null : null,
-          budget: p.budget ? `Netto ${p.budget.net}, Stufe ${p.budget.tier}` : null,
+          budget: p.budget ? t.fmt('board.world.budget-short', { net: p.budget.net, tier: p.budget.tier }) : null,
           grund: p.reason ?? t(`verdict.${p.verdict}`, p.verdict),
-          info: `${t(`verdict.${p.verdict}`, p.verdict)}${p.budget ? `, Wirkung ${p.budget.effect}, Preis ${p.budget.price}` : ''}`,
+          info: [t(`verdict.${p.verdict}`, p.verdict), p.budget ? t.fmt('board.world.budget-detail', { effect: p.budget.effect, price: p.budget.price }) : null].filter(Boolean).join(', '),
           detail: p.reason ?? null,
         };
       }),
@@ -117,12 +119,25 @@ export function pickCampaign(index, wanted) {
   return [...(playing.length ? playing : rows)].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))[0] ?? null;
 }
 
+/**
+ * Label files of a world package: labels.json in the package's own language
+ * and labels.<lang>.json for each other board language the package carries.
+ * A missing or unreadable translation only means its keys fall back.
+ */
+export async function worldLabelFiles(worldId) {
+  const base = await server.pack(worldId, 'labels.json');
+  const own = base?.locale ?? 'de';
+  const more = await Promise.all(LANGUAGES.filter((l) => l !== own)
+    .map((l) => server.pack(worldId, `labels.${l}.json`, { optional: true }).catch(() => null)));
+  return [base, ...more.filter((f) => f?.labels && typeof f.locale === 'string')];
+}
+
 async function loadPack(worldId) {
-  const [welt, regeln, labels, ...content] = await Promise.all([
-    server.pack(worldId, 'welt.json'), server.pack(worldId, 'regeln.json'), server.pack(worldId, 'labels.json'),
+  const [welt, regeln, labelFiles, ...content] = await Promise.all([
+    server.pack(worldId, 'welt.json'), server.pack(worldId, 'regeln.json'), worldLabelFiles(worldId),
     ...CONTENT_FILES.map((f) => server.pack(worldId, `content/${f}.json`)),
   ]);
-  return { welt, regeln, labels, ...Object.fromEntries(CONTENT_FILES.map((f, i) => [f, content[i]])) };
+  return { welt, regeln, labels: labelFiles[0], labelFiles, ...Object.fromEntries(CONTENT_FILES.map((f, i) => [f, content[i]])) };
 }
 
 export async function createGame(model, { cid: wanted } = {}) {
@@ -132,7 +147,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   const cid = row.id;
   const pid = row.player;
   const pack = await loadPack(row.world);
-  const t = makeLabels(pack.labels);
+  setWorldLabels(pack.labelFiles);
   const listeners = new Set();
   const g = {
     cid, pid, t, pack,
@@ -166,9 +181,9 @@ export async function createGame(model, { cid: wanted } = {}) {
 
   function worldMessages() {
     const out = [];
-    if (!sameWorld(g.view, g.env)) out.push({ id: 'welt-abweichung', art: 'warnung', titel: 'Weltpaket abweichend', text: 'Das Weltpaket im Browser ist nicht das, mit dem die Kampagne angelegt wurde. Vorschauen können abweichen.' });
-    if (g.saveError) out.push({ id: 'entwurf-fehler', art: 'warnung', titel: 'Entwurf nicht gespeichert', text: g.saveError });
-    if (model.zz) out.unshift({ id: 'weltgeschehen', art: 'welt', titel: t('view.weltgeschehen', 'Weltgeschehen'), text: 'Was Regelkern und Agenten in dieser Runde taten.' });
+    if (!sameWorld(g.view, g.env)) out.push({ id: 'welt-abweichung', art: 'warnung', titel: t('board.msg.world-drift'), text: t('board.msg.world-drift-text') });
+    if (g.saveError) out.push({ id: 'entwurf-fehler', art: 'warnung', titel: t('board.msg.draft-unsaved'), text: g.saveError });
+    if (model.zz) out.unshift({ id: 'weltgeschehen', art: 'welt', titel: t('view.weltgeschehen'), text: t('board.msg.world-events') });
     return out;
   }
 
@@ -211,7 +226,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   // Declared effects of an event option, as the card states them.
   function effectChip(e) {
     if (e.op === 'resource.delta') return { icon: e.res, wert: signed(e.amount), text: t(`resource.${e.res}`, e.res) };
-    if (e.op === 'loyalty.delta') return { icon: 'rat', wert: signed(e.amount), text: t('ui.loyalitaet', 'Loyalität') };
+    if (e.op === 'loyalty.delta') return { icon: 'rat', wert: signed(e.amount), text: t('ui.loyalitaet') };
     if (Number.isInteger(e.amount)) return { icon: 'pfeil', wert: signed(e.amount), text: e.op };
     return { icon: 'pfeil', wert: '', text: e.op };
   }
@@ -228,7 +243,7 @@ export async function createGame(model, { cid: wanted } = {}) {
     const res = await g.saving;
     g.saving = null;
     const errors = (res.issues ?? []).filter((i) => i.severity === 'error' && i.code !== 'roll_missing');
-    g.saveError = res.stored ? null : [...new Set(errors.map((i) => issueText(i, t)))].join(', ') || t('issue.server', 'Der Server hat den Entwurf nicht angenommen');
+    g.saveError = res.stored ? null : [...new Set(errors.map((i) => issueText(i, t)))].join(', ') || t('issue.server');
     if (sent === g.draft) {
       refresh();
       emit('draft');
@@ -276,22 +291,29 @@ export async function createGame(model, { cid: wanted } = {}) {
   }
 
   function kernelAgent() {
-    return { id: 'kern', role: 'kernel', name: t('agent.kernel', 'Regelkern'), status: g.view.phase === 'resolving' ? 'arbeitet' : 'fertig', taetigkeit: '', results: [] };
+    return { id: 'kern', role: 'kernel', name: t('agent.kernel'), status: g.view.phase === 'resolving' ? 'arbeitet' : 'fertig', taetigkeit: '', results: [] };
+  }
+
+  /** Seasons the Zwischenzug runs between: the one resolved and the one it opens. */
+  function zzSeasons() {
+    const agents = g.view.phase === 'agents';
+    return {
+      von: seasonOf(g.env, t, agents ? Math.max(0, g.view.turn - 1) : g.view.turn),
+      nach: seasonOf(g.env, t, agents ? g.view.turn : g.view.turn + 1),
+    };
   }
 
   function ensureZz() {
     if (model.zz) return;
-    const von = seasonOf(g.env, t, g.view.phase === 'agents' ? Math.max(0, g.view.turn - 1) : g.view.turn);
-    const nach = seasonOf(g.env, t, g.view.phase === 'agents' ? g.view.turn : g.view.turn + 1);
-    model.zz = { phase: boardPhase(g.view), phaseTitel: phaseTitle(), von, nach, agenten: [kernelAgent()] };
+    model.zz = { phase: boardPhase(g.view), phaseTitel: phaseTitle(), ...zzSeasons(), agenten: [kernelAgent()] };
   }
 
-  function phaseTitle() {
-    const p = g.view.phase;
-    if (g.view.status === 'ended') return 'Die Partie ist beendet';
-    if (p === 'resolving') return `${t('phase.resolving', 'Auflösung')}, Befehle sind gesperrt`;
-    if (p === 'agents') return `${t('phase.agents', 'Agentenrunde')}, planen ist frei, der Zug öffnet danach`;
-    return `${t('phase.planning', 'Planung')}, Befehle sind frei`;
+  // After sealing, the board resolves before the server's new view arrives, so the caller may name the phase.
+  function phaseTitle(p = g.view.phase) {
+    if (g.view.status === 'ended') return t('issue.finished');
+    if (p === 'resolving') return t.fmt('board.phase.resolving', { phase: t('phase.resolving') });
+    if (p === 'agents') return t.fmt('board.phase.agents', { phase: t('phase.agents') });
+    return t.fmt('board.phase.planning', { phase: t('phase.planning') });
   }
 
   /** Round report of a resolved turn: kernel results, store changes and map highlights by origin. */
@@ -299,6 +321,11 @@ export async function createGame(model, { cid: wanted } = {}) {
     const rep = await server.report(cid, turnStem(turn));
     if (!rep) return;
     g.report = rep;
+    applyReport(rep, turn);
+  }
+
+  /** Kernel results of a report in the current language; `highlight` false relabels without flashing the map again. */
+  function applyReport(rep, turn, { highlight = true } = {}) {
     ensureZz();
     const kern = model.zz.agenten.find((a) => a.role === 'kernel') ?? kernelAgent();
     kern.status = 'fertig';
@@ -306,7 +333,7 @@ export async function createGame(model, { cid: wanted } = {}) {
     const res = [];
     for (const o of rep.sections?.orders ?? []) {
       const ok = o.status === 'executed' && (!o.band || SUCCESS_BANDS.includes(o.band));
-      res.push({ cls: o.status === 'rejected' ? 'abgelehnt' : ok ? 'angenommen' : 'info', icon: ok ? 'ja' : 'nein', titel: t(`order.${o.type}`, o.type), grund: o.band ? t(bandKey(o.band), o.band) : o.status, info: o.band ? t(bandKey(o.band), o.band) : '' });
+      res.push({ cls: o.status === 'rejected' ? 'abgelehnt' : ok ? 'angenommen' : 'info', icon: ok ? 'ja' : 'nein', titel: t(`order.${o.type}`, o.type), grund: o.band ? t(bandKey(o.band), o.band) : t(`board.order-status.${o.status}`, o.status), info: o.band ? t(bandKey(o.band), o.band) : '' });
     }
     const verlauf = new Map();
     const highlights = [];
@@ -329,21 +356,22 @@ export async function createGame(model, { cid: wanted } = {}) {
     }
     kern.results = res;
     if (!model.zz.agenten.includes(kern)) model.zz.agenten.unshift(kern);
-    model.highlights = highlights;
     // Agent results with a place on the map can now jump there.
     g.reportIdx = agentEventIndex(rep.events, positionOf);
+    if (!highlight) return;
+    model.highlights = highlights;
     emit('report', { turn, highlights });
     applyStatus();
   }
 
   function kindText(e) {
     const k = e.kind;
-    if (k.startsWith('economy.harvest')) return 'Ernte';
-    if (k.startsWith('economy.flow')) return 'Zufluss';
-    if (k.startsWith('economy.consumption') || k.startsWith('economy.consume')) return 'Verbrauch';
-    if (k.startsWith('economy.upkeep')) return 'Unterhalt';
-    if (k === 'order.cost') return 'Befehlskosten';
-    if (k.startsWith('event')) return 'Ereignis';
+    if (k.startsWith('economy.harvest')) return t('board.log.harvest');
+    if (k.startsWith('economy.flow')) return t('board.log.inflow');
+    if (k.startsWith('economy.consumption') || k.startsWith('economy.consume')) return t('ui.verbrauch');
+    if (k.startsWith('economy.upkeep')) return t('ui.unterhalt');
+    if (k === 'order.cost') return t('board.log.order-cost');
+    if (k.startsWith('event')) return t('board.log.event');
     return e.reason;
   }
 
@@ -520,12 +548,12 @@ export async function createGame(model, { cid: wanted } = {}) {
       });
     },
     canSeal() {
-      if (g.view.status === 'ended') return { ok: false, reason: 'Partie beendet' };
-      if (g.view.phase === 'resolving') return { ok: false, reason: t('phase.resolving', 'Auflösung') };
-      if (g.view.phase === 'agents') return { ok: false, reason: t('phase.agents', 'Agentenrunde') };
+      if (g.view.status === 'ended') return { ok: false, reason: t('board.end.over') };
+      if (g.view.phase === 'resolving') return { ok: false, reason: t('phase.resolving') };
+      if (g.view.phase === 'agents') return { ok: false, reason: t('phase.agents') };
       const errors = g.base.issues.filter((i) => i.severity === 'error');
       if (errors.length) return { ok: false, reason: issueText(errors[0], t), issues: errors };
-      if (model.offeneWuerfe.length) return { ok: false, reason: 'Würfe offen', rolls: model.offeneWuerfe };
+      if (model.offeneWuerfe.length) return { ok: false, reason: t.plural('board.rolls-open', model.offeneWuerfe.length), rolls: model.offeneWuerfe };
       return { ok: true };
     },
     async seal() {
@@ -538,14 +566,28 @@ export async function createGame(model, { cid: wanted } = {}) {
         model.zz = null;
         ensureZz();
         model.zz.phase = 'A';
-        model.zz.phaseTitel = `${t('phase.resolving', 'Auflösung')}, Befehle sind gesperrt`;
-        model.zz.agenten = [{ ...kernelAgent(), status: 'arbeitet', taetigkeit: 'wartet auf die Spielleitung (/zug)' }];
+        model.zz.phaseTitel = phaseTitle('resolving');
+        model.zz.agenten = [{ ...kernelAgent(), status: 'arbeitet', taetigkeit: t('board.world.awaits-master') }];
         model.phase = 'A';
         emit('sealed', res);
       }
       return res;
     },
     peopleVolk: (id) => volkOf(g.view, id),
+    /**
+     * Rebuilds every text of the model in the current language: the view, the
+     * Zwischenzug panel and the round report. The draft and the selection stay.
+     */
+    relabel() {
+      rebuild();
+      if (!model.zz) return;
+      const sealed = model.zz.phase === 'A' && g.view.phase === 'planning';
+      Object.assign(model.zz, { phaseTitel: phaseTitle(sealed ? 'resolving' : g.view.phase) }, zzSeasons());
+      const kern = model.zz.agenten.find((a) => a.role === 'kernel');
+      if (kern) Object.assign(kern, { name: t('agent.kernel') }, kern.status === 'arbeitet' && kern.taetigkeit ? { taetigkeit: t('board.world.awaits-master') } : {});
+      if (g.report) applyReport(g.report, null, { highlight: false });
+      if (g.status) applyStatus();
+    },
   });
   return g;
 }

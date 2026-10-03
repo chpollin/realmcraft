@@ -8,6 +8,7 @@ import { icon } from '../icons.js';
 import { portrait } from './portrait.js';
 import { withTip } from './tip.js';
 import { loyaltyMeter } from './dialoge.js';
+import { t } from '../i18n/index.js';
 
 // Role symbols of the Hochland roles; a role of another world falls back to the people symbol.
 const ROLE_ICON = {
@@ -44,8 +45,8 @@ function realMembers(api) {
       ...a,
       icon: ROLE_ICON[m?.role] ?? 'volk',
       // The kernel keeps no place per member; without a lead they stay with the people at its home settlement.
-      auftrag: led.length ? { icon: 'wuerfel', text: `führt ${led.map((o) => o.titel).join(', ')}` } : null,
-      ort: model.home ? game.t(`settlement.${model.home.kind}`, 'Lager') : null,
+      auftrag: led.length ? { icon: 'wuerfel', text: t.fmt('board.council.leads', { orders: led.map((o) => o.titel).join(', ') }) } : null,
+      ort: model.home ? t(`settlement.${model.home.kind}`, t('board.unit.lager')) : null,
       fuehrung: effects[a.id] ?? null,
     };
   });
@@ -64,11 +65,10 @@ export function renderRatsleiste(api) {
   }
   const folded = box.dataset.zu ? box.dataset.zu === 'true' : readFolded();
   box.dataset.zu = String(folded);
-  const t = (k, f) => game?.t(k, f) ?? f;
   const members = game ? realMembers(api) : mockMembers(api);
   const toggle = el('button', {
     class: 'icon-btn rl-schalter', type: 'button', 'aria-expanded': String(!folded), 'aria-controls': 'ratsleiste-liste',
-    'aria-label': `${t('view.rat', 'Rat')} ${folded ? 'aufklappen' : 'einklappen'}`,
+    'aria-label': t.fmt(folded ? 'board.council.unfold' : 'board.council.fold', { name: t('view.rat') }),
     onclick: () => {
       box.dataset.zu = String(!folded);
       storeFolded(!folded);
@@ -86,7 +86,7 @@ export function renderRatsleiste(api) {
       class: `rl-karte${a.leader ? ' is-anfuehrer' : ''}`,
       type: 'button',
       'data-rat': a.id,
-      'aria-label': `${a.name}, ${a.rolle}, ${t('ui.loyalitaet', 'Loyalität')} ${signed(a.loyalitaet)}${a.auftrag ? `, ${a.auftrag.text}` : ''}${a.fuehrung != null ? `, ${t('ui.fuehrung', 'Führung')} ${signed(a.fuehrung)}` : ''}`,
+      'aria-label': [a.name, a.rolle, `${t('ui.loyalitaet')} ${signed(a.loyalitaet)}`, a.auftrag?.text, a.fuehrung != null ? `${t('ui.fuehrung')} ${signed(a.fuehrung)}` : null].filter(Boolean).join(', '),
       onclick: () => {
         api.openDialog('rat');
         document.querySelector(`#dlg-rat [data-berater="${a.id}"] .berater-karte`)?.focus();
@@ -98,12 +98,12 @@ export function renderRatsleiste(api) {
       el('span', { class: `rl-loyal num ${a.loyalitaet > 0 ? 'up' : a.loyalitaet < 0 ? 'down' : ''}`, text: signed(a.loyalitaet) }),
       chips.length ? el('span', { class: 'rl-chips' }, ...chips) : null));
     return el('li', {}, withTip(btn, [el('strong', { text: a.name }), ` ${a.rolle}`], [
-      el('span', { class: 'tip-zeile' }, el('span', { text: t('ui.loyalitaet', 'Loyalität') }), el('span', {}, loyaltyMeter(a.loyalitaet, { label: `Loyalität von ${a.name}` }), ` ${a.band ?? ''}`)),
-      a.ort ? el('span', { class: 'tip-zeile' }, el('span', { text: 'Ort' }), el('span', { text: a.ort })) : null,
-      el('span', { class: 'tip-zeile' }, el('span', { text: 'Diese Saison' }), el('span', { text: a.auftrag?.text ?? 'ohne Auftrag' })),
-      a.fuehrung != null ? el('span', { class: 'tip-zeile' }, el('span', { text: `${t('ui.fuehrung', 'Führung')} einer Probe` }), el('span', { class: a.fuehrung > 0 ? 'up' : a.fuehrung < 0 ? 'down' : '', text: signed(a.fuehrung) })) : null,
-      a.favor?.length ? el('span', { class: 'tip-zeile' }, el('span', { text: 'Dafür' }), el('span', { text: a.favor.map((g) => t(`tag.${g}`, g)).join(', ') })) : null,
-      a.oppose?.length ? el('span', { class: 'tip-zeile' }, el('span', { text: 'Dagegen' }), el('span', { text: a.oppose.map((g) => t(`tag.${g}`, g)).join(', ') })) : null,
+      el('span', { class: 'tip-zeile' }, el('span', { text: t('ui.loyalitaet') }), el('span', {}, loyaltyMeter(a.loyalitaet, { label: t.fmt('board.council.loyalty-of', { name: a.name }) }), ` ${a.band ?? ''}`)),
+      a.ort ? el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.place') }), el('span', { text: a.ort })) : null,
+      el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.this-season') }), el('span', { text: a.auftrag?.text ?? t('board.council.no-task') })),
+      a.fuehrung != null ? el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.lead-probe') }), el('span', { class: a.fuehrung > 0 ? 'up' : a.fuehrung < 0 ? 'down' : '', text: signed(a.fuehrung) })) : null,
+      a.favor?.length ? el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.favours') }), el('span', { text: a.favor.map((g) => t(`tag.${g}`, g)).join(', ') })) : null,
+      a.oppose?.length ? el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.opposes') }), el('span', { text: a.oppose.map((g) => t(`tag.${g}`, g)).join(', ') })) : null,
     ].filter(Boolean), { right: true, action: true }));
   };
   box.replaceChildren(toggle, el('ul', { class: 'rl-liste plain', id: 'ratsleiste-liste' }, ...members.map(card)));

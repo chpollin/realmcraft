@@ -9,7 +9,7 @@
 
 import { key, parseKey, neighbors, regionOf, regionInfo } from '../../../engine/world/index.js';
 import { bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, SUCCESS_BANDS } from './kernel.js';
-import { bandKey } from './labels.js';
+import { bandKey, fill, makeLabels } from './labels.js';
 
 export const OWN = 'spieler';
 const ROAD_KIND = 'weg';
@@ -41,9 +41,9 @@ function forecastLines(t, fc, id) {
   if (!fc) return [];
   const out = [];
   const add = (label, n, sign) => { if (n) out.push({ grund: label, delta: sign * n }); };
-  add(t('ui.ertrag', 'Ertrag'), fc.income?.[id] ?? 0, 1);
-  add(t('ui.verbrauch', 'Verbrauch'), fc.consumption?.[id] ?? 0, -1);
-  add(t('ui.unterhalt', 'Unterhalt'), fc.upkeep?.[id] ?? 0, -1);
+  add(t('ui.ertrag'), fc.income?.[id] ?? 0, 1);
+  add(t('ui.verbrauch'), fc.consumption?.[id] ?? 0, -1);
+  add(t('ui.unterhalt'), fc.upkeep?.[id] ?? 0, -1);
   return out;
 }
 
@@ -64,19 +64,19 @@ export function resourceRows(view, env, t, pv) {
       netto: net,
       mangel: short,
       prognose: forecastLines(t, fc, id),
-      grund: short ? `${short} fehlen zum Saisonende` : `zum Saisonende ${signed(net)}`,
+      grund: short ? t.fmt('board.res.short', { n: short }) : t.fmt('board.res.net', { delta: signed(net) }),
     };
   };
   const defs = env.regeln.resources;
   const base = defs.slice(0, BASE_RESOURCES).map((r) => row(r.id));
   const growth = fc?.growth?.clans ?? 0;
   base.push({
-    key: 'volk', name: t('population.core', 'Sippen'), wert: p.population.core, cap: fc?.popCap ?? null,
-    trend: Math.sign(growth), netto: growth, mangel: 0, prognose: [], grund: `${t('population.growth', 'Wachstum')} ${p.population.growth}`,
+    key: 'volk', name: t('population.core'), wert: p.population.core, cap: fc?.popCap ?? null,
+    trend: Math.sign(growth), netto: growth, mangel: 0, prognose: [], grund: `${t('population.growth')} ${p.population.growth}`,
   });
   const approvalKey = Object.keys(p.meters ?? {}).find((k) => k === 'zustimmung') ?? Object.keys(p.meters ?? {})[0];
   if (approvalKey) {
-    base.push({ key: approvalKey, name: t(`meter.${approvalKey}`, approvalKey), wert: p.meters[approvalKey], cap: null, trend: 0, netto: 0, mangel: 0, prognose: [], grund: 'ohne Vorschau, die Kernvorschau rechnet Messwerte nicht voraus' });
+    base.push({ key: approvalKey, name: t(`meter.${approvalKey}`, approvalKey), wert: p.meters[approvalKey], cap: null, trend: 0, netto: 0, mangel: 0, prognose: [], grund: t('board.res.meter-no-preview') });
   }
   const special = defs.slice(BASE_RESOURCES)
     .filter((r) => (p.resources[r.id] ?? 0) > 0 || (fc?.net?.[r.id] ?? 0) !== 0 || (r.module && active.has(r.module)))
@@ -258,7 +258,7 @@ export function council(view, t) {
   });
 }
 
-function milestoneRows(def, state, view, env) {
+function milestoneRows(def, state, view, env, t) {
   const pid = view.people;
   const own = view.peoples[pid];
   // Counts mirror the kernel predicates (engine/core/bestimmung.js evalPredicate)
@@ -287,7 +287,7 @@ function milestoneRows(def, state, view, env) {
   return state.milestones.map((m) => {
     const d = def?.milestones.find((x) => x.id === m.id);
     const holds = d?.predicate?.pred === 'holds' ? d.predicate : null;
-    const raw = holds ? { wert: m.progress, ziel: holds.seasons, einheit: 'Jahreszeiten' } : d ? measure(d.predicate) : null;
+    const raw = holds ? { wert: m.progress, ziel: holds.seasons, einheit: t('board.measure.seasons') } : d ? measure(d.predicate) : null;
     const fortschritt = m.reached && raw ? { ...raw, wert: raw.ziel } : raw;
     return {
       id: m.id,
@@ -295,12 +295,12 @@ function milestoneRows(def, state, view, env) {
       erreicht: m.reached,
       icon: d ? predicateIcon(d.predicate) : 'meilenstein',
       fortschritt,
-      stand: m.reached ? 'erreicht' : fortschritt ? `${fortschritt.wert} von ${fortschritt.ziel}` : '',
+      stand: m.reached ? t('board.destiny.state.erreicht') : fortschritt ? t.fmt('board.of', { done: fortschritt.wert, total: fortschritt.ziel }) : '',
     };
   });
 }
 
-export function destiny(view, env) {
+export function destiny(view, env, t = makeLabels()) {
   const b = view.peoples[view.people].bestimmung;
   const def = b ? env.bestimmung(b.ref) : null;
   // A destiny a rival is known to hold is that people's own and is not offered.
@@ -314,7 +314,7 @@ export function destiny(view, env) {
     name: def?.name ?? b?.ref ?? '',
     summary: def?.summary ?? '',
     art: 'start',
-    meilensteine: b ? milestoneRows(def, b, view, env) : [],
+    meilensteine: b ? milestoneRows(def, b, view, env, t) : [],
     wechsel,
   };
 }
@@ -354,7 +354,7 @@ export function developments(view, env, t) {
       von: roots[0] ? `praxis:${roots[0]}` : 'volk',
       weilVon: roots[1] ? `praxis:${roots[1]}` : null,
       weil: tags.length ? tags.map((g) => t(`tag.${g}`, g)).join(', ') : null,
-      herkunft: ent?.origin?.source === 'agent' ? t('agent.research', 'Forschung') : null,
+      herkunft: ent?.origin?.source === 'agent' ? t('agent.research') : null,
       ...extra,
     };
   };
@@ -363,8 +363,8 @@ export function developments(view, env, t) {
     praxis: [...practice.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
       .map(([tag, n]) => ({ id: `praxis:${tag}`, name: t(`tag.${tag}`, tag), gewicht: n, von: 'volk' })),
     bekannt: d.known.map((k) => ({ ...node(k.ref), von: 'volk', weilVon: null, aktiv: k.state === 'active', ab: k.effectiveFrom, eingesetzt: instituted.has(k.ref) })),
-    forschung: d.research.map((r) => node(r.ref, { fortschritt: r.progress, dauer: researchCost(view, env, pid, r.ref), einheit: 'Punkte' })),
-    vorschlaege: d.candidates.map((c) => node(c.ref, { dauer: researchCost(view, env, pid, c.ref), einheit: 'Punkte', ablauf: c.expiresAt, quelle: c.origin })),
+    forschung: d.research.map((r) => node(r.ref, { fortschritt: r.progress, dauer: researchCost(view, env, pid, r.ref), einheit: t('board.measure.points') })),
+    vorschlaege: d.candidates.map((c) => node(c.ref, { dauer: researchCost(view, env, pid, c.ref), einheit: t('board.measure.points'), ablauf: c.expiresAt, quelle: c.origin })),
   };
 }
 
@@ -376,7 +376,7 @@ export function chronicle(env, t, entries) {
     const lines = String(e.text ?? '').trim().split(/\r?\n/);
     const head = /^#+\s*(.+)$/.exec(lines[0] ?? '');
     const z = seasonOf(env, t, e.turn);
-    return { turn: e.turn, saison: z.saison, jahr: z.jahr, titel: head ? head[1].trim() : `${z.saison}, ${t('ui.jahr', 'Jahr')} ${z.jahr}`, text: (head ? lines.slice(1) : lines).join('\n').trim() };
+    return { turn: e.turn, saison: z.saison, jahr: z.jahr, titel: head ? head[1].trim() : t.fmt('board.time', { season: z.saison, year: z.jahr }), text: (head ? lines.slice(1) : lines).join('\n').trim() };
   });
 }
 
@@ -384,12 +384,17 @@ export function chronicle(env, t, entries) {
 export const issueKey = (code) => `issue.${String(code).replace(/^kern\./, '').replaceAll('_', '-')}`;
 
 /**
- * German text of a kernel issue from the world's labels (issue.<code>). The
- * kernel's own message is English and never reaches the player; an unlabelled
- * code falls back to a generic German sentence.
+ * Text of a kernel issue in the board language (plan M1, machine-readable
+ * issues): issue.<code>.<params.reason> when the kernel names a reason, else
+ * issue.<code>, else the generic sentence; params fill the placeholders. The
+ * kernel's own message is English prose for logs and never reaches the player.
  */
 export function issueText(issue, t) {
-  return t(issueKey(issue.code), t('issue.generic', 'Der Regelkern lässt das so nicht zu'));
+  const base = issueKey(issue.code);
+  const reason = issue.params?.reason;
+  const key = reason && t.has?.(`${base}.${reason}`) ? `${base}.${reason}` : base;
+  const text = t(key, t('issue.generic'));
+  return issue.params ? fill(text, issue.params) : text;
 }
 
 export function messages(view, env, t, pv) {
@@ -397,30 +402,30 @@ export function messages(view, env, t, pv) {
   const out = [];
   if (view.status === 'ended') {
     const r = view.result;
-    out.push({ id: 'ergebnis', art: r?.winner === pid ? 'meilenstein' : 'warnung', titel: r?.winner === pid ? 'Bestimmung erfüllt' : 'Partie beendet', text: r?.reason ?? '' });
+    out.push({ id: 'ergebnis', art: r?.winner === pid ? 'meilenstein' : 'warnung', titel: t(r?.winner === pid ? 'board.end.won' : 'board.end.over'), text: r?.reason ?? '' });
   }
   for (const [res, n] of Object.entries(pv?.forecast?.shortfall ?? {})) {
-    if (n > 0) out.push({ id: `mangel-${res}`, art: 'warnung', titel: `${t(`resource.${res}`, res)} knapp`, text: `${n} ${t(`resource.${res}`, res)} fehlen zum Saisonende.` });
+    if (n > 0) out.push({ id: `mangel-${res}`, art: 'warnung', titel: t.fmt('board.msg.scarce', { res: t(`resource.${res}`, res) }), text: t.fmt('board.msg.shortfall', { n, res: t(`resource.${res}`, res) }) });
   }
   const core = view.peoples[pid].population.core;
   const assigned = Object.values(pv?.assign ?? {}).reduce((a, n) => a + n, 0);
   for (const i of pv?.issues ?? []) {
     if (i.code === 'upkeep_risk') out.push({ id: `unterhalt-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
-    if (i.code === 'labour' || i.code === 'idle_labour') out.push({ id: `arbeit-${i.code}`, art: 'warnung', titel: issueText(i, t), text: `${assigned} von ${core} ${t('population.core', 'Sippen')} eingeteilt`, dialog: null, home: true });
+    if (i.code === 'labour' || i.code === 'idle_labour') out.push({ id: `arbeit-${i.code}`, art: 'warnung', titel: issueText(i, t), text: t.fmt('board.msg.assigned', { done: assigned, total: core, clans: t('population.core') }), dialog: null, home: true });
     // Errors no order row carries (a malformed roll, a stale draft, a phase) would otherwise go unseen.
     else if (i.severity === 'error' && !i.path.startsWith('/orders/') && !i.path.startsWith('/rolls/T')) out.push({ id: `entwurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
     else if (i.severity === 'error' && i.path.startsWith('/rolls/') && (i.code !== 'roll_stale' || !(pv.probes ?? []).some((p) => i.path === `/rolls/${p.id}`))) out.push({ id: `wurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
   }
   for (const c of view.pendingChoices ?? []) {
     const card = env.ereignis(c.event);
-    out.push({ id: `entscheidung-${c.id}`, art: 'angebot', titel: card?.name ?? card?.title ?? c.event, text: `Entscheidung bis ${seasonOf(env, t, c.deadline).saison}`, dialog: 'rat' });
+    out.push({ id: `entscheidung-${c.id}`, art: 'angebot', titel: card?.name ?? card?.title ?? c.event, text: `${t('ereignis.frist')} ${seasonOf(env, t, c.deadline).saison}`, dialog: 'rat' });
   }
   const fresh = view.peoples[pid].developments.candidates.filter((c) => c.offeredAt === view.turn);
-  if (fresh.length) out.push({ id: 'kandidaten', art: 'angebot', titel: t('ui.kandidaten', 'Neue Entwicklungen'), text: fresh.map((c) => devName(env, c.ref)).join(', '), dialog: 'entwicklungen' });
+  if (fresh.length) out.push({ id: 'kandidaten', art: 'angebot', titel: t('ui.kandidaten'), text: fresh.map((c) => devName(env, c.ref)).join(', '), dialog: 'entwicklungen' });
   const b = view.peoples[pid].bestimmung;
   const def = b ? env.bestimmung(b.ref) : null;
   for (const m of b?.milestones ?? []) {
-    if (m.reached && m.reachedAt === view.turn - 1) out.push({ id: `meilenstein-${m.id}`, art: 'meilenstein', titel: 'Meilenstein erreicht', text: def?.milestones.find((x) => x.id === m.id)?.text ?? m.id, dialog: 'bestimmung' });
+    if (m.reached && m.reachedAt === view.turn - 1) out.push({ id: `meilenstein-${m.id}`, art: 'meilenstein', titel: t('board.world.milestone'), text: def?.milestones.find((x) => x.id === m.id)?.text ?? m.id, dialog: 'bestimmung' });
   }
   return out;
 }
@@ -443,7 +448,7 @@ export function describeParams(view, env, t, order, world) {
       const terr = env.terrain(tile?.terrain)?.name;
       const region = regionOf(world, q, r);
       const rn = world.regions?.[region]?.name;
-      return [terr, rn].filter(Boolean).join(' bei ') || p.tile;
+      return terr && rn ? t.fmt('board.tile.near', { tile: terr, region: rn }) : terr ?? rn ?? p.tile;
     }
     return p.tile;
   }
@@ -474,7 +479,7 @@ export function orderRows(view, env, t, draft, pv, world) {
     if (roll && probe) {
       const band = probe.target == null ? null : bandOf(roll.value, probe.modTotal, probe.target);
       const stale = issues.some((x) => x.code === 'roll_stale');
-      wurf = { gut: band ? SUCCESS_BANDS.includes(band) : true, wert: roll.value, band, stale, kurz: `${roll.value}${probe.modTotal ? signed(probe.modTotal) : ''} gegen ${probe.target}, ${band ? t(bandKey(band), band) : ''}${stale ? ', veraltet' : ''}` };
+      wurf = { gut: band ? SUCCESS_BANDS.includes(band) : true, wert: roll.value, band, stale, kurz: [t.fmt('board.probe.short', { roll: `${roll.value}${probe.modTotal ? signed(probe.modTotal) : ''}`, target: probe.target, verdict: band ? t(bandKey(band), band) : '' }), stale ? t('board.orders.stale') : null].filter(Boolean).join(', ') };
     }
     return {
       id: o.id,
@@ -518,7 +523,7 @@ export function blockersOf(view, env, t, draft, pv, world) {
     }
     if (i.code === 'roll_stale') {
       const id = i.path.replace('/rolls/', '');
-      if (!probes.some((p) => p.id === id)) probleme.push({ kind: 'wurf-verwaist', id: `verwaist-${id}`, probeId: id, titel: issueText(i, t), ziel: '', texte: [t('issue.roll-orphan', 'Die Probe dieses Wurfs gibt es nicht mehr')] });
+      if (!probes.some((p) => p.id === id)) probleme.push({ kind: 'wurf-verwaist', id: `verwaist-${id}`, probeId: id, titel: issueText(i, t), ziel: '', texte: [t('issue.roll-orphan')] });
       continue;
     }
     if (i.code === 'slots' && i.path === '/orders') continue;
@@ -530,13 +535,13 @@ export function blockersOf(view, env, t, draft, pv, world) {
   }
   for (const sl of ['main', 'minor']) {
     const s = pv?.slots?.[sl];
-    if (s && s.used > s.max) probleme.unshift({ kind: 'slots', id: `slots-${sl}`, slot: slotArt(sl), titel: t('issue.slots', 'Keine passende Aktion mehr frei'), ziel: `${t(`slot.${sl}`, sl)} ${s.used} von ${s.max}`, texte: [] });
+    if (s && s.used > s.max) probleme.unshift({ kind: 'slots', id: `slots-${sl}`, slot: slotArt(sl), titel: t('issue.slots'), ziel: `${t(`slot.${sl}`, sl)} ${t.fmt('board.of', { done: s.used, total: s.max })}`, texte: [] });
   }
   const wuerfe = probes.filter((p) => p.roller === 'player' && (!draft.rolls?.[p.id] || stale.has(p.id))).map((p) => {
     const o = p.order ? draft.orders.find((x) => x.id === p.order) : null;
     return {
       kind: 'wurf', id: `wurf-${p.id}`, probeId: p.id, orderId: o?.id ?? null, event: p.target == null,
-      titel: o ? t(`order.${o.type}`, o.type) : t('ui.weltereignis', 'Weltereignis'),
+      titel: o ? t(`order.${o.type}`, o.type) : t('ui.weltereignis'),
       ziel: o ? describeParams(view, env, t, o, world) : '',
       veraltet: stale.has(p.id),
     };
@@ -584,7 +589,7 @@ export function adaptView({ view, env, t, world, preview: pv, chronik }) {
     tradeRoutes: [],
     rat: council(view, t),
     rivalen: rivals(view, env),
-    bestimmung: destiny(view, env),
+    bestimmung: destiny(view, env, t),
     entwicklungen: developments(view, env, t),
     chronik: chronicle(env, t, chronik),
     meldungen: messages(view, env, t, pv),

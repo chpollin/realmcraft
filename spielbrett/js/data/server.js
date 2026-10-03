@@ -29,7 +29,7 @@ export const server = {
   content: (cid) => json(`${a(cid)}/content`, { optional: true }),
   draft: (cid) => json(`${a(cid)}/draft`, { optional: true }),
   chronik: (cid) => json(`${a(cid)}/chronik`, { optional: true }),
-  pack: (worldId, file) => json(`/welten/${encodeURIComponent(worldId)}/${file}`),
+  pack: (worldId, file, opts) => json(`/welten/${encodeURIComponent(worldId)}/${file}`, opts),
   saveDraft: (cid, people, draft) => post('/api/draft', { campaign: cid, people, draft }),
   seal: (cid) => post('/api/seal', { campaign: cid }),
 

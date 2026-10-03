@@ -10,6 +10,7 @@ import { el, signed, prefersReducedMotion } from '../dom.js';
 import { icon } from '../icons.js';
 import { dialogHead } from './dialoge.js';
 import { portrait } from './portrait.js';
+import { t } from '../i18n/index.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -31,12 +32,12 @@ function d10(value) {
     p.setAttribute('class', cls);
     svg.append(p);
   }
-  const t = document.createElementNS(SVG_NS, 'text');
-  t.setAttribute('x', '50');
-  t.setAttribute('y', '47');
-  t.setAttribute('class', 'd10-zahl');
-  t.textContent = value ?? '?';
-  svg.append(t);
+  const face = document.createElementNS(SVG_NS, 'text');
+  face.setAttribute('x', '50');
+  face.setAttribute('y', '47');
+  face.setAttribute('class', 'd10-zahl');
+  face.textContent = value ?? '?';
+  svg.append(face);
   return svg;
 }
 
@@ -46,12 +47,8 @@ function outcome(roll, mod, ziel) {
   return roll + mod >= ziel ? 'erfolg' : 'fehlschlag';
 }
 
-const VERDICT = {
-  'krit-tief': { text: 'Kritischer Rückschlag', gut: false },
-  'krit-hoch': { text: 'Kritischer Glücksfall', gut: true },
-  erfolg: { text: 'Erfolg', gut: true },
-  fehlschlag: { text: 'Fehlschlag', gut: false },
-};
+const GOOD = { 'krit-tief': false, 'krit-hoch': true, erfolg: true, fehlschlag: false };
+const verdict = (cls) => ({ text: t(`board.probe.verdict.${cls}`), gut: GOOD[cls] });
 
 export function renderProbe(dlg, api, ctx) {
   if (ctx?.real) return renderProbeReal(dlg, api, ctx);
@@ -66,26 +63,26 @@ export function renderProbe(dlg, api, ctx) {
   const die = el('div', { class: 'wuerfelfeld' }, d10(null));
   const result = el('div', { class: 'probe-ergebnis', 'aria-live': 'polite' });
   const calc = el('div', { class: 'probe-rechnung-feld' });
-  const rollBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', onclick: () => roll() }, icon('wuerfel', { size: 20 }), 'Würfeln');
-  const takeBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', hidden: true, onclick: () => take() }, 'In die Befehle');
+  const rollBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', onclick: () => roll() }, icon('wuerfel', { size: 20 }), t('ui.wuerfeln'));
+  const takeBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', hidden: true, onclick: () => take() }, t('board.probe.take'));
 
   /** Every face of the d10 with its outcome, so the chance is seen, not only stated. */
   function strip(mod) {
     const faces = Array.from({ length: 10 }, (_, i) => i + 1);
-    const good = faces.filter((n) => VERDICT[outcome(n, mod, ziel)].gut).length;
+    const good = faces.filter((n) => GOOD[outcome(n, mod, ziel)]).length;
     return el('div', { class: 'chance' },
-      el('div', { class: 'chance-leiste', role: 'img', 'aria-label': `Erfolg bei ${good} von 10 Würfen` },
+      el('div', { class: 'chance-leiste', role: 'img', 'aria-label': t.fmt('board.probe.good-faces', { n: good }) },
         ...faces.map((n) => el('span', { class: `chance-feld ${outcome(n, mod, ziel)}${state.roll === n ? ' is-wurf' : ''}`, text: String(n) }))),
-      el('p', { class: 'chance-wert num' }, el('strong', { text: `${good * 10} %` }), ' Erfolg'));
+      el('p', { class: 'chance-wert num' }, el('strong', { text: `${good * 10} %` }), ` ${t('board.probe.success')}`));
   }
 
   function renderCalc() {
     const mod = modOf();
     calc.replaceChildren(...[
       el('dl', { class: 'probe-rechnung' },
-        el('dt', { text: 'Zielwert' }), el('dd', { class: 'num pr-ziel', text: String(ziel) }),
+        el('dt', { text: t('board.probe.target') }), el('dd', { class: 'num pr-ziel', text: String(ziel) }),
         ...ctx.mods.flatMap((m) => [el('dt', { text: m.grund }), el('dd', { class: `num ${m.wert > 0 ? 'up' : 'down'}`, text: signed(m.wert) })]),
-        el('dt', { class: 'pr-summe', text: 'Modifikator' }), el('dd', { class: 'num pr-summe', text: signed(mod) })),
+        el('dt', { class: 'pr-summe', text: t('board.probe.modifier') }), el('dd', { class: 'num pr-summe', text: signed(mod) })),
       optional.length ? el('ul', { class: 'probe-optionen plain' }, ...optional.map((o, i) => el('li', {},
         el('label', { class: 'probe-option' },
           el('input', {
@@ -114,19 +111,19 @@ export function renderProbe(dlg, api, ctx) {
     const mod = modOf();
     const total = n + mod;
     const cls = outcome(n, mod, ziel);
-    const v = VERDICT[cls];
+    const v = verdict(cls);
     state.v = v;
     die.replaceChildren(d10(n));
     die.className = `wuerfelfeld gelandet ${cls}`;
     renderCalc();
     result.replaceChildren(
       el('p', { class: 'pe-rechnung num' },
-        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: 'Wurf' })),
+        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: t('board.probe.roll') })),
         el('span', { class: 'pe-op', text: mod < 0 ? '−' : '+' }),
-        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(Math.abs(mod)) }), el('span', { class: 'pe-label', text: 'Modifikator' })),
+        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(Math.abs(mod)) }), el('span', { class: 'pe-label', text: t('board.probe.modifier') })),
         el('span', { class: 'pe-op', text: '=' }),
-        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(total) }), el('span', { class: 'pe-label', text: `gegen ${ziel}` })),
-        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: signed(total - ziel) }), el('span', { class: 'pe-label', text: 'Marge' }))),
+        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(total) }), el('span', { class: 'pe-label', text: t.fmt('board.probe.against', { target: ziel }) })),
+        el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: signed(total - ziel) }), el('span', { class: 'pe-label', text: t('board.probe.margin') }))),
       el('p', { class: `pe-urteil world ${cls}` }, icon(v.gut ? 'ja' : 'nein', { size: 22 }), v.text),
     );
     rollBtn.hidden = true;
@@ -166,7 +163,7 @@ export function renderProbe(dlg, api, ctx) {
       ziel: target.name,
       kosten: costs(),
       art: opt.art,
-      wurf: { gut: state.v.gut, kurz: `${state.roll}${mod ? signed(mod) : ''} gegen ${ziel}, ${state.v.text}`, marge: state.roll + mod - ziel },
+      wurf: { gut: state.v.gut, kurz: t.fmt('board.probe.short', { roll: `${state.roll}${mod ? signed(mod) : ''}`, target: ziel, verdict: state.v.text }), marge: state.roll + mod - ziel },
     });
     dlg.close();
   }
@@ -210,7 +207,6 @@ function d10Roll() {
  */
 function renderProbeReal(dlg, api, ctx) {
   const { game } = api;
-  const t = game.t;
   const fresh = Boolean(ctx.opt);
   const state = { roll: null, venture: false, lead: null };
   let opt = ctx.opt ?? null;
@@ -222,14 +218,14 @@ function renderProbeReal(dlg, api, ctx) {
   }
   const row = fresh ? null : api.model.orders.find((o) => o.probe === p0.id);
   const isEvent = p0.target == null;
-  const title = fresh ? opt.titel : isEvent ? 'Weltereignis' : row?.titel ?? p0.id;
-  const sub = fresh ? opt.ziel : isEvent ? `${api.model.zeit.saison}, Jahr ${api.model.zeit.jahr}` : row?.ziel ?? '';
+  const title = fresh ? opt.titel : isEvent ? t('ui.weltereignis') : row?.titel ?? p0.id;
+  const sub = fresh ? opt.ziel : isEvent ? t.fmt('board.time', { season: api.model.zeit.saison, year: api.model.zeit.jahr }) : row?.ziel ?? '';
 
   const die = el('div', { class: 'wuerfelfeld' }, d10(null));
   const result = el('div', { class: 'probe-ergebnis', 'aria-live': 'polite' });
   const calc = el('div', { class: 'probe-rechnung-feld' });
-  const rollBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', 'data-wuerfeln': '', onclick: () => roll() }, icon('wuerfel', { size: 20 }), t('ui.wuerfeln', 'Würfeln'));
-  const takeBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', hidden: true, onclick: () => take() }, 'In die Befehle');
+  const rollBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', 'data-wuerfeln': '', onclick: () => roll() }, icon('wuerfel', { size: 20 }), t('ui.wuerfeln'));
+  const takeBtn = el('button', { class: 'btn btn-primary btn-gross', type: 'button', hidden: true, onclick: () => take() }, t('board.probe.take'));
 
   const extra = () => ({ ...(state.venture ? { venture: true } : {}), ...(state.lead ? { lead: state.lead } : {}) });
   const remaining = () => game.canSeal().rolls?.filter((p) => p.id !== p0.id) ?? [];
@@ -238,9 +234,9 @@ function renderProbeReal(dlg, api, ctx) {
     const faces = game.faces(p);
     const good = faces.filter((f) => f.gut).length;
     return el('div', { class: 'chance' },
-      el('div', { class: 'chance-leiste', role: 'img', 'aria-label': isEvent ? faces.map((f) => `${f.n} ${f.label}`).join(', ') : `Erfolg bei ${good} von 10 Würfen` },
+      el('div', { class: 'chance-leiste', role: 'img', 'aria-label': isEvent ? faces.map((f) => `${f.n} ${f.label}`).join(', ') : t.fmt('board.probe.good-faces', { n: good }) },
         ...faces.map((f) => el('span', { class: `chance-feld ${faceClass(f)}${state.roll === f.n ? ' is-wurf' : ''}`, title: f.label, text: String(f.n) }))),
-      isEvent ? null : el('p', { class: 'chance-wert num' }, el('strong', { text: `${p.chance} %` }), ' Erfolg'));
+      isEvent ? null : el('p', { class: 'chance-wert num' }, el('strong', { text: `${p.chance} %` }), ` ${t('board.probe.success')}`));
   }
 
   /**
@@ -260,8 +256,8 @@ function renderProbeReal(dlg, api, ctx) {
       const withV = state.venture ? opt : alt;
       parts.push(el('label', { class: 'probe-option wagnis' },
         el('input', { type: 'checkbox', checked: state.venture, 'data-wagnis': '', onchange: (e) => { state.venture = e.target.checked; update('[data-wagnis]'); } }),
-        el('span', { text: 'Als Wagnis' }),
-        el('span', { class: 'num down', text: withV.probe ? `Ziel ${withV.probe.ziel}` : '' }),
+        el('span', { text: t('board.probe.venture') }),
+        el('span', { class: 'num down', text: withV.probe ? `${t('ui.ziel')} ${withV.probe.ziel}` : '' }),
         el('span', { class: 'num po-chance', text: withV.probe ? `${withV.probe.chance} %` : '' })));
     }
     const row = (id, label, face, v) => {
@@ -273,15 +269,15 @@ function renderProbeReal(dlg, api, ctx) {
           onchange: () => { state.lead = id; update(`[data-fuehrung="${id ?? 'niemand'}"]`); },
         }),
         face,
-        el('span', { class: 'po-name' }, label, refused ? el('span', { class: 'po-grund', text: v.grund ?? t('issue.generic', 'Der Regelkern lässt das so nicht zu') }) : null),
+        el('span', { class: 'po-name' }, label, refused ? el('span', { class: 'po-grund', text: v.grund ?? t('issue.generic') }) : null),
         el('span', { class: `num po-wirkung ${d > 0 ? 'up' : d < 0 ? 'down' : ''}`, text: id && !refused ? signed(d) : '' }),
         el('span', { class: 'num po-chance', text: refused || !v.probe ? '' : `${v.probe.chance} %` })));
     };
     const council = game.view.peoples[game.pid].council;
     parts.push(el('fieldset', { class: 'probe-fuehrung' },
-      el('legend', { text: t('ui.fuehrung', 'Führung') }),
+      el('legend', { text: t('ui.fuehrung') }),
       el('ul', { class: 'probe-optionen plain' },
-        row(null, t('ui.niemand-fuehrt', 'Niemand führt'), el('span', { class: 'po-leer', 'aria-hidden': 'true' }), none),
+        row(null, t('ui.niemand-fuehrt'), el('span', { class: 'po-leer', 'aria-hidden': 'true' }), none),
         ...council.map((m) => row(m.id, m.name, portrait(m.id, m.name, { size: 28 }), variant(m.id))))));
     return el('div', { class: 'probe-wahl' }, ...parts);
   }
@@ -293,12 +289,12 @@ function renderProbeReal(dlg, api, ctx) {
     const lbl = (l) => t(`tag.${l}`, t(l, l));
     calc.replaceChildren(...[
       isEvent
-        ? el('dl', { class: 'probe-rechnung' }, el('dt', { text: 'Wurf' }), el('dd', { class: 'num', text: 'W10 ohne Modifikator' }))
+        ? el('dl', { class: 'probe-rechnung' }, el('dt', { text: t('board.probe.roll') }), el('dd', { class: 'num', text: t('board.probe.plain-d10') }))
         : el('dl', { class: 'probe-rechnung' },
-          el('dt', { text: t('ui.ziel', 'Zielwert') }), el('dd', { class: 'num pr-ziel', text: String(p.target) }),
+          el('dt', { text: t('ui.ziel') }), el('dd', { class: 'num pr-ziel', text: String(p.target) }),
           ...mods.flatMap((m) => [el('dt', { text: lbl(m.label) }), el('dd', { class: `num ${m.value > 0 ? 'up' : 'down'}`, text: signed(m.value) })]),
-          ...struck.flatMap((m) => [el('dt', { class: 'gekappt', text: `${lbl(m.label)}, gekappt` }), el('dd', { class: 'num gekappt', text: signed(m.value) })]),
-          el('dt', { class: 'pr-summe', text: t('ui.modifikatoren', 'Modifikator') }), el('dd', { class: 'num pr-summe', text: signed(p.modTotal) })),
+          ...struck.flatMap((m) => [el('dt', { class: 'gekappt', text: t.fmt('board.probe.capped', { label: lbl(m.label) }) }), el('dd', { class: 'num gekappt', text: signed(m.value) })]),
+          el('dt', { class: 'pr-summe', text: t('ui.modifikatoren') }), el('dd', { class: 'num pr-summe', text: signed(p.modTotal) })),
       options(),
       strip(p),
     ].filter(Boolean));
@@ -321,21 +317,21 @@ function renderProbeReal(dlg, api, ctx) {
     renderCalc();
     result.replaceChildren(
       isEvent
-        ? el('p', { class: 'pe-rechnung num' }, el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: 'Wurf' })))
+        ? el('p', { class: 'pe-rechnung num' }, el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: t('board.probe.roll') })))
         : el('p', { class: 'pe-rechnung num' },
-          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: 'Wurf' })),
+          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n) }), el('span', { class: 'pe-label', text: t('board.probe.roll') })),
           el('span', { class: 'pe-op', text: p.modTotal < 0 ? '−' : '+' }),
-          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(Math.abs(p.modTotal)) }), el('span', { class: 'pe-label', text: 'Modifikator' })),
+          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(Math.abs(p.modTotal)) }), el('span', { class: 'pe-label', text: t('board.probe.modifier') })),
           el('span', { class: 'pe-op', text: '=' }),
-          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n + p.modTotal) }), el('span', { class: 'pe-label', text: `gegen ${p.target}` })),
-          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: signed(n + p.modTotal - p.target) }), el('span', { class: 'pe-label', text: 'Marge' }))),
+          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: String(n + p.modTotal) }), el('span', { class: 'pe-label', text: t.fmt('board.probe.against', { target: p.target }) })),
+          el('span', { class: 'pe-teil' }, el('span', { class: 'pe-wert', text: signed(n + p.modTotal - p.target) }), el('span', { class: 'pe-label', text: t('board.probe.margin') }))),
       el('p', { class: `pe-urteil world ${cls}`, 'data-band': String(face.band) }, icon(face.gut ? 'ja' : 'nein', { size: 22 }), face.label),
     );
     rollBtn.hidden = true;
     const more = remaining().length;
     // sequence true walks the owed rolls of "Zug beenden" and seals; 'wuerfe' only takes the rolls.
-    const last = ctx.sequence === true ? t('ui.zug-beenden', 'Zug beenden') : 'Übernehmen';
-    takeBtn.replaceChildren(fresh ? 'In die Befehle' : ctx.sequence ? (more ? 'Weiter' : last) : 'Übernehmen');
+    const last = t(ctx.sequence === true ? 'ui.zug-beenden' : 'board.probe.apply');
+    takeBtn.replaceChildren(fresh ? t('board.probe.take') : ctx.sequence ? (more ? t('ereignis.weiter') : last) : t('board.probe.apply'));
     takeBtn.hidden = false;
     takeBtn.focus();
   }
