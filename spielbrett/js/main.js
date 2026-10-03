@@ -7,6 +7,7 @@ import { createGame, worldLabelFiles } from './data/game.js';
 import { startBoard } from './board.js';
 import { el } from './dom.js';
 import { t, applyStatic, setWorldLabels } from './i18n/index.js';
+import { installAudio } from './audio/index.js';
 
 const params = new URLSearchParams(location.search);
 
@@ -51,6 +52,7 @@ if (params.has('demo')) {
     error = err;
     console.error(err);
   }
+  installAudio({ game });
   if (game) startBoard(model, game);
   else noCampaign(error);
 }
