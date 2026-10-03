@@ -13,8 +13,8 @@ export function renderArmee(root, state, handlers = {}) {
   // Kopf: Gesamtstärke + Moral + Heerschau-Bild
   root.append(el('section', { class: 'panel pad', 'data-testid': 'armee-kopf' }, [
     el('div', { class: 'block-head' }, [
-      el('h3', { text: 'Modulfortschritt' }),
-      el('span', { class: 'eyebrow', 'data-testid': 'armee-gesamt', text: `Fortschritt ${a.gesamt ?? 0}` }),
+      el('h2', { text: 'Modulfortschritt' }),
+      el('span', { class: 'block-meta', 'data-testid': 'armee-gesamt', text: `Fortschritt ${a.gesamt ?? 0}` }),
     ]),
     a.moral ? el('div', { class: 'armee-moral', text: a.moral }) : null,
     el('div', { class: 'armee-bild-frame' }, [
@@ -57,14 +57,14 @@ export function renderArmee(root, state, handlers = {}) {
     bildLeiste('verband', v.id, handlers),
   ]));
   root.append(el('section', { class: 'panel pad mt armee-verbaende', 'data-testid': 'armee-verbaende' }, [
-    el('div', { class: 'block-head' }, [el('h3', { text: 'Themenblöcke' })]),
-    el('div', { class: 'verband-grid' }, list),
+    el('div', { class: 'block-head' }, [el('h2', { text: 'Themenblöcke' })]),
+    el('div', { class: 'verband-grid grid-auto' }, list),
   ]));
 
   // Stehende Modifikatoren (kennwert)
   if ((a.stehendeModifikatoren || []).length) {
     root.append(el('section', { class: 'panel pad mt' }, [
-      el('div', { class: 'block-head' }, [el('h3', { text: 'Stehende Kompetenzen' })]),
+      el('div', { class: 'block-head' }, [el('h2', { text: 'Stehende Kompetenzen' })]),
       el('div', { class: 'armee-mod-row' }, a.stehendeModifikatoren.map((k) =>
         el('span', { class: 'armee-mod' }, [
           document.createTextNode(`${k.key} `),
@@ -76,7 +76,7 @@ export function renderArmee(root, state, handlers = {}) {
   // Verluste-Logbuch
   if ((a.verluste || []).length) {
     root.append(el('section', { class: 'panel pad mt', 'data-testid': 'armee-verluste' }, [
-      el('div', { class: 'block-head' }, [el('h3', { text: 'Offene Lücken' })]),
+      el('div', { class: 'block-head' }, [el('h2', { text: 'Offene Lücken' })]),
       ...a.verluste.map((x) =>
         el('div', { class: 'armee-verlust' }, [
           el('span', { class: 'armee-verlust-zeit', text: x.zeit || '' }),

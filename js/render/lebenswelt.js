@@ -37,11 +37,8 @@ export function renderLebenswelt(root, state, handlers = {}) {
 
   if (!hatLeben && !siedlungen.length && !besitz.length) {
     root.append(el('section', { class: 'panel pad', 'data-testid': 'lebenswelt-leer' }, [
-      el('div', { class: 'block-head' }, [el('h3', { text: 'Lebenswelt' })]),
-      el('p', {
-        class: 'section-sub',
-        text: 'Noch nichts erfasst. Sobald der Spielleiter das Volk und seine Siedlungen festhält, erscheint hier das Bild der Lebenswelt.',
-      }),
+      el('div', { class: 'block-head' }, [el('h2', { text: 'Lebenswelt' })]),
+      el('p', { class: 'section-sub', text: 'Noch keine Lebenswelt erfasst.' }),
     ]));
     return;
   }
@@ -62,8 +59,7 @@ export function renderLebenswelt(root, state, handlers = {}) {
 
     root.append(el('section', { class: 'panel pad', 'data-testid': 'lw-bevoelkerung' }, [
       el('div', { class: 'block-head' }, [
-        el('h3', { text: 'Die Bevölkerung' }),
-        el('span', { class: 'eyebrow', text: 'wie das Volk lebt' }),
+        el('h2', { text: 'Die Bevölkerung' }),
       ]),
       el('div', { class: 'leben-grid' }, [
         zeile('Bevölkerung', bevWert),
@@ -84,10 +80,9 @@ export function renderLebenswelt(root, state, handlers = {}) {
   if (siedlungen.length) {
     root.append(el('section', { class: 'panel pad mt', 'data-testid': 'lw-siedlungen' }, [
       el('div', { class: 'block-head' }, [
-        el('h3', { text: siedlungen.length > 1 ? 'Die Siedlungen' : 'Die Siedlung' }),
-        el('span', { class: 'eyebrow', text: `${siedlungen.length} ${siedlungen.length === 1 ? 'Ort' : 'Orte'}` }),
+        el('h2', { text: siedlungen.length > 1 ? 'Die Siedlungen' : 'Die Siedlung' }),
       ]),
-      el('div', { class: 'siedlung-grid' }, siedlungen.map((s) => siedlungCard(s, handlers, { bevZahl, verteidigung: state.lagewerte?.verteidigung }))),
+      el('div', { class: 'siedlung-grid grid-auto' }, siedlungen.map((s) => siedlungCard(s, handlers, { bevZahl, verteidigung: state.lagewerte?.verteidigung }))),
     ]));
   }
 
@@ -95,10 +90,9 @@ export function renderLebenswelt(root, state, handlers = {}) {
   if (besitz.length) {
     root.append(el('section', { class: 'panel pad mt', 'data-testid': 'lw-besitz' }, [
       el('div', { class: 'block-head' }, [
-        el('h3', { text: 'Besitz' }),
-        el('span', { class: 'eyebrow', text: 'was das Volk hat' }),
+        el('h2', { text: 'Besitz' }),
       ]),
-      el('ul', { class: 'besitz-list', 'data-testid': 'besitz-liste' },
+      el('ul', { class: 'besitz-list grid-auto', 'data-testid': 'besitz-liste' },
         besitz.map((b) => el('li', { class: 'besitz-item', 'data-testid': 'besitz' }, [
           el('span', { class: 'marker' }),
           el('span', { text: b }),
@@ -126,9 +120,9 @@ function siedlungCard(s, handlers, live = {}) {
       el('img', { 'data-testid': 'siedlung-bild', alt: `Bild von ${s.name || 'der Siedlung'}` }),
     ]),
     el('div', { class: 'siedlung-head' }, [
-      el('h4', { class: 'siedlung-name', 'data-testid': 'siedlung-name', text: s.name || 'Siedlung' }),
+      el('h3', { class: 'siedlung-name', 'data-testid': 'siedlung-name', text: s.name || 'Siedlung' }),
       s.hauptstadt ? el('span', { class: 'siedlung-haupt', text: 'Hauptstadt' }) : null,
-      s.typ && !s.hauptstadt ? el('span', { class: 'eyebrow', text: s.typ }) : null,
+      s.typ && !s.hauptstadt ? el('span', { class: 'block-meta', text: s.typ }) : null,
     ]),
     s.lage ? el('div', { class: 'siedlung-lage', text: s.lage }) : null,
     zeigeLive ? el('div', { class: 'siedlung-live', 'data-testid': 'siedlung-live' }, [

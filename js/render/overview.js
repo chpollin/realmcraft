@@ -10,17 +10,6 @@ const TREND = {
   fallend: { mark: '▼', cls: 'down' },
   gleichbleibend: { mark: '→', cls: 'flat' },
 };
-function trendEl(trends, key) {
-  const t = trends && trends[key];
-  if (!t || !TREND[t.richtung]) return null;
-  const { mark, cls } = TREND[t.richtung];
-  return el('span', {
-    class: `trend trend-${cls}`,
-    'data-testid': `trend-${key}`,
-    title: t.grund || '',
-    text: mark,
-  });
-}
 
 // Trend in Worten und die qualitative Einordnung einer Grundgröße auf der
 // 0–5-Skala (0–2 niedrig, 3–5 hoch), dazu die Skala selbst als fünf Segmente.
@@ -128,7 +117,7 @@ export function renderLage(root, state, opts = {}) {
       quellen.length ? el('ul', { class: 'stat-quellen' }, quellen.map((a) =>
         el('li', {}, [
           el('span', { class: 'qamt', text: signed(a.value) }),
-          el('span', { class: 'qtxt', text: a.quelle ? `Ausbeute · ${a.quelle}` : 'Ausbeute' }),
+          el('span', { class: 'qtxt', text: a.quelle ? `Ausbeute: ${a.quelle}` : 'Ausbeute' }),
         ]))) : null,
     ]);
   };
@@ -145,7 +134,7 @@ export function renderLage(root, state, opts = {}) {
 
   const statGrid = el('div', { class: 'stat-grid' }, [...skalaStats.map(ggCard), bevCard]);
   const grund = el('section', { class: 'panel pad' }, [
-    blockHead('Grundgrößen', 'Vorräte, Trend und Quellen'),
+    blockHead('Grundgrößen'),
     statGrid,
   ]);
 
@@ -183,7 +172,7 @@ export function renderLage(root, state, opts = {}) {
     ]),
   );
   const lage = el('div', { class: 'panel pad' }, [
-    blockHead('Lagewerte', 'Maßstab -2 bis +3'),
+    blockHead('Lagewerte'),
     lageGrid,
     yields.length ? el('div', { class: 'yield-row' }, yields) : null,
   ]);
@@ -195,7 +184,7 @@ export function renderLage(root, state, opts = {}) {
     ),
   );
   const faeden = el('div', { class: 'panel pad' }, [
-    blockHead('Offene Fäden', 'Das nächste Kapitel'),
+    blockHead('Offene Fäden'),
     threads,
   ]);
 
@@ -242,7 +231,7 @@ function renderVolkIdentitaet(volk) {
   }
   if (!rows.length) return null;
   return el('section', { class: 'panel pad', 'data-testid': 'volk-identitaet' }, [
-    blockHead('Wesen des Volkes', volk.name || 'Identität'),
+    blockHead('Wesen des Volkes'),
     el('div', { class: 'id-list' }, rows),
   ]);
 }
@@ -266,15 +255,15 @@ function renderModifikatoren(mod) {
   ]);
   const cols = [];
   if (gel.length) cols.push(el('div', { class: 'mod-col' }, [
-    el('h4', { class: 'mod-sub', text: 'Gelände' }),
+    el('h3', { class: 'mod-sub', text: 'Gelände' }),
     el('div', { class: 'mod-list' }, gel.map(item)),
   ]));
   if (lage.length) cols.push(el('div', { class: 'mod-col' }, [
-    el('h4', { class: 'mod-sub', text: 'Lage' }),
+    el('h3', { class: 'mod-sub', text: 'Lage' }),
     el('div', { class: 'mod-list' }, lage.map(item)),
   ]));
   return el('section', { class: 'panel pad mt', 'data-testid': 'modifikatoren' }, [
-    blockHead('Stehende Modifikatoren', 'Was dauerhaft auf Proben wirkt'),
+    blockHead('Stehende Modifikatoren'),
     el('div', { class: 'mod-cols' }, cols),
   ]);
 }
@@ -285,10 +274,9 @@ function renderAktionsbrett(runde) {
   const haupt = runde.haupt || {};
   const neben = runde.neben || {};
   const head = el('div', { class: 'block-head' }, [
-    el('h3', { text: 'Aktionen dieser Runde' }),
-    el('div', { class: 'rule' }),
-    el('span', { class: 'eyebrow', 'data-testid': 'aktion-budget',
-      text: `Haupt ${haupt.used ?? 0}/${haupt.max ?? 0} · Neben ${neben.used ?? 0}/${neben.max ?? 0}` }),
+    el('h2', { text: 'Aktionen dieser Runde' }),
+    el('span', { class: 'block-meta', 'data-testid': 'aktion-budget',
+      text: `Haupt ${haupt.used ?? 0}/${haupt.max ?? 0}, Neben ${neben.used ?? 0}/${neben.max ?? 0}` }),
   ]);
 
   const rows = (runde.aktionen || []).map((a) => {
@@ -324,12 +312,8 @@ function renderAktionsbrett(runde) {
   ]);
 }
 
-function blockHead(title, eyebrow) {
-  return el('div', { class: 'block-head' }, [
-    el('h3', { text: title }),
-    el('div', { class: 'rule' }),
-    eyebrow ? el('span', { class: 'eyebrow', text: eyebrow }) : null,
-  ]);
+function blockHead(title) {
+  return el('div', { class: 'block-head' }, [el('h2', { text: title })]);
 }
 
 // Banner mit den Aenderungen seit dem zuletzt geladenen Stand. Nach Bereichen
@@ -366,10 +350,7 @@ function deltaItem(e) {
 function renderDeltaBanner(delta) {
   const banner = el('section', { class: 'delta-banner panel pad', 'data-testid': 'delta-banner' });
   banner.append(
-    el('div', { class: 'block-head' }, [
-      el('h3', { text: 'Seit dem letzten Stand' }),
-      el('div', { class: 'rule' }),
-    ]),
+    el('div', { class: 'block-head' }, [el('h2', { text: 'Seit dem letzten Stand' })]),
   );
 
   const eintraege = delta.eintraege || [];
@@ -378,8 +359,8 @@ function renderDeltaBanner(delta) {
     const teil = eintraege.filter((e) => g.arten.includes(e.art));
     if (!teil.length) return;
     gruppen.append(el('section', { class: 'delta-group' }, [
-      el('div', { class: 'delta-group-titel', text: g.titel }),
-      el('ul', { class: 'delta-list' }, teil.map(deltaItem)),
+      el('h3', { class: 'delta-group-titel', text: g.titel }),
+      el('ul', { class: 'delta-list grid-auto' }, teil.map(deltaItem)),
     ]));
   });
 
@@ -387,7 +368,7 @@ function renderDeltaBanner(delta) {
   const rest = eintraege.filter((e) => !DELTA_GRUPPEN.some((g) => g.arten.includes(e.art)));
   if (rest.length) {
     gruppen.append(el('section', { class: 'delta-group' }, [
-      el('ul', { class: 'delta-list' }, rest.map(deltaItem)),
+      el('ul', { class: 'delta-list grid-auto' }, rest.map(deltaItem)),
     ]));
   }
 

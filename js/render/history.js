@@ -16,7 +16,7 @@ function leerHinweis(text) {
 function epochCard(h, index, istGegenwart, opts) {
   return el('div', { class: `epoch${istGegenwart ? ' current' : ''}`, 'data-testid': 'history-entry' }, [
     el('div', { class: 'ehead' }, [
-      el('span', { class: 'etitle', text: h.jahre || '' }),
+      el('h4', { class: 'etitle', text: h.jahre || '' }),
       istGegenwart ? el('span', { class: 'ecur', text: 'Gegenwart' }) : null,
     ]),
     h.zusammenfassung ? el('p', { class: 'esum', text: h.zusammenfassung }) : null,
@@ -64,7 +64,7 @@ export function renderHistorie(root, state, opts = {}) {
   const timeline = kapitelListe.length
     ? el('div', { class: 'timeline' },
         gruppen.map((g) => el('div', { class: 'timeline-gruppe' }, [
-          el('div', { class: 'timeline-kapitel-titel', text: `Kapitel ${roman(g.kapitel)}` }),
+          el('h3', { class: 'timeline-kapitel-titel', text: `Kapitel ${roman(g.kapitel)}` }),
           ...g.items.map(({ h, i }) => epochCard(h, i, i === letzteIdx, opts)),
         ])))
     : leerHinweis('Noch keine Kapitel verzeichnet.');
@@ -82,18 +82,10 @@ export function renderHistorie(root, state, opts = {}) {
   // im Reiter „Recht" (render/recht.js). Die Chronik trägt den erzählten Verlauf
   // (eine Karte je Jahreszeit, mit Bild) und die Fähigkeiten des Volkes.
   const head = el('section', {}, [
-    el('div', { class: 'section-title' }, [
-      el('span', { class: 'kicker', text: 'Chronik' }),
-      document.createTextNode(' Der Weg des Volkes'),
-    ]),
-    el('p', { class: 'section-sub', text: 'Die Geschichte der Partie, Kapitel für Kapitel und Saison für Saison.' }),
+    el('h2', { class: 'section-title', text: 'Der Weg des Volkes' }),
     el('div', { class: 'panel pad' }, [timeline]),
-    el('div', { class: 'panel pad' }, [
-      el('div', { class: 'block-head' }, [
-        el('h3', { text: 'Fähigkeiten' }),
-        el('div', { class: 'rule' }),
-        el('span', { class: 'eyebrow', text: 'Was der Wissensstand beherrscht' }),
-      ]),
+    el('div', { class: 'panel pad mt' }, [
+      el('div', { class: 'block-head' }, [el('h2', { text: 'Fähigkeiten' })]),
       skills,
     ]),
   ]);

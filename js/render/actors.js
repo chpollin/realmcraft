@@ -20,7 +20,7 @@ export function renderWelt(root, state, handlers = {}) {
     (state.personen || []).find((p) => p.id === id);
 
   // --- Mächte ---
-  const powerGrid = el('div', { class: 'power-grid' },
+  const powerGrid = el('div', { class: 'power-grid grid-auto' },
     (state.maechte || []).map((m) => {
       const r = relMeta(m.beziehung);
       const pips = el('span', { class: 'pips' },
@@ -28,8 +28,9 @@ export function renderWelt(root, state, handlers = {}) {
       );
       const relLabel = m.beziehung?.label || '';
       // Profil: Stärken (+) und Schwächen (−) einer Macht. Der negative Wert ist
-      // die ausnutzbare Schwäche und wird eigens markiert. Reihenfolge wie im
-      // Stand (bewusst Stärke→Schwäche). Mächte ohne profil: kein Block.
+      // die ausnutzbare Schwäche; sie trägt neben dem Minus die Klasse
+      // .schwaeche (roter Rahmen). Reihenfolge wie im Stand (bewusst
+      // Stärke→Schwäche). Mächte ohne profil: kein Block.
       const profil = (m.profil || []).length
         ? el('div', { class: 'profil', 'data-testid': 'power-profil' },
             m.profil.map((k) => {
@@ -51,7 +52,7 @@ export function renderWelt(root, state, handlers = {}) {
         ]),
         el('div', { class: 'ph' }, [
           el('div', {}, [
-            el('div', { class: 'pname', 'data-testid': 'power-name', text: m.name }),
+            el('h3', { class: 'pname', 'data-testid': 'power-name', text: m.name }),
             m.typ ? el('div', { class: 'ptype', text: m.typ }) : null,
           ]),
         ]),
@@ -76,18 +77,14 @@ export function renderWelt(root, state, handlers = {}) {
     }),
   );
 
-  const power = el('section', {}, [
-    el('div', { class: 'section-title' }, [
-      el('span', { class: 'kicker', text: 'Diplomatie' }),
-      document.createTextNode(' Mächte des Kontinents'),
-    ]),
-    el('p', { class: 'section-sub', text: 'Nachbarvölker und Großmächte mit Beziehungsstand und Haltung.' }),
-    el('p', { class: 'profil-legende', 'data-testid': 'power-profil-legende', text: 'Profil: Stärken (+) und Schwächen (−) einer Macht; Maßstab −2 bis +3. Die rot markierte Schwäche ist der Hebel des Rates.' }),
+  const power = el('section', { class: 'mt' }, [
+    el('h2', { class: 'section-title', text: 'Mächte des Kontinents' }),
+    el('p', { class: 'profil-legende', 'data-testid': 'power-profil-legende', text: 'Profil: Stärken (+) und Schwächen (−), Maßstab −2 bis +3' }),
     powerGrid,
   ]);
 
   // --- Gruppen ---
-  const groupGrid = el('div', { class: 'group-grid' },
+  const groupGrid = el('div', { class: 'group-grid grid-auto' },
     (state.gruppen || []).map((gr) => {
       const sp = sprecherById(gr.sprecherId);
       return el('div', { class: 'group', 'data-testid': 'group-row', dataset: { id: gr.id } }, [
@@ -96,7 +93,7 @@ export function renderWelt(root, state, handlers = {}) {
           el('img', { class: 'gp-img', 'data-testid': 'gruppe-bild', alt: `Bild von ${gr.name}` }),
         ]),
         el('div', { class: 'gmeta' }, [
-          el('div', { class: 'gn', text: gr.name }),
+          el('h3', { class: 'gn', text: gr.name }),
           gr.kompetenz ? el('div', { class: 'gk', text: gr.kompetenz }) : null,
           el('div', { class: 'gsp' }, [
             document.createTextNode('Sprecher: '),
@@ -116,11 +113,7 @@ export function renderWelt(root, state, handlers = {}) {
   );
 
   const groups = el('section', { class: 'panel pad mt' }, [
-    el('div', { class: 'block-head' }, [
-      el('h3', { text: 'Tragende Gruppen' }),
-      el('div', { class: 'rule' }),
-      el('span', { class: 'eyebrow', text: 'Bevölkerung und ihre Sprecher' }),
-    ]),
+    el('div', { class: 'block-head' }, [el('h2', { text: 'Tragende Gruppen' })]),
     groupGrid,
   ]);
 
@@ -128,11 +121,8 @@ export function renderWelt(root, state, handlers = {}) {
   // Optional; nur gerendert, wenn Text vorhanden (Frontend-Contract: beziehungen-ansehen).
   const ansehen = state.beziehungenAnsehen?.text
     ? el('section', { class: 'panel pad' }, [
-        el('div', { class: 'section-title' }, [
-          el('span', { class: 'kicker', text: 'Ansehen & Beziehungen' }),
-          document.createTextNode(' Wie das Reich gesehen wird'),
-        ]),
-        el('p', { class: 'narrative', 'data-testid': 'beziehungen-ansehen', text: state.beziehungenAnsehen.text }),
+        el('h2', { class: 'section-title', text: 'Wie das Reich gesehen wird' }),
+        el('p', { class: 'beziehungen-text', 'data-testid': 'beziehungen-ansehen', text: state.beziehungenAnsehen.text }),
       ])
     : null;
 

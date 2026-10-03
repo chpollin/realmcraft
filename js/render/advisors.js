@@ -17,12 +17,11 @@ export function renderBerater(root, state, handlers = {}) {
   root.replaceChildren();
   if (!state) return;
 
-  const grid = el('div', { class: 'advisor-grid', 'data-testid': 'advisor-list' },
+  const grid = el('div', { class: 'advisor-grid grid-auto', 'data-testid': 'advisor-list' },
     (state.berater || []).map((b) => {
       const lm = loyMeta(b.loyalitaet);
 
       const portrait = el('div', { class: 'portrait' }, [
-        el('span', { class: 'ring' }),
         el('span', { class: 'ini', text: initials(b.name) }),
         el('img', { 'data-testid': 'advisor-portrait', alt: `Portrait von ${b.name}` }),
       ]);
@@ -39,7 +38,7 @@ export function renderBerater(root, state, handlers = {}) {
         el('div', { class: 'head' }, [
           portrait,
           el('div', { class: 'who' }, [
-            el('div', { class: 'nm', 'data-testid': 'advisor-name', text: b.name }),
+            el('h2', { class: 'nm', 'data-testid': 'advisor-name', text: b.name }),
             el('div', { class: 'role', 'data-testid': 'advisor-role', text: b.rolle || '' }),
             b.lebensstand && LEBENSSTAND[b.lebensstand]
               ? el('span', {
@@ -58,10 +57,10 @@ export function renderBerater(root, state, handlers = {}) {
             el('span', {
               class: `lstate ${lm.cls}`,
               'data-testid': 'advisor-loyalty',
-              text: `${signed(b.loyalitaet)} · ${lm.state}`,
+              text: `${signed(b.loyalitaet)} ${lm.state}`,
             }),
           ]),
-          loyaltyMeter(b.loyalitaet, { label: `Loyalität von ${b.name}`, valueText: `${signed(b.loyalitaet)} · ${lm.state}` }),
+          loyaltyMeter(b.loyalitaet, { label: `Loyalität von ${b.name}`, valueText: `${signed(b.loyalitaet)}, ${lm.state}` }),
           el('div', { class: 'loy-ticks' }, [
             el('span', { text: '-5' }), el('span', { text: '0' }), el('span', { text: '+5' }),
           ]),

@@ -36,11 +36,11 @@ export function renderKarte(root, state, handlers = {}) {
   });
 
   const compass = el('div', { class: 'compass', 'aria-hidden': 'true', html:
-    '<svg viewBox="0 0 100 100" fill="none" stroke="#9aa0a8" stroke-width="1">'
+    '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">'
     + '<circle cx="50" cy="50" r="44" stroke-opacity=".6"/><circle cx="50" cy="50" r="34" stroke-opacity=".3"/>'
-    + '<path d="M50 8 L57 50 L50 92 L43 50 Z" fill="#2a2e35" stroke="none" opacity=".85"/>'
-    + '<path d="M8 50 L50 43 L92 50 L50 57 Z" fill="#9aa0a8" stroke="none" opacity=".7"/>'
-    + '<circle cx="50" cy="50" r="4" fill="#ffffff" stroke="#2a2e35"/></svg>',
+    + '<path class="needle-n" d="M50 8 L57 50 L50 92 L43 50 Z" stroke="none" opacity=".85"/>'
+    + '<path d="M8 50 L50 43 L92 50 L50 57 Z" fill="currentColor" stroke="none" opacity=".7"/>'
+    + '<circle class="hub" cx="50" cy="50" r="4"/></svg>',
   });
 
   const frame = el('div', { class: 'map-frame' }, [
@@ -49,8 +49,7 @@ export function renderKarte(root, state, handlers = {}) {
     el('span', { class: 'map-corner bl' }), el('span', { class: 'map-corner br' }),
     el('div', { class: 'map-center' }, [
       compass,
-      el('div', { class: 'mt', text: 'Lagekarte' }),
-      el('div', { class: 'ms', text: state.meta?.mapStyle || '' }),
+      el('h3', { class: 'mt', text: 'Lagekarte' }),
       genBtn,
     ]),
   ]);
@@ -74,7 +73,7 @@ export function renderKarte(root, state, handlers = {}) {
   );
 
   const legend = el('div', { class: 'legend' }, [
-    el('div', { class: 'block-head' }, [el('h3', { text: 'Orte' }), el('div', { class: 'rule' })]),
+    el('div', { class: 'block-head' }, [el('h3', { text: 'Orte' })]),
     legendList,
   ]);
 
@@ -83,7 +82,7 @@ export function renderKarte(root, state, handlers = {}) {
   // Block aus (null), der Reiter sieht aus wie bisher.
   const chronikBlock = chronik.length
     ? el('div', { class: 'karte-chronik-wrap', 'data-testid': 'chronik-panel' }, [
-        el('div', { class: 'block-head' }, [el('h3', { text: 'Karten-Chronik' }), el('div', { class: 'rule' })]),
+        el('div', { class: 'block-head' }, [el('h3', { text: 'Karten-Chronik' })]),
         el('div', { class: 'karte-chronik', 'data-testid': 'karte-chronik' },
           chronik.map((e) => {
             const istAktiv = aktiv && e.id === aktiv.id;
@@ -102,11 +101,7 @@ export function renderKarte(root, state, handlers = {}) {
     : null;
 
   const head = el('section', {}, [
-    el('div', { class: 'section-title' }, [
-      el('span', { class: 'kicker', text: 'Geographie' }),
-      document.createTextNode(' Die bekannte Welt'),
-    ]),
-    el('p', { class: 'section-sub', text: 'Die Karte wächst mit dem Spiel und zeigt nur, was das Volk kennt.' }),
+    el('h2', { class: 'section-title', text: 'Die bekannte Welt' }),
     el('div', { class: 'map-wrap' }, [frame, legend]),
     chronikBlock,
   ]);
