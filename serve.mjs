@@ -26,7 +26,7 @@ import { handleWorlds } from './server/worlds.mjs';
  *                                           status.json, narrative/..., log/T<n>.json as a
  *                                           player summary. Every other spelling of
  *                                           /campaigns is a 404 (isCampaignPath).
- *   GET  /api/campaigns                     campaign list, newest first: [{ id, world,
+ *   GET  /api/campaigns                     campaign list, newest first: [{ id, world, player,
  *                                           people: { id, name }, turn, season, year, phase,
  *                                           status, outcome, language, difficulty, updatedAt }],
  *                                           outcome null while playing (server/campaigns.mjs)

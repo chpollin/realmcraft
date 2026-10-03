@@ -130,6 +130,8 @@ async function campaignRow(row, calendarOf) {
   return {
     id: row.id,
     world: row.world ?? null,
+    // player as in the index row, people with the name the start screen shows.
+    player,
     people: { id: player, name: view?.peoples?.[player]?.name ?? player },
     turn,
     season: cal?.season ?? null,

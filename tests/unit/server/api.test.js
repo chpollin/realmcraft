@@ -143,6 +143,7 @@ test('GET /api/campaigns lists the campaigns newest first with the player-side f
 
   const one = r.json.find((c) => c.id === 'hochland-1');
   assert.equal(one.world, 'hochland');
+  assert.equal(one.player, PLAYER);
   assert.equal(one.people.id, PLAYER);
   assert.equal(typeof one.people.name, 'string');
   assert.equal(one.turn, 0);
