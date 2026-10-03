@@ -356,6 +356,10 @@ function buildPortraitPrompt(b, state) {
   const region = (state.volk?.region?.name || state.volk?.name || '').trim();
   const wer = [b.name, b.rolle].filter(Boolean).join(', ');
   const look = (b.erscheinung || '').trim();
+  // Liegt ein Referenzfoto bei (b.referenz.dataUrl), wird es als refImage an die
+  // Bild-API gegeben. Diese Zeile bindet die Aehnlichkeit textlich daran und
+  // uebersetzt die Person zugleich in Welt, Kleidung und Stil der Partie.
+  const hasRef = !!(b.referenz && b.referenz.dataUrl);
 
   return [
     // 1. Medium/Kunstrichtung zuerst (aus dem Spielkontext abgeleitet)
@@ -364,6 +368,8 @@ function buildPortraitPrompt(b, state) {
     'Brustbild im Dreiviertelprofil, eine einzelne Figur, leicht aus der Mitte, auf Augenhoehe, schlichter zurueckhaltender Hintergrund, natuerliche Asymmetrie',
     // 3. die Figur selbst
     [wer, look].filter(Boolean).join('. '),
+    // 3b. Aehnlichkeit an das beigefuegte Referenzfoto binden
+    hasRef ? 'Gesicht, Kopfform, Bart und Statur nach dem beigefuegten Referenzfoto uebernehmen, dieselbe Person, in Kleidung, Welt und Stil dieser Partie uebersetzt, Aehnlichkeit wahren' : '',
     // 4. Welt-Anker, damit alle Portraits aus einer Welt stammen
     region ? `aus ${region}` : '',
     // 5. die typischen KI-Tells ausschliessen
@@ -378,7 +384,11 @@ function buildPortraitPrompt(b, state) {
 // invalidiert der Cache von selbst. id bleibt drin, damit zwei Berater mit
 // gleicher Beschreibung dennoch getrennte Bilder behalten.
 function portraitKey(b, state) {
-  return makeKey([b.id, buildPortraitPrompt(b, state), portraitModel()]);
+  // Referenzfoto in den Schluessel falten: ein anderes Foto (oder das Entfernen)
+  // soll den Cache invalidieren, auch wenn der Textprompt gleich bliebe.
+  const refUrl = b.referenz && b.referenz.dataUrl ? b.referenz.dataUrl : '';
+  const refTag = refUrl ? `ref:${refUrl.length}:${refUrl.slice(-24)}` : '';
+  return makeKey([b.id, buildPortraitPrompt(b, state), refTag, portraitModel()]);
 }
 function mapKey(state) {
   return makeKey(['map', state.karte?.prompt || '', state.meta?.mapStyle || '', mapModel()]);
@@ -573,7 +583,13 @@ async function onGeneratePortrait(beraterId) {
   const b = (state.berater || []).find((x) => x.id === beraterId);
   if (!b) return;
   const prompt = buildPortraitPrompt(b, state);
-  await generateInto({ img: portraitImg(beraterId), key: portraitKey(b, state), model: portraitModel(), prompt, aspectRatio: '4:3' });
+  // Optionales Referenzfoto als refImage durchreichen (base64 ohne data:-Praefix),
+  // wie es der Karten-Versionspfad bereits tut. Fehlt es, bleibt es undefined und
+  // das Portrait entsteht rein aus dem Textprompt.
+  const refImages = b.referenz && b.referenz.dataUrl
+    ? [b.referenz.dataUrl.replace(/^data:[^,]+,/, '')]
+    : undefined;
+  await generateInto({ img: portraitImg(beraterId), key: portraitKey(b, state), model: portraitModel(), prompt, aspectRatio: '4:3', refImages });
 }
 
 async function onGenerateMap() {

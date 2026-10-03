@@ -10,8 +10,8 @@ status: active
 created: 2026-05-31
 updated: 2026-06-04
 language: de
-kampagnen: ["Die Gestrandeten", "Die Mehrung"]
-related: ["[[chronik-gestrandete]]", "[[regeln-gestrandete]]", "[[rat-der-gestrandeten]]", "[[welt-gestrandete]]", "[[chronik-mehrung]]", "[[regeln-mehrung]]", "[[rat-mehrung]]", "[[welt-mehrung]]"]
+kampagnen: ["Die letzten Wälle", "Die Gestrandeten", "Die Mehrung"]
+related: ["[[chronik-letzte-waelle]]", "[[regeln-letzte-waelle]]", "[[rat-letzte-waelle]]", "[[welt-letzte-waelle]]", "[[chronik-gestrandete]]", "[[regeln-gestrandete]]", "[[rat-der-gestrandeten]]", "[[welt-gestrandete]]", "[[chronik-mehrung]]", "[[regeln-mehrung]]", "[[rat-mehrung]]", "[[welt-mehrung]]"]
 ---
 
 # Wissensbasis, Navigation und Begriffslexikon
@@ -20,14 +20,19 @@ Dieser Ordner ist das verdichtete Gedächtnis der laufenden Partien. Er erfüllt
 
 ## Kampagnen-Übersicht (Multi-Partie-Hub)
 
-RealmCraft führt derzeit **zwei Partien parallel**. Es ist immer genau eine in `savegame.json` geladen (die aktuell aktive); die andere ist pausiert und liegt als Backup in `examples/`. Welche aktiv ist, erkennt man an `meta.spielname` in `savegame.json`.
+RealmCraft führt derzeit **drei Partien parallel**. Es ist immer genau eine in `savegame.json` geladen (die aktuell aktive); die übrigen sind pausiert und liegen als Backup in `examples/`. Welche aktiv ist, erkennt man an `meta.spielname` in `savegame.json`.
 
 | Partie | Status | Stand | Gedächtnis | Backup |
 |---|---|---|---|---|
-| **Die Gestrandeten** (Fantasy) | **aktuell geladen** (`savegame.json`) | Kapitel 2, Sommer Jahr 8 | [chronik-gestrandete.md](chronik-gestrandete.md) · [regeln-gestrandete.md](regeln-gestrandete.md) · [rat-der-gestrandeten.md](rat-der-gestrandeten.md) · [welt-gestrandete.md](welt-gestrandete.md) | [`examples/die-gestrandeten-LIVE-backup-2026-06-03.json`](../examples/die-gestrandeten-LIVE-backup-2026-06-03.json) |
+| **Die letzten Wälle** (Wikinger / Horror) | **aktuell geladen** (`savegame.json`) | Kapitel 1, Sommer Jahr 7 | [chronik-letzte-waelle.md](chronik-letzte-waelle.md) · [regeln-letzte-waelle.md](regeln-letzte-waelle.md) · [rat-letzte-waelle.md](rat-letzte-waelle.md) · [welt-letzte-waelle.md](welt-letzte-waelle.md) | — (frische Partie, noch kein Backup) |
+| **Die Gestrandeten** (Fantasy) | pausiert | Kapitel 2, Sommer Jahr 8 | [chronik-gestrandete.md](chronik-gestrandete.md) · [regeln-gestrandete.md](regeln-gestrandete.md) · [rat-der-gestrandeten.md](rat-der-gestrandeten.md) · [welt-gestrandete.md](welt-gestrandete.md) | [`examples/die-gestrandeten-LIVE-backup-2026-06-03.json`](../examples/die-gestrandeten-LIVE-backup-2026-06-03.json) |
 | **Die Mehrung** (Finanz-Strategie) | pausiert | Kapitel 1, Sommer 2026 | [chronik-mehrung.md](chronik-mehrung.md) · [regeln-mehrung.md](regeln-mehrung.md) · [rat-mehrung.md](rat-mehrung.md) · [welt-mehrung.md](welt-mehrung.md) | [`examples/die-mehrung-LIVE-backup-2026-06-04.json`](../examples/die-mehrung-LIVE-backup-2026-06-04.json) |
 
-Beide Partien sind **nicht abgeschlossen, nur die jeweils pausierte ruht** — ihr Gedächtnis bleibt vollständig und ist jederzeit wieder aufnehmbar. Die abgeschlossene erste Partie *Die Karren* liegt unter [archiv/die-karren/](archiv/die-karren/).
+Alle Partien sind **nicht abgeschlossen, nur die jeweils pausierten ruhen** — ihr Gedächtnis bleibt vollständig und ist jederzeit wieder aufnehmbar. Die abgeschlossene erste Partie *Die Karren* liegt unter [archiv/die-karren/](archiv/die-karren/).
+
+## Partie-Details: **Die letzten Wälle** (Wikinger / Horror, aktuell geladen)
+
+Eine düster-realistische Nordländer-Partie. **Vargvik**, die Wolfsbucht am Vargfjord, hält seit sieben Jahren gegen die **Wiedergänger** und lebt nur noch vom Fisch. Spielerfigur ist **Philipp mit den schwarzen Locken**, Hauptmann der Wache (Wesensart *Unbeugsam hinter der Mauer*: +2 Verteidigung / −2 nach außen). Magie gibt es nur als **Kunst** — Witcher-artige Alchemie und Geisterzwiesprache weniger Eingeweihter, in Vargvik gehütet von Philipps Bruder **Christopher**; sie ist zugleich der verdächtige Ursprung der Pest. Philipps **Familienkern** (Brüder Christopher & Stephan, Söhne Finn & Felix) ist hochloyal; die Reibung kommt aus den Stadt-Fraktionen (Jarl Harald, Brandr, Halla, Gríma). Kern: die Stadt halten **und** den Ursprung verstehen, um einen Ausweg zu finden. Hintergrundfiguren für später: **Auðun der Krähenmantel** (forschender Druide am Kai) und **Ragnars Clan** (befreundeter Stamm, unterwegs). Gedächtnis siehe Tabelle oben; Zahlenstand in `savegame.json`. Lesereihenfolge: [chronik-letzte-waelle.md](chronik-letzte-waelle.md) → [regeln-letzte-waelle.md](regeln-letzte-waelle.md) → [rat-letzte-waelle.md](rat-letzte-waelle.md) / [welt-letzte-waelle.md](welt-letzte-waelle.md).
 
 ## Partie wechseln
 

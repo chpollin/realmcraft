@@ -141,7 +141,8 @@
           "generation": { "type": "string" },
           "lebensstand": { "$ref": "#/definitions/lebensstand" },
           "erscheinung": { "type": "string" },
-          "portrait": { "$ref": "#/definitions/portrait" }
+          "portrait": { "$ref": "#/definitions/portrait" },
+          "referenz": { "$ref": "#/definitions/portrait" }
         }
       }
     },

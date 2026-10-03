@@ -149,7 +149,7 @@ code {
    ---------------------------------------------------------------------------- */
 header.top {
   position: sticky; top: 0; z-index: 40;
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px; row-gap: 10px;
   padding: 12px var(--pad-x);
   background: rgba(255, 255, 255, .85);
   backdrop-filter: blur(10px);
@@ -505,7 +505,7 @@ nav.tabs {
    Berater  [data-testid="advisor-list"] > [data-testid="advisor-card"]
    Loyalitäts-Schiene tonal (schwach -> stark), Marker an der Position
    ---------------------------------------------------------------------------- */
-.advisor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.advisor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 14px; }
 .advisor {
   padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--line);
   background: var(--panel);
@@ -586,7 +586,7 @@ nav.tabs {
    ---------------------------------------------------------------------------- */
 .beziehungen-text { margin: 0; color: var(--ink-soft); font-size: 13.5px; line-height: 1.6; max-width: 92ch; }
 
-.power-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+.power-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; }
 .power {
   padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--line);
   background: var(--panel); box-shadow: var(--shadow-soft);
@@ -629,7 +629,7 @@ nav.tabs {
 .power .stance svg { width: 13px; height: 13px; flex: none; margin-top: 2px; color: var(--rc-anthra); }
 
 /* Tragende Gruppen  [data-testid="group-row"] */
-.group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
 .group {
   padding: 14px 15px; border-radius: var(--radius); border: 1px solid var(--line-soft);
   background: var(--rc-bg-2); display: flex; gap: 13px; align-items: center; transition: var(--rc-dur) var(--rc-ease);
@@ -920,7 +920,7 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
   text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
 }
 .delta-list { list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 18px; }
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 6px 18px; }
 .delta-item { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 14px; }
 .delta-ico { width: 15px; height: 15px; flex: none; color: var(--ink-faint); }
 .delta-ico svg { width: 100%; height: 100%; display: block; }
@@ -998,7 +998,7 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .armee-bild-frame img:not([src]), .armee-bild-frame img[src=""] { display: none; }
 .gen-armee-bild { margin-top: 14px; }
 
-.verband-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.verband-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 14px; }
 .verband {
   padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--line);
   background: var(--rc-bg-2); transition: var(--rc-dur) var(--rc-ease);
@@ -1073,7 +1073,7 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 
 /* Die Siedlungen: eine Karte je Ort, Hauptstadt zuerst */
 .siedlung-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 16px;
 }
 .siedlung {
   border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
@@ -1189,7 +1189,7 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
 .gen-ereignis { flex: none; }
 
 /* Besitz: was das Volk hat */
-.besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; }
+.besitz-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 8px 18px; }
 .besitz-item { display: flex; align-items: baseline; gap: 9px; line-height: 1.5; color: var(--ink-soft); }
 .besitz-item .marker { flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint); transform: translateY(-2px); }
 
@@ -1203,15 +1203,27 @@ footer.foot a:hover { color: var(--rc-anthra); border-color: var(--rc-anthra); }
   .lage-grid { grid-template-columns: 1fr; }
   .two-col, .grid-2 { grid-template-columns: 1fr; }
 }
-@media (max-width: 560px) {
-  .stat-grid { grid-template-columns: 1fr; }
+
+/* Tablet / schmaler Laptop: Topbar auf Icons reduzieren, Aktionszeile stapeln */
+@media (max-width: 860px) {
   .brand .sub { display: none; }
   .top .btn .lbl { display: none; }
-  .map-frame { min-height: 340px; }
   .aktion { grid-template-columns: auto 1fr; }
   .aktion-roll { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+}
+
+@media (max-width: 560px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .map-frame { min-height: 340px; }
   .leben-zeile, .brauch-row, .siedlung-zeile { grid-template-columns: 1fr; gap: 3px; }
   .siedlung-grid { grid-template-columns: 1fr; }
+}
+
+/* Sehr schmale Phones: Marke und Seitenabstand verdichten */
+@media (max-width: 400px) {
+  :root { --pad-x: 14px; }
+  .brand .name { font-size: 20px; }
+  .tab { padding: 8px 12px; font-size: 12.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
