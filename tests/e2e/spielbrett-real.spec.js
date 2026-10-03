@@ -20,7 +20,7 @@ import { createHochland } from '../fixtures/spielbrett/build.mjs';
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-hochland';
 const PID = 'bergnomaden';
-const FORBIDDEN_PORTS = [4173, 4185, 4186, 4190];
+const FORBIDDEN_PORTS = [4173, 4185, 4186, 4187, 4190];
 
 const json = (p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
 const labels = json('welten/hochland/labels.json').labels;
@@ -45,7 +45,8 @@ function freePort() {
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  let port = await freePort();
+  // SPEC_PORT pins the port when a run is limited to assigned ports.
+  let port = Number(process.env.SPEC_PORT) || await freePort();
   while (FORBIDDEN_PORTS.includes(port)) port = await freePort();
   BASE = `http://localhost:${port}`;
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-e2e-'));
@@ -58,6 +59,13 @@ test.beforeAll(async () => {
   await new Promise((resolve, reject) => {
     server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
     server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
+  });
+});
+
+// The assertions read the German labels; English is the board's default language.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    try { localStorage.setItem('realmcraft.settings', JSON.stringify({ language: 'de' })); } catch { /* storage blocked */ }
   });
 });
 

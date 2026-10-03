@@ -3,9 +3,10 @@
 // against the rules kernel; ?demo keeps the prototype on its fixtures.
 
 import { createModel } from './model.js';
-import { createGame } from './data/game.js';
+import { createGame, worldLabelFiles } from './data/game.js';
 import { startBoard } from './board.js';
 import { el } from './dom.js';
+import { t, applyStatic, setWorldLabels } from './i18n/index.js';
 
 const params = new URLSearchParams(location.search);
 
@@ -21,13 +22,21 @@ function boardState() {
 function noCampaign(error) {
   document.documentElement.dataset.ready = 'true';
   document.getElementById('brett').replaceChildren(el('section', { class: 'leer', 'aria-labelledby': 'leer-titel' },
-    el('h2', { id: 'leer-titel', class: 'world', text: error ? 'Kampagne nicht lesbar' : 'Keine Kampagne' }),
+    el('h2', { id: 'leer-titel', class: 'world', text: t(error ? 'board.empty.unreadable' : 'board.empty.none') }),
     error ? el('p', { text: error.message }) : null,
     el('pre', {}, el('code', { text: 'node engine/cli.mjs new hochland --seed 7 --id hochland-1\nnode engine/cli.mjs open --campaign hochland-1' })),
-    el('a', { class: 'btn', href: '?demo' }, 'Prototyp ansehen')));
+    el('a', { class: 'btn', href: '?demo' }, t('board.empty.demo'))));
 }
 
+applyStatic();
+
 if (params.has('demo')) {
+  // The prototype plays the Hochland fixtures, so it names things with the Hochland labels.
+  try {
+    setWorldLabels(await worldLabelFiles('hochland'));
+  } catch (err) {
+    console.error(err);
+  }
   const model = await createModel();
   model.panel = null;
   model.ownerVersion = 0;

@@ -9,9 +9,10 @@ import { icon, ICONS } from '../icons.js';
 import { portrait } from './portrait.js';
 import { costChips } from './kontext.js';
 import { hintSlot, slotOf, SLOT_ICON } from './leiste.js';
+import { t, locale } from '../i18n/index.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
-const ART = { technik: 'Technik', magie: 'Magie', einheit: 'Einheit', bauwerk: 'Bauwerk', institution: 'Institution' };
+const artName = (n) => n.artName ?? (n.art ? t(`kind.${n.art}`, n.art) : '');
 // Ring radius per depth: the trunk sits close to the emblem, sprouts further out.
 const RINGS = [0, 150, 268, 372, 460];
 // Root order places the forge beside the pass guard and the fire songs beside
@@ -47,7 +48,7 @@ function buildGraph(model) {
   for (const p of E.praxis) add({ ...p, typ: 'praxis' });
   for (const f of E.forschung) add({ ...f, typ: 'forschung' });
   for (const v of E.vorschlaege) add({ ...v, typ: v.eigen ? 'eigen-vorschlag' : 'vorschlag', von: v.von ?? 'volk' });
-  add({ id: 'eigen', typ: 'eigen', name: 'Eigene Richtung', von: 'volk' });
+  add({ id: 'eigen', typ: 'eigen', name: t('board.tree.own'), von: 'volk' });
   for (const n of nodes.values()) if (n.von && nodes.has(n.von)) nodes.get(n.von).kinder.push(n.id);
   const root = nodes.get('volk');
   const rank = (id) => (ROOT_ORDER.includes(id) ? ROOT_ORDER.indexOf(id) : ROOT_ORDER.length);
@@ -98,15 +99,18 @@ function branch(a, b, cls, width) {
 
 function nodeLabel(n) {
   switch (n.typ) {
-    case 'emblem': return `${n.name}, Ursprung`;
-    case 'bekannt': return `${n.name}, bekannt, ${n.artName ?? ART[n.art] ?? ''}`;
-    case 'forschung': return `${n.name}, in Forschung, ${n.fortschritt} von ${n.dauer} ${n.einheit ?? 'Saisons'}`;
-    case 'vorschlag': return `${n.name}, Vorschlag, ${n.artName ?? ART[n.art] ?? ''}`;
-    case 'eigen-vorschlag': return `${n.name}, eigene Richtung, wird geprüft`;
-    case 'praxis': return `${n.name}, Praxis des Volkes`;
-    default: return 'Eigene Richtung vorschlagen';
+    case 'emblem': return t.fmt('board.tree.node.emblem', { name: n.name });
+    case 'bekannt': return t.fmt('board.tree.node.known', { name: n.name, kind: artName(n) });
+    case 'forschung': return t.fmt('board.tree.node.research', { name: n.name, progress: progressText(n) });
+    case 'vorschlag': return t.fmt('board.tree.node.proposal', { name: n.name, kind: artName(n) });
+    case 'eigen-vorschlag': return t.fmt('board.tree.node.own-proposal', { name: n.name });
+    case 'praxis': return t.fmt('board.tree.node.practice', { name: n.name });
+    default: return t('board.tree.node.own');
   }
 }
+
+// The kernel's research unit (n.einheit) is named by the adapter; without one progress counts seasons.
+const progressText = (n) => (n.einheit ? t.fmt('board.tree.progress-unit', { done: n.fortschritt, total: n.dauer, unit: n.einheit }) : t.fmt('board.tree.progress', { done: n.fortschritt, total: n.dauer }));
 
 function drawNode(n, selected, model) {
   const g = s('g', {
@@ -125,9 +129,9 @@ function drawNode(n, selected, model) {
   }
   if (n.typ === 'praxis') {
     g.append(s('circle', { r: 11, class: 'b-scheibe' }), svgIcon('praxis', 13));
-    const t = s('text', { y: 26, class: 'b-praxis' });
-    t.textContent = n.name;
-    g.append(t);
+    const label = s('text', { y: 26, class: 'b-praxis' });
+    label.textContent = n.name;
+    g.append(label);
     return g;
   }
   if (n.typ === 'eigen') {
@@ -150,9 +154,9 @@ function drawNode(n, selected, model) {
     const chip = s('g', { class: 'b-wirkung', transform: `translate(0 ${r + 38})` });
     const w = 24 + n.kurz.wert.length * 8;
     chip.append(s('rect', { x: -w / 2, y: -10, width: w, height: 20, rx: 10 }), s('g', { transform: `translate(${-w / 2 + 12} 0)` }, svgIcon(n.kurz.icon, 13)));
-    const t = s('text', { x: -w / 2 + 22, y: 4.5 });
-    t.textContent = n.kurz.wert;
-    chip.append(t);
+    const label = s('text', { x: -w / 2 + 22, y: 4.5 });
+    label.textContent = n.kurz.wert;
+    chip.append(label);
     g.append(chip);
   }
   return g;
@@ -164,14 +168,14 @@ function sidePanel(api, n, nodes, rerender) {
   const weil = n.weilVon ? nodes.get(n.weilVon) : null;
   const queued = model.orders.some((o) => o.quelle === `forschung-${n.id}`);
   const row = (iconName, label, ...content) => el('div', { class: 'bs-zeile' }, el('span', { class: 'bs-icon', 'aria-label': label, role: 'img' }, icon(iconName, { size: 18 })), el('div', {}, ...content));
-  const council = n.stimmung ? el('ul', { class: 'bs-rat plain', 'aria-label': 'Haltung im Rat' }, ...[...n.stimmung.pro.map((id) => [id, true]), ...n.stimmung.contra.map((id) => [id, false])].map(([id, pro]) => {
+  const council = n.stimmung ? el('ul', { class: 'bs-rat plain', 'aria-label': t('board.tree.council') }, ...[...n.stimmung.pro.map((id) => [id, true]), ...n.stimmung.contra.map((id) => [id, false])].map(([id, pro]) => {
     const a = model.rat.find((x) => x.id === id);
-    return a ? el('li', { class: pro ? 'pro' : 'contra', 'aria-label': `${a.name} ${pro ? 'dafür' : 'dagegen'}` }, portrait(a.id, a.name, { size: 40 }), el('span', { class: 'bs-hand', 'aria-hidden': 'true' }, icon(pro ? 'dafuer' : 'dagegen', { size: 14 }))) : null;
+    return a ? el('li', { class: pro ? 'pro' : 'contra', 'aria-label': `${a.name} ${t(pro ? 'board.vote.ja' : 'board.vote.nein')}` }, portrait(a.id, a.name, { size: 40 }), el('span', { class: 'bs-hand', 'aria-hidden': 'true' }, icon(pro ? 'dafuer' : 'dagegen', { size: 14 }))) : null;
   })) : null;
 
   if (n.typ === 'eigen' && model.real) return directionPanel(api);
   if (n.typ === 'eigen') {
-    const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': 'Eigene Richtung' });
+    const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': t('board.tree.own') });
     return el('form', {
       class: 'baum-seite',
       onsubmit: (ev) => {
@@ -181,28 +185,28 @@ function sidePanel(api, n, nodes, rerender) {
         const id = `eigen-${Date.now()}`;
         model.entwicklungen.vorschlaege.push({ id, name: text.length > 28 ? `${text.slice(0, 26)}…` : text, langtext: text, art: 'technik', von: 'volk', eigen: true });
         view.sel = id;
-        api.announce('Eigene Richtung vorgemerkt, der Forschungsagent prüft sie im Zwischenzug');
+        api.announce(t('board.tree.own-noted'));
         rerender();
       },
     },
-    el('h3', { class: 'world' }, icon('plus', { size: 20 }), 'Eigene Richtung'),
+    el('h3', { class: 'world' }, icon('plus', { size: 20 }), t('board.tree.own')),
     ta,
-    el('button', { class: 'btn btn-primary', type: 'submit' }, icon('entwicklungen', { size: 18 }), 'Vorschlagen'));
+    el('button', { class: 'btn btn-primary', type: 'submit' }, icon('entwicklungen', { size: 18 }), t('board.tree.propose')));
   }
 
   if (n.typ === 'emblem') return emblemPanel(api, nodes, model);
 
   return el('div', { class: 'baum-seite' },
     el('h3', { class: 'world' }, n.typ === 'emblem' ? icon('bestimmung', { size: 22 }) : n.typ === 'praxis' ? icon('praxis', { size: 20 }) : icon(n.icon ?? n.art ?? 'technik', { size: 22 }), n.typ === 'emblem' ? model.volk.name : n.name),
-    n.art ? el('p', { class: 'bs-art', text: `${n.artName ?? ART[n.art]}${n.typ === 'forschung' ? ', in Forschung' : n.typ === 'vorschlag' ? ', Vorschlag' : n.typ === 'bekannt' ? ', bekannt' : ''}` }) : null,
-    n.kurz ? row('pfeil', 'Wirkung', el('span', { class: 'bs-wirkung' }, icon(n.kurz.icon, { size: 16 }), n.kurz.wert), el('span', { class: 'bs-text', text: n.wirkung })) : n.wirkung ? row('pfeil', 'Wirkung', el('span', { class: 'bs-text', text: n.wirkung })) : null,
-    n.typ === 'forschung' ? row('dauer', 'Fortschritt', el('span', { class: 'bs-wert', text: `${n.fortschritt} von ${n.dauer} ${n.einheit ?? 'Saisons'}` })) : null,
-    n.kosten?.length ? row('kosten', 'Kosten', costChips(api, n.kosten, { size: 16 })) : null,
-    n.dauer && n.typ !== 'forschung' ? row('dauer', 'Dauer', el('span', { class: 'bs-wert', text: n.einheit ? `${n.dauer} ${n.einheit}` : `${n.dauer} ${n.dauer === 1 ? 'Saison' : 'Saisons'}` })) : null,
-    n.preis ? row('preis', 'Preis', el('span', { class: 'bs-text', text: n.preis })) : null,
-    n.weil ? row('praxis', 'Weil', el('span', { class: 'bs-weil world' }, el('span', { class: 'v-weil-wort', text: 'weil ' }), n.weil),
+    n.art ? el('p', { class: 'bs-art', text: [artName(n), ['forschung', 'vorschlag', 'bekannt'].includes(n.typ) ? t(`board.tree.state.${n.typ}`) : null].filter(Boolean).join(', ') }) : null,
+    n.kurz ? row('pfeil', t('ui.wirkung'), el('span', { class: 'bs-wirkung' }, icon(n.kurz.icon, { size: 16 }), n.kurz.wert), el('span', { class: 'bs-text', text: n.wirkung })) : n.wirkung ? row('pfeil', t('ui.wirkung'), el('span', { class: 'bs-text', text: n.wirkung })) : null,
+    n.typ === 'forschung' ? row('dauer', t('board.tree.progress-label'), el('span', { class: 'bs-wert', text: progressText(n) })) : null,
+    n.kosten?.length ? row('kosten', t('ui.kosten'), costChips(api, n.kosten, { size: 16 })) : null,
+    n.dauer && n.typ !== 'forschung' ? row('dauer', t('board.tree.duration'), el('span', { class: 'bs-wert', text: n.einheit ? `${n.dauer} ${n.einheit}` : t.plural('board.seasons', n.dauer) })) : null,
+    n.preis ? row('preis', t('ui.preis'), el('span', { class: 'bs-text', text: n.preis })) : null,
+    n.weil ? row('praxis', t('board.tree.because-label'), el('span', { class: 'bs-weil world' }, el('span', { class: 'v-weil-wort', text: `${t('board.tree.because')} ` }), n.weil),
       el('span', { class: 'bs-text' }, [parent, weil].filter((x) => x && x.typ === 'praxis').map((x) => x.name).join(', '))) : null,
-    n.eigen ? row('dauer', 'Status', el('span', { class: 'bs-text', text: 'Wird im Zwischenzug vom Forschungsagenten geprüft' })) : null,
+    n.eigen ? row('dauer', t('board.tree.status'), el('span', { class: 'bs-text', text: t('board.tree.own-checked') })) : null,
     council,
     model.real ? kernelAction(api, n) : null,
     !model.real && n.typ === 'vorschlag' ? el('button', {
@@ -210,10 +214,10 @@ function sidePanel(api, n, nodes, rerender) {
       type: 'button',
       disabled: queued || model.phase === 'A',
       onclick: () => {
-        api.addOrder({ id: `f-${n.id}`, quelle: `forschung-${n.id}`, titel: `${n.name} erforschen`, ziel: 'Forschung', kosten: n.kosten ?? [], art: 'haupt' });
+        api.addOrder({ id: `f-${n.id}`, quelle: `forschung-${n.id}`, titel: t.fmt('board.tree.research-title', { name: n.name }), ziel: t('ui.forschung'), kosten: n.kosten ?? [], art: 'haupt' });
         rerender();
       },
-    }, icon(queued ? 'ja' : 'entwicklungen', { size: 18 }), queued ? 'In den Befehlen' : 'Erforschen') : null,
+    }, icon(queued ? 'ja' : 'entwicklungen', { size: 18 }), t(queued ? 'board.option.queued' : 'board.tree.research')) : null,
   );
 }
 
@@ -226,9 +230,9 @@ function kernelAction(api, n) {
   const { game } = api;
   let cand = null;
   let label = '';
-  if (n.typ === 'vorschlag') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, 'Erforschen'];
-  else if (n.typ === 'forschung') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, 'Vorrang geben'];
-  else if (n.typ === 'bekannt' && n.art === 'institution' && !n.eingesetzt) [cand, label] = [{ type: 'institute', params: { development: n.ref } }, game.t('order.institute', 'Einsetzen')];
+  if (n.typ === 'vorschlag') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, t('board.tree.research')];
+  else if (n.typ === 'forschung') [cand, label] = [{ type: 'research.assign', params: { development: n.ref } }, t('board.tree.prioritise')];
+  else if (n.typ === 'bekannt' && n.art === 'institution' && !n.eingesetzt) [cand, label] = [{ type: 'institute', params: { development: n.ref } }, t('order.institute')];
   if (!cand) return null;
   const opt = game.previewOption(cand);
   const disabled = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
@@ -241,8 +245,8 @@ function kernelAction(api, n) {
       onclick: () => { if (!disabled) api.addCandidate(opt); },
       onpointerenter: () => { if (!disabled) { api.setPreview(opt.preview); hintSlot(api, { art: slotOf(opt), ersetzt: opt.ersetzt?.id ?? null }); } },
       onpointerleave: () => { api.setPreview(null); hintSlot(api, null); },
-    }, icon(opt.queued ? 'ja' : SLOT_ICON[slotOf(opt)] ?? 'entwicklungen', { size: 18 }), opt.queued ? 'In den Befehlen' : label),
-    opt.ersetzt && !opt.queued ? el('p', { class: 'bo-ersetzt' }, icon('praxis', { size: 14 }), `statt ${opt.ersetzt.ziel || opt.ersetzt.titel}`) : null,
+    }, icon(opt.queued ? 'ja' : SLOT_ICON[slotOf(opt)] ?? 'entwicklungen', { size: 18 }), opt.queued ? t('board.option.queued') : label),
+    opt.ersetzt && !opt.queued ? el('p', { class: 'bo-ersetzt' }, icon('praxis', { size: 14 }), t.fmt('board.option.instead', { title: opt.ersetzt.ziel || opt.ersetzt.titel })) : null,
     opt.grund ? el('p', { class: 'bo-grund', text: opt.grund }) : null);
 }
 
@@ -250,9 +254,9 @@ function kernelAction(api, n) {
 function directionPanel(api) {
   const { game } = api;
   const chosen = new Set();
-  const tags = Object.keys(game.env.vocabulary).sort((a, b) => game.t(`tag.${a}`, a).localeCompare(game.t(`tag.${b}`, b), 'de'));
-  const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': 'Notiz an die Forschung' });
-  const submit = el('button', { class: 'btn btn-primary', type: 'submit', disabled: true }, icon('entwicklungen', { size: 18 }), 'Vorschlagen');
+  const tags = Object.keys(game.env.vocabulary).sort((a, b) => t(`tag.${a}`, a).localeCompare(t(`tag.${b}`, b), locale()));
+  const ta = el('textarea', { id: 'eigen-text', rows: '3', maxlength: '200', 'aria-label': t('board.tree.note') });
+  const submit = el('button', { class: 'btn btn-primary', type: 'submit', disabled: true }, icon('entwicklungen', { size: 18 }), t('board.tree.propose'));
   const grund = el('p', { class: 'bo-grund' });
   const cand = () => ({ type: 'research.direct', params: { tags: [...chosen], ...(ta.value.trim() ? { note: ta.value.trim() } : {}) } });
   const check = () => {
@@ -267,8 +271,8 @@ function directionPanel(api) {
       if (!submit.disabled) api.addCandidate(cand());
     },
   },
-  el('h3', { class: 'world' }, icon('plus', { size: 20 }), 'Eigene Richtung'),
-  el('ul', { class: 'richtung-tags plain', 'aria-label': 'Schlagworte, bis zu drei' }, ...tags.map((g) => el('li', {},
+  el('h3', { class: 'world' }, icon('plus', { size: 20 }), t('board.tree.own')),
+  el('ul', { class: 'richtung-tags plain', 'aria-label': t('board.tree.tags') }, ...tags.map((g) => el('li', {},
     el('label', { class: 'probe-option' },
       el('input', {
         type: 'checkbox',
@@ -280,7 +284,7 @@ function directionPanel(api) {
           check();
         },
       }),
-      el('span', { text: game.t(`tag.${g}`, g) }))))),
+      el('span', { text: t(`tag.${g}`, g) }))))),
   ta,
   grund,
   submit);
@@ -301,9 +305,9 @@ function emblemPanel(api, nodes, model) {
   };
   return el('div', { class: 'baum-seite' },
     el('h3', { class: 'world' }, icon('bestimmung', { size: 22 }), model.volk.name),
-    group('Vorschläge', 'vorschlag'),
-    group('In Forschung', 'forschung'),
-    group('Bekannt', 'bekannt'));
+    group(t('board.tree.group.vorschlag'), 'vorschlag'),
+    group(t('board.tree.group.forschung'), 'forschung'),
+    group(t('ui.bekannt'), 'bekannt'));
 }
 
 export function renderBaum(dlg, api) {
@@ -351,7 +355,7 @@ export function renderBaum(dlg, api) {
   const knots = s('g', { class: 'b-knoten-ebene' }, ...order.map((id) => drawNode(nodes.get(id), id === view.sel, model)));
 
   const world = s('g', { class: 'b-welt' }, edges, knots);
-  const svg = s('svg', { class: 'baum', role: 'group', 'aria-label': 'Entwicklungsbaum' },
+  const svg = s('svg', { class: 'baum', role: 'group', 'aria-label': t('board.tree.label') },
     s('defs', {}, s('filter', { id: 'b-glow', x: '-50%', y: '-50%', width: '200%', height: '200%' }, s('feGaussianBlur', { stdDeviation: 4 }))),
     world);
 
@@ -410,12 +414,12 @@ export function renderBaum(dlg, api) {
   }, { passive: false });
 
   const head = el('header', { class: 'baum-kopf' },
-    el('h2', { class: 'world', id: `${dlg.id}-titel`, tabindex: '-1' }, icon('entwicklungen', { size: 24 }), 'Entwicklungen'),
+    el('h2', { class: 'world', id: `${dlg.id}-titel`, tabindex: '-1' }, icon('entwicklungen', { size: 24 }), t('view.entwicklungen')),
     el('div', { class: 'baum-werkzeug' },
-      el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Ansicht einpassen', onclick: () => { view.fitted = false; fit(); } }, icon('ziel', { size: 18 })),
-      el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Schließen (Esc)', onclick: () => dlg.close() }, icon('schliessen'))));
+      el('button', { class: 'icon-btn', type: 'button', 'aria-label': t('board.tree.fit'), onclick: () => { view.fitted = false; fit(); } }, icon('ziel', { size: 18 })),
+      el('button', { class: 'icon-btn', type: 'button', 'aria-label': t.fmt('board.close.esc', { label: t('board.close') }), onclick: () => dlg.close() }, icon('schliessen'))));
 
-  const aside = el('aside', { class: 'baum-panel', 'aria-label': 'Auswahl im Baum' }, sidePanel(api, sel, nodes, rerender));
+  const aside = el('aside', { class: 'baum-panel', 'aria-label': t('board.tree.selection') }, sidePanel(api, sel, nodes, rerender));
   aside.addEventListener('click', (e) => {
     const id = e.target.closest?.('[data-waehle]')?.dataset.waehle;
     if (!id) return;

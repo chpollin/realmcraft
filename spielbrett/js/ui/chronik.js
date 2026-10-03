@@ -3,15 +3,16 @@
 
 import { el } from '../dom.js';
 import { dialogHead } from './dialoge.js';
+import { t } from '../i18n/index.js';
 
 export function renderChronik(dlg, api) {
   const entries = api.model.chronik;
   dlg.replaceChildren(
-    dialogHead(dlg, api.game?.t('view.chronik', 'Chronik') ?? 'Chronik', 'chronik'),
+    dialogHead(dlg, t('view.chronik'), 'chronik'),
     el('div', { class: 'overlay-body' },
-      entries.length ? null : el('p', { class: 'chronik-leer', text: 'Der Chronist hat noch nichts niedergeschrieben.' }),
+      entries.length ? null : el('p', { class: 'chronik-leer', text: t('board.chronicle.empty') }),
       el('ol', { class: 'chronik plain' }, ...entries.map((c, i) => el('li', { class: `chronik-eintrag${c.neu ? ' is-neu' : ''}` },
-        el('p', { class: 'ce-zeit', text: `${c.saison}, Jahr ${c.jahr}` }),
+        el('p', { class: 'ce-zeit', text: t.fmt('board.time', { season: c.saison, year: c.jahr }) }),
         el('article', { 'aria-labelledby': `ce-${i}` },
           el('h3', { class: 'world', id: `ce-${i}`, text: c.titel }),
           el('p', { class: 'world ce-text', text: c.text })))))),

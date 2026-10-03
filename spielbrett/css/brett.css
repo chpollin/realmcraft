@@ -118,6 +118,21 @@
   .kurz:hover, .kurz[aria-expanded="true"] { background: var(--hover-wash); color: var(--ink); }
   .kurz-label { font-weight: 500; }
 
+  .sprache { display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--night-2); }
+  .sprache-wahl {
+    min-inline-size: 2.25rem;
+    block-size: 2rem;
+    padding-inline: var(--space-2);
+    border-radius: 999px;
+    color: var(--ink-dim);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background var(--dur-1), color var(--dur-1);
+  }
+  .sprache-wahl:hover { color: var(--ink); background: var(--hover-wash); }
+  .sprache-wahl[aria-checked="true"] { background: var(--night-3); color: var(--ink); }
+
   /* Board */
   .brett { position: relative; overflow: hidden; min-block-size: 0; }
   #karte { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; cursor: grab; touch-action: none; }
@@ -380,6 +395,7 @@
   .volk { order: 1; }
   .bestimmung-kurz { order: 2; margin-inline-start: auto; }
   .kurzwahl { order: 3; }
+  .sprache { order: 3; }
   .ressourcen { order: 4; inline-size: 100%; margin: 0; overflow-x: auto; scrollbar-width: none; justify-content: space-between; }
 }
 

@@ -28,7 +28,7 @@ export const slotIcon = (art) => SLOT_ICON[art] ?? 'enthaltung';
 /** Chip of a store change of the kernel preview (previewDeltas keys are resource keys or "volk"). */
 export function deltaChips(deltas, t) {
   return Object.entries(deltas ?? {}).filter(([, d]) => d).map(([k, d]) => (k === 'volk'
-    ? { icon: 'volk', wert: signed(d), text: t('population.core', 'Sippen') }
+    ? { icon: 'volk', wert: signed(d), text: t('population.core') }
     : { icon: k, wert: signed(d), text: t(`resource.${k}`, k) }));
 }
 
@@ -36,9 +36,9 @@ const memberName = (view, id) => view.peoples[view.people].council.find((m) => m
 const peopleName = (view, id) => view.peoples[id]?.name ?? id;
 
 function targetText(view, t, target) {
-  if (target === 'all') return t('ereignis.alle', 'alle');
+  if (target === 'all') return t('ereignis.alle');
   const [kind, tag] = String(target).split(':');
-  if (tag) return `${t(kind === 'favor' ? 'ereignis.dafuer' : 'ereignis.dagegen', kind === 'favor' ? 'Anhänger' : 'Gegner')} ${t(`tag.${tag}`, tag)}`;
+  if (tag) return `${t(kind === 'favor' ? 'ereignis.dafuer' : 'ereignis.dagegen')} ${t(`tag.${tag}`, tag)}`;
   return memberName(view, target);
 }
 
@@ -50,12 +50,12 @@ function targetText(view, t, target) {
 export function effectChip(e, { view, t }) {
   switch (e.op) {
     case 'resource.delta': return { icon: e.res, wert: signed(e.amount), text: t(`resource.${e.res}`, e.res), store: true };
-    case 'population.delta': return { icon: 'volk', wert: signed(e.amount), text: t('population.core', 'Sippen'), store: true };
-    case 'loyalty.delta': return { icon: 'rat', wert: signed(e.amount), text: `${t('ui.loyalitaet', 'Loyalität')}, ${targetText(view, t, e.target)}` };
-    case 'relation.delta': return { icon: 'rivalen', wert: signed(e.amount), text: `${t('ui.beziehung', 'Beziehung')}, ${peopleName(view, e.people)}` };
-    case 'standing.delta': return { icon: 'schild', wert: signed(e.amount), text: t('ereignis.ansehen', 'Ansehen') };
+    case 'population.delta': return { icon: 'volk', wert: signed(e.amount), text: t('population.core'), store: true };
+    case 'loyalty.delta': return { icon: 'rat', wert: signed(e.amount), text: `${t('ui.loyalitaet')}, ${targetText(view, t, e.target)}` };
+    case 'relation.delta': return { icon: 'rivalen', wert: signed(e.amount), text: `${t('ui.beziehung')}, ${peopleName(view, e.people)}` };
+    case 'standing.delta': return { icon: 'schild', wert: signed(e.amount), text: t('ereignis.ansehen') };
     case 'meter.delta': return { icon: 'zustimmung', wert: signed(e.amount), text: t(`meter.${e.meter}`, e.meter) };
-    case 'reveal': return { icon: 'sicht', wert: '', text: t('ereignis.aufgedeckt', 'Neues Land wird sichtbar') };
+    case 'reveal': return { icon: 'sicht', wert: '', text: t('ereignis.aufgedeckt') };
     default: return null;
   }
 }
@@ -66,17 +66,17 @@ function logChip(e, { view, t }) {
   // A relation is logged as before/after, the shift is their difference.
   if (e.kind === 'relation.change' && ch?.before && ch.after) {
     const other = String(e.target.id).split('|').find((p) => p !== view.people);
-    return { key: `relation.${e.target.id}`, icon: 'rivalen', delta: ch.after.value - ch.before.value, text: `${t('ui.beziehung', 'Beziehung')}, ${peopleName(view, other)}` };
+    return { key: `relation.${e.target.id}`, icon: 'rivalen', delta: ch.after.value - ch.before.value, text: `${t('ui.beziehung')}, ${peopleName(view, other)}` };
   }
   if (!ch || !Number.isInteger(ch.delta)) return null;
   if (ch.field.startsWith('resources.')) {
     const k = ch.field.slice('resources.'.length);
     return { key: ch.field, icon: k, delta: ch.delta, text: t(`resource.${k}`, k) };
   }
-  if (ch.field === 'population.core') return { key: ch.field, icon: 'volk', delta: ch.delta, text: t('population.core', 'Sippen') };
-  if (ch.field === 'standing') return { key: ch.field, icon: 'schild', delta: ch.delta, text: t('ereignis.ansehen', 'Ansehen') };
-  if (e.kind === 'member.loyalty') return { key: `loyalty.${e.target.id}`, icon: 'rat', delta: ch.delta, text: `${t('ui.loyalitaet', 'Loyalität')}, ${memberName(view, e.target.id)}` };
-  if (e.kind === 'unit.strength') return { key: `unit.${e.target.id}`, icon: 'krieger', delta: ch.delta, text: t('ereignis.staerke', 'Stärke') };
+  if (ch.field === 'population.core') return { key: ch.field, icon: 'volk', delta: ch.delta, text: t('population.core') };
+  if (ch.field === 'standing') return { key: ch.field, icon: 'schild', delta: ch.delta, text: t('ereignis.ansehen') };
+  if (e.kind === 'member.loyalty') return { key: `loyalty.${e.target.id}`, icon: 'rat', delta: ch.delta, text: `${t('ui.loyalitaet')}, ${memberName(view, e.target.id)}` };
+  if (e.kind === 'unit.strength') return { key: `unit.${e.target.id}`, icon: 'krieger', delta: ch.delta, text: t('ereignis.staerke') };
   return null;
 }
 
@@ -150,7 +150,7 @@ export function buildCards({ view, env, t, events = [], draft = null }) {
       cards.push({
         id: `e:${e.id}`, kind: 'entschieden', turn: e.turn, title: name, text: label, tags: lib?.tags ?? [],
         image: lib?.image ?? null, icon: iconForTags(lib?.tags),
-        status: { icon: unanswered ? 'dauer' : 'ja', text: unanswered ? t('ereignis.ohne-antwort', 'Keine Antwort, die erste Möglichkeit galt') : t('ereignis.gewaehlt', 'Entschieden') },
+        status: { icon: unanswered ? 'dauer' : 'ja', text: unanswered ? t('ereignis.ohne-antwort') : t('ereignis.gewaehlt') },
         chips: logChips(effectsOf(log, ref, name, true), ctx),
         choice: null,
         order: seqOf(e.id),
@@ -160,8 +160,8 @@ export function buildCards({ view, env, t, events = [], draft = null }) {
       const heir = log.find((x) => x.kind === 'council.succession' && /succeeds the leader$/.test(x.reason) && x.turn === e.turn);
       const heirName = heir ? /^(.+) succeeds the leader$/.exec(heir.reason)?.[1] : null;
       cards.push({
-        id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: t('ereignis.tod', 'Tod im Rat'),
-        text: [fill(t('ereignis.tod.text', '{name} ist gestorben.'), { name: who }), heirName ? fill(t('ereignis.nachfolge', '{name} führt nun den Rat.'), { name: heirName }) : ''].filter(Boolean).join(' '),
+        id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: t('ereignis.tod'),
+        text: [fill(t('ereignis.tod.text'), { name: who }), heirName ? fill(t('ereignis.nachfolge'), { name: heirName }) : ''].filter(Boolean).join(' '),
         tags: ['rat'], image: null, icon: 'rat', chips: [], choice: null, order: seqOf(e.id),
       });
     } else if (e.kind === 'relation.contact' || e.kind === 'relation.war') {
@@ -169,8 +169,8 @@ export function buildCards({ view, env, t, events = [], draft = null }) {
       if (!other || !String(e.target.id).split('|').includes(pid)) continue;
       const war = e.kind === 'relation.war';
       cards.push({
-        id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: war ? t('ereignis.krieg', 'Krieg') : t('ereignis.kontakt', 'Erster Kontakt'),
-        text: fill(war ? t('ereignis.krieg.text', 'Zwischen deinem Volk und {name} herrscht Krieg.') : t('ereignis.kontakt.text', 'Dein Volk trifft auf {name}.'), { name: peopleName(view, other) }),
+        id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: war ? t('ereignis.krieg') : t('ereignis.kontakt'),
+        text: fill(war ? t('ereignis.krieg.text') : t('ereignis.kontakt.text'), { name: peopleName(view, other) }),
         tags: war ? ['krieg', 'angriff'] : ['kontakt', 'erkundung'], image: null, icon: war ? 'krieger' : 'rivalen', chips: [], choice: null, order: seqOf(e.id),
       });
     }

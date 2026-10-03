@@ -7,6 +7,7 @@ import { el } from '../dom.js';
 import { ICONS, icon } from '../icons.js';
 import { dialogHead } from './dialoge.js';
 import { withTip } from './tip.js';
+import { t } from '../i18n/index.js';
 
 const symbol = (name) => (ICONS[name] ? name : 'meilenstein');
 
@@ -17,10 +18,10 @@ function milestoneTip(label, status) {
 
 function milestone(m) {
   const unknown = m.text === null || m.text === undefined;
-  const label = unknown ? 'Unbekannter Meilenstein' : m.text;
+  const label = unknown ? t('board.destiny.unknown-milestone') : m.text;
   const f = m.fortschritt;
   const total = f?.ziel ?? 1;
-  const status = unknown ? 'unbekannt' : m.erreicht ? 'erreicht' : f ? `${f.wert} von ${f.ziel}${f.einheit ? ` ${f.einheit}` : ''}` : 'offen';
+  const status = unknown ? t('board.destiny.state.unbekannt') : m.erreicht ? t('board.destiny.state.erreicht') : f ? t.fmt('board.destiny.progress', { done: f.wert, total: f.ziel, unit: f.einheit ?? '' }).trim() : t('board.destiny.state.offen');
   const state = unknown ? 'unbekannt' : m.erreicht ? 'erreicht' : 'offen';
   const bar = el('progress', {
     class: 'ms-balken',
@@ -38,8 +39,8 @@ function milestone(m) {
 
 function column(peopleName, peopleCls, b) {
   const known = b.name !== null && b.name !== undefined;
-  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': `${peopleName}, Bestimmung` },
-    el('h3', { class: `bst-name world${known ? '' : ' is-fog'}`, text: known ? b.name : 'Unbekannte Bestimmung' }),
+  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': `${peopleName}, ${t('view.bestimmung')}` },
+    el('h3', { class: `bst-name world${known ? '' : ' is-fog'}`, text: known ? b.name : t('board.destiny.unknown') }),
     el('p', { class: 'bst-volk', text: peopleName }),
     b.meilensteine.length ? el('ol', { class: 'meilensteine plain' }, ...b.meilensteine.map(milestone)) : null);
 }
@@ -62,7 +63,7 @@ function adoptButton({ queued, blocked, reason, onclick, onpointerenter, onpoint
     onclick: () => { if (!blocked) onclick(); },
     onpointerenter,
     onpointerleave,
-  }, icon(queued ? 'ja' : 'bestimmung', { size: 18 }), queued ? 'In den Befehlen' : 'Bestimmung wechseln');
+  }, icon(queued ? 'ja' : 'bestimmung', { size: 18 }), t(queued ? 'board.option.queued' : 'board.destiny.switch'));
   // The reason (kernel text or price) appears on hover and focus, not as standing text.
   return reason ? withTip(btn, [reason], undefined, { up: true }) : btn;
 }
@@ -77,7 +78,7 @@ function realButton(api, w) {
   return adoptButton({
     queued: opt.queued,
     blocked,
-    reason: opt.grund ?? (api.model.phase === 'A' ? 'Die Saison wird ausgewertet.' : null),
+    reason: opt.grund ?? (api.model.phase === 'A' ? t('board.destiny.resolving') : null),
     order: 'destiny.adopt',
     onclick: () => api.addCandidate(opt),
     onpointerenter: () => { if (!blocked) api.setPreview(opt.preview); },
@@ -93,7 +94,7 @@ function demoButton(api, w, queued) {
     blocked,
     reason: w.preis ?? null,
     onclick: () => {
-      api.addOrder({ id: `b-${w.name}`, quelle: `bestimmung-${w.name}`, titel: 'Bestimmung wechseln', ziel: w.name, kosten: [{ key: 'zustimmung', menge: 2 }], art: 'frei' });
+      api.addOrder({ id: `b-${w.name}`, quelle: `bestimmung-${w.name}`, titel: t('board.destiny.switch'), ziel: w.name, kosten: [{ key: 'zustimmung', menge: 2 }], art: 'frei' });
       api.rerenderDialog('bestimmung');
     },
   });
@@ -104,17 +105,17 @@ export function renderBestimmung(dlg, api) {
   const own = model.bestimmung;
   const switchQueued = (name) => model.orders.some((o) => o.quelle === `bestimmung-${name}`);
   dlg.replaceChildren(
-    dialogHead(dlg, 'Bestimmungen', 'bestimmung'),
+    dialogHead(dlg, t('board.destiny.title'), 'bestimmung'),
     el('div', { class: 'overlay-body' },
       el('div', { class: 'bst-raster' },
         column(model.volk.name, 'spieler', own),
         ...model.rivalen.map((r) => column(r.name, r.id, r.bestimmung))),
       own.wechsel.length ? el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
-        el('h3', { class: 'abschnitt', id: 'bst-w', text: 'Neue Bestimmung' }),
+        el('h3', { class: 'abschnitt', id: 'bst-w', text: t('board.destiny.new') }),
         el('ul', { class: 'wechsel-liste plain' }, ...own.wechsel.map((w) => el('li', { class: 'wechsel-karte' },
           el('h4', { class: 'world', text: w.name }),
           // The prototype names a reason ("weil"), the kernel package only a summary of the destiny.
-          el('p', { class: 'v-weil' }, model.real ? null : el('span', { class: 'v-weil-wort', text: 'weil ' }), w.weil),
+          el('p', { class: 'v-weil' }, model.real ? null : el('span', { class: 'v-weil-wort', text: `${t('board.tree.because')} ` }), w.weil),
           candidateMilestones(w.meilensteine),
           model.real ? realButton(api, w) : demoButton(api, w, switchQueued(w.name)))))) : null),
   );

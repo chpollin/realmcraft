@@ -4,19 +4,19 @@
 import { el, signed } from '../dom.js';
 import { icon } from '../icons.js';
 import { withTip } from './tip.js';
+import { t } from '../i18n/index.js';
 
-const TREND = { 1: ['trendAuf', 'up', 'steigend'], 0: ['trendGleich', '', 'gleichbleibend'], [-1]: ['trendAb', 'down', 'fallend'] };
+const TREND = { 1: ['trendAuf', 'up', 'rising'], 0: ['trendGleich', '', 'steady'], [-1]: ['trendAb', 'down', 'falling'] };
 const BUDGET = { haupt: 1, neben: 2 };
 
 export function renderTopbar(api) {
   const { model } = api;
   document.getElementById('volk-name').textContent = model.volk.name;
-  document.getElementById('zeit').textContent = `${model.zeit.saison}, Jahr ${model.zeit.jahr}`;
+  document.getElementById('zeit').textContent = t.fmt('board.time', { season: model.zeit.saison, year: model.zeit.jahr });
   renderResources(api);
   renderDestinyChip(api);
-  // A real campaign names its views from the world's labels (view.<id>).
-  const name = (id, fallback) => api.game?.t(`view.${id}`, fallback) ?? fallback;
-  const labels = { entwicklungen: [name('entwicklungen', 'Entwicklungen'), 'E'], rat: [name('rat', 'Rat'), 'R'], chronik: [name('chronik', 'Chronik'), 'C'] };
+  // Views are named from the world's labels (view.<id>), the board labels cover a world without them.
+  const labels = { entwicklungen: [t('view.entwicklungen'), 'E'], rat: [t('view.rat'), 'R'], chronik: [t('view.chronik'), 'C'] };
   for (const b of document.querySelectorAll('.kurz')) {
     const [label, key] = labels[b.dataset.dialog];
     b.classList.add('has-tip');
@@ -38,7 +38,8 @@ export function renderResources(api, { bump = [], fresh = [] } = {}) {
   const all = [...model.ressourcen, ...model.module];
   ul.replaceChildren(
     ...all.map((r, i) => {
-      const [tIcon, tCls, tWord] = TREND[r.trend] ?? TREND[0];
+      const [tIcon, tCls, trend] = TREND[r.trend] ?? TREND[0];
+      const tWord = t(`board.trend.${trend}`);
       const res = reservedFor(model, r.key);
       const reserved = res.reduce((a, x) => a + x.menge, 0);
       const free = r.wert - reserved;
@@ -46,18 +47,18 @@ export function renderResources(api, { bump = [], fresh = [] } = {}) {
       const btn = el('button', {
         class: `res${fresh.includes(r.key) ? ' is-new' : ''}${model.module.includes(r) ? ' res-sonder' : ''}`,
         type: 'button',
-        'aria-label': `${r.name} ${free}${reserved ? `, ${reserved} verplant` : ''}, ${tWord}`,
+        'aria-label': [`${r.name} ${free}`, reserved ? t.fmt('board.res.reserved', { n: reserved }) : null, tWord].filter(Boolean).join(', '),
       },
       icon(r.key, { size: 18 }),
       el('span', { class: `res-wert${bump.includes(r.key) ? ' bump' : ''}`, text: String(free) }),
       icon(tIcon, { size: 14, cls: `trend ${tCls}` }),
-      d ? el('span', { class: `delta ${d > 0 ? 'up' : 'down'}`, 'aria-label': `Vorschau ${signed(d)}`, text: signed(d) }) : null);
+      d ? el('span', { class: `delta ${d > 0 ? 'up' : 'down'}`, 'aria-label': t.fmt('board.res.preview', { delta: signed(d) }), text: signed(d) }) : null);
       const detail = [
-        el('span', { class: 'tip-zeile' }, el('span', { text: 'Vorrat' }), el('span', { text: String(r.wert) })),
+        el('span', { class: 'tip-zeile' }, el('span', { text: t('board.res.stock') }), el('span', { text: String(r.wert) })),
         ...res.map((x) => el('span', { class: 'tip-zeile' }, el('span', { text: x.titel }), el('span', { class: 'down', text: signed(-x.menge) }))),
         ...(r.verlauf ?? []).map((v) => el('span', { class: 'tip-zeile' }, el('span', { text: v.grund }), el('span', { class: v.delta > 0 ? 'up' : 'down', text: signed(v.delta) }))),
         ...(r.prognose ?? []).map((v) => el('span', { class: 'tip-zeile' }, el('span', { text: v.grund }), el('span', { class: v.delta > 0 ? 'up' : 'down', text: signed(v.delta) }))),
-        el('span', { text: `${tWord[0].toUpperCase()}${tWord.slice(1)}, ${r.grund}` }),
+        el('span', { text: [t(`board.trend.${trend}.cap`), r.grund].filter(Boolean).join(', ') }),
       ];
       const firstSpecial = model.module.length && r === model.module[0];
       return el('li', { class: firstSpecial ? 'res-trenner' : '' }, withTip(btn, [el('strong', { text: r.name }), ` ${free}`], detail, { right: i > all.length - 3 }));
@@ -76,10 +77,10 @@ export function renderDestinyChip(api, { freshIndex = -1 } = {}) {
       ...b.meilensteine.map((m, i) => el('span', { class: `pip${m.erreicht ? ' on' : ''}${i === freshIndex ? ' fresh' : ''}` }))),
     el('span', { class: 'tip tip-rechts', role: 'tooltip', id: 'tip-bestimmung' },
       el('strong', { text: b.name }),
-      ...b.meilensteine.map((m) => el('span', { style: { display: 'block' }, text: `${m.erreicht ? 'Erreicht' : m.stand}, ${m.text}` })),
+      ...b.meilensteine.map((m) => el('span', { style: { display: 'block' }, text: `${m.erreicht ? t('board.destiny.reached') : m.stand}, ${m.text}` })),
     ),
   );
-  btn.setAttribute('aria-label', `Bestimmung ${b.name}, ${done} von ${b.meilensteine.length} Meilensteinen erreicht`);
+  btn.setAttribute('aria-label', t.fmt('board.destiny.chip', { name: b.name, done, total: b.meilensteine.length }));
   btn.setAttribute('aria-describedby', 'tip-bestimmung');
   btn.onclick = () => api.openDialog('bestimmung');
 }
@@ -93,8 +94,8 @@ export function budgetState(model) {
 }
 
 export const SLOT_ICON = { haupt: 'haupt', neben: 'neben', frei: 'enthaltung', forschung: 'wissen' };
-export const SLOT_NAME = { haupt: 'Hauptaktion', neben: 'Nebenaktion', frei: 'Freie Handlung', forschung: 'Forschung' };
-const GROUP_NAME = { haupt: ['Haupt', 'Hauptaktionen'], neben: ['Neben', 'Nebenaktionen'] };
+/** Name of a slot kind (haupt, neben, frei, forschung). */
+export const slotName = (art) => t(`board.slot.${art}`);
 
 /** Slot an option takes on the board: research orders draw on the research budget, not on an action slot. */
 export const slotOf = (opt) => (String(opt.type ?? '').startsWith('research.') ? 'forschung' : opt.art);
@@ -130,9 +131,8 @@ function slotGroup(api, art, used, max) {
     return withTip(el('button', { class: cls, type: 'button', 'aria-label': `${o.titel} ${o.ziel ?? ''}`.trim(), onclick: () => focusOrder(o.id) }, icon(SLOT_ICON[art], { size: 20 })),
       [el('strong', { text: o.titel }), o.ziel ? ` ${o.ziel}` : ''], null, { up: true });
   });
-  const [short, long] = GROUP_NAME[art];
-  return el('div', { class: `slot-gruppe${used > max ? ' is-ueber' : ''}`, role: 'group', 'aria-label': `${long} ${used} von ${max} vergeben`, 'data-slots': art },
-    el('span', { class: 'slot-name', 'aria-hidden': 'true', text: short }),
+  return el('div', { class: `slot-gruppe${used > max ? ' is-ueber' : ''}`, role: 'group', 'aria-label': t.fmt(`board.slots.${art}.group`, { used, max }), 'data-slots': art },
+    el('span', { class: 'slot-name', 'aria-hidden': 'true', text: t(`board.slots.${art}.short`) }),
     el('span', { class: 'slot-boxen' }, ...boxes));
 }
 
@@ -143,16 +143,16 @@ function researchBudget(api) {
   const chosen = game.draft.orders.find((o) => o.type === 'research.assign');
   const running = game.view.peoples[game.pid].developments.research[0];
   const ref = chosen?.params.development ?? running?.ref ?? null;
-  const name = ref ? game.env.entwicklung(ref)?.name ?? ref : 'offen';
+  const name = ref ? game.env.entwicklung(ref)?.name ?? ref : t('board.research.open');
   const hint = model.slotHint?.art === 'forschung';
   return withTip(el('button', {
     class: `forschung-budget${chosen ? ' on' : ''}${hint ? ' is-ziel' : ''}`,
     type: 'button',
     'data-forschung': '',
-    'aria-label': `Forschung ${name}${chosen ? ', diese Saison gewählt' : ''}`,
+    'aria-label': t.fmt(chosen ? 'board.research.label-chosen' : 'board.research.label', { name }),
     onclick: () => api.openDialog('entwicklungen'),
   }, icon('wissen', { size: 20 }), el('span', { class: 'fb-name', text: name })),
-  [el('strong', { text: 'Forschung' }), ` ${name}`], [el('span', { text: chosen ? 'Diese Saison gewählt, eine Wahl je Saison' : 'Eine Wahl je Saison, ohne Aktion' })], { up: true });
+  [el('strong', { text: t('board.slot.forschung') }), ` ${name}`], [el('span', { text: t(chosen ? 'board.research.tip-chosen' : 'board.research.tip') })], { up: true });
 }
 
 export function renderBudget(api) {
@@ -174,10 +174,10 @@ function eventChip(api) {
   const locked = api.model.phase === 'A';
   return el('li', { class: `befehl ereignis-schritt${roll ? '' : ' is-offen'}`, 'data-order-id': 'event' },
     icon('welt', { size: 16 }),
-    el('span', { class: 'befehl-titel', text: game.t('ui.weltereignis', 'Weltereignis') }),
+    el('span', { class: 'befehl-titel', text: t('ui.weltereignis') }),
     roll
-      ? withTip(el('span', { class: 'befehl-wurf', tabindex: '0', 'aria-label': `Weltereignis ${roll.value}, ${face.label}` }, icon('wuerfel', { size: 14 }), String(roll.value)), [el('span', { text: face.label })], null, { up: true })
-      : locked ? null : el('button', { class: 'btn btn-klein', type: 'button', 'data-ereignis-wurf': '', onclick: () => api.openDialog('probe', { real: true, probeId: p.id }) }, icon('wuerfel', { size: 16 }), 'Würfeln'));
+      ? withTip(el('span', { class: 'befehl-wurf', tabindex: '0', 'aria-label': t.fmt('board.event.rolled', { value: roll.value, band: face.label }) }, icon('wuerfel', { size: 14 }), String(roll.value)), [el('span', { text: face.label })], null, { up: true })
+      : locked ? null : el('button', { class: 'btn btn-klein', type: 'button', 'data-ereignis-wurf': '', onclick: () => api.openDialog('probe', { real: true, probeId: p.id }) }, icon('wuerfel', { size: 16 }), t('ui.wuerfeln')));
 }
 
 export function renderOrders(api, { freshId } = {}) {
@@ -186,23 +186,23 @@ export function renderOrders(api, { freshId } = {}) {
   const ol = document.getElementById('befehle');
   const event = eventChip(api);
   if (!model.orders.length) {
-    ol.replaceChildren(...[event, el('li', { class: 'befehle-leer', text: model.phase === 'A' ? 'Befehle werden ausgeführt' : 'Keine Befehle' })].filter(Boolean));
+    ol.replaceChildren(...[event, el('li', { class: 'befehle-leer', text: t(model.phase === 'A' ? 'board.orders.running' : 'board.orders.none') })].filter(Boolean));
     return;
   }
   const locked = model.phase === 'A';
   ol.replaceChildren(
     ...(event ? [event] : []),
     ...model.orders.map((o) => el('li', { class: `befehl${o.id === freshId ? ' is-new' : ''}${o.issues?.length ? ' is-problem' : ''}`, 'data-order-id': o.id },
-      icon(SLOT_ICON[slotOf(o)] ?? 'enthaltung', { size: 16, cls: `befehl-art ${o.art}`, label: SLOT_NAME[slotOf(o)] }),
+      icon(SLOT_ICON[slotOf(o)] ?? 'enthaltung', { size: 16, cls: `befehl-art ${o.art}`, label: slotName(slotOf(o)) }),
       el('span', {},
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',
         el('span', { class: 'befehl-ziel', text: o.ziel })),
       o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.stale ? 'veraltet' : o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.stale ? 'warnung' : o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
-      o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': `${o.titel} würfeln`, onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
-      o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': `${o.titel} neu würfeln`, onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.roll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.reroll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
       o.issues?.length ? withTip(el('span', { class: 'befehl-problem', tabindex: '0', 'data-issue': o.issues[0].code, 'aria-label': o.issues.map((i) => i.text ?? i.message).join(', ') }, icon('warnung', { size: 14 })), [el('span', { text: o.issues.map((i) => i.text ?? i.message).join(', ') })], o.issues.map((i) => el('span', { text: i.message })), { up: true }) : null,
       o.kosten?.length ? el('span', { class: 'costs' }, ...o.kosten.map((k) => el('span', { class: 'cost', 'aria-label': `${k.menge} ${k.key}` }, icon(k.key, { size: 14 }), String(k.menge)))) : null,
-      locked ? null : el('button', { class: 'icon-btn', type: 'button', 'aria-label': `${o.titel} zurücknehmen`, onclick: () => api.removeOrder(o.id) }, icon('schliessen', { size: 16 })),
+      locked ? null : el('button', { class: 'icon-btn', type: 'button', 'aria-label': t.fmt('board.orders.withdraw', { title: o.titel }), onclick: () => api.removeOrder(o.id) }, icon('schliessen', { size: 16 })),
     )),
   );
 }
@@ -221,7 +221,7 @@ export function renderMessages(api, { freshId } = {}) {
           'aria-describedby': tipId,
           onclick: () => api.meldungAktion(m),
         },
-        icon(ICON[m.art] ?? 'warnung', { size: 18, label: { warnung: 'Warnung', angebot: 'Angebot', meilenstein: 'Meilenstein', welt: 'Zwischenzug' }[m.art] }),
+        icon(ICON[m.art] ?? 'warnung', { size: 18, label: t(`board.message.${ICON[m.art] ?? 'warnung'}`) }),
         el('span', { class: 'meldung-titel', text: m.titel }),
         el('span', { class: 'tip tip-up', role: 'tooltip', id: tipId }, el('strong', { text: m.titel }), m.text)));
     }),
@@ -236,20 +236,19 @@ export function renderEndTurn(api) {
   // In a real campaign the agents' round keeps planning open but the turn closed until the kernel opens it.
   const waiting = model.real && !busy && model.kernPhase === 'agents';
   const rolls = model.real && !busy && !waiting ? model.offeneWuerfe?.length ?? 0 : 0;
-  const title = busy ? 'Regelkern rechnet' : waiting ? 'Agenten arbeiten' : 'Zug beenden';
-  const sub = busy ? 'Befehle gesperrt' : waiting ? 'Zug öffnet nach der Agentenrunde' : rolls ? `${rolls} ${rolls === 1 ? 'Wurf' : 'Würfe'} offen` : `${next.saison}, Jahr ${next.jahr}`;
+  const nextTime = t.fmt('board.time', { season: next.saison, year: next.jahr });
+  const title = t(busy ? 'board.endturn.busy' : waiting ? 'board.endturn.waiting' : 'ui.zug-beenden');
+  const sub = busy ? t('board.endturn.locked') : waiting ? t('board.endturn.after-agents') : rolls ? t.plural('board.rolls-open', rolls) : nextTime;
   b.replaceChildren(
     el('span', { class: 'zb-titel', text: title }),
     el('span', { class: 'zb-sub', text: sub }),
     icon(busy || waiting ? 'kern' : rolls ? 'wuerfel' : 'pfeil', { size: 22 }),
   );
   b.setAttribute('aria-disabled', busy || waiting ? 'true' : 'false');
-  b.setAttribute('aria-label', busy ? 'Zug läuft, Befehle gesperrt' : waiting ? 'Agentenrunde läuft, der Zug öffnet danach' : rolls ? `Zug beenden, zuerst ${sub}` : `Zug beenden, weiter zu ${next.saison}, Jahr ${next.jahr}`);
+  b.setAttribute('aria-label', busy ? t('board.endturn.busy-label') : waiting ? t('board.endturn.waiting-label') : t.fmt(rolls ? 'board.endturn.rolls-label' : 'board.endturn.label', { rolls: sub, next: nextTime }));
   document.getElementById('zugleiste').classList.toggle('is-locked', busy);
   renderBlocker(api);
 }
-
-const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * What keeps the turn from ending, beside "Zug beenden": "2 Probleme" opens
@@ -274,11 +273,11 @@ export function renderBlocker(api, { open } = {}) {
   const toggle = probleme.length ? el('button', {
     class: 'blocker-knopf problem', type: 'button', 'aria-expanded': String(isOpen), 'aria-controls': 'blocker-liste', 'data-blocker': 'probleme',
     onclick: () => renderBlocker(api, { open: list.hidden }),
-  }, icon('warnung', { size: 16 }), plural(probleme.length, 'Problem', 'Probleme')) : null;
+  }, icon('warnung', { size: 16 }), t.plural('board.problems', probleme.length)) : null;
   const rolls = wuerfe.length ? el('button', {
     class: 'blocker-knopf wurf', type: 'button', 'data-blocker': 'wuerfe',
     onclick: () => api.rollOwed(),
-  }, icon('wuerfel', { size: 16 }), `${plural(wuerfe.length, 'Wurf', 'Würfe')} offen`) : null;
+  }, icon('wuerfel', { size: 16 }), t.plural('board.rolls-open', wuerfe.length)) : null;
   box.replaceChildren(el('div', { class: 'blocker-knoepfe' }, toggle ?? '', rolls ?? ''), list);
 }
 
@@ -287,18 +286,18 @@ function blockerItem(api, b) {
   const actions = [];
   const btn = (label, iconName, onclick, data) => el('button', { class: 'btn btn-klein', type: 'button', onclick, ...(data ? { [`data-${data}`]: '' } : {}) }, icon(iconName, { size: 15 }), label);
   if (b.kind === 'befehl') {
-    if (b.tile) actions.push(btn('Zeigen', 'ziel', () => api.jumpToTile(b.tile)));
-    actions.push(btn('Zurücknehmen', 'schliessen', () => api.removeOrder(b.orderId), 'zuruecknehmen'));
+    if (b.tile) actions.push(btn(t('board.blocker.show'), 'ziel', () => api.jumpToTile(b.tile)));
+    actions.push(btn(t('board.blocker.withdraw'), 'schliessen', () => api.removeOrder(b.orderId), 'zuruecknehmen'));
   } else if (b.kind === 'slots') {
-    actions.push(btn('Zeigen', 'ziel', () => { const o = api.model.orders.find((x) => x.art === b.slot); if (o) focusOrder(o.id); }));
+    actions.push(btn(t('board.blocker.show'), 'ziel', () => { const o = api.model.orders.find((x) => x.art === b.slot); if (o) focusOrder(o.id); }));
   } else if (b.kind === 'arbeit') {
-    actions.push(btn('Zeigen', 'ziel', () => api.meldungAktion({ id: 'arbeit' })));
+    actions.push(btn(t('board.blocker.show'), 'ziel', () => api.meldungAktion({ id: 'arbeit' })));
   } else if (b.kind === 'wurf-verwaist') {
-    actions.push(btn('Verwerfen', 'schliessen', () => game.dropRoll(b.probeId), 'verwerfen'));
+    actions.push(btn(t('board.blocker.discard'), 'schliessen', () => game.dropRoll(b.probeId), 'verwerfen'));
   } else if (b.kind === 'wurf') {
-    actions.push(btn(b.veraltet ? 'Neu würfeln' : 'Würfeln', 'wuerfel', () => api.openDialog('probe', { real: true, probeId: b.probeId }), 'wuerfeln'));
+    actions.push(btn(t(b.veraltet ? 'board.blocker.reroll' : 'ui.wuerfeln'), 'wuerfel', () => api.openDialog('probe', { real: true, probeId: b.probeId }), 'wuerfeln'));
   }
-  const why = b.kind === 'wurf' ? (b.veraltet ? game.t('issue.roll-stale', 'Wurf veraltet') : game.t('issue.roll-missing', 'Wurf fehlt')) : b.texte.join(', ');
+  const why = b.kind === 'wurf' ? t(b.veraltet ? 'issue.roll-stale' : 'issue.roll-missing') : b.texte.join(', ');
   return el('li', { class: `blocker-eintrag be-${b.kind}`, 'data-blocker-id': b.id },
     el('span', { class: 'be-titel' }, el('strong', { text: b.titel }), b.ziel ? ` ${b.ziel}` : ''),
     why ? el('span', { class: 'be-grund', text: why }) : null,
