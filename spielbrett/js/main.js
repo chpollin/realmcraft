@@ -6,6 +6,7 @@ import { createModel } from './model.js';
 import { createGame } from './data/game.js';
 import { startBoard } from './board.js';
 import { el } from './dom.js';
+import { installAudio } from './audio/index.js';
 
 const params = new URLSearchParams(location.search);
 
@@ -42,6 +43,7 @@ if (params.has('demo')) {
     error = err;
     console.error(err);
   }
+  installAudio({ game });
   if (game) startBoard(model, game);
   else noCampaign(error);
 }
