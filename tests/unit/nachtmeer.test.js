@@ -12,7 +12,7 @@ function play(strategy,limit=strategy.length) {
 test('nachtmeer: federation survives all six tides with persistent institutions',()=>{
   const game=play(federation);
   assert.equal(game.status,'won'); assert.equal(game.turn,6); assert.equal(game.lit.length,3);
-  assert.deepEqual(game.resources,{food:21,material:14,aether:1,hope:100});
+  assert.deepEqual(game.resources,{food:21,material:14,aether:1,hope:98});
   assert.ok(game.flags.refugees&&game.flags.charter&&game.flags.commons&&game.flags.archive&&game.flags.federation);
   assert.ok(result(game).checks.every(c=>c.met));
   assert.throws(()=>resolveTurn(game,{turn:6,...federation[0]}),/abgeschlossen/);
@@ -73,6 +73,12 @@ test('nachtmeer: a rejected lighthouse can be decreed with a real political cost
   const next=resolveTurn(game,byDecree);
   assert.ok(next.lit.includes('aster')); assert.equal(next.history.at(-1).decreeLoss,4);
   assert.equal(next.loyalty.ilyra,-3);
+});
+test('nachtmeer: hope gains are capped before decree, storm and hunger losses apply',()=>{
+  const game=play(federation,1); game.resources.hope=96;
+  const next=resolveTurn(game,{turn:1,...federation[1],mandate:'decree'});
+  assert.equal(next.history.at(-1).decreeLoss,4);
+  assert.equal(next.resources.hope,96);
 });
 test('nachtmeer: malformed, stale, duplicate and excessive commands cannot execute',()=>{
   const game=createGame();

@@ -71,6 +71,7 @@ test('strategy: loss, invalid file and isolated local data', async ({ page }) =>
   await commit(page);
   await commit(page);
   await expect(page.getByTestId('campaign-result')).toContainText('Die Vorräte reichen nicht.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ende im Sommer des ersten Jahres');
   const before = await page.getByTestId('food-stock').innerText();
   await page.locator('#save-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"version":99}') });
   await expect(page.locator('#notice')).toContainText('Laden fehlgeschlagen');

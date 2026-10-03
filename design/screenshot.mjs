@@ -1,13 +1,13 @@
 // One-off helper: render each design prototype and capture Lage + Berater screenshots.
 //   node design/screenshot.mjs
 import { chromium } from '@playwright/test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 
-const ROOT = 'C:/Users/Chrisi/Documents/GitHub/chpollin/realmcraft';
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const slugs = ['war-table', 'chronicle', 'codex', 'console'];
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
 
 for (const slug of slugs) {

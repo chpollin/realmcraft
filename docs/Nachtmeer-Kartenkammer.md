@@ -52,6 +52,16 @@ Bei schmalen Fenstern bleibt die Karte absichtlich breiter als ihre sichtbare Fl
 
 Die anschließende Nutzerbeurteilung beanstandet zu viele horizontale Linien, unnötige Strukturelemente und den Webseitencharakter. Die Kartenkammer ist als endgültiges Zielbild unzureichend. Das neue Ziel ist eine symbolgestützte Echtzeitoberfläche mit deutlich stärkerer Ästhetik und wechselnder Weltgestaltung. [User Stories und Abnahme](RealmCraft-User-Stories.md) führen die Kriterien; der [Echtzeitplan](RealmCraft-Echtzeitstrategie.md) beschreibt die Umsetzung. Die obigen technischen Ergebnisse bleiben auf den geprüften Rundenprototyp begrenzt.
 
+## Korrektur der Zuversichtsgrenze am 3. Oktober 2026
+
+Bis zu dieser Korrektur wurden Gewinne und Verluste der Zuversicht gemeinsam verrechnet und erst danach auf 100 begrenzt. Ein Überschuss über 100 verdeckte so Verluste durch Erlass, Sturm oder Hunger. In der sechsten Gezeit der Inselbund-Strategie meldete der Bericht zwei Punkte Sturmschaden, während die Zuversicht bei 100 blieb. Die Engine begrenzt nun zuerst die Gewinne und zieht die Verluste danach ab. Der oben dokumentierte Endstand mit 100 Zuversicht gilt für die frühere Rechnung.
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm run simulate:nachtmeer` | Inselbund gewinnt mit drei Feuern, 21 Vorräten, 14 Baustoffen, einem Äther und 98 Zuversicht (zuvor 100). Admiralität unverändert mit drei Feuern, 15 Vorräten, 10 Baustoffen, einem Äther und 64 Zuversicht |
+| Regressionstest | Bei 96 Zuversicht und einem per Erlass gebauten Leuchtfeuer endet die Gezeit mit 96 statt 100 Zuversicht |
+| Browser-Smoke-Test `tests/e2e/nachtmeer.spec.js` | Auftrag vergeben, Ratsentscheidung vorgemerkt, Entwurf nach Neuladen erhalten, Gezeit ausgeführt, Bericht per Escape geschlossen |
+
 ## Kanonische Einordnung
 
 `docs/INDEX.md` erschließt das Entwicklungswissen im Repository. Das Kampagnengedächtnis unter `knowledge/` bleibt dem Spielleiterverfahren zugeordnet. Im Obsidian-Vault bilden `Project Overview RealmCraft`, `RealmCraft Game Design` und `RealmCraft Interface Design` den konzeptionellen Zusammenhang. ACTIVE-WORK führt das neue Echtzeitziel und den nächsten Siedlungsausschnitt. Repo-Verzeichnis und ACTIVE-WORK verweisen beide auf `docs/INDEX.md` als Entwicklungseinstieg.

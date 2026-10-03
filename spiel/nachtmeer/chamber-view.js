@@ -38,9 +38,9 @@ export function render(session, selected, mode = 'routes') {
   const p = preview(game,draft);
   const running = game.status === 'playing';
   $('#resources').innerHTML = Object.entries(RESOURCES).map(([key,m]) => `<div class="resource">${icon(m.icon)}<span>${m.name}</span><strong data-testid="${key}-stock">${game.resources[key]}${key === 'hope' ? '<small>%</small>' : ''}</strong><span class="projection">${running ? p.errors.length ? 'Bestand' : `→ ${p.resources[key]} nach Gezeit` : 'Endbestand'}</span></div>`).join('');
-  $('#turn').textContent = Math.min(game.turn+1,6);
+  $('#turn').textContent = Math.min(game.turn+1,RULES.turns);
   $('#mission-title').textContent = running ? 'Gewässer um Lys' : result(game).title;
-  $('#mission-summary').textContent = running ? 'Ziel nach Gezeit 6 · 3 Feuer, 4 Vorräte, 20 Zuversicht' : `${game.lit.length} Feuer · ${game.resources.food} Vorräte · ${game.resources.hope} Zuversicht`;
+  $('#mission-summary').textContent = running ? `Ziel nach Gezeit ${RULES.turns} · ${RULES.finalFires} Feuer, ${RULES.finalFood} Vorräte, ${RULES.finalHope} Zuversicht` : `${game.lit.length} Feuer · ${game.resources.food} Vorräte · ${game.resources.hope} Zuversicht`;
   $('#chart-status').textContent = running ? TIDES[game.turn].name : 'Partie abgeschlossen';
   $('#chart').innerHTML = chartMarkup(game,draft,selected,mode);
   for (const button of document.querySelectorAll('[data-map-mode]')) button.setAttribute('aria-pressed',String(button.dataset.mapMode === mode));
@@ -55,7 +55,7 @@ export function render(session, selected, mode = 'routes') {
   }).join('');
   const event = EVENTS[game.turn];
   $('#current-event').innerHTML = `<span><small>${running ? draft.choice ? 'Anhörung · Entscheidung vorgemerkt' : 'Anhörung · Entscheidung offen' : 'Abschluss der Partie'}</small><strong>${running ? event.title : result(game).title}</strong><em>${running ? event.question : 'Die Geschichte dieser Küste lesen'}</em></span>${icon('arrow')}`;
-  $('.advance').innerHTML = `<span><small>${running ? `Gezeit ${game.turn+1} von 6` : 'Nachtmeer'}</small>${running ? 'Gezeit prüfen' : 'Abschluss ansehen'}</span>${icon('arrow')}`;
+  $('.advance').innerHTML = `<span><small>${running ? `Gezeit ${game.turn+1} von ${RULES.turns}` : 'Nachtmeer'}</small>${running ? 'Gezeit prüfen' : 'Abschluss ansehen'}</span>${icon('arrow')}`;
   $('.advance').dataset.action = running ? 'review' : 'ending';
   return p;
 }

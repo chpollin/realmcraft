@@ -48,7 +48,7 @@ function close() {
 function showStory() { if(session.game.status==='playing') dialog(storyMarkup(session.game,session.draft)); else dialog(endingMarkup(session.game)); }
 function download() {
   const url=URL.createObjectURL(new Blob([encodeSession(session)],{type:'application/json'}));
-  const link=document.createElement('a'); link.href=url; link.download=`nachtmeer-gezeit-${Math.min(6,session.game.turn+1)}.json`; link.click();
+  const link=document.createElement('a'); link.href=url; link.download=`nachtmeer-gezeit-${Math.min(RULES.turns,session.game.turn+1)}.json`; link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   notify('Die Partie wurde als Datei zum Speichern bereitgestellt.');
 }

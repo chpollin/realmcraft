@@ -35,7 +35,7 @@ Die Vorschau prüft alle Kosten gegen die Bestände zu Beginn der Gezeit. Neue S
 
 Ein Leuchtfeuer benötigt zwei von drei Ratsstimmen. Ein Erlass kostet vier Zuversicht und reduziert das Vertrauen widersprechender Ratsmitglieder. Der Gildenvertrag verlangt nach allen Kosten drei Baustoffe Reserve beim Leuchtfeuerbau. Die Gemeingutordnung begrenzt Äthergewinnung und Linsenforschung gemeinsam auf einen Auftrag pro Gezeit. Auch ein Erlass bleibt an diese Ordnungen gebunden.
 
-Die sechs Grundverbräuche betragen 4, 4, 5, 5, 6 und 7 Vorräte. Zusätzliche aktive Feuer liefern je einen Vorrat und mindern den Sturmdruck. Fehlende Vorräte werden als Versorgungslücke geführt und kosten je drei Zuversicht. Zwölf kumulierte fehlende Vorräte oder null Zuversicht beenden die Partie vorzeitig. Die Zuversicht bleibt zwischen null und 100.
+Die sechs Grundverbräuche betragen 4, 4, 5, 5, 6 und 7 Vorräte. Zusätzliche aktive Feuer liefern je einen Vorrat und mindern den Sturmdruck. Fehlende Vorräte werden als Versorgungslücke geführt und kosten je drei Zuversicht. Zwölf kumulierte fehlende Vorräte oder null Zuversicht beenden die Partie vorzeitig. Die Zuversicht bleibt zwischen null und 100. Gewinne einer Gezeit werden zuerst auf 100 begrenzt, Verluste durch Erlass, Sturm und Hunger danach abgezogen. Ein rechnerischer Überschuss über 100 kann diese Verluste daher nicht auffangen.
 
 `spiel/nachtmeer/engine.js` berechnet die Folgen ohne Oberfläche. `storage.js` speichert die ausgeführten Befehle und den offenen Entwurf im eigenen Format `realmcraft-nachtmeer`, Version 1. Beim Laden wird jeder ausgeführte Zug erneut regelkonform berechnet. Der Browserschlüssel lautet `realmcraft.nachtmeer.v1`.
 

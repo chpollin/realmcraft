@@ -78,7 +78,7 @@ function mutate(action, data) {
     if (available < project.workers) return;
     draft.project = data.project;
     draft.policy = null;
-    notify(`${project.name} vorgemerkt. Zwei freie Arbeitsgruppen sind für den Bau reserviert. Die Ratsentscheidung steht noch aus.`);
+    notify(`${project.name} vorgemerkt. ${project.workers} freie Arbeitsgruppen sind für den Bau reserviert. Die Ratsentscheidung steht noch aus.`);
   } else if (action === 'cancel-project') {
     draft.project = null;
     draft.policy = null;

@@ -5,9 +5,9 @@ import assert from 'node:assert/strict';
 
 const output = new URL('./screenshots/strategy/', import.meta.url);
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge', headless: true });
+const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL, headless: true });
 const page = await browser.newPage();
-const base = process.env.STRATEGY_URL || 'http://localhost:4190/spiel/winter.html';
+const base = process.env.STRATEGY_URL || `http://localhost:${process.env.PORT || 4173}/spiel/winter.html`;
 const failures = [];
 page.on('pageerror', error => failures.push(error.message));
 page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()}: ${response.url()}`); });

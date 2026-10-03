@@ -28,7 +28,7 @@ Der Erzaußenposten kostet sechs Material, das Winterlager acht. Beide binden zw
 
 Baukapazität wird ausdrücklich freigegeben und zugewiesen. Ein Klick auf einen Bauauftrag verschiebt keine Arbeitskräfte aus einer anderen Tätigkeit. Vormerken reserviert freie Gruppen; Entfernen des Auftrags gibt sie frei. Zuweisungen laufender Tätigkeiten werden in die folgende Saison übernommen. Baugruppen stehen danach wieder zur Verfügung. Bei Kapazitätsverlust werden überzählige Gruppen zuerst aus dem Erzabbau, dann der Materialgewinnung und schließlich der Versorgung genommen.
 
-Die fünf Ratsmitglieder entscheiden nach ihren Interessen. Drei Stimmen bilden die Mehrheit. Bei einer Loyalität von höchstens minus drei verweigert eine Figur neue Bauanträge. Ein Veto kostet bei jedem widersprechenden Ratsmitglied zwei Loyalitätspunkte. Der neu beschlossene Versorgungspakt verlangt mindestens 18 Nahrung nach Saisonverbrauch bei jedem folgenden Bauvorhaben. Eine Aufhebung des Pakts gehört nicht zu M1; die Oberfläche benennt seine Geltung für den Rest des Szenarios.
+Die fünf Ratsmitglieder entscheiden nach ihren Interessen. Drei Stimmen bilden die Mehrheit. Bei einer Loyalität von höchstens minus drei verweigert eine Figur neue Bauanträge. Ein Veto kostet bei jedem widersprechenden Ratsmitglied zwei Loyalitätspunkte. Der Versorgungspakt verlangt mindestens 18 Nahrung nach Saisonverbrauch. Diese Bedingung gilt bereits für das Bauvorhaben, mit dem er beschlossen wird, und danach für jedes weitere. Eine Aufhebung des Pakts gehört nicht zu M1; die Oberfläche benennt seine Geltung für den Rest des Szenarios.
 
 Eine Versorgungslücke wird separat ausgewiesen. Die Vorräte werden auf null begrenzt. Jede betroffene Saison kostet eine Arbeitsgruppe und einen Loyalitätspunkt bei allen Ratsmitgliedern. Eine kumulierte Lücke von zwölf Nahrung beendet das Szenario als Niederlage. Wer den Winter ohne diesen Zusammenbruch beendet, hat das Szenario überstanden. Ausbau, politische Ordnung und Versorgungslücken erscheinen im Abschlussbericht. Diese konkrete Niederlageregel ist eine Abstraktion des ersten Szenarios und keine vollständige Bevölkerungssimulation.
 
@@ -62,7 +62,7 @@ $env:PORT = '4185'
 npm run test:strategy
 ```
 
-`design/strategy-screenshot.mjs` erzeugt Ansichten in mehreren Bildschirmbreiten unter `design/screenshots/strategy/`. Es erwartet standardmäßig einen laufenden Server auf `http://localhost:4190/spiel/`; eine andere URL lässt sich über `STRATEGY_URL` übergeben.
+`design/strategy-screenshot.mjs` erzeugt Ansichten in mehreren Bildschirmbreiten unter `design/screenshots/strategy/`. Es erwartet einen laufenden Server auf dem Port aus `PORT`, ohne diese Angabe auf `http://localhost:4173/spiel/winter.html`. Eine andere URL lässt sich über `STRATEGY_URL` übergeben, den Browserkanal bestimmt wie bei den Tests `PLAYWRIGHT_CHANNEL`.
 
 ## Verifikation
 

@@ -82,12 +82,13 @@ export function preview(game,draft) {
   const stormLoss = Math.max(0,tide.storm-game.lit.length*2-(game.flags.breakwater ? 3 : 0));
   const resources = Object.fromEntries(Object.keys(RESOURCES).map(key=>[key,game.resources[key]-costs[key]+gains[key]]));
   resources.food = Math.max(0,foodRaw);
-  resources.hope = clamp(resources.hope-decreeLoss-stormLoss-gap*RULES.hungerHope,0,100);
+  // Cap gains before losses so that hope above 100 cannot absorb decree, storm or hunger losses.
+  resources.hope = Math.max(0,Math.min(100,resources.hope)-decreeLoss-stormLoss-gap*RULES.hungerHope);
   const warnings = [];
   if (draft.orders.length < RULES.orders) warnings.push(`${RULES.orders-draft.orders.length} Befehlsplätze bleiben ungenutzt.`);
   if (gap) warnings.push(`${gap} Vorräte fehlen. Die Zuversicht sinkt durch Hunger um ${gap*RULES.hungerHope}.`);
   if (resources.hope <= 0 || game.shortfall+gap >= RULES.hungerLimit) warnings.push('Diese Gezeit würde die Gemeinschaft zum Zusammenbruch führen.');
-  if (game.turn === 5 && (game.lit.length+beacons < 3 || resources.food < RULES.finalFood || resources.hope < RULES.finalHope)) warnings.push('Dieser Entwurf erfüllt die Bedingungen für das Überstehen der sechsten Flut noch nicht.');
+  if (game.turn === RULES.turns-1 && (game.lit.length+beacons < RULES.finalFires || resources.food < RULES.finalFood || resources.hope < RULES.finalHope)) warnings.push('Dieser Entwurf erfüllt die Bedingungen für das Überstehen der sechsten Flut noch nicht.');
   return { issues, errors: issues.map(i=>i.message), warnings, choice, flags, loyalty, costs, gains, resources, consumption, networkFood, gap, stormLoss, decreeLoss, votes };
 }
 
@@ -99,7 +100,7 @@ export function canAdd(game,draft,action,place) {
 
 export function result(game) {
   const checks = [
-    { label: 'Drei Feuer verbunden', met: game.lit.length === 3, value: `${game.lit.length} / 3` },
+    { label: 'Drei Feuer verbunden', met: game.lit.length >= RULES.finalFires, value: `${game.lit.length} / ${RULES.finalFires}` },
     { label: 'Vier Vorräte verbleiben', met: game.resources.food >= RULES.finalFood, value: `${game.resources.food} / ${RULES.finalFood}` },
     { label: 'Mindestens 20 Zuversicht', met: game.resources.hope >= RULES.finalHope, value: `${game.resources.hope} / ${RULES.finalHope}` },
   ];

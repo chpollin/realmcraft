@@ -3,8 +3,9 @@
 //   PORT=<p> SAVE=<file> node design/app-screenshot.mjs
 import { chromium } from '@playwright/test';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = 'C:/Users/Chrisi/Documents/GitHub/chpollin/realmcraft';
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PORT = process.env.PORT || 4173;
 const BASE = `http://localhost:${PORT}`;
 const OUT = join(ROOT, 'design', 'screenshots');
@@ -12,7 +13,7 @@ const save = process.env.SAVE || 'examples/die-karren-kapitel-4.json';
 const fixture = join(ROOT, save);
 const tag = process.env.TAG || 'ch4';
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL });
 const page = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 }).then((c) => c.newPage());
 
 const errors = [];
