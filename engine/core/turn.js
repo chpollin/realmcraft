@@ -647,6 +647,32 @@ function finalize(tc, env) {
   tc.state.phase = 'agents';
 }
 
+// --- repin --------------------------------------------------------------------
+
+/**
+ * Pins the campaign to the world package `env` carries, after the package
+ * changed under a running campaign (an operator decision, logged with source
+ * player). Refused while a season resolves, because the sealed drafts were
+ * checked against the old package.
+ */
+export function repin(state, env) {
+  const before = state.campaign.world;
+  const after = { id: env.welt.id, version: env.welt.version, hash: env.hash };
+  const issues = [];
+  if (state.phase === 'resolving') issues.push(issue('phase', '/phase', 'repin is refused while a season resolves'));
+  if (before.id !== after.id) issues.push(issue('target', '/world', `the campaign plays world ${before.id}, not ${after.id}`));
+  if (hasErrors(issues)) return { ok: false, issues, state };
+  const tc = createContext(state, env, { source: 'player' });
+  tc.step = 'repin';
+  noteChange(tc, 'campaign.repin', { kind: 'campaign', id: state.campaign.id }, 'campaign.world', before, after,
+    `world package re-pinned from ${before.hash} to ${after.hash}`, { people: state.campaign.player });
+  tc.state.campaign.world = after;
+  tc.state.rev += 1;
+  const next = finish(tc, LIMITS);
+  next.derived = computeDerived(next, env);
+  return { ok: true, issues: [], state: next, events: tc.log };
+}
+
 // --- open ---------------------------------------------------------------------
 
 /** agents -> planning: deterministic pool candidates for every people. */

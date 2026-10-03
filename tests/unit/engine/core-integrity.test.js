@@ -6,11 +6,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { hochland, freshCampaign } from '../../fixtures/engine/k1/harness.js';
-import { apply, emptyDraft, open, preview, seal, stateHash } from '../../../engine/core/turn.js';
+import { apply, emptyDraft, open, preview, repin, seal, stateHash } from '../../../engine/core/turn.js';
 import { checkDraft } from '../../../engine/core/orders.js';
 import { forecastCouncil } from '../../../engine/core/council.js';
 import { orderContext } from '../../../engine/core/orders.js';
 import { createContext, addPeople, setPeople } from '../../../engine/core/log.js';
+import { applyOnce } from '../../../engine/core/effects.js';
 import { makeEnv } from '../../../engine/core/env.js';
 import { reservedKeyPaths } from '../../../engine/core/canon.js';
 import { hashValue } from '../../../engine/core/hash.js';
@@ -225,4 +226,26 @@ test('M2: a camp move onto a tile with a settlement the people cannot see is dec
   assert.ok(a.ok);
   assert.ok(a.events.some((e) => e.kind === 'order.blocked' && e.visibleTo.includes(PID)));
   assert.notEqual(homeOf(a.state, PID).tile, target);
+});
+
+test('repin pins the campaign to the env\'s package with a logged entry and is refused while a season resolves', () => {
+  const state = planning();
+  const old = { ...state, campaign: { ...state.campaign, world: { ...state.campaign.world, hash: '0123456789abcdef' } } };
+  const r = repin(old, env);
+  assert.ok(r.ok);
+  assert.equal(r.state.campaign.world.hash, env.hash);
+  assert.equal(r.state.rev, old.rev + 1);
+  assert.ok(r.events.some((e) => e.kind === 'campaign.repin' && e.source === 'player'));
+  const s = seal(state, env, { [PID]: rolled(state, emptyDraft(state, PID)) });
+  assert.ok(s.ok);
+  const refused = repin(s.state, env);
+  assert.equal(refused.ok, false);
+  assert.ok(refused.issues.some((i) => i.code === 'phase'));
+});
+
+test('a meter.delta on a reserved name is skipped at runtime', () => {
+  const state = planning();
+  const tc = createContext(state, env);
+  assert.equal(applyOnce(tc, PID, { op: 'meter.delta', meter: 'constructor', amount: 1 }, { reason: 'test' }), false);
+  assert.equal(Object.hasOwn(tc.state.peoples[PID].meters, 'constructor'), false);
 });
