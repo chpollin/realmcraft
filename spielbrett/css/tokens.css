@@ -1,0 +1,142 @@
+/* Spielbrett design tokens, the only source of colour, type and spacing.
+   Direction "Hochlandnacht": the map is the lit object, the chrome is the dark
+   around it. A cool slate night carries panels and fog, the terrain sits in muted
+   earth and lichen tones, and one warm ember accent marks the player's own camp,
+   selection and the primary action. Rivals and agent origins have their own hue
+   AND their own shape or glyph, so no meaning rides on colour alone.
+   The canvas renderer reads the terrain and map tokens from here at start-up
+   (js/map/palette.js), so every value stays an oklch() literal. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/inter-italic-latin.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Night: background, panels, raised surfaces */
+  --night-0: oklch(0.15 0.012 250);
+  --night-1: oklch(0.195 0.013 250);
+  --night-2: oklch(0.235 0.014 250);
+  --night-3: oklch(0.285 0.015 250);
+  --night-4: oklch(0.34 0.016 250);
+  --scrim: oklch(0.12 0.012 250 / 0.62);
+  --fog: oklch(0.155 0.012 250);
+  --fog-grain: oklch(0.21 0.012 250);
+
+  /* Bone ink. --ink-subtle is the faintest text tone (>= 4.5:1 on --night-2);
+     --ink-faint is reserved for non-text marks. */
+  --ink: oklch(0.94 0.012 85);
+  --ink-dim: oklch(0.80 0.014 85);
+  --ink-subtle: oklch(0.70 0.014 85);
+  --ink-faint: oklch(0.52 0.012 85);
+  --hairline: oklch(0.94 0.012 85 / 0.09);
+  --hover-wash: oklch(0.94 0.012 85 / 0.06);
+
+  /* Ember: own people, selection, primary action */
+  --ember: oklch(0.80 0.135 70);
+  --ember-strong: oklch(0.74 0.155 58);
+  --ember-glow: oklch(0.80 0.15 65 / 0.32);
+  --on-ember: oklch(0.20 0.03 60);
+
+  /* Direction of change */
+  --up: oklch(0.80 0.12 150);
+  --down: oklch(0.74 0.14 32);
+
+  /* Peoples */
+  --people-own: oklch(0.80 0.135 70);
+  --people-schaedelklan: oklch(0.66 0.17 30);
+  --people-talbund: oklch(0.76 0.09 195);
+
+  /* Agent origins in the Zwischenzug */
+  --origin-kern: oklch(0.90 0.02 85);
+  --origin-welt: oklch(0.82 0.07 225);
+  --origin-rivalen: oklch(0.68 0.16 32);
+  --origin-forschung: oklch(0.82 0.11 125);
+  --origin-rat: oklch(0.76 0.09 320);
+  --origin-chronist: oklch(0.80 0.05 25);
+
+  /* Verdicts */
+  --accepted: oklch(0.80 0.12 150);
+  --rejected: oklch(0.74 0.14 32);
+
+  /* Terrain (pack token names). Mid tones on purpose, so icons, labels and the
+     ember accent stay readable on top of every terrain. */
+  --terrain-water: oklch(0.43 0.065 238);
+  --terrain-marsh: oklch(0.47 0.045 150);
+  --terrain-meadow: oklch(0.57 0.068 132);
+  --terrain-heath: oklch(0.58 0.055 60);
+  --terrain-forest: oklch(0.45 0.065 145);
+  --terrain-pasture: oklch(0.59 0.058 110);
+  --terrain-mountain-forest: oklch(0.40 0.05 165);
+  --terrain-mountain: oklch(0.54 0.018 60);
+  --terrain-peak: oklch(0.70 0.02 240);
+  --terrain-unknown: oklch(0.55 0.02 90);
+
+  /* Map overlays */
+  --map-river: oklch(0.70 0.08 228);
+  --map-snow: oklch(0.95 0.012 230);
+  --map-frost: oklch(0.88 0.06 220);
+  --map-camp-glow: oklch(0.78 0.16 62);
+  --map-label: oklch(0.95 0.012 85);
+  --map-label-halo: oklch(0.16 0.012 250);
+  --map-grid: oklch(0.12 0.01 250);
+  --map-threat: oklch(0.62 0.19 28);
+  --map-trade: oklch(0.78 0.11 235);
+  --map-road: oklch(0.72 0.035 70);
+  --map-road-casing: oklch(0.25 0.02 60);
+  --map-vignette: oklch(0.10 0.012 250);
+
+  /* Type */
+  --font-ui: "Inter", system-ui, "Segoe UI", sans-serif;
+  --font-world: "Palatino Linotype", "Book Antiqua", Palatino, "Iowan Old Style", Georgia, serif;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --step-3: clamp(1.6rem, 1.3rem + 1vw, 2.1rem);
+  --step-4: clamp(2.2rem, 1.6rem + 2.4vw, 3.6rem);
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --bar-h: 3.25rem;
+  --zug-h: 4.5rem;
+  --panel-w: 24rem;
+  --shadow-float: 0 18px 48px oklch(0.08 0.01 250 / 0.55), 0 2px 6px oklch(0.08 0.01 250 / 0.4);
+  --focus-ring: 0 0 0 2px var(--night-1), 0 0 0 4px var(--ember);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-1: 140ms;
+  --dur-2: 260ms;
+  --dur-3: 520ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+  }
+}

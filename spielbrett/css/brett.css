@@ -1,0 +1,407 @@
+/* The board: slim top bar, the map filling the screen, the selection panel and
+   the turn bar. Bars are solid night surfaces separated from the map by light
+   falloff (shadow), not by rules. */
+
+@layer layout {
+  body {
+    display: grid;
+    grid-template-rows: var(--bar-h) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
+    block-size: 100dvh;
+  }
+
+  .skip {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: var(--space-2);
+    z-index: 100;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--ember);
+    color: var(--on-ember);
+    font-weight: 600;
+    translate: 0 -200%;
+  }
+  .skip:focus { translate: 0 0; }
+
+  /* Top bar */
+  .leiste {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding-inline: var(--space-4);
+    background: var(--night-1);
+    box-shadow: 0 6px 24px oklch(0.08 0.01 250 / 0.5);
+    min-inline-size: 0;
+  }
+  .volk { flex: none; display: flex; align-items: baseline; gap: var(--space-3); }
+  .volk-name {
+    font-family: var(--font-world);
+    font-size: 1.125rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .zeit { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--ink-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .zeit .icon { color: var(--ember); align-self: center; }
+
+  .ressourcen { display: flex; gap: 0; margin-inline-start: auto; }
+  .res {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    block-size: 2.25rem;
+    padding-inline: 0.5rem;
+    border-radius: var(--radius-s);
+    color: var(--ink);
+    transition: background var(--dur-1);
+  }
+  .res:hover { background: var(--hover-wash); }
+  .res > .icon:first-child { color: var(--ink-dim); }
+  .res-wert { font-weight: 600; font-variant-numeric: tabular-nums; min-inline-size: 1.4ch; text-align: end; }
+  .trend { color: var(--ink-faint); }
+  .trend.up { color: var(--up); }
+  .trend.down { color: var(--down); }
+  .delta {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    animation: delta-in var(--dur-2) var(--ease-spring);
+  }
+  .delta.up { color: var(--up); background: oklch(from var(--up) l c h / 0.14); }
+  .delta.down { color: var(--down); background: oklch(from var(--down) l c h / 0.14); }
+  @keyframes delta-in { from { opacity: 0; transform: translateY(-4px) scale(0.8); } }
+  .res-sonder > .icon:first-child { color: var(--ink-subtle); }
+  .res-trenner { margin-inline-start: var(--space-3); }
+  .befehl-wurf { display: inline-flex; align-items: center; gap: 1px; }
+  .res.is-new { animation: res-arrive var(--dur-3) var(--ease-spring) both; }
+  .res.is-new > .icon:first-child { color: var(--origin-welt); }
+  .res-wert.bump { animation: bump 600ms var(--ease-out); }
+  @keyframes res-arrive { from { opacity: 0; transform: translateY(-10px) scale(0.8); } }
+  @keyframes bump { 30% { color: var(--ember); transform: translateY(-2px); } }
+
+  .bestimmung-kurz {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    block-size: 2.25rem;
+    padding-inline: var(--space-3);
+    border-radius: 999px;
+    background: var(--night-2);
+    white-space: nowrap;
+    transition: background var(--dur-1);
+  }
+  .bestimmung-kurz:hover { background: var(--night-3); }
+  .bestimmung-kurz > .icon { color: var(--ember); }
+  .bestimmung-kurz .world { font-size: 0.9375rem; }
+  .pips { display: inline-flex; gap: 3px; }
+  .pip { inline-size: 7px; block-size: 7px; rotate: 45deg; border: 1.5px solid var(--ember); border-radius: 1px; }
+  .pip.on { background: var(--ember); }
+  .pip.over { border-color: var(--down); background: var(--down); }
+  .pip.fresh { animation: pip-fresh 900ms var(--ease-spring); }
+  @keyframes pip-fresh { 0% { scale: 0.2; } 50% { scale: 1.8; box-shadow: 0 0 0 6px var(--ember-glow); } }
+
+  .kurzwahl { display: flex; gap: var(--space-1); }
+  .kurz {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    block-size: 2.25rem;
+    padding-inline: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    color: var(--ink-dim);
+    transition: background var(--dur-1), color var(--dur-1);
+  }
+  .kurz:hover, .kurz[aria-expanded="true"] { background: var(--hover-wash); color: var(--ink); }
+  .kurz-label { font-weight: 500; }
+
+  /* Board */
+  .brett { position: relative; overflow: hidden; min-block-size: 0; }
+  #karte { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; cursor: grab; touch-action: none; }
+  #karte.is-panning { cursor: grabbing; }
+  #karte:focus-visible { outline: none; }
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 75% 70% at 50% 48%, transparent 55%, oklch(from var(--map-vignette) l c h / 0.55) 100%),
+      linear-gradient(to bottom, oklch(from var(--map-vignette) l c h / 0.35), transparent 14%);
+    transition: background-color var(--dur-3);
+  }
+  .brett.is-dusk .vignette { background-color: oklch(from var(--night-0) l c h / 0.28); }
+
+  .kartenwerkzeug {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: oklch(from var(--night-1) l c h / 0.92);
+    box-shadow: var(--shadow-float);
+  }
+  .ebenen { inset-block-start: var(--space-4); inset-inline-start: var(--space-4); }
+  .ebene {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    block-size: 2.25rem;
+    padding-inline: 0.7rem 0.9rem;
+    border-radius: 999px;
+    color: var(--ink-dim);
+    font-size: var(--step--1);
+    font-weight: 500;
+    transition: background var(--dur-1), color var(--dur-1);
+  }
+  .ebene:hover { color: var(--ink); background: var(--hover-wash); }
+  .ebene[aria-checked="true"] { background: var(--night-3); color: var(--ink); }
+  .ebene[aria-checked="true"] .icon { color: var(--ember); }
+
+  .zoom { inset-block-end: var(--space-4); inset-inline-end: var(--space-4); flex-direction: column; border-radius: 999px; }
+  .brett.has-panel .zoom { inset-inline-end: calc(var(--panel-w) + var(--space-4) * 2); }
+  .zoom .icon-btn { inline-size: 2.25rem; block-size: 2.25rem; }
+  .zoom .icon-btn[aria-pressed="true"] { color: var(--ember); }
+
+  .minimap {
+    position: absolute;
+    z-index: 5;
+    inset-block-end: var(--space-4);
+    inset-inline-start: var(--space-4);
+    inline-size: 11.5rem;
+    block-size: 8rem;
+    border-radius: var(--radius-m);
+    background: oklch(from var(--night-0) l c h / 0.85);
+    box-shadow: var(--shadow-float);
+    cursor: pointer;
+  }
+
+  /* Keyboard and screen-reader list of what the map shows. Off-screen until it
+     holds focus or is opened from the map tools. */
+  .ortsliste {
+    position: absolute;
+    z-index: 6;
+    inset-block-start: 4.25rem;
+    inset-inline-start: var(--space-4);
+    inline-size: 17rem;
+    max-block-size: calc(100% - 15rem);
+    overflow: auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-m);
+    background: var(--night-1);
+    box-shadow: var(--shadow-float);
+  }
+  .ortsliste:not(.is-open):not(:focus-within) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .ortsliste ul { list-style: none; padding: 0; }
+  .ortsliste h2 { font-size: var(--step--1); color: var(--ink-subtle); font-weight: 600; padding: var(--space-2) var(--space-2) var(--space-1); }
+  .ort-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    inline-size: 100%;
+    padding: 0.4rem var(--space-2);
+    border-radius: var(--radius-s);
+    text-align: start;
+    color: var(--ink-dim);
+  }
+  .ort-btn:hover, .ort-btn:focus-visible { background: var(--hover-wash); color: var(--ink); }
+  .ort-btn .meta { margin-inline-start: auto; font-size: var(--step--1); color: var(--ink-subtle); }
+
+  /* Turn bar */
+  .zugleiste {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    min-block-size: var(--zug-h);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+    background: var(--night-1);
+    box-shadow: 0 -6px 24px oklch(0.08 0.01 250 / 0.5);
+  }
+  .zug-bereich { display: flex; align-items: center; gap: var(--space-3); min-inline-size: 0; flex: 1 1 auto; }
+  .budget { display: flex; flex-direction: column; gap: 2px; font-size: var(--step--1); color: var(--ink-subtle); white-space: nowrap; }
+  .budget span { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .befehle { display: flex; gap: var(--space-2); overflow-x: auto; scrollbar-width: thin; padding-block: 2px; }
+  .befehl {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    block-size: 2.5rem;
+    padding-inline: var(--space-3) var(--space-1);
+    border-radius: var(--radius-s);
+    background: var(--night-2);
+    white-space: nowrap;
+  }
+  .befehl.is-new { animation: befehl-in var(--dur-3) var(--ease-spring); }
+  @keyframes befehl-in { from { transform: translateY(14px) scale(0.92); opacity: 0; } }
+  .befehl-art { inline-size: 7px; block-size: 7px; rotate: 45deg; border-radius: 1px; background: var(--ember); }
+  .befehl-art.neben { background: transparent; border: 1.5px solid var(--ember); }
+  .befehl-art.frei { background: var(--ink-faint); }
+  .befehl-titel { font-weight: 600; }
+  .befehl-ziel { color: var(--ink-subtle); font-size: var(--step--1); }
+  .befehl-wurf { font-size: var(--step--1); font-weight: 600; }
+  .befehl-wurf.gut { color: var(--up); }
+  .befehl-wurf.schlecht { color: var(--down); }
+  .befehl .icon-btn { inline-size: 2rem; block-size: 2rem; }
+  .befehle-leer { color: var(--ink-subtle); font-size: var(--step--1); }
+
+  .meldungen-bereich { margin-inline-start: auto; min-inline-size: 0; flex: 0 1 auto; }
+  .meldungen { display: flex; gap: var(--space-2); overflow-x: auto; scrollbar-width: none; }
+  .meldung {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    block-size: 2.5rem;
+    padding-inline: var(--space-3);
+    border-radius: 999px;
+    background: var(--night-2);
+    white-space: nowrap;
+    font-weight: 500;
+    transition: background var(--dur-1);
+  }
+  .meldung:hover { background: var(--night-3); }
+  .meldung.warnung > .icon { color: var(--down); }
+  .meldung.angebot > .icon { color: var(--people-talbund); }
+  .meldung.meilenstein > .icon { color: var(--ember); }
+  .meldung.welt > .icon { color: var(--origin-welt); }
+  .meldung.is-new { animation: befehl-in var(--dur-3) var(--ease-spring); }
+
+  .zug-beenden {
+    flex: none;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    column-gap: var(--space-3);
+    min-block-size: 3.25rem;
+    padding-inline: var(--space-5) var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--ember);
+    color: var(--on-ember);
+    text-align: start;
+    white-space: nowrap;
+    transition: box-shadow var(--dur-2), transform var(--dur-1) var(--ease-out), background var(--dur-2);
+  }
+  .zug-beenden:hover { box-shadow: 0 0 0 6px var(--ember-glow), 0 0 32px var(--ember-glow); }
+  .zug-beenden:active { transform: scale(0.97); }
+  .zb-titel { font-weight: 700; font-size: 1.0625rem; }
+  .zb-sub { grid-column: 1; font-size: var(--step--1); opacity: 0.8; }
+  .zug-beenden .icon { grid-row: 1 / span 2; grid-column: 2; }
+  .zug-beenden[aria-disabled="true"] { background: var(--night-3); color: var(--ink-dim); box-shadow: none; cursor: progress; }
+  .zug-beenden[aria-disabled="true"] .icon { animation: spin 1.6s linear infinite; }
+  @keyframes spin { to { rotate: 360deg; } }
+
+  .is-locked .befehl, .is-locked .meldung { opacity: 0.55; }
+
+  /* Season card during the turn transition */
+  .saisonkarte {
+    position: absolute;
+    z-index: 15;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    pointer-events: none;
+    font-family: var(--font-world);
+    color: var(--ink);
+    text-shadow: 0 2px 24px oklch(0.1 0.01 250 / 0.9);
+  }
+  .saisonkarte .s-name { font-size: var(--step-4); letter-spacing: 0.04em; }
+  .saisonkarte .s-jahr { font-size: var(--step-1); color: var(--ink-dim); font-style: italic; }
+  .saisonkarte.play { animation: saison 2200ms var(--ease-out) both; }
+  .saisonkarte.play .s-name { animation: saison-name 2200ms var(--ease-out) both; }
+  @keyframes saison { 0% { opacity: 0; } 18% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes saison-name { from { letter-spacing: 0.4em; filter: blur(6px); } 30% { letter-spacing: 0.06em; filter: blur(0); } }
+
+  /* Chronicle band, streaming at the foot of the map */
+  .chronikband {
+    position: absolute;
+    z-index: 4;
+    inset-block-end: var(--space-4);
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    inline-size: min(40rem, 100% - 28rem);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-l);
+    background: oklch(from var(--night-0) l c h / 0.84);
+    backdrop-filter: blur(6px);
+    box-shadow: var(--shadow-float);
+    pointer-events: none;
+    transition: opacity var(--dur-3);
+  }
+  .brett.has-panel .chronikband { inset-inline-start: calc(50% - var(--panel-w) / 2 - var(--space-3)); }
+  .chronikband .cb-text {
+    font-family: var(--font-world);
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .chronikband .cb-titel { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-world); font-size: var(--step-1); color: var(--origin-chronist); margin-block-end: var(--space-1); }
+  .chronikband .caret { display: inline-block; inline-size: 2px; block-size: 1.05em; margin-inline-start: 2px; vertical-align: -0.15em; background: var(--origin-chronist); animation: blink 900ms steps(1) infinite; }
+  .chronikband.is-fading { opacity: 0; }
+  @keyframes blink { 50% { opacity: 0; } }
+}
+
+@media (max-width: 1800px) {
+  .befehl-ziel { display: none; }
+  .meldung-titel { display: none; }
+  .meldung { padding-inline: 0.7rem; }
+}
+@media (max-width: 1720px) {
+  .kurz-label { display: none; }
+}
+@media (max-width: 1500px) {
+  .kurz kbd { display: none; }
+  .kurz { padding-inline: var(--space-2); }
+}
+@media (max-width: 1440px) {
+  .bestimmung-kurz .world { display: none; }
+  .bestimmung-kurz { padding-inline: var(--space-2); }
+}
+@media (max-width: 1366px) {
+  .volk-name { display: none; }
+}
+
+/* Below this width the top bar takes two rows: people and tools, then stores. */
+@media (max-width: 1020px) {
+  :root { --bar-h: auto; }
+  .leiste { flex-wrap: wrap; gap: var(--space-1) var(--space-2); padding: var(--space-1) var(--space-2); }
+  .volk { order: 1; }
+  .bestimmung-kurz { order: 2; margin-inline-start: auto; }
+  .kurzwahl { order: 3; }
+  .ressourcen { order: 4; inline-size: 100%; margin: 0; overflow-x: auto; scrollbar-width: none; justify-content: space-between; }
+}
+
+@media (max-width: 760px) {
+  :root { --panel-w: 100%; }
+  .bestimmung-kurz { padding-inline: var(--space-2); }
+  .res { padding-inline: 0.15rem; gap: 0.15rem; }
+  .res .trend { inline-size: 12px; }
+  .ebene-label { display: none; }
+  .ebene { padding-inline: 0.6rem; }
+  .ebenen { inset-block-start: var(--space-2); inset-inline-start: var(--space-2); }
+  .minimap { inline-size: 7.5rem; block-size: 5.5rem; inset-block-end: var(--space-2); inset-inline-start: var(--space-2); }
+  .zoom { inset-block-end: var(--space-2); inset-inline-end: var(--space-2); }
+  .brett.has-panel .zoom, .brett.has-panel .minimap { display: none; }
+  .zugleiste { flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2); }
+  .zug-bereich { order: 1; inline-size: 100%; }
+  .budget { display: none; }
+  .meldungen-bereich { order: 2; margin: 0; flex: 1; }
+  .meldungen { overflow-x: auto; scrollbar-width: none; }
+  .meldung-titel { display: none; }
+  .meldung { padding-inline: 0.7rem; }
+  .zug-beenden { order: 3; min-block-size: 2.75rem; padding-inline: var(--space-4) var(--space-3); }
+  .chronikband { inline-size: calc(100% - 1rem); inset-block-end: var(--space-2); padding: var(--space-3) var(--space-4); }
+  .brett.has-panel .chronikband { display: none; }
+}

@@ -1,0 +1,173 @@
+/* Reset, type and shared controls. Structure comes from spacing and weight;
+   lines appear only where a boundary has to be read (inputs, focus, the map). */
+
+@layer reset, base, layout, components, overlays, utilities;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(body, h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote) { margin: 0; }
+  :where(ul, ol)[role="list"], :where(.plain) { list-style: none; padding: 0; }
+  :where(button, input, textarea, select) { font: inherit; color: inherit; }
+  :where(button) { cursor: pointer; background: none; border: 0; padding: 0; }
+  :where(img, svg, canvas) { display: block; }
+}
+
+@layer base {
+  html { block-size: 100%; }
+  body {
+    block-size: 100%;
+    background: var(--night-0);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--step-0);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  h1, h2, h3 { font-weight: 600; line-height: 1.2; text-wrap: balance; }
+  .world { font-family: var(--font-world); }
+  .num { font-variant-numeric: tabular-nums; }
+  .icon { flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  :focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  ::selection { background: var(--ember-glow); }
+  kbd {
+    font: 600 0.6875rem/1 var(--font-ui);
+    color: var(--ink-subtle);
+    background: var(--night-3);
+    border-radius: 4px;
+    padding: 0.2em 0.42em;
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-block-size: 2.5rem;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-s);
+    background: var(--night-3);
+    color: var(--ink);
+    font-weight: 600;
+    transition: background var(--dur-1), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2);
+  }
+  .btn:hover { background: var(--night-4); }
+  .btn:active { transform: scale(0.97); }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--ember); color: var(--on-ember); }
+  .btn-primary:hover { background: oklch(from var(--ember) calc(l + 0.04) c h); box-shadow: 0 0 0 6px var(--ember-glow); }
+  .btn-quiet { background: transparent; color: var(--ink-dim); }
+  .btn-quiet:hover { background: var(--hover-wash); color: var(--ink); }
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 50%;
+    color: var(--ink-dim);
+    transition: background var(--dur-1), color var(--dur-1);
+  }
+  .icon-btn:hover { background: var(--hover-wash); color: var(--ink); }
+
+  .cost { display: inline-flex; align-items: center; gap: 0.2rem; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink-dim); }
+  .cost .icon { color: var(--ink-subtle); }
+  .cost.is-short { color: var(--down); }
+  .costs { display: inline-flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+
+  .probe-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ember);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tooltip: help lives on hover and focus, never as standing prose. */
+  .has-tip { position: relative; }
+  span.has-tip { display: inline-flex; }
+  .tip-kurz { display: flex; align-items: center; gap: var(--space-2); }
+  .tip-kurz strong { display: inline; }
+  .tip-pfeil { margin-inline-start: auto; color: var(--ink-subtle); }
+  .tip svg { display: inline-block; vertical-align: -2px; }
+  .tip-mehr { display: none; margin-block-start: var(--space-2); color: var(--ink-dim); }
+  .tip-mehr > * { display: block; }
+  .has-tip.is-open > .tip { display: block; translate: -50% 0; z-index: 31; }
+  .has-tip.is-open > .tip-rechts { translate: 0 0; }
+  .has-tip.is-open > .tip-links { translate: 0 0; }
+  .has-tip.is-open .tip-mehr, .has-tip.is-deep .tip-mehr { display: block; }
+  .has-tip.is-open .tip-pfeil { rotate: 180deg; }
+  .tip-mehr > .tip-zeile, .tip-zeile { display: flex; justify-content: space-between; gap: var(--space-4); font-variant-numeric: tabular-nums; }
+  .tip-zeile .up { color: var(--up); }
+  .tip-zeile .down { color: var(--down); }
+  .tip {
+    position: absolute;
+    inset-block-start: calc(100% + 8px);
+    inset-inline-start: 50%;
+    translate: -50% -4px;
+    z-index: 30;
+    inline-size: max-content;
+    max-inline-size: 18rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--night-3);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+    font-size: var(--step--1);
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: start;
+    /* display:none while closed, so a hidden tip near the screen edge never widens the page. */
+    display: none;
+    pointer-events: none;
+  }
+  .tip strong { display: block; font-weight: 600; }
+  .has-tip:hover > .tip, .has-tip:focus-visible > .tip, .has-tip:focus-within > .tip { display: block; translate: -50% 0; }
+  @supports (transition-behavior: allow-discrete) {
+    .tip { transition: opacity var(--dur-1), translate var(--dur-2) var(--ease-out), display var(--dur-1) allow-discrete; }
+    .has-tip:hover > .tip, .has-tip:focus-visible > .tip, .has-tip:focus-within > .tip {
+      @starting-style { opacity: 0; translate: -50% -4px; }
+    }
+    .has-tip:hover > .tip-rechts, .has-tip:focus-visible > .tip-rechts, .has-tip:focus-within > .tip-rechts {
+      @starting-style { opacity: 0; translate: 0 -4px; }
+    }
+  }
+  .tip-up { inset-block-start: auto; inset-block-end: calc(100% + 8px); }
+  /* Near the right screen edge the tip hangs leftwards from its anchor. */
+  .tip.tip-rechts { inset-inline-start: auto; inset-inline-end: 0; translate: 0 -4px; }
+  .tip.tip-links { inset-inline-start: 0; translate: 0 -4px; }
+  .has-tip:hover > .tip-links, .has-tip:focus-within > .tip-links { translate: 0 0; }
+  .has-tip:hover > .tip-rechts, .has-tip:focus-visible > .tip-rechts, .has-tip:focus-within > .tip-rechts { translate: 0 0; }
+  .panel-kopf h2:focus, #kontext-titel:focus { outline: none; }
+  /* Shortcut tips only where the shortcut labels are hidden. */
+  @media (min-width: 1721px) {
+    .has-tip:is(:hover, :focus-visible, :focus-within) > .tip-kurz { display: none; }
+  }
+
+  .monogram {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: 50%;
+    background: var(--night-3);
+    font-family: var(--font-world);
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+}
+
+@layer utilities {
+  .sr-only {
+    position: absolute !important;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  [hidden] { display: none !important; }
+}
