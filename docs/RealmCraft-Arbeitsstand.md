@@ -1,32 +1,44 @@
 # RealmCraft, Arbeitsstand und Wiedereinstieg
 
+Stand 3. Oktober 2026, Sitzungsende vor einem Compact.
+
 ## Gegenwärtiger Auftrag
 
-Maßgeblich ist die Nutzerentscheidung vom 9. September 2026 für ein Echtzeitstrategiespiel im Browser. Basisaufbau, Bevölkerung, Zuzug, Technologie, Ereignisse und Institutionen gehören zusammen. Verteidigung und offensiver Krieg sollen ebenso möglich sein wie friedlicher Aufbau mit Umwelt- und Geschäftskonflikten. Neue Weltpakete und Karten sollen wiederholte Partien mit eigenen Mechaniken und Gestaltungen ermöglichen.
+Am 3. Oktober 2026 hat der Nutzer die Richtung neu gesetzt. RealmCraft wird ein zugbasiertes Strategiespiel, in dem ein Volk sich ohne festen Forschungsbaum individuell entwickelt und Mechaniken mit der eingeschlagenen Richtung hinzukommen. Ein deterministischer Regelkern rechnet, spezialisierte Agents schlagen Inhalte vor, ein Prüfer mit Machtbudget hält es fair, gespielt wird auf einem kartenzentrierten Spielbrett im Browser. Der Echtzeitplan vom 9. September und die alten Spiele sind abgelöst ([Entscheidungen](Entscheidungen.md), D1 bis D15). Spieldesign, Regeln, Agentenvertrag und Plan stehen in [Spieldesign](Spieldesign.md), [Regelkern](Regelkern.md), [Agentenvertrag](Agentenvertrag.md), [Harness](Harness.md) und [Plan](RealmCraft-Plan.md). Vertragsänderungen sind in [Vertragsaenderungen](Vertragsaenderungen.md) protokolliert.
 
-Die Oberfläche soll deutlich ästhetischer werden und funktionale Symbole erhalten. Die Kartenkammer ist als endgültiges Zielbild beanstandet. Ihre erneute Freigabe ist keine offene Voraussetzung der Echtzeitentwicklung. Die grundsätzliche Rolle des Krieges ist geklärt, friedlicher Aufbau, Verteidigung und Offensive gehören alle zum Ziel. Detailwerte, Gefechtsregeln und ästhetische Qualität werden am jeweiligen spielbaren Ausschnitt beurteilt.
+## Was vorliegt
 
-## Was tatsächlich vorliegt
+| Baustein | Ort | Stand |
+|---|---|---|
+| Wachsende Sechseckwelt | `engine/world/`, `welten/hochland/welt.json` | fertig, getestet |
+| Datenverträge (Schema-Version 2) | `engine/schemas/` | fertig, getestet |
+| Regelkern mit vier Modulen, Ersatz-KI, CLI | `engine/core/`, `engine/modules/`, `engine/ai/`, `engine/cli.mjs` | fertig, Unit- und Abnahmetests grün |
+| Prüfer, Machtbudget, Bibliothek, Partie-IO | `engine/content/`, `engine/harness/` | fertig, Korpus grün |
+| Weltpaket Hochland | `welten/hochland/` | fertig, validiert |
+| Harness | `.claude/agents/rc-*.md`, `.claude/commands/zug.md`, `partie.md`, `tools/hooks/`, Hooks in `.claude/settings.json` | fertig, Probelauf ohne Modell grün, Live-Zug mit Agents noch nicht beobachtet |
+| Spielbrett | `spielbrett/`, Endpunkte in `serve.mjs` | an den Kern angeschlossen, E2E grün, `?demo` zeigt den Prototyp |
+| Unabhängige Abnahmetests | `tests/acceptance/` | grün, in `npm test` eingebunden |
 
-Nachtmeer unter `spiel/` und Winter unter `spiel/winter.html` sind spielbare Rundenmodelle. Die Designstudien und die Kartenkammer bleiben Vergleichsmaterial. Ihre technischen Belege stehen in den jeweiligen Dokumenten. Das Dashboard des Spielleiterverfahrens ist davon getrennt und in [UI-Gesamtbild.md](UI-Gesamtbild.md) beschrieben.
+Sicherungszweig des Stands vor dem Neuaufbau ist `archiv/vor-neuaufbau`. Alte Spiele und das alte Dashboard liegen noch auf `main` und werden erst nach dem ersten spielbaren Durchstich entfernt.
 
-Der Echtzeitbereich `rts/`, allgemeine Welterzeugung, bewegte Bewohner, Logistik, Technologiepfade und Kampf sind noch nicht implementiert. Der [Echtzeitplan](RealmCraft-Echtzeitstrategie.md) definiert den Aufbau. [User Stories und Abnahme](RealmCraft-User-Stories.md) benennen Referenzen und Lücken. Phaser mit TypeScript und Vite ist die technische Empfehlung. Installiert ist davon noch nichts.
+## Laufende Umgebung
 
-## Nächste konkrete Arbeit
+- Spielpartie `campaigns/hochland-1` (gitignored, Startwert 20261003, Volk bergnomaden), Zug 0 in der Planung, Weltereigniswurf offen.
+- Spielserver `http://localhost:4187/spielbrett/?campaign=hochland-1` aus dem Arbeitsbaum.
+- Eingefrorener UI-Prototyp für den Spieltest `http://localhost:4186/spielbrett/` aus dem Worktree `../realmcraft-spieltest` (Stand `44bb892`).
+- Spieltest-Protokoll [spieltests/2026-10-03-spielbrett.md](spieltests/2026-10-03-spielbrett.md).
 
-Der erste Implementierungsabschnitt ist E1, bewohnte Siedlung. Sein Prüffall verbindet Arbeit, Lieferung, einen abgeschlossenen Bau, Zuzug, ein erforschtes Verfahren und einen fortgeltenden Versorgungspakt. Implementierungsfolge und Abnahme stehen im [Echtzeitplan](RealmCraft-Echtzeitstrategie.md#nächster-milestone-e1-bewohnte-siedlung).
+## Zugwechsel
 
-Beim Fortsetzen zuerst den Arbeitsbaum prüfen und den getrennten Einstieg `rts/` anlegen. Danach eine Spielszene mit Kamera, auswählbaren Objekten und einem von der Grafik unabhängigen Zeitmodell bauen. Von Beginn an gelten US16 und US17 für Weltansicht, Symbole und Informationsdichte. Die erste Welt erhält eine konkrete Gestaltung, die über das Weltpaket austauschbar bleibt.
+Der Spieler plant im Browser und klickt „Zug beenden“, der Server versiegelt. Die Spielleitung führt danach `/zug` aus, also `apply`, Welt-Agent, Forschung, Rat, Rivalen und Chronist parallel, Ingest durch den Prüfer, Richter im Hintergrund und `open`. Einzelheiten stehen in [Harness](Harness.md).
 
-## Orientierung und Schreibgrenzen
+## Offene Punkte
 
-1. Für Vault-Rückschreibung im Vault `C:/Users/Chrisi/Documents/obsidian` starten und dessen Regeln anwenden.
-2. `Projects/Eigenforschung/RealmCraft/Project Overview RealmCraft.md`, `RealmCraft Game Design.md` und `RealmCraft Interface Design.md` für Ziel, Mechaniken und Gestaltung lesen.
-3. Im Repository `C:/Users/Chrisi/Documents/GitHub/realmcraft` die Entwicklungsanweisung in `CLAUDE.md` und `docs/INDEX.md` lesen, dann den Echtzeitplan und die zum Abschnitt gehörenden Stories.
-4. Das Datei-Eigentum zwischen Entwicklung und Spielleitung regelt `CLAUDE.md`. Die Echtzeitentwicklung überschreibt nichts unter `knowledge/` und in `savegame.json`.
-
-Der Entwicklungsserver läuft nach `npm run serve` auf `http://localhost:4173/`, ein anderer Port lässt sich über `PORT` setzen. Die Screenshot-Skripte unter `design/` folgen derselben Variable. Browsertests starten ihren eigenen Server auf Port 4391. Für Vite einen freien Port verwenden und laufende Server nicht pauschal beenden, weil der Live-Server der Spielleitung darunter sein kann. Der geplante Produktionsbuild bleibt eine statische Browseranwendung.
-
-## Prüfung
-
-Technische Tests, beobachtete Bedienung und fachliche oder gestalterische Nutzerabnahme werden getrennt geführt. Der Story-Abgleich beruht auf Code, dokumentierter Browserfunktion und Nutzerkritik. Die Prüfbefehle stehen in [INDEX.md](INDEX.md#prüfzugänge). Sie belegen die Rundenprototypen und das Dashboard. Für die Echtzeitfunktion definiert der Echtzeitplan eigene Prüfzugänge. Die Browserprüfungen der Kartenkammer sind in [Nachtmeer-Kartenkammer.md](Nachtmeer-Kartenkammer.md) abgegrenzt. Operative nächste Schritte stehen in ACTIVE-WORK, der technische Zuschnitt bleibt im Repository.
+- Kern: Vorschau liefert keine Loyalitäts- und Zustimmungsdeltas, Begründungen von Ablehnungen sind englisch, `status.json` hinkt der Phase nach und verliert den Welt-Schritt der Phase A, Handelsrouten fehlen noch in der Kartenebene, Diffusion und Praxisbedingung für Bestimmungswechsel fehlen.
+- Prüfer: wiederkehrende Auslöser sind im Budget zu billig gerechnet.
+- Spielbrett: keine Ansichten für die Module Handel, Magie, Militär und Lebensweise, Angriff und Handel ohne Bedienung.
+- Dokumente: Agentenvertrag nennt andere Hook- und Agent-Dateinamen und den Ansichtspfad `view/<pid>/state.json` statt `view/<pid>.json`.
+- Balance: Ersatz-KI gerät oft in Knappheit, dunkler Pfad erreicht Macht früher.
+- Unabhängiges Review des Commits `b8ad4c4` läuft, Befunde sind noch einzuarbeiten.
+- Porträts: der Gemini-Key in `.env` wird abgelehnt, ein gültiger Key fehlt.
+- Entscheidungen des Nutzers: Rückbau der alten Spiele und des Dashboards, `STAND-UND-VISION.md`, Aufteilung von `CLAUDE.md` nach Rollen, Umgang mit dem ungetrackten `schwarzkaemme/`, Grundsatzfragen aus [Spieldesign](Spieldesign.md).
