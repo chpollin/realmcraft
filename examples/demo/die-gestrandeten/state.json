@@ -1,0 +1,1045 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "spielname": "Die Gestrandeten",
+    "kapitel": 1,
+    "zeit": {
+      "jahreszeit": "Herbst",
+      "jahr": 2
+    },
+    "rundeOffen": true,
+    "weltereignis": "gewürfelt",
+    "visualStyle": "Tuschelavierung und Kohle auf getoentem, geborgenem Papier; eine Feldskizze aus dem Tagebuch eines ueberlebenden Chronisten; sichtbare Papiernarbe, Wasser- und Stockflecken, abgegriffene Raender; sparsame, sichere Linienfuehrung; monochromes Asche- und Eisengrau mit einem einzigen gedaempften Erdton als Akzent; ruhig, dokumentarisch, von Hand festgehalten",
+    "mapStyle": "alte handgezeichnete Seekarte, vergilbtes Pergament, Nebelraender, unerforschte Insel mit weissen Flecken, Kompassrose, Seeungeheuer am Kartenrand"
+  },
+  "volk": {
+    "name": "die Gestrandeten",
+    "wesensart": "Aus Vielen geschmiedet: +2 wo Vielfalt der Talente, Improvisation und Anpassung ans Unbekannte zaehlen; -2 wo tiefe Einigkeit, Tradition oder einmuetiges, geschlossenes Handeln gefragt ist (kein gewachsener Stamm).",
+    "ausrichtung": "Ueberleben und Aufbau aus dem Nichts; seit der Rede im Schnee geeint als 'das Feuer in der Nacht' gegen das Finstere. Ob Eisen oder Zauber sie traegt, bleibt offen.",
+    "erscheinung": "ein zerschlagener Treck aus Orks, Elfen, Humanoiden und Menschen; geflickte Ruestungen, gerettete Werkzeuge, abgekaempfte Gesichter unter grauem Himmel",
+    "region": {
+      "name": "die unbekannte Insel (Lager: Graulandung)",
+      "gelaendewerte": [
+        {
+          "key": "Steilkueste als Schutz",
+          "value": 1
+        },
+        {
+          "key": "Nebel und Zwielicht (Sicht)",
+          "value": -1
+        },
+        {
+          "key": "Erz in den Klippen",
+          "value": 1
+        },
+        {
+          "key": "alte Ruinen (Zauber und Gefahr)",
+          "value": 0
+        }
+      ]
+    }
+  },
+  "status": {
+    "text": "Herbst, Jahr 2. Der Rat versuchte den behutsamen Weg - und zwei kritische Rueckschlaege (zweimal natuerliche 1) verkehrten ihn ins Gegenteil. Waehrend Eskil aus der Truhe vorlas, woran man einen Beruehrten erkennt (er fand: es gibt eine fruehe Schwelle, vor der man zurueckrufen kann, und eine, nach der nichts mehr kommt), legte Yssa den Schleier ueber Henk - doch der Schleier verhuellt in beide Richtungen und schloss den fernen Blick MIT Henk ein, mit Yssa als Naht. Henk erwachte, sprach mit der zu grossen Stimme des Finsteren ('Du haeltst es offen. Ich danke dir.'), das grosse Feuer duckte sich klein und blau, Yssa kippte tiefer gezeichnet als je. Eskils Urteil: Henk ist ueber der Schwelle, nicht mehr der Junge. Vesk fand die Quelle im Wald nur halb (Wurf 3): ein Ring frostgetoeteter Baeume am Waldsaum, Henks Spuren hinein und heraus, eine Kaelte, die ihn ansah - die Tuer, durch die Henk ging, aber kein Hebel. Henk liegt nun gefesselt und laechelt; Grask hat die Hand an der Axt. Die Frage der zwei Feuer ist nicht mehr Theorie: ausbrennen oder halten, jetzt unter Zwang. Hinter dem Lager ein voller Sommer (Volk 229, Material 2, Wohlstand 0); vor ihm der erste eigene, erwachte Beruehrte.",
+    "ansehen": {
+      "stufe": 2,
+      "label": "Schild im Sturm"
+    }
+  },
+  "grundgroessen": {
+    "nahrung": 2,
+    "material": 2,
+    "wissen": 1,
+    "bevoelkerung": {
+      "zahl": 229,
+      "label": "Ueberlebende dreier Voelker; zum Sommer brachte ein viertes Boot sechzehn Versprengte aus Khar, totgeglaubt - Haende, Krieger und der Bewahrer Eskil"
+    }
+  },
+  "lagewerte": {
+    "verteidigung": 3,
+    "mobilitaet": 1,
+    "wohlstand": 0,
+    "ausbeuten": [
+      {
+        "key": "Nahrung",
+        "value": 1,
+        "quelle": "Fischgruende und Wildwechsel, im Sommer erschlossen"
+      }
+    ]
+  },
+  "modifikatoren": {
+    "gelaende": [
+      {
+        "key": "Steilkueste als Schutz",
+        "value": 1
+      },
+      {
+        "key": "Nebel und Zwielicht (Sicht)",
+        "value": -1
+      },
+      {
+        "key": "Erz in den Klippen",
+        "value": 1
+      },
+      {
+        "key": "alte Ruinen (Zauber und Gefahr)",
+        "value": 0
+      }
+    ],
+    "lage": [
+      {
+        "key": "unbekanntes Inselinnere",
+        "value": -1,
+        "grund": "die nahe Kueste ist kartiert; Wald, Hoehen und die Ringe bleiben dunkel"
+      },
+      {
+        "key": "Spaehposten, Fruehwarnung",
+        "value": 1,
+        "grund": "stehende Augen an den Zugaengen und auf der Hoehe; kein Ueberfall im Schlaf mehr"
+      },
+      {
+        "key": "der erwachte Beruehrte im Lager",
+        "value": -2,
+        "grund": "Henk ist erwacht und sprach mit der Stimme des Finsteren; das grosse Feuer duckte sich, Yssa stuerzte. Die Furcht im Lager ist nun offen, das Misstrauen gegen alles Beruehrte schlaegt hoch - der Druck haelt, bis das Volk handelt"
+      }
+    ]
+  },
+  "faehigkeiten": [
+    "Schmiedekunst und Mechanik der Zunftleute",
+    "Das Verhuellen, erste Disziplin des Zirkels (Schutz und Verschleierung, aus Aldes Buch aus Khar)",
+    "Kriegskunst und Sturmtaktik der Orkschar",
+    "Seefahrt und das Lesen von Wetter und Tide"
+  ],
+  "gruppen": [
+    {
+      "id": "orkschar",
+      "name": "die Orkschar",
+      "sprecherId": "grask",
+      "kompetenz": "Krieg, rohe Kraft, Sturm und Wehr",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/2eb472cf03c3214a.webp"
+      }
+    },
+    {
+      "id": "zirkel",
+      "name": "der Zirkel",
+      "sprecherId": "yssa",
+      "kompetenz": "schwache Magie, das Alte lesen, Wahrnehmung",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/40866e7e85a1ec57.webp"
+      }
+    },
+    {
+      "id": "zunftleute",
+      "name": "die Zunftleute",
+      "sprecherId": "borin",
+      "kompetenz": "Schmiede, Bau, Werkzeug, Technik",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/2b6ec026257b4853.webp"
+      }
+    },
+    {
+      "id": "versorger",
+      "name": "die Versorger",
+      "sprecherId": "mara",
+      "kompetenz": "Fischfang, Ackerbau, Vorraete, Heilung des Leibes",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/98ec24d1afee2482.webp"
+      }
+    },
+    {
+      "id": "spaeher",
+      "name": "die Spaeher",
+      "sprecherId": "vesk",
+      "kompetenz": "Kundschaft, Pfade, Jagd, Fruehwarnung",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/f525468040df8d35.webp"
+      }
+    },
+    {
+      "id": "zivilen",
+      "name": "die Zivilen",
+      "sprecherId": "alde",
+      "kompetenz": "Gedaechtnis, Heilkunde, Sitte, Zusammenhalt der Schwachen",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/e4022e5548ad317c.webp"
+      }
+    }
+  ],
+  "armee": {
+    "gesamt": 82,
+    "moral": "hoch; der grosse Klan zweimal am Wall gebrochen, der Stille verbrannt, und nun das vierte Boot als Zeichen, dass das Glueck nicht ganz fort ist - geeint, gehaertet, ein wenig getroestet",
+    "verbaende": [
+      {
+        "id": "orkschar",
+        "name": "die Orkschar",
+        "typ": "Sturmtruppe",
+        "fuehrungId": "grask",
+        "staerke": 31,
+        "verfassung": "kampferprobt, hielt den Wall; weitere Verluste",
+        "ausruestung": "geflickte Ruestung, gerettete Waffen aus Khar",
+        "hinweis": "Rueckgrat im offenen Kampf; 6 am Wall gefallen",
+        "avatar": {
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/8708b2433068271b.webp"
+        }
+      },
+      {
+        "id": "spaeher",
+        "name": "die Spaeher",
+        "typ": "Kundschafter",
+        "fuehrungId": "vesk",
+        "staerke": 10,
+        "verfassung": "erschuettert; an den Erzklippen gestellt, zwei verloren",
+        "ausruestung": "Kurzboegen, Messer, Tarnmaentel",
+        "hinweis": "Augen und Nadelstiche; vom Stillen erspaeht und gestellt",
+        "avatar": {
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/9d04193b4b12f1c1.webp"
+        }
+      },
+      {
+        "id": "miliz",
+        "name": "die Miliz",
+        "typ": "Aufgebot",
+        "fuehrungId": "borin",
+        "staerke": 41,
+        "verfassung": "siegreich am Wall, durch sechs Krieger des vierten Boots verstaerkt; stolz und gehaertet",
+        "ausruestung": "Speere und Aexte aus der Schmiede",
+        "hinweis": "haelt einen Wall meisterhaft, gewinnt kein Feldgefecht",
+        "avatar": {
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/8d2b315dbca2e0a1.webp"
+        }
+      }
+    ],
+    "stehendeModifikatoren": [
+      {
+        "key": "hinter Steinwall, Graben und Tor",
+        "value": 3
+      },
+      {
+        "key": "Fruehwarnung durch Spaehposten",
+        "value": 1
+      },
+      {
+        "key": "im offenen Wald",
+        "value": -1
+      }
+    ],
+    "verluste": [
+      {
+        "zeit": "Sommer Jahr 1",
+        "zahl": 6,
+        "anlass": "Schaedelklan-Ueberfall am Wall"
+      },
+      {
+        "zeit": "Herbst Jahr 1",
+        "zahl": 8,
+        "anlass": "Sturm des grossen Klans; gehalten am Steinwall"
+      },
+      {
+        "zeit": "Fruehling Jahr 2",
+        "zahl": 2,
+        "anlass": "Spaeher an den Erzklippen vom Stillen erspaeht und gestellt"
+      },
+      {
+        "zeit": "Fruehling Jahr 2",
+        "zahl": 2,
+        "anlass": "der Sturm auf Graulandung, am Wall gehalten - der Klan zerschellte mit hohen Verlusten"
+      }
+    ],
+    "bild": {
+      "dataUrl": "examples/demo/die-gestrandeten/bilder/7e9283a4d6c79946.webp"
+    }
+  },
+  "berater": [
+    {
+      "id": "grask",
+      "name": "Grask Eisenzahn",
+      "loyalitaet": 4,
+      "rolle": "Krieg und Wehr (die Orkschar)",
+      "ziel": "Staerke ueber alles; die Insel mit Gewalt nehmen, keine Schwaeche zeigen; Verachtung fuer Zauber und Zaudern",
+      "generation": "die kriegerische Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "hochgewachsener Ork, graugruene Haut voller alter Narben, ein eiserner Zahn, zerbeulter Plattenharnisch, gekerbte Axt",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/427fb7bf7b0d82df.webp"
+      }
+    },
+    {
+      "id": "yssa",
+      "name": "Yssa Daemmerlied",
+      "loyalitaet": 2,
+      "rolle": "Zauber und das Alte (der Zirkel)",
+      "ziel": "die schwache Magie hueten und mehren, mit den alten Maechten der Insel sprechen; misstraut dem Eisen, das den Zauber ertoetet",
+      "generation": "die lange lebende",
+      "lebensstand": "ruestig",
+      "erscheinung": "schlanke Elfe, aschblondes Haar, blasse silbrige Augen, verblichener Sternenmantel, Finger voll Zauberzeichen; seit dem Scheiterhaufen gezeichnet - uebernaechtigt, ein dunkler Schatten um die Augen, eine feine Spur des Schleiers, den sie traegt, das 'offene Auge' des Finsteren auf ihr",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/166913185defa378.webp"
+      }
+    },
+    {
+      "id": "borin",
+      "name": "Borin Zunfthand",
+      "loyalitaet": 3,
+      "rolle": "Werk und Eisen (die Zunftleute)",
+      "ziel": "durch Technik und Bau ueberleben; Magie ist unzuverlaessig und gefaehrlich; Festungen, Werkzeug, Maschinen",
+      "generation": "die schaffende Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "gedrungener Humanoid, russiger Lederschurz, brandnarbige Haende, Guertel voll Werkzeug, ein messingnes Augenglas",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/0570304942453d21.webp"
+      }
+    },
+    {
+      "id": "mara",
+      "name": "Mara Tiden",
+      "loyalitaet": 3,
+      "rolle": "Nahrung und Versorgung (die Versorger)",
+      "ziel": "nie wieder Hunger; sichern, saeen, fischen; siedeln statt erobern; Vorsicht vor allem Wagnis",
+      "generation": "die schaffende Mitte",
+      "lebensstand": "ruestig",
+      "erscheinung": "hagere Frau, salzweisses Haar im Zopf, Netz und Sichel am Guertel, ruhige muede Augen",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/c3804c5cf76ee44d.webp"
+      }
+    },
+    {
+      "id": "vesk",
+      "name": "Vesk",
+      "loyalitaet": 3,
+      "rolle": "Kundschaft und Pfade (die Spaeher)",
+      "ziel": "die Insel kennen, Gefahren frueh sehen; rastlos, draengt zu Erkundung und Ausgriff",
+      "generation": "die junge",
+      "lebensstand": "ruestig",
+      "erscheinung": "drahtiger Humanoid, fleckiger Tarnmantel, Kurzbogen, Augen die nie ruhen, eine Kette aus Tierzaehnen",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/fc770ec7af802f53.webp"
+      }
+    },
+    {
+      "id": "alde",
+      "name": "Alde Graumahl",
+      "loyalitaet": 2,
+      "rolle": "Gedaechtnis, Heilkunde und die Toten (die Zivilen)",
+      "ziel": "bewahren, warum sie flohen; das Volk menschlich halten; die Schwachen und Trauernden schuetzen; Mahnerin gegen Haerte",
+      "generation": "die alte",
+      "lebensstand": "lebensabend",
+      "erscheinung": "alte Frau, gebeugt, grauer Umhang voll Amulette, ein Stab, milchiges linkes Auge, an der Huefte ein Buch aus Khar",
+      "portrait": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/6e76c5bb6dd6739e.webp"
+      }
+    }
+  ],
+  "personen": [
+    {
+      "id": "still-einer",
+      "name": "der Stille (namenlos)",
+      "rolle": "beim Sturm auf Graulandung gefangen; im Verhoer brach er nicht, sondern sprach mit der Stimme des Finsteren und heftete sich an Yssa ('das offene Auge'). Oeffentlich verbrannt (Fruehling J2, Machtprobe 7): die oder der Erste deutete das Feuer als reinigend gegen die Finsternis. Der lebende Kanal des Feindes ist geschlossen - doch das Finstere erblickte durch ihn die Insel, und Aldes Gewissen brach an der Flamme",
+      "lebensstand": "tot (verbrannt)",
+      "erscheinung": "hagerer Mann, nie ganz wach wirkend, die Augen einen Hauch zu dunkel, spricht kaum, friert nie; auf dem Scheiterhaufen gestorben, ohne zu schreien"
+    },
+    {
+      "id": "tila",
+      "name": "Tila",
+      "rolle": "Kind des Lagers, Liebling vieler, flink und neugierig",
+      "lebensstand": "ruestig",
+      "erscheinung": "halbwuechsiges Maedchen, eine Schramme ueber der Braue, immer in Bewegung"
+    },
+    {
+      "id": "henk",
+      "name": "Henk",
+      "rolle": "junger Fischer, der erste vom Finsteren Beruehrte unter den Gestrandeten. Im Herbst J2 erwacht: als Eskil seine Zeichen las und Yssa den Schleier ueber ihn legte, hob er den Kopf und sprach mit der zu grossen Stimme des Finsteren ('Du haeltst es offen. Ich danke dir.'). Eskils Urteil aus der Truhe: ueber der Schwelle, nicht mehr zurueckzurufen - ein offener Kanal des Feindes. Liegt gefesselt im Lager und laechelt. Die Wahl der zwei Feuer steht nun unter Zwang: ausbrennen oder weiter halten",
+      "lebensstand": "erwacht (offener Kanal)",
+      "erscheinung": "schmaler junger Mann, einst lachlustig, nun mit einem Laecheln, das nicht ihm gehoert; die Augen zu dunkel, er friert nicht, das Feuer duckt sich vor ihm"
+    },
+    {
+      "id": "eskil",
+      "name": "Eskil Buchwart",
+      "rolle": "Bewahrer aus Khar, mit dem vierten Boot gelandet (Sommer J2); ein alter Gefaehrte Aldes, totgeglaubt. Er sah, wie das Finstere ueber Khar kam, und traegt das Wissen darum - der erste im Lager, der den fernen Feind aus eigener Anschauung kennt. Im Herbst J2 hob er sein Wissen ueber die Beruehrten (Schwelle des Zurueckrufens) - doch das Lesen weckte mit Yssas Schleier zugleich Henk, und Eskil traegt nun schwer an der Gewissheit, zu spaet gekommen zu sein. Erschuettert, gibt sich die Schuld",
+      "lebensstand": "lebensabend",
+      "erscheinung": "hagerer alter Mann, vom Hunger gezeichnet, eine schwere ledergebundene Truhe voll geretteter Schriften, wache traurige Augen"
+    }
+  ],
+  "maechte": [
+    {
+      "id": "das-finstere",
+      "name": "das Finstere",
+      "typ": "Schattenmacht ueber See",
+      "erscheinung": "kein Gesicht, nur Zeichen: erloeschende Feuer, schwarze Fahrten am Horizont, Menschen die mit leeren Augen wiederkommen",
+      "profil": [
+        {
+          "key": "Reichweite",
+          "value": 3
+        },
+        {
+          "key": "Hunger",
+          "value": 3
+        },
+        {
+          "key": "Gestalt zum Schlagen",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": -3,
+        "label": "Todfeind, noch fern"
+      },
+      "haltung": "frisst Khar, greift langsam ueber die See; sucht, was entkommen ist",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/b402f4af7f12ce93.webp"
+      }
+    },
+    {
+      "id": "eisenkonkordat",
+      "name": "das Eisenkonkordat",
+      "typ": "Festland-Techmacht",
+      "erscheinung": "rauchende Hafenfestungen, Maenner in genieteten Harnischen, Dampf und Zahnrad, Banner mit dem schwarzen Amboss",
+      "profil": [
+        {
+          "key": "Technik",
+          "value": 3
+        },
+        {
+          "key": "Heer",
+          "value": 2
+        },
+        {
+          "key": "Magie",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": 0,
+        "label": "fern, ahnungslos voneinander"
+      },
+      "haltung": "expandiert ueber See, sucht Erz und Brueckenkoepfe; verachtet Zauber",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/c23d774b578e904b.webp"
+      }
+    },
+    {
+      "id": "die-stillen",
+      "name": "die Stillen",
+      "typ": "altes Elfenvolk der Region",
+      "erscheinung": "selten gesehen, Lichter im Nebelwald, Steinkreise, lautlose Boote aus Rinde",
+      "profil": [
+        {
+          "key": "Magie",
+          "value": 3
+        },
+        {
+          "key": "Zahl",
+          "value": -2
+        },
+        {
+          "key": "Wissen der Insel",
+          "value": 2
+        }
+      ],
+      "beziehung": {
+        "wert": -2,
+        "label": "erzuernt, eine Warnung in Blut"
+      },
+      "haltung": "die Holzfaeller der Gestrandeten kreuzten das Grenzmal; die Stillen toeteten sie lautlos als Warnung und dulden nun keinen Fuss mehr in ihrem Gebiet",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/4f1185dc3bd1d7b9.webp"
+      }
+    },
+    {
+      "id": "schaedelklans",
+      "name": "die Schaedelklans",
+      "typ": "wilde Inselorks",
+      "erscheinung": "bemalte Wilde mit Knochenschmuck, Trommeln im Nebel, Pfahlschaedel an den Pfaden",
+      "profil": [
+        {
+          "key": "Wildheit",
+          "value": 2
+        },
+        {
+          "key": "Zahl",
+          "value": 1
+        },
+        {
+          "key": "Ordnung",
+          "value": -2
+        }
+      ],
+      "beziehung": {
+        "wert": -2,
+        "label": "gebrochen am Wall, nur noch versprengte Banden"
+      },
+      "haltung": "der groessere Klan stuermte Graulandung und wurde am Steinwall zurueckgeworfen; geschlagen, nicht gebrochen, und nun gewarnt",
+      "bild": {
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/28de479aa7087912.webp"
+      }
+    }
+  ],
+  "besitz": [
+    "drei gestrandete Langboote, beschaedigt",
+    "die Werkzeuge und Esse der Zunft",
+    "wenige Schriftrollen und ein Buch aus Khar",
+    "die Waffen und Ruestungen der Orkschar",
+    "ein Buendel Saatkorn, fast die letzte Hoffnung der Versorger"
+  ],
+  "verfassung": {
+    "text": "Eine Versammlungsordnung im Werden. Die Gestrandeten entscheiden folgenreiche Fragen durch Mehrheitsbescheid des Rates. Der oder die Erste stellt die Frage, stimmt mit und gibt bei Gleichstand den Ausschlag; ein Veto gegen die Mehrheit bleibt moeglich, kostet aber Loyalitaet. Aus dem bruechigen Treck dreier Voelker wird so ein Volk mit gemeinsamem Recht."
+  },
+  "beziehungenAnsehen": {
+    "text": "Ansehen 2: nach dem Sieg am Wall, wo der grosse Klan zerschellte, nennen die Leute die oder den Ersten 'Schild im Sturm' - aus dem Funken im Schnee ist eine Wehr geworden, die haelt. Nach aussen sind die Gestrandeten nun den Inselorks ein Begriff: die, an deren Mauer der grosse Klan brach."
+  },
+  "historie": [
+    {
+      "kapitel": 1,
+      "jahre": "vor Jahr 1",
+      "zusammenfassung": "Die Flucht von Khar: als das Finstere die Heimat verschlang, brachen Reste dreier Voelker - Orks, Elfen, Humanoide und Menschen - gemeinsam ueber die Schwarze See auf. Stuerme und Verluste; von vielen Booten erreichten drei eine unbekannte, neblige Insel. Hier beginnt alles neu.",
+      "bild": {
+        "anlass": "Die Flucht ueber die Schwarze See",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle auf getoentem Papier: ueberladene Langboote auf schwerer Nachtsee, Gischt und Nebel. Am fernen Horizont die erloeschenden Feuer der Kueste Khars unter einem gestaltlosen, alles verschluckenden Schatten. In den Booten erschoepfte Gesichter dreier Voelker - Orks, Elfen, Menschen - dicht gedraengt. Monochromes Asche- und Eisengrau, ein einziger warmer Erdton im fernen Feuerschein.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/fddc7256e386039c.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Fruehling",
+      "zusammenfassung": "Landung in Graulandung. Der Treck gibt sich den Mehrheitsbescheid als erste Ordnung. Erste Tat: die nahe Insel erkundet, ein Wall aus Wrackholz, der Hunger gebremst. Entdeckt werden die zersplitterten Schaedelklans, das wachende Volk der Stillen hinter seinem Grenzmal und naechtliche Spuren des Stillen am Lagerrand.",
+      "bild": {
+        "anlass": "Die Landung in Graulandung",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle: drei zerschlagene Langboote auf grauem Kies in nebliger Bucht. Ein zerlumpter Treck dreier Voelker errichtet einen ersten niedrigen Wall aus Wrackholz, Rauch der ersten Feuer; im Ruecken die dunkle Wand des Nebelwaldes. Asche- und Eisengrau, ein warmer Erdton im Feuerrauch.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/df4e07a173b775d4.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Sommer",
+      "zusammenfassung": "Der erste Schlag: ein Schaedelklan-Ueberfall faellt nachts ueber Graulandung. Der Wall bremst ihn und rettet das Lager, doch der Preis ist hart - Tote unter den Zivilen, verbrannte Speicher (Nahrung 2->1), das Kind Tila verwundet. Im Getuemmel steht der Stille reglos am Wall und ist danach fort, hinaus zu den Raeubern. Die Schaedelklans sind nun offener Feind (-2).",
+      "bild": {
+        "anlass": "Der Schaedelklan-Ueberfall",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle, naechtliche Szene: bemalte wilde Inselorks mit Knochenschmuck branden gegen das junge Wrackholz-Lager, Flammen schlagen aus den Speichern, Verteidiger dreier Voelker halten den niedrigen Wall mit Speeren. Am Rand eine reglose, schmale Gestalt (der Stille), die nicht kaempft, halb im Schatten. Asche- und Eisengrau, greller Erdton im Brand.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/9c01c622cfee0706.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Herbst",
+      "zusammenfassung": "Statt zurueckzuschlagen graebt sich das Volk ein: Steinwall, Graben, Tor, Spaehtuerme und ein stehendes Spaehnetz (Verteidigung steigt). Der Lohn zeigt sich, als der grosse Klan in voller Zahl stuermt - gewarnt und verschanzt wirft Graulandung ihn blutig zurueck (Volk und Armee bluten, Vorrat halb verzehrt), und Grask haelt endlich seinen Kampf. Doch beim Materialholen kreuzen Holzfaeller das Grenzmal der Stillen; vier sterben lautlos, und die bisher nur Wachenden werden zum zweiten Feind (-2).",
+      "bild": {
+        "anlass": "Der Sturm am Steinwall",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle: der grosse Schaedelklan in voller Zahl brandet gegen einen fertigen Steinwall mit Graben, schwerem Torhaus und Spaehtuermen. Auf der Mauer halten Orks der Wehr (ein hochgewachsener Ork mit eisernem Zahn) die Stellung; Gefallene haeufen sich vor dem Wall. Erster Frost, kahle Aeste. Asche- und Eisengrau, ein Erdton in Blut und Rost.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/be129c39d933338b.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 1, Winter",
+      "zusammenfassung": "Im ersten Schnee schmiedet die oder der Erste das Volk mit einer Rede zu einem Feuer gegen das Finstere ('Funke im Schnee', Ansehen 0->1; Setzung 'Das Feuer in der Nacht'). Ein ruhiger Winter schenkt die erste Atempause, volle Speicher tragen das Volk; Alde uebersteht ihren ersten Lebenswurf. Am Ende des Winters versoehnt der Wettstreit der Lichter Eisen und Zauber: per Mehrheitsbescheid (6:0) die Setzung 'Die zwei Lichter'.",
+      "bild": {
+        "anlass": "Die Rede am grossen Feuer",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle: ein grosses Feuer im verschneiten, eingegrabenen Lager bei Nacht, Funken steigen in den Schnee ('Funke im Schnee'). Eine hochgewachsene Gestalt (die oder der Erste) spricht zur versammelten Menge dreier Voelker, die Gesichter im Feuerschein. Etwas abseits, einander zugewandt, ein gedrungener Schmied mit Eisenwerkzeug und eine schlanke Elfe mit leuchtenden Zauberzeichen - die zwei Lichter nebeneinander. Asche- und Eisengrau, warmer Erdton im Feuer.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/ac2bc185a92b41c6.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 2, Fruehling",
+      "zusammenfassung": "Aus dem Winter steigt das Volk hart und wach (Weltereignis 2, Unglueck). Die Erkundung der Erzklippen misslingt schwer (natuerliche 1): der Stille bei den Klan-Wachen spuert Yssas Sehen, zwei Spaeher fallen, etwas Kaltes blickt durch ihn zurueck. Statt anzugreifen reizt das Volk den Klan zum Sturm gegen den Wall und bricht ihn dort ein zweites Mal (natuerlicher Gluecksfall); die Erzklippen sind frei. Beim Ergruenden von Yssas Schrecken oeffnet sich die erste Disziplin 'Das Verhuellen' (natuerliche 10). Das stille Verhoer des gefangenen Stillen aber misslingt (Wurf 4): er spricht mit der Stimme des Finsteren und heftet sich an Yssa. Da verbrennt die oder der Erste ihn oeffentlich und deutet das Feuer als reinigend - Setzung 'Das reinigende Feuer' (Machtprobe 7). Der Kanal ist geschlossen, doch das Finstere erblickte durch den Sterbenden die Insel, Yssa ist gezeichnet, Alde geht unter Protest von der Flamme.",
+      "bild": {
+        "anlass": "Der Scheiterhaufen des Stillen",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle auf getoentem Papier, dramatischer Feuerschein bei Nacht in der Festung Graulandung: ein hoher Scheiterhaufen brennt mitten auf dem dicht gefuellten Versammlungsplatz, ein hagerer gefesselter Mann (der Stille) in den Flammen, ohne Schrei. Auf einer Buehne eine kapuzentragende Gestalt (die oder der Erste), von unten vom Feuer beleuchtet, ein Arm erhoben, mitten in der Rede, das Gesicht hart - 'das reinigende Feuer'. Eine zerlumpte Menge aus Orks, Elfen und Menschen, Gesichter halb Ehrfurcht, halb Furcht. Seitlich eine blasse Elfe (Yssa) reglos im Zentrum des Feuerscheins, die Augen zu hell, ein feiner schimmernder Schleier ueber dem Platz, gezeichnet. Am Rand ein alter Mann (Alde), der sich ins Dunkel abwendet. Funken steigen in den Nebelhimmel, die See schwarz hinter dem Wall. Reinigung und Grauen zugleich. Asche- und Eisengrau, greller Erdton im Brand.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/52b715668862b65c.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 2, Sommer",
+      "zusammenfassung": "Ein Grosser Gluecksfall (Weltereignis 10): ein totgeglaubtes viertes Boot erreicht Graulandung - sechzehn Ueberlebende aus Khar (Volk 213->229, Wehr 76->82), darunter der Bewahrer Eskil Buchwart, Augenzeuge des Falls von Khar, ein alter Gefaehrte Aldes. Der Rat baut die Grundlage: nahes Material (1->2) und Notunterkuenfte fuer die Sechzehn (Wohlstand -1->0), nur das Sichern des Wegs zu den Klippen misslingt knapp. Nach Eskils Warnung haelt die oder der Erste die Rede 'Was uns stark macht' - Setzung 'Das Feuer, das waermt' als Gegengewicht zum reinigenden Feuer (Machtprobe knapp); Alde rueckt ein Stueck zurueck (Loyalitaet 1->2).",
+      "bild": {
+        "anlass": "Das vierte Boot",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle: ein sturmzerschlagenes viertes Langboot strandet im grauen Kies der Bucht von Graulandung, ausgemergelte Ueberlebende kriechen ans Ufer. Das Lager laeuft zusammen, Haende greifen nach Haenden. Im Vordergrund erkennt eine gebeugte alte Frau (Alde) einen alten, hageren Mann (Eskil), der eine schwere ledergebundene Truhe an die Brust presst - ein Wiedersehen. Dahinter der Steinwall der Festung im Sommernebel. Asche- und Eisengrau, ein warmer Erdton der Wiederbegegnung.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/ee611f9ac32b9891.webp"
+      }
+    },
+    {
+      "kapitel": 1,
+      "jahre": "Jahr 2, Herbst",
+      "zusammenfassung": "Das zweite Unglueck in Folge (Weltereignis 2) kriecht ins eigene Haus: der junge Fischer Henk verschwindet am nebligen Waldsaum und kehrt veraendert zurueck - der erste vom Finsteren Beruehrte unter den Gestrandeten (Eskil erkennt die Zeichen aus Khar). Der erste lange Schatten des Finsteren, das durch den verbrannten Stillen die Insel erblickte, liegt nun unter den Lebenden (Lagedruck -1). Die Frage der zwei Feuer wird konkret: ausbrennen oder halten? Hier steht die laufende Partie.",
+      "bild": {
+        "anlass": "Der erste Beruehrte",
+        "bildCacheKey": "",
+        "prompt": "Feldskizze in Tusche und Kohle, gedrueckte Herbstnacht im Lager: ein schmaler junger Mann (Henk) sitzt am Rand des grossen Feuers, doch das Feuer waermt ihn nicht - die Augen einen Hauch zu dunkel, der Blick leer, er friert nicht. Die Umstehenden weichen unmerklich zurueck. Ein alter Bewahrer (Eskil) erkennt mit Entsetzen das Zeichen, eine Hand an der Truhe. Nebel kriecht durchs Torhaus herein. Kaelte trotz Feuer. Asche- und Eisengrau, ein matter, fast erloschener Erdton.",
+        "dataUrl": "examples/demo/die-gestrandeten/bilder/3fc3517e7a0e2a2f.webp"
+      }
+    }
+  ],
+  "offeneFaeden": [
+    "Eisen und Zauber, Hand in Hand: der Rat beschloss einstimmig den Pfad 'Die zwei Lichter' (Setzung). Beide wirken nun nebeneinander, der Riss ist zur Staerke geworden (+1, wenn sie zusammenwirken). Offen bleibt der harte Weg - Zauber IM Eisen, gegen die Wesensart (-2) -, den man spaeter gehen koennte, wenn das Volk tiefe Einigkeit findet; und die Stummen Ringe als ungenutzte, gefuerchtete Quelle starken Zaubers.",
+    "Grask glueht: das Volk will nun kaempfen, sein Drang findet endlich Widerhall.",
+    "Der grosse Schaedelklan ist gebrochen (Beziehung -2): der Haupttross verblutete am Wall, nur versprengte, wilde Banden bleiben im Nebelwald. Im Sommer J2 vertrieb Vesk eine davon, doch die uebrigen halten den Nebel und wissen nun, dass man sie jagt - der Weg zu den Erzklippen bleibt unsicher, der Aussenposten darum vertagt. Rache fuer den Sturm bleibt denkbar.",
+    "Das vierte Boot (Grosser Gluecksfall, Sommer J2): sechzehn Versprengte aus Khar erreichten Graulandung, totgeglaubt - Volk 229, Wehr 82, mit ihnen der Bewahrer Eskil Buchwart, ein Augenzeuge des Finsteren. Ein ungehobener Hebel: Eskils Wissen ueber den fernen Feind erschliessen (Wissen steigt).",
+    "Der Aussenposten am Erz: die Klippen sind frei, der naechste grosse Zug ist ein befestigter Aussenposten am Erz mit gesichertem Spaehweg - loest das knappe Material und naehrt Borins Wurfmaschinen.",
+    "Der Stille ist verbrannt, der Kanal geschlossen (Fruehling J2, Machtprobe 7). Doch im Sterben erblickte das Finstere durch ihn die Insel - der Feind weiss nun, wohin die Gestrandeten entkamen. Was als Reinigung gemeint war, koennte ein Tor gewesen sein.",
+    "Henk, der erwachte Beruehrte (Herbst J2): der behutsame Weg schlug fehl (zwei nat. 1en) - Eskils Lesen und Yssas Schleier weckten ihn statt ihn zu bergen. Henk ist nun ueber Eskils Schwelle, ein offener Kanal des Finsteren, der mit fremder Stimme spricht; er liegt gefesselt und laechelt. Yssas Schleier band ihn statt ihn zu schirmen (sie tiefer gezeichnet, Loy 2). Die Wahl der zwei Feuer ist jetzt Zwang und nicht mehr Theorie: ausbrennen (reinigendes Feuer, Grask draengt, Eskils Urteil stuetzt es) oder weiter halten/binden (Alde, das Feuer das waermt - aber wovor noch retten, wenn der Junge fort ist?). Offen auch: wie weit reicht der Kanal, solange Henk lebt?",
+    "Das Finstere und Yssa: sie hielt am Scheiterhaufen im Zentrum den Schleier und ist seither tiefer gezeichnet - das 'offene Auge' brannte am hellsten. Die Aufmerksamkeit des Finsteren liegt gezielt auf ihr; ihre Gabe ist Schild und Einfallstor zugleich. Wie haelt man das Auge offen, ohne das Finstere hereinzulassen?",
+    "Zwei Feuer in Spannung: 'Das reinigende Feuer' (Haerte, +Eifer/-Gnade) und seit Sommer J2 'Das Feuer, das waermt' (Mut und Zusammenhalt, +1 wenn das Volk furchtlos geeint gegen das Finstere steht). Beide gelten; das Volk muss von Fall zu Fall waehlen, welchem Pol es folgt. Grask zieht zur Haerte, Alde und Eskil zur Waerme - der Richtungsstreit der Identitaet ist nun bespielbar.",
+    "Die Stillen sind provoziert: das gekreuzte Grenzmal hat sie zum zweiten Feind gemacht - Suehne, Ruecksicht oder Krieg?",
+    "Die Stummen Ringe sind unberuehrt; Yssas Pfad zur Magie wartet - und sie fuerchtet, man habe das Falsche geweckt.",
+    "Das Finstere ist nun der erklaerte Feind des Volkes (Setzung 'Das Feuer in der Nacht') - eine Sache, fuer die man noch viel zu schwach ist.",
+    "Knappes Material: die Tuerme haben den Vorrat verbraucht, und der Nachschub aus dem Wald ist nun zu gefaehrlich.",
+    "Alde, das Gewissen des Volkes, war seit dem Scheiterhaufen abgerueckt; die Rede 'Was uns stark macht' und die Rueckkehr ihres alten Gefaehrten Eskil haben sie ein Stueck zurueckgewonnen (Loyalitaet 2). Ganz geschlossen ist der Riss nicht - solange das reinigende Feuer gilt, bleibt sie wachsam.",
+    "Eskil Buchwart, der Bewahrer aus Khar: ein alter Gefaehrte Aldes, der sah, wie das Finstere ueber Khar kam. Sein Wissen ist ungehoben - eine Quelle gegen den fernen Feind und vielleicht ein Trost fuer die abgerueckte Alde."
+  ],
+  "trends": {
+    "nahrung": {
+      "richtung": "steigend",
+      "grund": "Maras Vorraete tragen; trotz sechzehn neuer Muender satt - doch der Winter naht und will gefuellt sein"
+    },
+    "material": {
+      "richtung": "steigend",
+      "grund": "die Erzklippen sind nach dem Sieg frei, das Erz wieder erreichbar; nun koennen Borins Wurfmaschinen wachsen"
+    },
+    "wissen": {
+      "richtung": "gleichbleibend",
+      "grund": "Eskils Truhe ist da, doch der erste Griff danach misslang kritisch und weckte Henk; das Wissen ist gehoben, aber Eskil ist erschuettert und das Lesen erst einmal verbrannt - ein zweiter, ruhigerer Anlauf bleibt moeglich"
+    }
+  },
+  "runde": {
+    "haupt": {
+      "used": 1,
+      "max": 1
+    },
+    "neben": {
+      "used": 2,
+      "max": 2
+    },
+    "aktionen": [
+      {
+        "art": "haupt",
+        "titel": "Eskils Truhe ergruenden",
+        "id": "eskil-truhe-herbst-j2",
+        "kern": "das Wissen ueber das Finstere und die Beruehrten heben",
+        "folge": "kritischer Rueckschlag (nat. 1): das Wissen kam - es gibt eine Schwelle, nach der ein Beruehrter nicht mehr zurueckkommt - doch das Vorlesen weckte mit Yssas Schleier Henk; Eskil erschuettert, kein Wissensgewinn als Wert",
+        "ziel": 5,
+        "mod": 3,
+        "status": "gewaehlt",
+        "wurf": 1,
+        "ergebnis": "kritischer Rueckschlag"
+      },
+      {
+        "art": "neben",
+        "titel": "Henk verhuellen & halten",
+        "id": "henk-verhuellen-herbst-j2",
+        "kern": "Yssas Schleier ueber Henk legen statt Feuer",
+        "folge": "kritischer Rueckschlag (nat. 1): der Schleier verhuellte in beide Richtungen und schloss den fernen Blick mit Henk ein, Yssa als Naht; Henk erwachte und sprach mit der Stimme des Finsteren, Yssa tiefer gezeichnet (Loy 3->2)",
+        "ziel": 4,
+        "mod": 1,
+        "status": "gewaehlt",
+        "wurf": 1,
+        "ergebnis": "kritischer Rueckschlag"
+      },
+      {
+        "art": "neben",
+        "titel": "Die Quelle im Wald suchen",
+        "id": "quelle-wald-herbst-j2",
+        "kern": "Vesk findet, wo es Henk nahm",
+        "folge": "knapp gescheitert (Wurf 3 gegen 4): ein Ring frostgetoeteter Baeume am Waldsaum, Henks Spuren hinein und heraus, eine Kaelte die zurueckblickte - die Tuer gefunden, aber kein Hebel; Vesks dritter Fehlschlag in Folge",
+        "ziel": 4,
+        "mod": 0,
+        "status": "gewaehlt",
+        "wurf": 3,
+        "ergebnis": "knapp gescheitert"
+      }
+    ]
+  },
+  "setzungen": [
+    {
+      "titel": "Wesensart: Aus Vielen geschmiedet",
+      "text": "+2, wo Vielfalt der Talente, Improvisation und Anpassung ans Unbekannte zaehlen. -2, wo tiefe Einigkeit, Tradition oder einmuetiges, geschlossenes Handeln gefragt ist - der Treck ist kein gewachsener Stamm."
+    },
+    {
+      "titel": "Eisen gegen Zauber",
+      "text": "Diese Welt kennt schwache Magie (gefuehrt als Disziplinen) und aufstrebende Technik. Beide stehen in Spannung; Eisen ertoetet nach altem Glauben den Zauber. Welcher Pfad das Volk traegt, ist offen und wird im Spiel entschieden."
+    },
+    {
+      "titel": "Das Finstere",
+      "text": "Ueber der See verschlingt eine gesichtslose Schattenmacht das Festland Khar und greift langsam aus. Sie ist kein Heer, das man schlaegt, sondern ein wachsender Schrecken; Beruehrte kommen veraendert zurueck. Der grosse ferne Schatten ueber der ganzen Partie."
+    },
+    {
+      "titel": "Der Mehrheitsbescheid",
+      "text": "Eingefuehrt in Kapitel 1, Fruehling Jahr 1. Die Gestrandeten entscheiden gemeinsam: jede folgenreiche Frage wird im Rat zur Abstimmung gestellt, es entscheidet die Mehrheit. Der oder die Erste stellt die Frage, stimmt mit und gibt bei Gleichstand den Ausschlag. Ein Veto gegen die Mehrheit bleibt moeglich, kostet aber Loyalitaet, denn es bricht die vereinbarte Ordnung. Zweck: aus dem bruechigen Treck ein Volk mit gemeinsamem Recht machen und jeder Stimme echtes Gewicht geben."
+    },
+    {
+      "titel": "Das Feuer in der Nacht",
+      "text": "Eingefuehrt in Kapitel 1, Herbst Jahr 1, durch die Rede der oder des Ersten im Schnee. Die Gestrandeten verstehen sich als ein Feuer gegen das Finstere: drei Voelker, ein Feind, ein Licht in der Dunkelheit. Wirkung: +1 auf Machtproben, die das Volk gegen das Finstere einen oder zur gemeinsamen Wehr aufrufen. Preis: das Volk ist auf einen Feind eingeschworen, den es noch lange nicht schlagen kann, und Trauer wurde zu Zorn geschmiedet, eine Sorge Aldes."
+    },
+    {
+      "titel": "Die zwei Lichter",
+      "text": "Eingefuehrt in Kapitel 1, am Ende des Winters Jahr 1, per Mehrheitsbescheid (6:0), nach dem Wettstreit der Lichter. Eisen und Zauber wirken bei den Gestrandeten nebeneinander, jedes in seiner Staerke, statt zu streiten oder sich zu verschmelzen: Borins Hand baut, Yssas Auge sieht, und das eine zielt das andere. Wirkung: +1, wenn Eisen und Zauber in einer Sache zusammenwirken (etwa Yssas Fernes Sehen, das Borins Wurfmaschinen oder Grasks Hieb ein Ziel gibt). Der harte Weg - Zauber IM Eisen, gegen die Wesensart (-2) - bleibt fuer spaeter offen, wenn das Volk je tiefe Einigkeit findet. Zweck: aus der Spannung Eisen gegen Zauber eine Staerke machen, ohne die Stummen Ringe zu wecken."
+    },
+    {
+      "titel": "Disziplin: Das Verhuellen",
+      "text": "Eroeffnet in Kapitel 1, Fruehling Jahr 2, durch einen kritischen Gluecksfall (natuerliche 10) beim Ergruenden von Yssas Schrecken. Die erste Disziplin der Gestrandeten, eine schirmende Form der schwachen Magie. Quelle: Aldes Buch aus Khar (begrenzte alte Lehre) und der Zirkel - bewusst NICHT die Stummen Ringe. Anwendungen: einen Sehenden oder das Lager vor fremdem Blick verbergen (schuetzt Yssa vor dem fernen Blick, Gegenzauber zum spuerenden Stillen), +1 bis +2 auf verdeckte und defensive Proben, in denen Verschleierung zaehlt. Preis: zehrt an Yssa und an der begrenzten Lehre des Buches, erfordert ihre Konzentration; mit dem Verhuellen waechst die Versuchung, tiefer zu greifen (die Ringe). Mit 'Die zwei Lichter' wirkt sie neben dem Eisen, nicht darin."
+    },
+    {
+      "titel": "Das reinigende Feuer",
+      "text": "Eingefuehrt in Kapitel 1, Fruehling Jahr 2, durch die oeffentliche Verbrennung des gefangenen Stillen und die Rede der oder des Ersten ueber dem Feuer (Machtprobe gelungen). Aus 'dem Feuer in der Nacht' (einem Licht) wird ein Brand: das Volk versteht das Feuer nun als reinigende Kraft, die die Finsternis und 'das Befleckte' ausbrennt. Wirkung: +1 auf Machtproben, die das Volk in Inbrunst gegen das Finstere aufrufen; aber -1 auf Proben der Gnade, Diplomatie und Zurueckhaltung - die Geschmiedeten halten nicht mehr leicht inne. Preis: das Volk haertet, das Misstrauen gegen alles 'Beruehrte' waechst (auch gegen die eigene Zauberin?), und Alde, das Gewissen, ist abgerueckt. Der Keim, dem zu gleichen, wovor man floh. Steht seit Sommer J2 in Spannung zu 'Das Feuer, das waermt'."
+    },
+    {
+      "titel": "Das Feuer, das waermt",
+      "text": "Eingefuehrt in Kapitel 1, Sommer Jahr 2, durch die Rede 'Was uns stark macht' (Machtprobe knapp gelungen, Marge 0), gestuetzt auf Eskils Augenzeugnis vom Fall Khars. Das bewusste Gegengewicht zum reinigenden Feuer: nicht Haerte schuetzt vor dem Finsteren, sondern Mut und Zusammenhalt - je hoeher Mut und Gemeinschaft der Vielen, desto schwerer findet der Feind ein Tor, denn das Finstere scheut Menschen, die ohne Angst zusammenstehen. Wirkung: +1 auf Machtproben und Verteidigung, in denen das Volk in Mut und Zusammenhalt (ohne Furcht) gegen das Finstere und seine Schergen steht. Spannung: steht gegen 'Das reinigende Feuer' (Haerte gegen Waerme); beide gelten, und das Volk muss von Fall zu Fall waehlen, welchem Pol es folgt - die Asche des Stillen liegt zwischen ihnen. Zweck: Eskils Warnung (Khar wurde dem gleich, wovor es floh) zur bespielbaren Gegenkraft machen und Aldes Mahnung Gewicht im Regelwerk geben."
+    }
+  ],
+  "lebenswelt": {
+    "leben": {
+      "stimmung": "hart und wach, von zwei Feuern bewegt; das vierte Boot hat ein wenig getroestet, doch der erste Beruehrte (Henk) bringt die alte Furcht zurueck",
+      "nahrung": "geraeucherter Fisch, Doerrwild, Wurzeln und Muscheln; seit dem Winter eine Reserve fuers Saatkorn",
+      "trinken": "Quellwasser, heisse Bruehe, sauer Beergebraeu",
+      "glaube": "drei Voelker, drei alte Glauben am gemeinsamen Feuer; daraus wuchsen zwei geteilte Deutungen - 'das reinigende Feuer', das die Finsternis und das Befleckte ausbrennt, und 'das Feuer, das waermt', das durch Mut und Zusammenhalt schuetzt. Das Volk schwankt zwischen Haerte und Waerme",
+      "alltag": "bei Tag Wall, Esse, Netze und der Bau fuer die Geretteten; abends mischen sich am grossen Feuer die Lieder der Voelker - leiser nun, seit der Beruehrte unter ihnen sitzt",
+      "braeuche": [
+        "das grosse Feuer darf nie ausgehen",
+        "Totenwache und Aldes Gedaechtnis der Geflohenen",
+        "folgenreiche Fragen fallen im Mehrheitsbescheid des Rates",
+        "Misstrauen und Wachsamkeit gegen alles vom Finsteren 'Beruehrte', seit dem Stillen"
+      ]
+    },
+    "siedlungen": [
+      {
+        "name": "Graulandung",
+        "hauptstadt": true,
+        "typ": "Hauptstadt",
+        "gegruendet": "Kapitel 1, Jahr 1",
+        "prompt": "Eine Feldskizze in Tusche und Kohle, Stand Herbst im zweiten Jahr: die Festungssiedlung Graulandung in einer grauen Kieselbucht, herbstlicher Nebel statt Schnee. Ein Steinwall mit Wallgraben und schwerem Torhaus, an den Ecken hoelzerne Spaehtuerme; dahinter eng gedraengte, halb eingegrabene Huetten aus Torf, Stein und Bootsplanken, dazu frische, rohe Notunterkuenfte am Wallrand fuer die Neuankoemmlinge, Rauch aus den Daechern. Am Kiesstrand drei ausgeschlachtete Langboote und ein viertes, frisch gestrandetes, sturmzerschlagenes Boot. Im Norden die nun freien schwarzen Erzklippen, im Westen die Wand des Nebelwaldes, im Osten die dunkle See. Ueber dem Lager ein kaum sichtbarer Schleier (die Verhuellung) und eine gedrueckte, wachsame Stimmung. Gedaempftes Asche- und Eisengrau, ein warmer Erdton im Feuerschein.",
+        "lage": "graue Kieselbucht; Erzklippen (frei) im Norden, Nebelwald im Westen, die Schwarze See im Osten",
+        "bauten": [
+          "Steinwall mit Wallgraben",
+          "schweres Torhaus",
+          "Spaehtuerme",
+          "volle Speicher",
+          "die Ratshalle",
+          "Borins Esse",
+          "Huetten aus Torf, Stein und Bootsplanken",
+          "Notunterkuenfte fuer die sechzehn Geretteten (Sommer J2)"
+        ],
+        "versorgung": "geraeucherter Fisch, Doerrwild, Wurzeln, Muscheln; Wasser, heisse Bruehe, sauer Beergebraeu; seit dem Winter eine Reserve fuers Saatkorn",
+        "stimmung": "hart und wach, von zwei Feuern bewegt; eng und von Feinden umstellt, doch satt und gewachsen - und seit dem ersten Beruehrten von neuer Furcht gestreift",
+        "beschreibung": "Arm, eng, von Feinden umstellt - und doch ein Ort, an dem Menschen dreier (nun vierer Boote) Voelker satt am selben Feuer sitzen und sich ein Volk nennen. Orks am Tor, Zunftleute an der Esse, Versorger an den Netzen, der kleine Zirkel der Elfen abseits bei den Klippen, am Wallrand die rohen Huetten der sechzehn Geretteten aus Khar. Seit dem Scheiterhaufen traegt das Lager zwei Feuer in sich - das reinigende und das waermende -, und seit Henk veraendert aus dem Nebel kam, sitzt die Furcht wieder mit am Feuer.",
+        "bild": {
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/07d53df40fc17a39.webp"
+        }
+      }
+    ]
+  },
+  "karte": {
+    "prompt": "Entwickle die vorige Seekarte weiter (die Karte 'fruehling-j2' als Bild-Vorlage nehmen): gleicher Stil - vergilbtes Pergament, Tusche und Kohle, Nebelraender, Kompassrose, Seeungeheuer am Rand -, gleiche Kueste und Orte, doch der Stand des Herbstes im zweiten Jahr, kein Schnee. Veraendert: an den Erzklippen im Norden ist das Klan-Vorlager zerschlagen und verlassen (zerbrochene Knochenbanner), die Klippen nun frei; im Nebelwald nur noch verstreute kleine Banden-Marken statt eines Heeres; in der Bucht von Graulandung liegt nun ein viertes, sturmzerschlagenes Langboot bei den drei alten; ueber dem Lager weiter der zarte Schleier (die Verhuellung); das Grenzmal der Stillen im Westen blutig markiert; und am oestlichen Rand greift der Schatten des Finsteren ueber der Schwarzen See erstmals mit einem duennen, kalten Auslaeufer an die Kueste der Insel selbst (der erste Beruehrte). Herbstliche, gedaempfte Asche- und Eisentoene.",
+    "aktuellerStand": "herbst-j2",
+    "chronik": [
+      {
+        "id": "gruendung-j1",
+        "zeit": "Fruehling Jahr 1",
+        "anlass": "Landung und Gruendung Graulandungs; die nahe Kueste kartiert, das Innere noch weisse Flecken",
+        "basiertAuf": null,
+        "bildCacheKey": "",
+        "prompt": "Alte, vergilbte Seekarte einer unerforschten Insel im grimdunklen Stil, Tusche und Kohle auf Pergament, Nebelraender und weisse unerforschte Flecken. Im Zentrum der Kuestenstreifen Graulandung mit drei gestrandeten Langbooten. Landeinwaerts der dichte, daemmrige Nebelwald (Reich der Stillen und der Schaedelklans). Im Norden schroffe Erzklippen. Im Sueden, im Hoehenland, die Stummen Ringe, alte Steinkreise einer toten Macht. Im Osten, ueber der Schwarzen See, der Horizont gen Khar, aus dem das Finstere kommt: erloeschende Feuer und schwarze Segel. Kompassrose, Seeungeheuer am Kartenrand, gedaempfte Asche- und Eisentoene."
+      },
+      {
+        "id": "fruehling-j2",
+        "zeit": "Fruehling Jahr 2",
+        "anlass": "Klan-Vortrupp an den Erzklippen, das Grenzmal blutig, der Schleier ueber dem Lager, der Sturm auf Graulandung droht",
+        "basiertAuf": "gruendung-j1",
+        "bildCacheKey": "",
+        "prompt": "Entwickle die vorige Seekarte weiter (die fruehere Karte als Bild-Vorlage nehmen): gleicher Stil, gleiche Kueste und Orte, doch der Stand des zweiten Fruehlings. Veraendert: Graulandung deutlicher als Festung; an den Erzklippen ein Klan-Vorlager mit Knochenbannern, umkaempft; Bewegungslinien des Klans aus dem Nebelwald gegen Graulandung; ein zarter Schleier ueber dem Lager (die Verhuellung); das Grenzmal der Stillen blutig markiert; ueber der Schwarzen See der Schatten des Finsteren naeher. Vergilbtes Pergament, Tusche und Kohle, Nebelraender, Kompassrose, Seeungeheuer, Asche- und Eisentoene."
+      },
+      {
+        "id": "herbst-j2",
+        "zeit": "Herbst Jahr 2",
+        "anlass": "Klan zweimal gebrochen und die Klippen frei, das vierte Boot in der Bucht, der erste Beruehrte (Henk) - der Schatten des Finsteren greift erstmals an die Insel",
+        "basiertAuf": "fruehling-j2",
+        "bildCacheKey": "",
+        "prompt": "Entwickle die vorige Seekarte weiter (die Karte 'fruehling-j2' als Bild-Vorlage nehmen): gleicher Stil - vergilbtes Pergament, Tusche und Kohle, Nebelraender, Kompassrose, Seeungeheuer -, gleiche Kueste und Orte, doch der Stand des Herbstes im zweiten Jahr, kein Schnee. Veraendert: an den Erzklippen im Norden ist das Klan-Vorlager zerschlagen und verlassen (zerbrochene Knochenbanner), die Klippen frei; im Nebelwald nur noch verstreute kleine Banden-Marken statt eines Heeres; in der Bucht von Graulandung ein viertes, sturmzerschlagenes Langboot bei den drei alten; ueber dem Lager der zarte Schleier (die Verhuellung); das Grenzmal der Stillen im Westen blutig markiert; am oestlichen Rand greift der Schatten des Finsteren ueber der Schwarzen See erstmals mit einem duennen, kalten Auslaeufer an die Kueste der Insel selbst (der erste Beruehrte). Herbstliche Asche- und Eisentoene."
+      }
+    ],
+    "orte": [
+      {
+        "id": "graulandung",
+        "name": "Graulandung",
+        "typ": "Festungssiedlung am Strand",
+        "richtung": "Zentrum, Kueste",
+        "beziehung": "die Feste der Gestrandeten: Steinwall, Graben, Spaehtuerme; drei beschaedigte Boote am Kies"
+      },
+      {
+        "id": "nebelwald",
+        "name": "der Nebelwald",
+        "typ": "Urwald",
+        "richtung": "landeinwaerts, Westen",
+        "beziehung": "dicht und daemmrig, Reich der Stillen und der Schaedelklans"
+      },
+      {
+        "id": "erzklippen",
+        "name": "die Erzklippen",
+        "typ": "Steilkueste",
+        "richtung": "Norden",
+        "beziehung": "Erzadern; nach dem Sieg am Wall wieder frei, das Erz erreichbar"
+      },
+      {
+        "id": "stumme-ringe",
+        "name": "die Stummen Ringe",
+        "typ": "alte Ruinen",
+        "richtung": "Hoehenland, Sueden",
+        "beziehung": "Steinkreise einer toten Macht, Zauber und Gefahr; bewusst gemieden"
+      },
+      {
+        "id": "schwarze-see",
+        "name": "die Schwarze See gen Khar",
+        "typ": "Meer",
+        "richtung": "Osten, ueber See",
+        "beziehung": "der Weg, den sie kamen; von dort kommt das Finstere, das nun aufmerksamer scheint"
+      },
+      {
+        "id": "grenzmal",
+        "name": "das Grenzmal der Stillen",
+        "typ": "Steinmal",
+        "richtung": "Waldrand, Westen",
+        "beziehung": "Grenze zum Gebiet der Stillen; seit dem gekreuzten Mal blutig markiert, eine Warnung"
+      }
+    ]
+  },
+  "bildChronik": {
+    "macht:schaedelklans": {
+      "aktiv": "54d570f0",
+      "versionen": [
+        {
+          "key": "54d570f0",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262544414,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/28de479aa7087912.webp"
+        }
+      ]
+    },
+    "macht:das-finstere": {
+      "aktiv": "c24aab64",
+      "versionen": [
+        {
+          "key": "c24aab64",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262544698,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/b402f4af7f12ce93.webp"
+        }
+      ]
+    },
+    "macht:eisenkonkordat": {
+      "aktiv": "27f243cf",
+      "versionen": [
+        {
+          "key": "27f243cf",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262544750,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/c23d774b578e904b.webp"
+        }
+      ]
+    },
+    "gruppe:zivilen": {
+      "aktiv": "8d7d1563",
+      "versionen": [
+        {
+          "key": "8d7d1563",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262549778,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/e4022e5548ad317c.webp"
+        }
+      ]
+    },
+    "gruppe:orkschar": {
+      "aktiv": "7f2f9098",
+      "versionen": [
+        {
+          "key": "7f2f9098",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262551868,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/2eb472cf03c3214a.webp"
+        }
+      ]
+    },
+    "macht:die-stillen": {
+      "aktiv": "f17579fe",
+      "versionen": [
+        {
+          "key": "f17579fe",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262554110,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/4f1185dc3bd1d7b9.webp"
+        }
+      ]
+    },
+    "gruppe:zunftleute": {
+      "aktiv": "4b1fac7a",
+      "versionen": [
+        {
+          "key": "4b1fac7a",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262554288,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/2b6ec026257b4853.webp"
+        }
+      ]
+    },
+    "gruppe:spaeher": {
+      "aktiv": "88106f3f",
+      "versionen": [
+        {
+          "key": "88106f3f",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262554537,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/f525468040df8d35.webp"
+        }
+      ]
+    },
+    "gruppe:zirkel": {
+      "aktiv": "fd0df689",
+      "versionen": [
+        {
+          "key": "fd0df689",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262558833,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/40866e7e85a1ec57.webp"
+        }
+      ]
+    },
+    "gruppe:versorger": {
+      "aktiv": "eb4094a5",
+      "versionen": [
+        {
+          "key": "eb4094a5",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262564947,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/98ec24d1afee2482.webp"
+        }
+      ]
+    },
+    "verband:orkschar": {
+      "aktiv": null,
+      "versionen": [
+        {
+          "key": "c638c4a8",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262773877,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/69836872f208ed7d.webp"
+        }
+      ]
+    },
+    "verband:miliz": {
+      "aktiv": "e2a9c11b",
+      "versionen": [
+        {
+          "key": "e2a9c11b",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262780581,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/8d2b315dbca2e0a1.webp"
+        }
+      ]
+    },
+    "verband:spaeher": {
+      "aktiv": "fc4c0ab6",
+      "versionen": [
+        {
+          "key": "fc4c0ab6",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262784322,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/9d04193b4b12f1c1.webp"
+        }
+      ]
+    },
+    "armee": {
+      "aktiv": "e887318b",
+      "versionen": [
+        {
+          "key": "e887318b",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262851956,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/7e9283a4d6c79946.webp"
+        }
+      ]
+    },
+    "berater:borin": {
+      "aktiv": "3b344bde",
+      "versionen": [
+        {
+          "key": "3b344bde",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262969593,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/0570304942453d21.webp"
+        }
+      ]
+    },
+    "berater:vesk": {
+      "aktiv": "960ac26b",
+      "versionen": [
+        {
+          "key": "960ac26b",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262974774,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/fc770ec7af802f53.webp"
+        }
+      ]
+    },
+    "berater:grask": {
+      "aktiv": "5a533806",
+      "versionen": [
+        {
+          "key": "5a533806",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262975212,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/427fb7bf7b0d82df.webp"
+        }
+      ]
+    },
+    "berater:yssa": {
+      "aktiv": "efc16221",
+      "versionen": [
+        {
+          "key": "efc16221",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262976483,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/166913185defa378.webp"
+        }
+      ]
+    },
+    "berater:mara": {
+      "aktiv": "47030c25",
+      "versionen": [
+        {
+          "key": "47030c25",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262989168,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/c3804c5cf76ee44d.webp"
+        }
+      ]
+    },
+    "berater:alde": {
+      "aktiv": "60212fe8",
+      "versionen": [
+        {
+          "key": "60212fe8",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262989471,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/6e76c5bb6dd6739e.webp"
+        }
+      ]
+    },
+    "siedlung:Graulandung": {
+      "aktiv": "fdb383f5",
+      "versionen": [
+        {
+          "key": "fdb383f5",
+          "label": "Stand 1 · Herbst 2",
+          "savedAt": 1780262999132,
+          "dataUrl": "examples/demo/die-gestrandeten/bilder/07d53df40fc17a39.webp"
+        }
+      ]
+    }
+  }
+}

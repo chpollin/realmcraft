@@ -110,7 +110,7 @@ test('campaign index and the static handler still work', async () => {
   assert.equal(r.status, 200);
   assert.equal(r.headers['cache-control'], 'no-store');
   assert.equal(r.json.campaigns[0].id, CID);
-  assert.equal((await get('/spielbrett/index.html')).status, 200);
+  assert.equal((await get('/index.html')).status, 200);
 });
 
 test('only the player view is served, foreign views are fog', async () => {

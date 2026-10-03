@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "spielname": "Die Mehrung",
+    "kapitel": 1,
+    "zeit": { "jahreszeit": "Sommer", "jahr": 2026 },
+    "rundeOffen": true,
+    "weltereignis": "offen",
+    "visualStyle": "Warme, halbprofilige Illustration in gedeckten Farben; eine Finanzwelt als Ratstafel gedacht — Berater als Archetypen des Investierens, ruhig und ernst, mit einem sprechenden Gegenstand je Figur.",
+    "mapStyle": "Isometrische Karte eines 'Vermögens-Reichs': ein sicherer Hafen, ein weiter Börsen-Ozean, eine neonbunte Krypto-Wildnis, ein Goldhort, ein Anleihen-Tal, über allem der graue Nebel der Inflation und am Ausgang ein Zollhaus des Fiskus."
+  },
+  "volk": {
+    "name": "Christian & Christopher",
+    "wesensart": "Aus Daten geschmiedet: +2 auf Züge aus Recherche, Analyse, Geduld und Methode; -2 auf Hype-, Bauch- und FOMO-Entscheidungen.",
+    "ausrichtung": "Aus 50.000 € echtes Vermögen mehren — langfristig, methodisch, mit echten Daten in echter Zeit.",
+    "erscheinung": "Zwei Digital Humanists an einem Schreibtisch: zwei Bildschirme, ein Tabellenblatt, ein Kaffee, viel Neugier und wenig Bauchgefühl.",
+    "region": {
+      "name": "Der Schreibtisch (Eurozone)",
+      "gelaendewerte": [
+        { "key": "Online-Broker / Breitband", "value": 1 },
+        { "key": "Eurozone (EUR)", "value": 0 },
+        { "key": "Zeitknappheit (DH-Brotberuf)", "value": -1 }
+      ]
+    }
+  },
+  "status": {
+    "text": "Christian und Christopher sind drin: 50.000 € in einem makellosen Zug in den breitesten Welt-ETF (SPDR MSCI ACWI IMI). Aus Cash-Hortern sind investierte Anleger mit Plan geworden — am Tag eines leichten Marktrückgangs, eine Spur unter dem Allzeithoch gekauft. Der Preis: kein Notgroschen mehr, voll dem Markt ausgesetzt.",
+    "ansehen": { "stufe": 1, "label": "Eingestiegen — mit Plan" }
+  },
+  "grundgroessen": {
+    "nahrung": 1,
+    "material": 3,
+    "wissen": 3,
+    "bevoelkerung": { "zahl": 2, "label": "Christian & Christopher" }
+  },
+  "lagewerte": {
+    "verteidigung": 0,
+    "mobilitaet": 1,
+    "wohlstand": 1,
+    "ausbeuten": [
+      { "key": "SPDR MSCI ACWI IMI (IE00B3YLTY66)", "value": 50000, "quelle": "flatex, all-in 3.6.2026, TER 0,17 %, thesaurierend — Kostenbasis 50.000 €" }
+    ]
+  },
+  "modifikatoren": {
+    "gelaende": [
+      { "key": "Online-Broker / Breitband", "value": 1 },
+      { "key": "Eurozone (EUR)", "value": 0 },
+      { "key": "Zeitknappheit (DH-Brotberuf)", "value": -1 }
+    ],
+    "lage": [
+      { "key": "100 % in Aktien, kein Puffer", "value": -1, "grund": "All-in in einem Welt-ETF, kein Notgroschen: voll dem Markt ausgesetzt, ein Drawdown trifft ungebremst und ein Cash-Bedarf zwänge zum Verkauf." },
+      { "key": "Breit gestreut (ACWI IMI)", "value": 1, "grund": "Über 8.000 Titel aus Industrie- und Schwellenländern inkl. Small Caps — kein Einzeltitel-, kaum Branchen-Klumpenrisiko (außer der ~64 % US-Gewichtung des Marktes)." },
+      { "key": "flatex.at steuereinfach (AT)", "value": 1, "grund": "Broker führt KESt 27,5 % automatisch ab, auch ausschüttungsgleiche Erträge bei Thesaurierern — keine eigene Steuererklärung nötig." }
+    ]
+  },
+  "faehigkeiten": [
+    "Datenanalyse & Quellenrecherche (Digital Humanities)",
+    "KI-/prompt-gestützte Auswertung",
+    "Methodische Geduld statt Bauchgefühl"
+  ],
+  "gruppen": [
+    { "id": "versorgung", "name": "Sicherheit & Liquidität", "sprecherId": "walda_sparr", "kompetenz": "Notgroschen, Tagesgeld, Festgeld, Puffer gegen Zwangsverkäufe" },
+    { "id": "kapital", "name": "Kern-Portfolio", "sprecherId": "bruno_stein", "kompetenz": "Index/ETF, Qualitätsaktien, Buy & Hold, Compounding" },
+    { "id": "chancen", "name": "Chancen & Wachstum", "sprecherId": "yara_brandt", "kompetenz": "Krypto, Momentum, Wachstumswetten, Hebel" },
+    { "id": "absicherung", "name": "Risiko & Absicherung", "sprecherId": "konrad_falk", "kompetenz": "Makro-Lage, Gold, Hedges, Krisenschutz" },
+    { "id": "abgaben", "name": "Abgaben & Kosten", "sprecherId": "tilla_reuter", "kompetenz": "Steuer/KESt, Gebühren, TER, Recht" },
+    { "id": "disziplin", "name": "Disziplin & Psychologie", "sprecherId": "mira_kuehl", "kompetenz": "Der Plan, Schutz vor FOMO und Panik" }
+  ],
+  "berater": [
+    { "id": "walda_sparr", "name": "Walda Sparr", "rolle": "Sprecherin für Sicherheit & Liquidität", "ziel": "Niemals pleite: erst der Puffer, dann das Wagnis; schläft nur bei vollem Notgroschen.", "loyalitaet": 3, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Warm und rundlich, dicke Strickjacke, hütet ein abgegriffenes Sparbuch wie ein Kleinod; freundliche, misstrauische Augen." },
+    { "id": "bruno_stein", "name": "Bruno Stein", "rolle": "Sprecher fürs Kern-Portfolio (Index/Value, Buy & Hold)", "ziel": "Stures, langweiliges Compounding über Jahrzehnte; verachtet Hektik und Market-Timing.", "loyalitaet": 4, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Massig, ruhig wie ein Fels, liest dicke Geschäftsberichte, spricht langsam und in Jahrzehnten." },
+    { "id": "yara_brandt", "name": "Yara Brandt", "rolle": "Sprecherin für Chancen & Wachstum (Krypto, Momentum)", "ziel": "Das große Ding, Reichtum jetzt; hält Vorsicht für vertane Lebenszeit.", "loyalitaet": 2, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Jung, drei Bildschirme, Neonlicht, Energydrink; redet schnell in Prozenten und Mondphasen." },
+    { "id": "konrad_falk", "name": "Konrad Falk", "rolle": "Sprecher für Risiko & Absicherung (Makro, Gold, Hedges)", "ziel": "Das Vermögen gegen den großen Crash schützen; sieht überall Blasen und Zinsfallen.", "loyalitaet": 3, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Hager und ernst, verfolgt Zinskurven an einer Wand, dreht eine Goldmünze als Talisman." },
+    { "id": "tilla_reuter", "name": "Tilla Reuter", "rolle": "Sprecherin für Abgaben & Kosten (Steuer, Gebühren, Recht)", "ziel": "Dass nach Steuern und Kosten wirklich etwas übrig bleibt; nüchterne Buchhalterin der Wahrheit.", "loyalitaet": 2, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Präzise, randlose Brille, Aktenordner und Taschenrechner; bremst jeden Jubel mit 'und die Steuer?'." },
+    { "id": "mira_kuehl", "name": "Mira Kühl", "rolle": "Sprecherin für Disziplin & Psychologie (der Plan)", "ziel": "Dass Christian und Christopher ihren eigenen Plan nicht aus Angst oder Gier brechen.", "loyalitaet": 4, "generation": "Gründung", "lebensstand": "ruestig", "erscheinung": "Kühle, ruhige Hand, schlichte Kleidung, ein Notizbuch mit 'dem Plan'; lächelt selten, hält den Kurs." }
+  ],
+  "personen": [
+    { "id": "christian", "name": "Christian", "rolle": "Erster — Mit-Lenker des Vermögens", "lebensstand": "ruestig", "erscheinung": "Digital Humanist, mitlenkende Hand am Plan." },
+    { "id": "christopher", "name": "Christopher", "rolle": "Erster — Mit-Lenker des Vermögens", "lebensstand": "ruestig", "erscheinung": "Digital Humanist, mitlenkende Hand am Plan." }
+  ],
+  "maechte": [
+    { "id": "boerse", "name": "Die Börse", "typ": "Markt (Aktien/Indizes)", "erscheinung": "Ein weiter, wetterwendischer Ozean aus Tickern; Bullen und Bären an seinen Ufern.", "profil": [ { "key": "Langfristrendite", "value": 2 }, { "key": "Schwankung", "value": 2 } ], "beziehung": { "wert": 1, "label": "befahren — euer Geld ist an Bord" }, "haltung": "Ihr seid jetzt investiert. Belohnt Geduld über Jahre, bestraft Hektik. Steht 06/2026 auf Rekordhoch (S&P 500 ~7.600, DAX ~24.900), am 3.6. leicht im Rückzug — ihr seid eine Spur unter dem Hoch eingestiegen." },
+    { "id": "krypto", "name": "Die Krypto-Wildnis", "typ": "Wildnis / Frontier", "erscheinung": "Neonland ohne Gesetz; Pfade, die über Nacht erscheinen und verschwinden.", "profil": [ { "key": "Schwankung", "value": 3 }, { "key": "Rendite", "value": 0 } ], "beziehung": { "wert": -1, "label": "verlockend, gefährlich" }, "haltung": "Verspricht Reichtum, nimmt Lehrgeld. 06/2026: Bitcoin unter 70.000 $ gefallen (~67.500 $, −6 %), Ethereum ~1.970 $ — Gegenwind durch Mittelabflüsse. Yara schielt weiter dorthin." },
+    { "id": "hafen", "name": "Der sichere Hafen", "typ": "Institution (Zins, Anleihe, Gold)", "erscheinung": "Stille Mauern, Zinsschalter, Tresore, ein Goldhort; langweilig und warm.", "profil": [ { "key": "Sicherheit", "value": 2 }, { "key": "Rendite", "value": 1 } ], "beziehung": { "wert": 1, "label": "verbündet — aber gerade verlassen" }, "haltung": "Schützt vor dem Sturm, frisst aber an der Inflation. 06/2026: Tagesgeld bis ~3,0 % (AT), Festgeld bis ~3,4 %; Gold ~4.455 $/Unze im Aufwind. Ihr habt den Hafen ganz verlassen — Walda mahnt die Rückkehr für den Notgroschen." },
+    { "id": "inflation", "name": "Der stille Zehrer", "typ": "Naturgewalt / Schatten", "erscheinung": "Kein Gesicht, nur ein langsames Verblassen; jeder ungenutzte Euro wird kleiner.", "profil": [ { "key": "Zehrung p.a. (%)", "value": 2.4 } ], "beziehung": { "wert": -2, "label": "der geduldige Feind" }, "haltung": "Frisst jeden Euro, der still liegt. Gegen euer investiertes Kapital ist sie nun machtlos, solange der Markt über ~2,4 % p.a. trägt — ihr seid ihr vorerst entkommen." },
+    { "id": "fiskus", "name": "Der Fiskus", "typ": "Macht / Institution", "erscheinung": "Ein Zollhaus am Ausgang jedes Gewinns; höflich, geduldig, unausweichlich.", "profil": [ { "key": "KESt Österreich (%)", "value": 27.5 } ], "beziehung": { "wert": 0, "label": "nimmt seinen Teil" }, "haltung": "Nimmt 27,5 % von jedem realisierten Gewinn (Österreich; flatex führt automatisch ab). Thesaurierende Erträge werden jährlich besteuert. Solange ihr haltet und nicht verkauft, bleibt er ruhig." }
+  ],
+  "besitz": [
+    "Depot bei flatex.at: 50.000 € in SPDR MSCI ACWI IMI (IE00B3YLTY66), thesaurierend — eingestiegen 3.6.2026",
+    "Kein Cash-Puffer mehr: Notgroschen offen (Risiko)",
+    "Ein eiserner Sparplan-Vorsatz (monatliche Rate aus dem Einkommen, ab sofort)",
+    "Zwei kluge Köpfe (Digital Humanities) mit Zeitbudget und KI-Werkzeug"
+  ],
+  "verfassung": {
+    "text": "Zwei Erste, ein Vermögen: Christian und Christopher lenken gemeinsam. Sind sie einig, ist es beschlossen; sind sie uneins, hört der Rat, und die Mehrheit der sechs Sprecher gibt den Ausschlag. Kein Euro bewegt sich gegen einen gemeinsamen Plan."
+  },
+  "beziehungenAnsehen": {
+    "text": "Erster Schritt getan: aus Cash-Hortern wurden investierte Anleger. Ansehen Stufe 1 'Eingestiegen — mit Plan'. Wächst weiter mit bewiesener Disziplin und realer Rendite nach Steuern, nicht mit Glückstreffern — der Markt muss die Wette über die Zeit erst bestätigen."
+  },
+  "historie": [
+    { "kapitel": 1, "jahre": "Sommer 2026 –", "zusammenfassung": "Zwei Digital Humanists, Christian und Christopher, legen 50.000 € zusammen, um daraus echtes Vermögen zu mehren — mit echten Daten, in echter Zeit. Am 3. Juni 2026 befragen sie ihren Rat zu ETFs und setzen dann alles auf eine Karte: 50.000 € all-in in den breitesten Welt-ETF (SPDR MSCI ACWI IMI). Ein kritischer Glücksfall (Wurf 10) — makelloser Einstieg, eine Spur unter dem Allzeithoch, und ein eiserner Sparplan als Disziplin geboren. Der Preis: kein Notgroschen mehr." }
+  ],
+  "offeneFaeden": [
+    "Der Notgroschen fehlt: kein Cash-Puffer (Liquidität 1). Walda und Mira drängen, einen Teil zurück in den Hafen (~3 %) zu holen — vor dem nächsten Marktwetter.",
+    "Den eisernen Sparplan einrichten: monatliche Rate, ab wann und wie hoch (aus dem Einkommen)?",
+    "Zielmarke noch offen: Was heißt 'reich'? (Vorschlag: Verdopplung auf 100.000 €.)",
+    "Saison schließen → Herbst 2026: das erste reale Weltereignis (Marktgeschehen Jun–Aug 2026) wird gewürfelt und gedeutet."
+  ],
+  "trends": {
+    "nahrung": { "richtung": "fallend", "grund": "All-in: der Cash-Puffer ist aufgebraucht, kein trockenes Pulver mehr." },
+    "material": { "richtung": "steigend", "grund": "50.000 € voll und breit investiert; Zinseszins und der eiserne Sparplan tragen die Substanz nach oben." },
+    "wissen": { "richtung": "steigend", "grund": "Die Recherche hat sich ausgezahlt; das Verständnis fürs Index-Investieren wächst." }
+  },
+  "runde": {
+    "haupt": { "used": 1, "max": 1 },
+    "neben": { "used": 0, "max": 2 },
+    "aktionen": [
+      { "id": "erste_allokation", "art": "haupt", "titel": "All-in: SPDR MSCI ACWI IMI", "kern": "50k Lump-Sum, ein ETF", "folge": "Alles auf eine Karte: 50.000 € in einem Zug in SPDR MSCI ACWI IMI (IE00B3YLTY66, TER 0,17 %, breiteste Welt-Streuung). Liquidität 5→1, Substanz 0→3.", "ziel": 5, "mod": 1, "status": "gewaehlt", "wurf": 10, "ergebnis": "Kritischer Glücksfall (Wurf 10 +1 = 11 gegen 5, Marge +6). Makelloser Einstieg an einem leichten Rückgangstag (3.6.: S&P −0,14 %, DAX −0,89 %), eine Spur unter dem Allzeithoch. Substanz 0→3, Wohlstand 0→1, Marktwissen 2→3, Ansehen 0→1. Neuer Hebel: die Setzung 'Der eiserne Sparplan'. Loyalität: Stein +2→4, Mira +1→4, Konrad +1→3, Yara +1→2." },
+      { "id": "markt_lesen", "art": "neben", "titel": "Den Markt lesen", "kern": "Recherche, Datenlage, Edge", "folge": "Marktwissen +1; legt offen, wo 06/2026 Chancen und Fallen liegen.", "ziel": 4, "mod": 2, "status": "frei", "wurf": null, "ergebnis": null },
+      { "id": "notgroschen", "art": "neben", "titel": "Den Notgroschen sichern", "kern": "Puffer, Tagesgeld, Sicherheit", "folge": "Risikoschutz +1; einen Cash-Puffer zu ~3 % zurückholen, gegen Zwangsverkäufe in der Panik. Nach dem All-in besonders dringlich.", "ziel": 4, "mod": 0, "status": "frei", "wurf": null, "ergebnis": null },
+      { "id": "sparplan_einrichten", "art": "neben", "titel": "Den eisernen Sparplan einrichten", "kern": "Monatsrate, automatisch", "folge": "Eine feste monatliche Rate (aus dem Einkommen) automatisch in den ACWI IMI — Disziplin statt Timing, glättet die Einstiege. Nutzt den neuen Hebel.", "ziel": 4, "mod": 2, "status": "frei", "wurf": null, "ergebnis": null }
+    ]
+  },
+  "setzungen": [
+    { "titel": "Echte Daten, echte Zeit", "text": "Jeder folgenreiche Zug und jeder Saisonwechsel zieht über Websuche echte, aktuelle Marktdaten (Indizes, Krypto, Gold, Zinsen, EUR/USD) mit Datum und Quelle. Kurse im Spiel sind reale Kurse; Weltereignisse sind echte Wirtschaftsnachrichten der Spielzeit, nicht erfunden. Das ist der Kern dieser Partie." },
+    { "titel": "Eine Saison = ein realer Zeitraum", "text": "Die Zeit folgt dem echten Kalender: Frühling (Mär–Mai), Sommer (Jun–Aug), Herbst (Sep–Nov), Winter (Dez–Feb). Start: Sommer 2026 (Juni). Ein Saisonwechsel zieht frische echte Daten und das reale Marktgeschehen des Zeitraums als Weltereignis (1d10, niedrig schlimm, hoch günstig — gedeutet an der realen Lage)." },
+    { "titel": "Der stille Zehrer (Inflation)", "text": "Solange Kapital unverzinst/cash liegt, nagt die Inflation (~2,4 % p.a., real). Ein stehender Lagedruck, der nur durch Anlage mit Rendite über der Inflationsrate geschlagen wird. Investiertes, wachsendes Kapital entkommt ihm." },
+    { "titel": "Nach Steuern zählt (Fiskus)", "text": "Realisierte Gewinne werden mit KESt 27,5 % belastet (Österreich; flatex.at führt automatisch ab, auch ausschüttungsgleiche Erträge bei Thesaurierern). Laufende Kosten (TER, Spesen, Spreads) zählen gegen die Rendite. Im Winter, zum Jahresabschluss, hält der Fiskus die Hand auf." },
+    { "titel": "Aus Daten geschmiedet (Wesensart)", "text": "+2 auf Züge, die auf Recherche, Analyse, Geduld und Methode beruhen; -2 auf Hype-, Bauch- und FOMO-getriebene Züge. Die Stärke der zwei Datenköpfe ist Methodik, ihre Schwäche der schnelle Reflex." },
+    { "titel": "Reich werden = das Kapitel-Ziel", "text": "Was 'reich' heißt, setzen Christian und Christopher selbst als Zielmarke (offener Faden). Vorschlag für Kapitel 1: die erste reale Verdopplung auf 100.000 €, oder eine bewusst gewählte Jahresrendite nach Steuern. Bis die Marke steht, ist sie offen." },
+    { "titel": "Der eiserne Sparplan", "text": "Aus dem kritischen Glücksfall der ersten Allokation (Wurf 10) geborener Hebel: ab sofort fließt eine feste monatliche Rate (aus dem Einkommen, nicht aus den 50k) automatisch in den Welt-ETF. Regelmäßiges Kaufen glättet das Timing und macht das Vermögen widerstandsfähig gegen Schwankungen; gibt +1 auf künftige Substanz- und Compounding-Züge, solange der Plan diszipliniert gehalten wird." }
+  ],
+  "karte": {
+    "prompt": "Isometrische Fantasy-Karte eines 'Vermögens-Reichs', warm und gedeckt: links ein ummauerter sicherer Hafen mit Tresoren, Zinsschalter und einem leuchtenden Goldhort; in der Mitte ein weiter, wetterwendischer Börsen-Ozean mit Bullen- und Bären-Ufern und einer Skyline aus Tickern; rechts eine neonbunte, gesetzlose Krypto-Wildnis mit Pfaden, die ins Nichts führen; ein grünes Anleihen-Tal; über allem ein grauer, gesichtsloser Nebel (die Inflation), der die Ränder verblassen lässt; am unteren Ausgang ein höfliches Zollhaus (der Fiskus). Im Vordergrund zwei Reisende, deren Karren leer ist — ihr Gold ist hinaus auf den Börsen-Ozean verladen, ein einzelnes breit besegeltes Schiff fährt davon.",
+    "aktuellerStand": "Sommer 2026: All-in. Der Hafen ist verlassen, das ganze Vermögen segelt als ein breites Schiff (ACWI IMI) auf dem Börsen-Ozean.",
+    "orte": [
+      { "id": "hafen_ort", "name": "Der sichere Hafen", "typ": "Hafen / Tresor", "richtung": "Heimat", "beziehung": "Verlassen: kein Cash mehr hier. Walda mahnt die Rückkehr für den Notgroschen." },
+      { "id": "boerse_ort", "name": "Der Börsen-Ozean", "typ": "offene See", "richtung": "Mitte", "beziehung": "Hier segelt nun euer ganzes Vermögen (ACWI IMI), eingestiegen knapp unter dem Rekordhoch." },
+      { "id": "krypto_ort", "name": "Die Krypto-Wildnis", "typ": "Frontier", "richtung": "Osten", "beziehung": "Verlockend, gefährlich; Bitcoin unter 70k gefallen." },
+      { "id": "goldhort_ort", "name": "Der Goldhort", "typ": "Schatzkammer", "richtung": "im Hafen", "beziehung": "Im Aufwind (~4.455 $/Unze), Krisenschutz — Konrads Wunsch fürs Beiboot." },
+      { "id": "fiskus_ort", "name": "Das Zollhaus des Fiskus", "typ": "Zollstation", "richtung": "Ausgang", "beziehung": "Ruhig, solange ihr haltet; nimmt 27,5 % erst bei realisiertem Gewinn." }
+    ]
+  }
+}

@@ -27,8 +27,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'node serve.mjs',
-    // The root has no page of its own, and Playwright waits for a 2xx or 3xx.
-    url: `${baseURL}/spielbrett/`,
+    url: baseURL,
     env: { PORT: String(PORT) },
     reuseExistingServer: false,
     timeout: 30_000,
