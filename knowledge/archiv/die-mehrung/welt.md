@@ -4,10 +4,9 @@ project:
   name: RealmCraft
 method: Promptotyping
 created: 2026-06-03
-updated: 2026-06-03
+updated: 2026-10-03
 language: de
 partie: Die Mehrung
-related: ["[[INDEX]]", "[[chronik-mehrung]]"]
 ---
 
 # Die Welt der Mehrung
@@ -32,4 +31,4 @@ Ein sicherer Hafen mit Tresoren und Goldhort (Heimat, Start: 50.000 € Cash); e
 - **Zins/Hafen:** Tagesgeld bis ~3,0 % (AT, steuereinfach), Festgeld bis ~3,4 %; ECB vorsichtig, Inflation ~2,4 %.
 - **Währung:** EUR/USD Richtung 1,20–1,22 erwartet.
 
-Quellen siehe Logbuch in [chronik-mehrung.md](chronik-mehrung.md).
+Quellen siehe Logbuch in [chronik.md](chronik.md).

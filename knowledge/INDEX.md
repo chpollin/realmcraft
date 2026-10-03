@@ -8,75 +8,89 @@ method:
   url: https://dhcraft.org/Promptotyping/
 status: active
 created: 2026-05-31
-updated: 2026-06-04
+updated: 2026-10-03
 language: de
-kampagnen: ["Die letzten Wälle", "Die Gestrandeten", "Die Mehrung"]
-related: ["[[chronik-letzte-waelle]]", "[[regeln-letzte-waelle]]", "[[rat-letzte-waelle]]", "[[welt-letzte-waelle]]", "[[chronik-gestrandete]]", "[[regeln-gestrandete]]", "[[rat-der-gestrandeten]]", "[[welt-gestrandete]]", "[[chronik-mehrung]]", "[[regeln-mehrung]]", "[[rat-mehrung]]", "[[welt-mehrung]]"]
+kampagnen: ["Der Löwe und die Sonne", "Talustan", "Die Gestrandeten", "Die letzten Wälle"]
 ---
 
 # Wissensbasis, Navigation und Begriffslexikon
 
-Dieser Ordner ist das verdichtete Gedächtnis der laufenden Partien. Er erfüllt zwei Zwecke zugleich: lesbare Chronik für den Menschen und gezielt nachschlagbarer Kontext für den Spielleiter (das Sprachmodell oder Claude Code, das die Partie führt). RealmCraft ist das kampagnenunabhängige System; die jeweilige Partie ist eine laufende Geschichte darin.
+Dieser Ordner ist das verdichtete Gedächtnis der Spielleiterpartien, lesbar für Menschen und gezielt nachschlagbar für den Spielleiter. RealmCraft ist das kampagnenunabhängige System, jede Partie eine laufende Geschichte darin. Den Zahlenstand jetzt führt der Speicherstand, das Gedächtnis hier trägt Zusammenhang und Begründung über die Zeit.
 
-## Kampagnen-Übersicht (Multi-Partie-Hub)
+## Aufbau
 
-RealmCraft führt derzeit **drei Partien parallel**. Es ist immer genau eine in `savegame.json` geladen (die aktuell aktive); die übrigen sind pausiert und liegen als Backup in `examples/`. Welche aktiv ist, erkennt man an `meta.spielname` in `savegame.json`.
+- `welten/<welt>/` enthält wiederverwendbare Spielwelten, die mehrere Partien tragen können. Derzeit liegt dort [Die Schwarzkämme](welten/schwarzkaemme/WELT.md) mit den ausgearbeiteten Republiken [Talustan](welten/schwarzkaemme/republiken/talustan.md) und [Nochtien](welten/schwarzkaemme/republiken/nochtien.md) sowie der [Vorlage für weitere Republiken](welten/schwarzkaemme/_template.md).
+- `partien/<partie>/` enthält das Gedächtnis je laufender oder pausierter Partie, in der Regel `chronik.md` (Bogen, Kapitel, offene Fäden), `regeln.md` (Setzungen), `rat.md` (Figuren und Bögen) und `welt.md` (Orte und Mächte, sofern die Partie keine gemeinsame Welt nutzt).
+- `archiv/<partie>/` enthält abgeschlossene oder zurückgelegte Partien.
 
-| Partie | Status | Stand | Gedächtnis | Backup |
-|---|---|---|---|---|
-| **Die letzten Wälle** (Wikinger / Horror) | **aktuell geladen** (`savegame.json`) | Kapitel 1, Sommer Jahr 7 | [chronik-letzte-waelle.md](chronik-letzte-waelle.md) · [regeln-letzte-waelle.md](regeln-letzte-waelle.md) · [rat-letzte-waelle.md](rat-letzte-waelle.md) · [welt-letzte-waelle.md](welt-letzte-waelle.md) | — (frische Partie, noch kein Backup) |
-| **Die Gestrandeten** (Fantasy) | pausiert | Kapitel 2, Sommer Jahr 8 | [chronik-gestrandete.md](chronik-gestrandete.md) · [regeln-gestrandete.md](regeln-gestrandete.md) · [rat-der-gestrandeten.md](rat-der-gestrandeten.md) · [welt-gestrandete.md](welt-gestrandete.md) | [`examples/die-gestrandeten-LIVE-backup-2026-06-03.json`](../examples/die-gestrandeten-LIVE-backup-2026-06-03.json) |
-| **Die Mehrung** (Finanz-Strategie) | pausiert | Kapitel 1, Sommer 2026 | [chronik-mehrung.md](chronik-mehrung.md) · [regeln-mehrung.md](regeln-mehrung.md) · [rat-mehrung.md](rat-mehrung.md) · [welt-mehrung.md](welt-mehrung.md) | [`examples/die-mehrung-LIVE-backup-2026-06-04.json`](../examples/die-mehrung-LIVE-backup-2026-06-04.json) |
+Die ausführlich erzählten Fassungen früherer Chroniken liegen in der Git-Historie.
 
-Alle Partien sind **nicht abgeschlossen, nur die jeweils pausierten ruhen** — ihr Gedächtnis bleibt vollständig und ist jederzeit wieder aufnehmbar. Die abgeschlossene erste Partie *Die Karren* liegt unter [archiv/die-karren/](archiv/die-karren/).
+## Partien
 
-## Partie-Details: **Die letzten Wälle** (Wikinger / Horror, aktuell geladen)
+Geladen ist immer genau eine Partie, die in `savegame.json` steht. Welche das ist, zeigt `meta.spielname`. Derzeit ist dort „Der Löwe und die Sonne" geladen. Pausierte Partien liegen als datiertes Backup in `examples/` und sind jederzeit wieder aufnehmbar.
 
-Eine düster-realistische Nordländer-Partie. **Vargvik**, die Wolfsbucht am Vargfjord, hält seit sieben Jahren gegen die **Wiedergänger** und lebt nur noch vom Fisch. Spielerfigur ist **Philipp mit den schwarzen Locken**, Hauptmann der Wache (Wesensart *Unbeugsam hinter der Mauer*: +2 Verteidigung / −2 nach außen). Magie gibt es nur als **Kunst** — Witcher-artige Alchemie und Geisterzwiesprache weniger Eingeweihter, in Vargvik gehütet von Philipps Bruder **Christopher**; sie ist zugleich der verdächtige Ursprung der Pest. Philipps **Familienkern** (Brüder Christopher & Stephan, Söhne Finn & Felix) ist hochloyal; die Reibung kommt aus den Stadt-Fraktionen (Jarl Harald, Brandr, Halla, Gríma). Kern: die Stadt halten **und** den Ursprung verstehen, um einen Ausweg zu finden. Hintergrundfiguren für später: **Auðun der Krähenmantel** (forschender Druide am Kai) und **Ragnars Clan** (befreundeter Stamm, unterwegs). Gedächtnis siehe Tabelle oben; Zahlenstand in `savegame.json`. Lesereihenfolge: [chronik-letzte-waelle.md](chronik-letzte-waelle.md) → [regeln-letzte-waelle.md](regeln-letzte-waelle.md) → [rat-letzte-waelle.md](rat-letzte-waelle.md) / [welt-letzte-waelle.md](welt-letzte-waelle.md).
+| Partie | Genre | Welt | Status | Stand | Gedächtnis | Neuestes Backup in `examples/` |
+|---|---|---|---|---|---|---|
+| Der Löwe und die Sonne | historisch, Iran ab 1800 | eigene, [welt.md](partien/loewe-und-sonne/welt.md) | geladen | Kapitel 1, Frühling 1800 | [partien/loewe-und-sonne/](partien/loewe-und-sonne/chronik.md) | noch keines, Stand nur in `savegame.json` |
+| Talustan | Near-Future-Dystopie | [Die Schwarzkämme](welten/schwarzkaemme/WELT.md) | pausiert | Kapitel 1, Sommer 2051 | [partien/talustan/](partien/talustan/partie.md) | [talustan-LIVE-backup-2026-07-23.json](../examples/talustan-LIVE-backup-2026-07-23.json) |
+| Die Gestrandeten | Fantasy | eigene, [welt.md](partien/gestrandete/welt.md) | pausiert | Kapitel 2, Sommer Jahr 8 | [partien/gestrandete/](partien/gestrandete/chronik.md) | [die-gestrandeten-LIVE-backup-2026-06-09.json](../examples/die-gestrandeten-LIVE-backup-2026-06-09.json) |
+| Die letzten Wälle | Wikinger, Horror | eigene, [welt.md](partien/letzte-waelle/welt.md) | pausiert | Kapitel 1, Sommer Jahr 7 | [partien/letzte-waelle/](partien/letzte-waelle/chronik.md) | [die-letzten-waelle-LIVE-backup-2026-06-05.json](../examples/die-letzten-waelle-LIVE-backup-2026-06-05.json) |
+| Die Mehrung | Finanz-Strategie mit echten Marktdaten | eigene, [welt.md](archiv/die-mehrung/welt.md) | archiviert | Kapitel 1, Sommer 2026 | [archiv/die-mehrung/](archiv/die-mehrung/chronik.md) | [die-mehrung-LIVE-backup-2026-06-04.json](../examples/die-mehrung-LIVE-backup-2026-06-04.json) |
+| Die Karren | Fantasy, Aufbau eines Bergvolks | eigene, [welt.md](archiv/die-karren/welt.md) | archiviert | Kapitel 4, Frühling Jahr 19 | [archiv/die-karren/](archiv/die-karren/INDEX.md) | [die-karren-kapitel-4.json](../examples/die-karren-kapitel-4.json) |
 
-## Partie wechseln
-
-Wechsel-Protokoll (Dashboard aktualisiert sich danach per Live-Reload):
-
-1. Aktuelle Partie an `meta.spielname` in `savegame.json` erkennen.
-2. **Vor dem Überschreiben** den aktuellen Stand als neues datiertes Backup in `examples/` sichern (`examples/<partie>-LIVE-backup-<datum>.json`).
-3. Das gewünschte Backup nach `savegame.json` kopieren — PowerShell: `Copy-Item examples/<partie>-LIVE-backup-<datum>.json savegame.json`, bash: `cp examples/<partie>-LIVE-backup-<datum>.json savegame.json`.
-
-Danach gilt das partie-spezifische Gedächtnis (oben verlinkt); für den Zahlenstand `savegame.json`.
-
-## Partie-Details: **Die Mehrung** (Finanz-Strategie, pausiert)
-
-Christian und Christopher, zwei Digital Humanists, mehren 50.000 € zu echtem Vermögen — **mit echten Daten in echter Zeit**. Statt eines Fantasy-Volks führt der Rat hier sechs Investment-Archetypen; statt Feinden vor den Toren stehen Börse, Krypto, sicherer Hafen, der stille Zehrer (Inflation) und der Fiskus. Der maschinenlesbare Zustand jetzt steht in `savegame.json` im Repo-Root.
-
-| Dokument | Funktion | Wann nachschlagen |
-|---|---|---|
-| [chronik-mehrung.md](chronik-mehrung.md) | Die Geschichte Saison für Saison + Logbuch der echten Marktdaten | wo die Partie steht, was als Nächstes ansteht, welche Kurse galten |
-| [regeln-mehrung.md](regeln-mehrung.md) | Die Setzungen dieser Partie (echte Daten, Inflation, Fiskus, Wesensart) | wie in dieser Partie entschieden wird |
-| [rat-mehrung.md](rat-mehrung.md) | Der Rat: die sechs Berater-Archetypen, Ziele, Reibungen | wer was will, woran sich die Stimmen entzünden |
-| [welt-mehrung.md](welt-mehrung.md) | Die Mächte (Anlageklassen) und das „Vermögens-Reich" als Karte | Marktlage, Nachbarn, Karte |
+Talustan führt statt der vier Partiedokumente ein Aufstellungsdokument, [partie.md](partien/talustan/partie.md). Seine Setzungen stehen bisher nur im Speicherstand unter `setzungen`. Die Karren führen ihre Figuren in `personen.md` statt `rat.md` und haben ein eigenes [INDEX](archiv/die-karren/INDEX.md).
 
 ## Lesereihenfolge für den Spielleiter
 
-Zuerst [chronik-mehrung.md](chronik-mehrung.md) (wo stehen wir und welche Daten galten), dann [regeln-mehrung.md](regeln-mehrung.md) (wie entscheidet diese Partie), dann [rat-mehrung.md](rat-mehrung.md) und [welt-mehrung.md](welt-mehrung.md) nach Bedarf. Für den aktuellen Zahlenstand `savegame.json` laden. **Wichtig:** Diese Partie verlangt vor jedem folgenreichen Zug echte, aktuelle Marktdaten per Websuche (siehe Setzung „Echte Daten, echte Zeit").
+1. [`docs/Spielmechanik.md`](../docs/Spielmechanik.md), die bindende Grundmechanik.
+2. Dieses INDEX, um über `meta.spielname` in `savegame.json` die geladene Partie und ihren Gedächtnisordner zu finden.
+3. Die `chronik.md` der Partie (wo sie steht, warum, welche Fäden offen sind), danach ihre `regeln.md` (die Setzungen). Für Talustan stattdessen [partie.md](partien/talustan/partie.md) und die Setzungen im Speicherstand.
+4. Nach Bedarf `rat.md` und `welt.md`, bei einer Partie in einer gemeinsamen Welt die Dokumente unter `welten/`.
+5. Für den Zahlenstand `savegame.json`. Bei Widerspruch gilt der Speicherstand für Zahlenwerte, das Gedächtnis für Zusammenhang und Begründung.
 
-## Partie-Details: Die Gestrandeten (Fantasy, aktuell geladen)
+Eine neue Setzung gehört in die `regeln.md` der jeweiligen Partie unter `partien/<partie>/`. Für Talustan entsteht diese Datei mit der ersten neu vereinbarten Setzung.
 
-Die Fantasy-Partie *Die Gestrandeten* ist die derzeit in `savegame.json` geladene, aktive Partie (Kapitel 2, Sommer Jahr 8). Ihr Gedächtnis:
+## Partie wechseln
 
-- [welt-gestrandete.md](welt-gestrandete.md) · [chronik-gestrandete.md](chronik-gestrandete.md) · [regeln-gestrandete.md](regeln-gestrandete.md) · [rat-der-gestrandeten.md](rat-der-gestrandeten.md)
-- Letzter Live-Stand gesichert in [`examples/die-gestrandeten-LIVE-backup-2026-06-03.json`](../examples/die-gestrandeten-LIVE-backup-2026-06-03.json).
+Das Dashboard aktualisiert sich nach jedem Schritt per Live-Reload.
 
-## Begriffslexikon (Die Mehrung)
+1. Die geladene Partie an `meta.spielname` in `savegame.json` erkennen.
+2. Vor dem Überschreiben den aktuellen Stand als neues datiertes Backup sichern, `examples/<partie>-LIVE-backup-<datum>.json`. Der Dateiname nutzt das Präfix der bisherigen Backups dieser Partie (Tabelle oben), das vom Ordnernamen unter `partien/` abweichen kann.
+3. Das gewünschte Backup nach `savegame.json` kopieren, in PowerShell mit `Copy-Item examples/<partie>-LIVE-backup-<datum>.json savegame.json`, in bash mit `cp examples/<partie>-LIVE-backup-<datum>.json savegame.json`.
+4. Das Gedächtnis der neuen Partie über die Tabelle lesen.
 
-Skalen gelten für die Anzeige im Dashboard. Die Grundmechanik steht in [`docs/Spielmechanik.md`](../docs/Spielmechanik.md), das Speicherstand-Format in [`docs/Speicherstand-Format.md`](../docs/Speicherstand-Format.md).
+## Grundbegriffe
 
-- **Grundgrößen** (ganze Zahlen 0–5), hier umgedeutet auf den Vermögensaufbau: **Nahrung = Liquidität** (trockenes Pulver / Cash-Puffer), **Material = Substanz** (produktiv angelegtes Vermögen), **Wissen = Marktwissen** (Recherche, Edge). Das echte Euro-Vermögen führt `lagewerte.ausbeuten` als Geld-Ledger; die Grundgrößen sind die abstrakten Kapazitäten dahinter.
-- **Lagewerte** (−2 bis +3): **Verteidigung = Risikoschutz/Drawdown-Puffer**, **Mobilität = Handlungsfähigkeit/Agilität**, **Wohlstand = Rendite-Lage**.
-- **Wesensart**: „Aus Daten geschmiedet" — +2 auf Recherche/Analyse/Geduld, −2 auf Hype/Bauch/FOMO. Siehe [regeln-mehrung.md](regeln-mehrung.md).
-- **Ansehen** (0–3): Ruf am Markt; wächst mit bewiesener Disziplin und realer Rendite nach Steuern, nicht mit Glückstreffern. Start: 0 „Frischlinge mit Plan".
-- **Loyalität** (−5 bis +5): Bindung eines Beraters; aktuelle Werte im Speicherstand.
-- **Macht / Beziehung**: eine Anlageklasse oder Marktkraft (Börse, Krypto, Hafen) bzw. ein Gegenspieler (Inflation, Fiskus), label-geführt mit Zahlenanker.
-- **Der stille Zehrer**: die Inflation (~2,4 % p.a.) — der ferne, geduldige Feind dieser Partie, Analog zum „Finsteren". Frisst jeden Euro, der still liegt.
-- **Der Fiskus**: nimmt KESt 27,5 % (Österreich, anpassbar) von jedem realisierten Gewinn; tritt im Winter (Jahresabschluss) auf — der „Lebenswurf" dieser Partie.
-- **Runde / Saison / Weltereignis**: Eine Saison = ein realer Zeitraum (Frühling Mär–Mai, Sommer Jun–Aug, Herbst Sep–Nov, Winter Dez–Feb). Der Saisonwechsel zieht echte Daten und das reale Marktgeschehen als Weltereignis.
-- **Setzung**: eine in dieser Partie vereinbarte Sonderregel. Siehe [regeln-mehrung.md](regeln-mehrung.md).
+Die Skalen gelten für die Anzeige im Dashboard. Die Grundmechanik steht in [`docs/Spielmechanik.md`](../docs/Spielmechanik.md), das Speicherstand-Format in [`docs/Speicherstand-Format.md`](../docs/Speicherstand-Format.md). Einzelne Partien deuten die Größen um, etwa Talustan (siehe [partie.md](partien/talustan/partie.md)).
+
+### Grundgrößen
+
+Ganze Zahlen von 0 bis 5 für die abstrakten Kapazitäten des Volkes, Nahrung, Material und Wissen.
+
+### Lagewerte
+
+Verteidigung, Mobilität und Wohlstand auf der Skala −2 bis +3.
+
+### Wesensart
+
+Der charakterprägende Modifikator eines Volkes, +2 auf Passendes, −2 auf Widerstrebendes.
+
+### Ansehen
+
+Der Ruf auf der Skala 0 bis 3. Er wächst mit bewiesener Leistung.
+
+### Loyalität
+
+Die Bindung eines Beraters auf der Skala −5 bis +5. Aktuelle Werte stehen im Speicherstand.
+
+### Macht und Beziehung
+
+Eine äußere Kraft oder ein Gegenspieler, geführt mit Label und Zahlenanker.
+
+### Runde, Saison und Weltereignis
+
+Zeit rückt nur auf Saison-Turns vor und löst dann genau ein Weltereignis aus (1d10).
+
+### Setzung
+
+Eine in einer Partie vereinbarte Sonderregel. Sie gehört in die `regeln.md` der jeweiligen Partie.

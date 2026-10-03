@@ -7,7 +7,6 @@ created: 2026-06-03
 updated: 2026-06-03
 language: de
 partie: Die Mehrung
-related: ["[[INDEX]]", "[[chronik-mehrung]]", "[[regeln-mehrung]]"]
 ---
 
 # Der Rat der Mehrung

@@ -31,21 +31,21 @@ RealmCraft wird auf zwei gleichwertigen Wegen gespielt:
 Bevor du eine Partie führst oder fortsetzt, lies in dieser Reihenfolge:
 
 1. `docs/Spielmechanik.md`, die vollständige Mechanik. Sie ist bindend.
-2. `knowledge/INDEX.md`, die Navigation der Wissensbasis. Es nennt die Dokumente der laufenden Partie (Chronik, Regeln, Welt, Personen) und verlinkt sie; die Dateinamen sind partie-spezifisch, darum gehst du immer über das INDEX statt über feste Namen. Die ältere, abgeschlossene Partie liegt unter `knowledge/archiv/`.
-3. Über das INDEX die Chronik (wo die Partie steht und warum) und die Regeln (die Setzungen, also die vereinbarten Sonderregeln). Welt und Personen nach Bedarf.
+2. `knowledge/INDEX.md`, die Navigation der Wissensbasis. Es nennt je Partie den Gedächtnisordner unter `knowledge/partien/<partie>/` (Chronik, Regeln, Rat, Welt), die gemeinsamen Spielwelten unter `knowledge/welten/` und die abgeschlossenen Partien unter `knowledge/archiv/`. Geh immer über das INDEX, weil Ordnernamen und Backup-Präfixe partie-spezifisch sind.
+3. Im Gedächtnisordner der Partie die `chronik.md` (wo die Partie steht und warum) und die `regeln.md` (die Setzungen, also die vereinbarten Sonderregeln). `rat.md` und `welt.md` nach Bedarf, bei einer gemeinsamen Welt auch deren Dokumente unter `knowledge/welten/`.
 4. Den aktuellen Speicherstand: `savegame.json` im Repo-Root, falls vorhanden (die geladene Partie). Sonst den jüngsten Stand aus `examples/`.
 
 Der Speicherstand ist der Zustand jetzt, die `knowledge/`-Dokumente sind das Gedächtnis über die Zeit. Bei Widerspruch gewinnt der Speicherstand für Zahlenwerte, das Gedächtnis für Zusammenhang und Begründung.
 
 ## Mehrere Partien (Multi-Partie-Hub)
 
-Es kann **mehrere Partien** parallel geben (eine geladen/aktiv, die übrigen pausiert). `savegame.json` enthält immer genau die gerade geladene Partie; welche das ist, erkennst du an `meta.spielname`. Die Navigation aller Partien — geladen wie pausiert, mit ihren `knowledge/`-Dokumenten und Backups — steht im Multi-Partie-Hub in `knowledge/INDEX.md`. Lies das INDEX, bevor du annimmst, welche Partie läuft.
+Es kann **mehrere Partien** parallel geben (eine geladen/aktiv, die übrigen pausiert). `savegame.json` enthält immer genau die gerade geladene Partie; welche das ist, erkennst du an `meta.spielname`. Die Navigation aller Partien, geladen, pausiert und archiviert, mit Gedächtnisordner und neuestem Backup, steht im Multi-Partie-Hub in `knowledge/INDEX.md`. Lies das INDEX, bevor du annimmst, welche Partie läuft.
 
 So wechselst du zwischen Partien:
 
-1. Erst den aktuellen Stand sichern: `savegame.json` als neues dated Backup nach `examples/` kopieren (`examples/<partie>-LIVE-backup-<datum>.json`, PowerShell `Copy-Item`).
+1. Erst den aktuellen Stand sichern: `savegame.json` als neues datiertes Backup nach `examples/` kopieren (`examples/<partie>-LIVE-backup-<datum>.json`, PowerShell `Copy-Item`). Das Präfix folgt den bisherigen Backups der Partie, wie sie die Tabelle im INDEX nennt.
 2. Dann das gewünschte Backup nach `savegame.json` kopieren (`Copy-Item examples/<partie>-LIVE-backup-<datum>.json savegame.json`). Das Dashboard aktualisiert sich per Live-Reload.
-3. Beim Fortsetzen die zur neuen Partie gehörenden `knowledge/`-Dokumente über das INDEX lesen (jede Partie hat eigene Chronik, Regeln, Welt, Personen).
+3. Beim Fortsetzen den Gedächtnisordner der neuen Partie unter `knowledge/partien/<partie>/` über das INDEX lesen (jede Partie hat eigene Chronik, Regeln, Rat und Welt).
 
 ## Wie du Spielleiter bist
 
@@ -64,7 +64,7 @@ Folge der Rolle aus `docs/Spielmechanik.md`. Das Wichtigste:
 Im Terminal-Modus sind die Dateien der Wahrheitsstand, nicht der Chatverlauf. Nach einem Zug, der den Zustand ändert:
 
 1. **Speicherstand fortschreiben.** Schreibe den vollständigen, schema-konformen Stand nach `savegame.json` im Repo-Root (reines JSON, der kanonische Block). Das Dashboard lädt diese Datei und spiegelt sie live. Halte dich an `schema/savegame.schema.json` und `docs/Speicherstand-Format.md`. Führe die neuen Felder mit: `trends` je Grundgröße, `runde` mit dem Aktionsbrett, `lebensstand` je Berater und Person.
-2. **Gedächtnis pflegen, wenn es trägt.** Bei einem Kapitelwechsel oder einem prägenden Ereignis ergänze die Chronik der Partie. Bei einer neuen oder geänderten Sonderregel pflege die Regeln. Bei Tod, Nachfolge oder einem deutlichen Loyalitätsbogen pflege die Personen. Welche Datei das je ist, steht im `knowledge/INDEX.md`; halte das INDEX aktuell, wenn du ein Dokument anlegst oder umbenennst. Halte diese Dokumente verdichtet (Distillation: maximale Information, minimale Tokens), keine Episodenprotokolle.
+2. **Gedächtnis pflegen, wenn es trägt.** Bei einem Kapitelwechsel oder einem prägenden Ereignis ergänze die Chronik der Partie. Bei einer neuen oder geänderten Sonderregel pflege die Regeln. Bei Tod, Nachfolge oder einem deutlichen Loyalitätsbogen pflege den Rat. Die Dateien liegen im Gedächtnisordner der Partie (`knowledge/partien/<partie>/chronik.md`, `regeln.md`, `rat.md`), den `knowledge/INDEX.md` nennt; halte das INDEX aktuell, wenn du ein Dokument oder eine Partie anlegst, umbenennst oder archivierst. Halte diese Dokumente verdichtet (Distillation: maximale Information, minimale Tokens), keine Episodenprotokolle.
 3. **Auf "speichern"** zusätzlich den hybriden Markdown-Stand ausgeben (lesbare Prosa plus ```json-Block), wenn der Spieler ihn weitergeben oder im Chat fortsetzen will.
 
 `savegame.json` ist gitignored (die laufende Privatpartie). Die Beispielstände in `examples/` und das Gedächtnis in `knowledge/` werden committet.
@@ -72,5 +72,5 @@ Im Terminal-Modus sind die Dateien der Wahrheitsstand, nicht der Chatverlauf. Na
 ## Grenzen
 
 - Der API-Key (`.env`) ist allein für die Bildgenerierung im Dashboard; er gehört nie in den Speicherstand, ins Gedächtnis oder in einen Commit.
-- Ändere die Mechanik nicht im Vorbeigehen. Eine neue Sonderregel ist eine Setzung und gehört bewusst nach `knowledge/regeln.md`, mit Begründung und Kapitel.
+- Ändere die Mechanik nicht im Vorbeigehen. Eine neue Sonderregel ist eine Setzung und gehört bewusst in die Regeldatei der jeweiligen Partie (`knowledge/partien/<partie>/regeln.md`, siehe `knowledge/INDEX.md`), mit Begründung und Kapitel.
 - Brich nicht den Frontend-Vertrag (`docs/Frontend-Contract.md`); das Dashboard liest feste Felder und testids.

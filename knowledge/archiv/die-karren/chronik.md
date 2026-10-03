@@ -10,7 +10,6 @@ status: active
 created: 2026-05-30
 updated: 2026-05-30
 language: de
-related: ["[[INDEX]]", "[[welt]]", "[[personen]]", "[[regeln]]"]
 ---
 
 # Chronik der Karren, Kapitel für Kapitel

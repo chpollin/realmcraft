@@ -8,9 +8,8 @@ method:
   url: https://dhcraft.org/Promptotyping/
 status: active
 created: 2026-05-30
-updated: 2026-05-30
+updated: 2026-10-03
 language: de
-related: ["[[welt]]", "[[chronik]]", "[[regeln]]", "[[personen]]"]
 ---
 
 # Wissensbasis "Die Karren", Navigation und Begriffslexikon
@@ -28,7 +27,7 @@ RealmCraft ist das kampagnenunabhängige System. "Die Karren" ist die erste lauf
 | [regeln.md](regeln.md) | Regel-Evolution: die Setzungen dieser Partie | wie in dieser Partie gewürfelt und entschieden wird, abweichend von der Grundmechanik |
 | [personen.md](personen.md) | Berater und benannte Figuren | Ziele, Loyalität, Bögen, Generationenlage |
 
-Der maschinenlesbare Zustand jetzt steht nicht hier, sondern im Speicherstand [`examples/die-karren-kapitel-4.json`](../examples/die-karren-kapitel-4.json) (Werte, Loyalitäten, Karte). Die Grundmechanik des Systems steht in [`docs/Spielmechanik.md`](../docs/Spielmechanik.md), das Speicherstand-Format in [`docs/Speicherstand-Format.md`](../docs/Speicherstand-Format.md). Diese Wissensbasis ist das Gedächtnis über die Zeit, der Speicherstand ist der Schnitt durch die Gegenwart.
+Der maschinenlesbare Zustand jetzt steht nicht hier, sondern im Speicherstand [`examples/die-karren-kapitel-4.json`](../../../examples/die-karren-kapitel-4.json) (Werte, Loyalitäten, Karte). Die Grundmechanik des Systems steht in [`docs/Spielmechanik.md`](../../../docs/Spielmechanik.md), das Speicherstand-Format in [`docs/Speicherstand-Format.md`](../../../docs/Speicherstand-Format.md). Diese Wissensbasis ist das Gedächtnis über die Zeit, der Speicherstand ist der Schnitt durch die Gegenwart.
 
 ## Lesereihenfolge für den Spielleiter
 

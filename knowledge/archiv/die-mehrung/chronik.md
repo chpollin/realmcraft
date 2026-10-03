@@ -7,7 +7,6 @@ created: 2026-06-03
 updated: 2026-06-03
 language: de
 partie: Die Mehrung
-related: ["[[INDEX]]", "[[regeln-mehrung]]", "[[rat-mehrung]]", "[[welt-mehrung]]"]
 ---
 
 # Chronik der Mehrung

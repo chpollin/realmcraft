@@ -8,18 +8,17 @@ method:
   url: https://dhcraft.org/Promptotyping/
 status: active
 created: 2026-05-30
-updated: 2026-05-30
+updated: 2026-10-03
 language: de
-related: ["[[INDEX]]", "[[chronik]]", "[[personen]]"]
 ---
 
 # Regel-Evolution der Karren, die Setzungen dieser Partie
 
-Weil man mit einem Frontier-Sprachmodell als Spielleiter spielt, ist die Weiterentwicklung der Regeln selbst Teil der Spielmechanik. Eine Partie wächst nicht nur in der Geschichte, sondern auch im Regelwerk. Dieses Dokument hält die in dieser Partie vereinbarten Sonderregeln fest, die **Setzungen**, ergänzend zur Grundmechanik in [`docs/Spielmechanik.md`](../docs/Spielmechanik.md). Jede Setzung ist jederzeit änderbar; das Dokument hält Wortlaut, Begründung und das Kapitel ihrer Einführung.
+Weil man mit einem Frontier-Sprachmodell als Spielleiter spielt, ist die Weiterentwicklung der Regeln selbst Teil der Spielmechanik. Eine Partie wächst nicht nur in der Geschichte, sondern auch im Regelwerk. Dieses Dokument hält die in dieser Partie vereinbarten Sonderregeln fest, die **Setzungen**, ergänzend zur Grundmechanik in [`docs/Spielmechanik.md`](../../../docs/Spielmechanik.md). Jede Setzung ist jederzeit änderbar; das Dokument hält Wortlaut, Begründung und das Kapitel ihrer Einführung.
 
 Leitsatz der Grundmechanik, an dem sich jede Setzung misst: der Kern bleibt klein, die Hebel werden viele. Wenige stabile Grundgrößen, viel Wachstum als Statuswerte, Institutionen und Erzählzustände.
 
-Hinweis zur Mechanik-Fassung. Die drei Setzungen Lebensstand, Delegationsregiment und der Trend je Grundgröße sind in der aktuellen [`docs/Spielmechanik.md`](../docs/Spielmechanik.md) inzwischen Teil der Grundmechanik (Lebenszyklus, Delegation, Ressourcentrends). Diese Partie war ihr Prototyp; sie bleiben hier als gelebte Setzungen verzeichnet, mit ihrer Begründung und ihrem Einführungskapitel. Eigenständig dieser Partie bleibt die Nachfolge-Setzung in ihrer konkreten Ausgestaltung.
+Hinweis zur Mechanik-Fassung. Die drei Setzungen Lebensstand, Delegationsregiment und der Trend je Grundgröße sind in der aktuellen [`docs/Spielmechanik.md`](../../../docs/Spielmechanik.md) inzwischen Teil der Grundmechanik (Lebenszyklus, Delegation, Ressourcentrends). Diese Partie war ihr Prototyp; sie bleiben hier als gelebte Setzungen verzeichnet, mit ihrer Begründung und ihrem Einführungskapitel. Eigenständig dieser Partie bleibt die Nachfolge-Setzung in ihrer konkreten Ausgestaltung.
 
 ## Setzungen (Stand Kapitel 4)
 

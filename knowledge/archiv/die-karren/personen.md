@@ -10,7 +10,6 @@ status: active
 created: 2026-05-30
 updated: 2026-05-30
 language: de
-related: ["[[INDEX]]", "[[chronik]]", "[[welt]]", "[[regeln]]"]
 ---
 
 # Personen der Karren, Rat und benannte Figuren

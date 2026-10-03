@@ -10,7 +10,6 @@ status: active
 created: 2026-05-30
 updated: 2026-05-30
 language: de
-related: ["[[INDEX]]", "[[chronik]]", "[[personen]]"]
 ---
 
 # Welt der Karren, Geographie, Orte und Mächte
