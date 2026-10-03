@@ -42,23 +42,37 @@ function seasonCount(ctx) {
   return ctx.regeln?.calendar?.seasons?.length || 4;
 }
 
-// A flow without `when` acts in every season. A `when` that names every
-// season of the calendar is the same flow and costs the same.
-function seasonFactor(when, ctx) {
-  const all = seasonCount(ctx);
-  const k = when ? new Set(when).size : all;
+function winterCount(ctx) {
+  const seasons = ctx.regeln?.calendar?.seasons;
+  return seasons ? seasons.filter((s) => s.winter).length : 1;
+}
+
+// Weight factor of something that acts in k seasons of the year, on the
+// resource.flow scale. Every season of the calendar is the full year.
+function flowFactor(k, ctx) {
   const table = WEIGHTS['resource.flow'].perPoint;
-  if (k >= all) return table.seasons4;
+  if (k <= 0) return 0;
+  if (k >= seasonCount(ctx)) return table.seasons4;
   return table[SEASON_KEYS[Math.min(k, 3) - 1]];
 }
 
-// Scaled flows count with the expected number of their unit (tuning.expected)
-// per step, at least 1 (Regelkern section 10).
-function scaleFactor(scale, ctx) {
+// A flow without `when` acts in every season. A `when` that names every
+// season of the calendar is the same flow and costs the same.
+function seasonFactor(when, ctx) {
+  return flowFactor(when ? new Set(when).size : seasonCount(ctx), ctx);
+}
+
+// Scaled flows count with the number of their unit per step, at least 1
+// (Regelkern section 10). tuning.expected is a campaign average, while the
+// runtime pays a scaled benefit on the live count of a grown people, so a
+// benefit counts with the upper bound scaleBound x expected and a burden with
+// the expected count itself.
+function scaleFactor(scale, ctx, amount) {
   if (!scale) return 1;
   const expected = ctx.regeln?.tuning?.expected?.[scale.per];
   if (typeof expected !== 'number') return 1;
-  return Math.max(1, expected / scale.step);
+  const count = amount > 0 ? expected * WEIGHTS['resource.flow'].scaleBound : expected;
+  return Math.max(1, count / scale.step);
 }
 
 function unitStrength(typeRef, ctx) {
@@ -71,14 +85,63 @@ export function sumWeights(list, ctx = {}) {
   return (list ?? []).reduce((s, p) => s + primitiveWeight(p, ctx), 0);
 }
 
-// Severity of a meter from the worst threshold: |w| up to 2 light, up to 5
-// heavy, above existential (WEIGHTS.meter.severityByThresholdWeight).
-function meterSeverity(thresholds, ctx) {
-  const worst = Math.max(0, ...thresholds.map((t) => Math.abs(sumWeights(t.effects, ctx))));
+// Severity from the worst harmful threshold weight |w|: up to 2 light, up to
+// 5 heavy, above existential (WEIGHTS.meter.severityByThresholdWeight).
+function meterSeverity(worst) {
   for (const [upTo, severity] of WEIGHTS.meter.severityByThresholdWeight) {
     if (upTo === null || worst <= upTo) return severity;
   }
   return 3;
+}
+
+// A meter is a price through its harmful thresholds, -(severity x cadence),
+// and an effect through its beneficial ones, which pay out like one-off
+// effects: once, or WEIGHTS.meter.repeat times when the meter can fall back
+// and cross again (a use meter with decay; the kernel decays only in a
+// season without rise, so a season meter never falls). A harmful threshold
+// the meter cannot reach by its own rise and decay is no price. A beneficial
+// one counts whenever it lies in the meter's range, because meter.delta from
+// elsewhere may still move the meter across it.
+function meterWeight(p, ctx) {
+  const W = WEIGHTS.meter;
+  const season = p.rise.on === 'season';
+  const falls = !season && p.decay > 0;
+  const inRange = (t) => t.at >= p.min && t.at <= p.max;
+  let worst = 0;
+  let gain = 0;
+  for (const t of p.thresholds) {
+    const w = sumWeights(t.effects, ctx);
+    if (w < 0 && inRange(t) && (t.at > 0 || falls)) worst = Math.max(worst, -w);
+    if (w > 0 && inRange(t)) gain += w * (falls ? W.repeat : 1);
+  }
+  const cadence = season ? W.cadence.season : W.cadence.use;
+  return gain - (worst > 0 ? meterSeverity(worst) * cadence : 0);
+}
+
+// How often a trigger's effects count, on the resource.flow scale. A benefit
+// counts with the most the hook can fire, a burden with the least, so neither
+// direction favours the content: season fires every season, winter in the
+// winter seasons, use: and shortfall: as often as the people chooses (every
+// season for a benefit, once for a burden, which is a cost of use), every
+// other hook once. A burden under an `if` may never be due and counts once.
+function hookFrequency(p, sum, ctx) {
+  const hook = p.on.split(':')[0];
+  if (sum < 0 && p.if) return 1;
+  if (hook === 'season' || (sum > 0 && (hook === 'use' || hook === 'shortfall'))) return flowFactor(seasonCount(ctx), ctx);
+  // A calendar without winter never fires the hook: no price, but a benefit still counts once.
+  if (hook === 'winter') return flowFactor(winterCount(ctx), ctx) || (sum > 0 ? 1 : 0);
+  return 1;
+}
+
+// A status acts like its standing effects for its duration: the full standing
+// weight for a permanent status (duration null) or one lasting a year, the
+// share duration / seasons below that. A harmful status that ends on setback
+// may be gone after one season and counts one.
+function statusWeight(p, ctx) {
+  const full = (p.effects ?? []).reduce((s, e) => s + primitiveWeight(e, ctx), 0);
+  const seasons = seasonCount(ctx);
+  const lasts = full < 0 && p.endsOn === 'setback' ? 1 : p.duration ?? seasons;
+  return roundWeight((full * Math.min(lasts, seasons)) / seasons);
 }
 
 /**
@@ -113,41 +176,46 @@ export function primitiveWeight(p, ctx = {}) {
     case 'stock.cap':
       return roundWeight((p.amount * resourceValue(p.res, ctx) * W.perTwoPoints) / 2);
     case 'resource.flow':
-      return roundWeight(p.amount * resourceValue(p.res, ctx) * seasonFactor(p.when, ctx) * scaleFactor(p.scale, ctx));
+      return roundWeight(p.amount * resourceValue(p.res, ctx) * seasonFactor(p.when, ctx) * scaleFactor(p.scale, ctx, p.amount));
     case 'yield.mod':
       return p.amount * resourceValue(p.res, ctx) * seasonFactor(p.when, ctx);
     case 'resource.delta':
       return p.amount * resourceValue(p.res, ctx) * W.perPoint;
+    // An unpaid dependency fires its penalty instead, so a helpful penalty
+    // would make the dependency free: only the harmful part of the penalty
+    // counts (the validator rejects a helpful one as misplaced_effect).
     case 'dependency':
-      return p.amount * resourceValue(p.res, ctx) * W.perPoint + sumWeights(p.penalty, ctx);
+      return p.amount * resourceValue(p.res, ctx) * W.perPoint + Math.min(0, sumWeights(p.penalty, ctx));
     case 'order.unlock':
       return ctx.orders?.[p.order]?.standingOutcome ? W.withStandingOutcome : W.plain;
     case 'order.restrict': {
+      // A duty has no rule in the kernel (W.duty is 0) and a restriction
+      // naming neither orders nor tags binds nothing; the runtime never
+      // charges either, so neither is a price.
       if (p.mode === 'duty') return W.duty;
+      if (!p.orders.length && !p.tags.length) return 0;
       const broad = breadthKey(p.tags, ctx) === 'broad';
       if (p.mode === 'forbid') return broad ? W.forbidBroad : W.forbidNarrow;
       return broad ? W.limitBroad : W.limitNarrow;
     }
-    case 'meter': {
-      const cadence = p.rise.on === 'season' ? W.cadence.season : W.cadence.use;
-      return -(meterSeverity(p.thresholds, ctx) * cadence);
-    }
+    case 'meter':
+      return meterWeight(p, ctx);
     case 'trigger': {
       const sum = sumWeights(p.effects, ctx);
       // "Negative consequence on omission" is the shortfall hook: a duty the
-      // people fails to meet. Every other hook is worth its effects once.
+      // people fails to meet.
       if (p.on.startsWith('shortfall:') && sum < 0) return W.negativeOnOmission;
-      return sum;
+      return roundWeight(sum * hookFrequency(p, sum, ctx));
     }
     case 'relation.delta': {
       const t = p.people === 'neighbours' || p.people === 'all' || p.people === '$target' ? p.people : 'people';
       return p.amount * W.perPoint[t];
     }
-    // A status, token or region change has no amount; its sign comes from
-    // what it does (a status with harmful effects, a crisis or grievance
-    // token, giving up a region is a price; breakthrough and impulse help).
     case 'status.add':
-      return sumWeights(p.effects, ctx) < 0 ? -W.fixed : W.fixed;
+      return statusWeight(p, ctx);
+    // A token or region change has no amount; its sign comes from what it
+    // does (a crisis or grievance token and giving up a region are a price,
+    // breakthrough and impulse help).
     case 'token.add':
       return p.kind === 'crisis' || p.kind === 'grievance' ? -W.fixed : W.fixed;
     case 'region.control':
@@ -211,6 +279,19 @@ export function scoreEntwicklung(ent, ctx = {}) {
     const w = primitiveWeight(p, ctx);
     add(`/onAcquire/${i}`, p.op, w, w >= 0 ? 'effect' : 'price');
   });
+  // Acquiring this ends every development it replaces. Losing one is this
+  // development's own cost and is not credited; shedding one whose net is
+  // negative under the current weights is a gain and counts as effect. The
+  // replaced one is scored without its own replaces (ctx.replacing), so a
+  // replacement cycle cannot recurse.
+  if (!ctx.replacing) {
+    (ent.replaces ?? []).forEach((id, i) => {
+      const old = ctx.resolve?.(id);
+      if (!old || old.id === ent.id) return;
+      const { net } = scoreEntwicklung(old, { ...ctx, replacing: true });
+      if (net < 0) add(`/replaces/${i}`, 'replaces', -net, 'effect');
+    });
+  }
 
   const spec = ent.spec;
   if (spec && ent.kind === 'einheit') add('/spec', 'einheit', spec.strength * SPEC_WEIGHTS.einheit.perStrength, 'effect');

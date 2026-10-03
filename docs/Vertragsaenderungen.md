@@ -142,3 +142,66 @@ Dokumentation
 - `endsOn: "setback"` an Status heißt weiterhin, dass der Status bei jedem Misserfolg endet, also bei `failure`, `setback` und `crit_fail`. Seit `setback` auch ein Band ist, ist der Name doppeldeutig. Eine Umbenennung wurde nicht entschieden.
 - Ob `growthPoints` als Name `growth` ablösen soll, ist eine Entscheidung der Orchestrierung. Eine Umbenennung beträfe Volksvorlagen in `regeln.json`, den Kern und alle Zustands-Fixtures.
 - Die Schwellen der Bänder sind Regelsache des Kerns und des Regelkerns. Das Schema legt nur ids und Reihenfolge fest.
+
+## Änderung vom 2026-10-03, Machtbudget und Validator
+
+Anlass war die Prüfung von Validator und Machtbudget, die Wirkungen fand, die das Budget zu billig oder als Preis zählte, obwohl der Kern sie nie einfordert. Die Schemata der Primitive bleiben unverändert, `SCHEMA_VERSION` bleibt 2. Geändert sind Einträge von `WEIGHTS` in `engine/schemas/effects.js`, ihre Auswertung in `engine/content/budget.js` und die Prüfungen in `engine/content/validate.js`. Der Satz der vorigen Änderung, das Budgetmodell bleibe ohne Änderung, gilt für die unten genannten Zeilen nicht mehr. `SPEC_WEIGHTS` und `TIERS` bleiben, wie sie sind.
+
+### Gewichte (`effects.js`, `budget.js`)
+
+| Eintrag | bisher | neu | Grund |
+|---|---|---|---|
+| `status.add` | fest +1 oder −1 nach dem Vorzeichen seiner Wirkungen | Summe der stehenden Gewichte seiner Wirkungen mal `min(duration, Jahreszeiten) / Jahreszeiten`, ein dauerhafter Status (`duration: null`) zählt voll, ein schädlicher Status mit `endsOn: "setback"` zählt eine Saison | ein dauerhafter Status mit drei Flüssen +5 wog 1, als stehende Wirkungen wiegen dieselben Flüsse 45 |
+| `trigger` | Summe der Wirkungen, einmal | Summe mal Häufigkeit des Hakens auf der Skala von `resource.flow`, `season` jede Saison (Faktor 3), `winter` in den Wintersaisons, `use:` und `shortfall:` bei Nutzen jede Saison und bei Last einmal, andere Haken einmal, eine Last unter `if` einmal | `season` mit `population.delta +1` wog wie `population.growth +1`, brachte aber vier Sippen im Jahr |
+| `dependency` | Unterhalt plus Gewicht der Strafe | Unterhalt plus nur der schädliche Teil der Strafe | eine helfende Strafe hob den Unterhalt auf, die Abhängigkeit wog 0 |
+| `meter` | stets `−(Schwere × Takt)` nach der schwersten Schwelle beliebigen Vorzeichens | Gewinn minus Schwere × Takt, Schwere nach der schwersten schädlichen Schwelle, die der Meter durch Anstieg und Verfall erreicht, Gewinn als Summe der helfenden Schwellen im Wertebereich, mal `repeat` 2, wenn ein Nutzungsmeter mit Verfall erneut kreuzen kann | ein Meter mit helfender Schwelle zählte als Preis, eine Schwelle über `max` als Last |
+| `order.restrict` | `duty` −2, jede Beschränkung nach Breite | `duty` 0, eine Beschränkung ohne Befehle und Tags 0 | der Kern hat keine Regel für Pflichten, eine leere Beschränkung bindet nichts |
+| `resource.flow` mit `scale` | erwartete Zahl aus `tuning.expected` | ein Nutzen zählt die Obergrenze `scaleBound` 2 mal `tuning.expected`, eine Last die erwartete Zahl | der Kern zahlt auf die laufende Zahl eines gewachsenen Volkes, ein Fluss je Sippe bei zwölf Sippen war mit vier bewertet |
+| `replaces` | ohne Wirkung auf das Budget | eine abgelöste Entwicklung mit negativem Netto unter den aktuellen Gewichten zählt mit dem Betrag ihres Nettos als Wirkung, der Verlust einer positiven wird nicht gutgeschrieben | das Abwerfen einer Last ist ein Gewinn, das Budget sah ihn nicht |
+
+### Validator (`validate.js`)
+
+| Prüfung | Code | Grund |
+|---|---|---|
+| `order.restrict` mit `mode: "duty"`, Beschränkung ohne Befehle und Tags, eine Bedingung, die in keiner Kampagne gelten kann (statische Wertebereiche, etwa Zustimmung unter −5 oder eine Stufe über `maxTier`), ein `winter`-Haken in einem Kalender ohne Winter, `prerequisites.if`, das nie gilt | `content.inert` (neu, Fehler) | als Preis wären sie umsonst, als Wirkung versprechen sie, was nie eintritt |
+| Strafe einer `dependency` mit positivem Gewicht | `misplaced_effect` | das Volk würde den Fehlbetrag suchen |
+| Argument eines Hakens, also `use:<x>` gegen Befehlstypen und Anwendungen, `shortfall:<res>` gegen Ressourcen, `crit_success:` und `crit_fail:` gegen Tags | `unknown_tag`, `unknown_resource` | ein Haken, den nichts auslöst, macht Auslöser und Meter zu Preisen ohne Fälligkeit |
+| Meter-ids und Volks-ids, die ein Objekt von `Object.prototype` erbt (`constructor` und andere), in Meter, `meter.delta`, Bedingungen, `relation.delta`, `reveal` auf ein Volk, Bestimmungsprädikaten sowie Ressourcen, Lagewerten, Jahreszeiten und Volksvorlagen in `regeln.json` | `format` | der Kern legt sie als Schlüssel einfacher Objekte an, `meters.constructor` wurde NaN |
+| `meter.delta` und Bedingung `meter` auf einen Meter, den keine Entwicklung definiert und der nicht `zustimmung` ist | `dangling_ref` | Meter-ids waren frei |
+| Meter mit der id `zustimmung` oder mit der id eines Meters einer anderen Entwicklung | `conflict` | der Kern behält die erste Definition einer id, der zweite Meter stiege nie, `zustimmung` ist der Kernmeter |
+| Volk in `relation.delta`, `reveal` und Bedingung `relation`, das weder Volksvorlage noch Volk der Kampagne ist | `dangling_ref` | |
+| Fluss je Einheit mit einem Tag, den kein Einheitentyp trägt | `unknown_tag` | der Fluss zählt zur Laufzeit nichts |
+| Agenten-Entwicklung auf Stufe 0 | `tier_gap` | Stufe 0 nutzt die Budgetzeile der Stufe 1 bei halber Forschung und kommt nur aus dem Weltpaket |
+
+Ohne Bibliothek bleiben die Prüfungen auf Meter, Anwendungen und Einheiten-Tags aus, ohne Befehlskatalog die auf `use:`-Haken und Befehle. `validateProposal` und `validateWorldPackage` füllen Befehle und Module aus der Registry des Kerns, wenn der Aufrufer keine übergibt (`withCatalogue`, exportiert). `validateEntwicklung` behält den Vertrag, dass ein fehlendes Feld seine Prüfungen abschaltet.
+
+### Vorschläge (`validateProposal`)
+
+| Feld | bisher | neu | Grund |
+|---|---|---|---|
+| Ziel einer Korrektur | `item.people`, bei null ohne Volk geprüft | `item.people ?? proposal.people`, wie `ingest` es anwendet | eine Korrektur ohne eigenes Volk umging Verankerung, Stufe und Grenzen |
+| `ctx.findings` | nur geprüft, wenn der Aufrufer Befunde übergab | ohne Übergabe die Befund-ids aus den Einträgen `ingest.finding` der Chronik (`findingsOf`, exportiert) | eine Korrektur konnte einen erfundenen Befund nennen |
+| `ctx.requireTask` | fehlte | mit `true` wird jedes zustandsändernde Item eines Vorschlags ohne Auftrag mit `content.no_task` (neu, Fehler) abgelehnt, Text- und Bildobjekte bleiben zulässig (`changesState`, exportiert) | ein Vorschlag ohne passenden Auftrag umging Grenzen und Kennungsprüfung, etwa zehn Ereignisse in einer Runde |
+
+### Inhalt Hochland
+
+`geleitrecht` trug als Preis eine Pflicht (`duty`) zur Erkundung einmal im Jahr. Der Kern setzt Pflichten nicht durch, die Pflicht ist jetzt `content.inert`. Der Preis ist ersetzt durch `resource.flow nahrung −1` in Frühling, Sommer und Herbst, die Verpflegung der Geleitspäher in den Handelssaisons, mit demselben Gewicht −2. Budget, Netto und Forschung von `geleitrecht` bleiben gleich. Damit ändert sich der Welt-Hash von Hochland, `tests/fixtures/spielbrett/view-hochland-t0.json` ist mit `build.mjs` neu erzeugt und unterscheidet sich nur im Hash. Alle übrigen Entwicklungen und Ereigniskarten behalten ihr Budget, Pulverwall und Bannfeuer weiter gleiches Netto 3 bei verschiedenem Preis.
+
+### Was die Lanes nachziehen
+
+H (Harness und Einlesen)
+
+- `ingestProposal` ruft `validateProposal` mit `requireTask: true` auf, damit ein Vorschlag ohne Auftrag den Zustand nicht ändert. `cli validate` kann den Kontext einer einzelnen Entwicklung mit `withCatalogue` füllen.
+
+K1 (Kern)
+
+- Laufzeitschutz gegen reservierte Schlüssel in `people.meters` und bei Volks-ids, der Validator fängt nur geprüfte Inhalte ab.
+- Erhält `order.restrict` eine Regel für `duty`, kehrt `WEIGHTS['order.restrict'].duty` auf −2 zurück und die Prüfung `content.inert` für Pflichten entfällt.
+
+Dokumentation
+
+- Regelkern Abschnitt 10 (Gewichte von Status, Auslöser, Meter, Abhängigkeit, skalierter Fluss, `replaces`, die Codes `content.inert` und `content.no_task`) und Agentenvertrag (Ziel einer Korrektur, Befunde aus der Chronik, Auftragspflicht) an diese Tabellen angleichen.
+
+### Offen
+
+- Der dunkle Pfad bleibt in seinen Zahlen unverändert, `blutritus` und `schuldknechtschaft` mit Netto 2 und Forschung 6, `schwarzer-zirkel` mit Netto 3 und Forschung 12. Seine Preise sind teils vermeidbar oder einmalig, werden aber wie stehende Lasten gezählt. Der Meter `furcht` von `blutritus` erreicht seine Schwelle 4 nur bei vier Nutzungen ohne Pause, weil jede Saison ohne Nutzung ihn um 1 senkt, und bleibt bei einer Nutzung jede zweite Saison unter 2. Die Meter `aufruhr` und `glutzehrung` haben Verfall 0 und lösen ihre Schwelle in einer Kampagne höchstens einmal aus. Die `dependency` von `schwarzer-zirkel` zählt Unterhalt −3 und Strafe −1 zusammen, ein Volk trägt je Saison aber nur eines von beiden. Wer jeweils die billigere Seite ansetzt, käme auf −3 statt −4, Netto 4 und Forschung 16. Ob das Budget vermeidbare und einmalige Lasten anders gewichten soll, ist eine Entscheidung der Orchestrierung.
