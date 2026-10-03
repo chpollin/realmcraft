@@ -1,14 +1,19 @@
 // tests/unit/serve.test.js — Zugriffsschutz des Dev-Servers gegen einen echten
-// Prozess auf freiem Port (nie 4173/4190, dort laeuft der Server des Betreibers).
+// Prozess auf freiem Port (nie die Ports des Betreibers) und mit leerem
+// REALMCRAFT_ROOT, damit der Test die echten Partien nie sieht.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer, request } from 'node:http';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 let proc;
 let port;
+let tempRoot;
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -38,9 +43,10 @@ function get(path, headers = {}) {
 
 before(async () => {
   port = await freePort();
+  tempRoot = mkdtempSync(join(tmpdir(), 'rc-serve-'));
   proc = spawn(process.execPath, ['serve.mjs'], {
     cwd: ROOT,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1' },
+    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: tempRoot },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
   await new Promise((resolve, reject) => {
@@ -51,7 +57,10 @@ before(async () => {
   });
 });
 
-after(() => proc?.kill());
+after(() => {
+  proc?.kill();
+  if (tempRoot) rmSync(tempRoot, { recursive: true, force: true });
+});
 
 test('normale Datei wird ausgeliefert', async () => {
   assert.equal(await get('/index.html'), 200);
