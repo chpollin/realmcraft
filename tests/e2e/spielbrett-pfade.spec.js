@@ -146,7 +146,9 @@ test('research chosen on a path replaces the previous choice and is stored in th
   await openBoard(page);
   const cands = viewFile().derived[PID].pfade.paths.flatMap((p) => p.candidates.map((ref) => ({ ref, pfad: p.id })));
   expect(cands.length).toBeGreaterThanOrEqual(2);
-  const [first, second] = [cands.find((c) => c.ref === 'saumpfad@1') ?? cands[0], cands.find((c) => c.ref !== 'saumpfad@1')];
+  // fluchtburg costs more than one season's points, so the next test can watch it run across the boundary.
+  const first = cands.find((c) => c.ref === 'fluchtburg@1') ?? cands[0];
+  const second = cands.find((c) => c.ref !== first.ref);
   await page.keyboard.press('e');
   await wheel(page).locator(`.pf-knoten[data-ref="${second.ref}"]`).click();
   await wheel(page).locator('.pf-panel [data-forschen]').click();
