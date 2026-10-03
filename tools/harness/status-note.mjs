@@ -15,19 +15,12 @@
 // exists, failed where the phase has moved past a task without one; /zug runs
 // it after open. Prints the resulting status as JSON.
 
-import { activeCampaign, normPath, parseArgs, proposalLocation, readJsonFile, rootDir, stepIdOf, listTasks } from './lib.mjs';
+import { campaignFromArgs, parseArgs, proposalLocation, readJsonFile, stepIdOf, listTasks } from './lib.mjs';
 import { initTurnStatus, updateStep } from '../../engine/harness/status.js';
 import { reconcileStatus } from './reconcile.mjs';
 
 const { pos, opt } = parseArgs(process.argv.slice(2));
-const root = opt.root ? normPath(opt.root) : rootDir();
-const cid = typeof opt.campaign === 'string' ? opt.campaign : activeCampaign(root)?.cid;
-const dir = cid ? `${root}/campaigns/${cid}` : null;
-const state = dir ? readJsonFile(`${dir}/state.json`, null) : null;
-if (!state) {
-  process.stderr.write(`status-note: no campaign found (${cid ?? 'none'}) under ${root}/campaigns\n`);
-  process.exit(3);
-}
+const { cid, dir, state } = campaignFromArgs(opt, 'status-note');
 
 const ensure = () => {
   const cur = readJsonFile(`${dir}/status.json`, null);

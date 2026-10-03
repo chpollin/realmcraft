@@ -336,6 +336,9 @@ export function itemTitle(item) {
   return String(t).slice(0, 80) || String(item?.type ?? 'item');
 }
 
+/** The browser's campaign choice below <root>/campaigns, see activeCampaign. */
+export const ACTIVE_FILE = 'active.json';
+
 /** Repository or campaign root: REALMCRAFT_ROOT, then CLAUDE_PROJECT_DIR, then cwd. */
 export function rootDir(input) {
   return normPath(process.env.REALMCRAFT_ROOT || process.env.CLAUDE_PROJECT_DIR || input?.cwd || process.cwd());
@@ -343,17 +346,15 @@ export function rootDir(input) {
 
 /**
  * The campaign a /zug run works on. A run marker campaigns/<cid>/run.json
- * with active true wins (newest startedAt); otherwise the most recently
- * updated playing campaign of campaigns/index.json. null when neither exists.
+ * with active true wins (newest startedAt); then the playing campaign the
+ * player last opened in the browser (campaigns/active.json, written by
+ * active-campaign.mjs --set); otherwise the most recently updated playing
+ * campaign of campaigns/index.json. null when none exists.
  */
 export function activeCampaign(root) {
   const base = `${root}/campaigns`;
-  let names = [];
-  try {
-    names = readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory() && CID_RE.test(e.name)).map((e) => e.name);
-  } catch {
-    return null;
-  }
+  const names = campaignIds(root);
+  if (!names.length) return null;
   const runs = names
     .map((cid) => ({ cid, run: readJsonFile(`${base}/${cid}/run.json`, null) }))
     .filter((r) => r.run?.active === true)
@@ -363,11 +364,31 @@ export function activeCampaign(root) {
   const playing = (index?.campaigns ?? [])
     .filter((c) => c.status === 'playing' && names.includes(c.id))
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  const chosen = readJsonFile(`${base}/${ACTIVE_FILE}`, null)?.campaign;
+  if (playing.some((c) => c.id === chosen)) return { cid: chosen, dir: `${base}/${chosen}`, run: null, via: 'selected' };
   if (playing.length) return { cid: playing[0].id, dir: `${base}/${playing[0].id}`, run: null, via: 'index' };
   // A single campaign folder without index.json still counts (fresh `new`).
   const withState = names.filter((cid) => existsSync(`${base}/${cid}/state.json`));
   if (withState.length === 1) return { cid: withState[0], dir: `${base}/${withState[0]}`, run: null, via: 'folder' };
   return null;
+}
+
+/**
+ * Root, id, folder and state of the campaign a /zug command works on: the
+ * one named by --campaign, else activeCampaign. Without a readable state it
+ * reports on stderr under the tool's name and exits 3.
+ */
+export function campaignFromArgs(opt, tool) {
+  const root = opt.root ? normPath(opt.root) : rootDir();
+  const cid = typeof opt.campaign === 'string' ? opt.campaign : activeCampaign(root)?.cid;
+  // An id outside the pattern could name a folder outside campaigns/.
+  const dir = cid && CID_RE.test(cid) ? `${root}/campaigns/${cid}` : null;
+  const state = dir ? readJsonFile(`${dir}/state.json`, null) : null;
+  if (!state) {
+    process.stderr.write(`${tool}: no campaign found (${cid ?? 'none'}) under ${root}/campaigns\n`);
+    process.exit(3);
+  }
+  return { root, cid, dir, state };
 }
 
 /** mtime in ms or 0, for picking the newest file without parsing it. */
