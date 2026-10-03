@@ -449,6 +449,36 @@ describe('proposal-check', () => {
     assert.equal(r.code, 2);
     assert.match(r.stderr, /stale/);
   });
+
+  it('rejects refs of a chronicle or a stance that the people never saw', () => {
+    let r = run('proposal-check', post(putProposal(narrative({ refs: ['T11-e91', 'T11-e999'] }))));
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /item 0 \/items\/0\/refs\/1 \[dangling_ref\] "T11-e999"/);
+    // T11-e91 is visible to talbund alone, so the rival of bergnomaden cannot cite it.
+    const stance = (pid, refs) => ({ ...narrative(), proposalId: `rival.${pid}.T${TURN}`, agent: 'rival', people: pid, items: [{ type: 'stance', refs, text: 'Das Volk bleibt wachsam.' }] });
+    r = run('proposal-check', post(putProposal(stance('bergnomaden', ['T11-e91']))));
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /dangling_ref.*bergnomaden/);
+    r = run('proposal-check', post(putProposal(stance('talbund', ['T11-e91']))));
+    assert.equal(r.code, 0, r.stderr);
+    // The subagent-status tests below expect no rival proposal on disk.
+    for (const pid of ['bergnomaden', 'talbund']) rmSync(join(dir, 'agents', 'proposals', `rival.${pid}.T${TURN}.json`));
+  });
+
+  it('rejects an achievement of the research agent that names no path', () => {
+    const t = { ...task('research', 'talbund', ['view/talbund.json', 'library.json']), limits: { ...task('research').limits, items: ['entwicklung', 'bestimmung'] } };
+    writeFileSync(join(dir, `agents/tasks/T00${TURN}/research-talbund.json`), JSON.stringify(t));
+    const ent = JSON.parse(readFileSync(join(REPO, 'welten', 'hochland', 'content', 'entwicklungen.json'), 'utf8')).items.find((e) => e.id === 'saumpfad');
+    const research = (data) => ({ ...narrative(), proposalId: `research.talbund.T${TURN}`, agent: 'research', people: 'talbund', items: [{ type: 'entwicklung', data }] });
+    const data = { ...ent, id: 'hangpfad', name: 'Hangpfad', origin: { ...ent.origin, source: 'agent', proposal: `research.talbund.T${TURN}` } };
+    let r = run('proposal-check', post(putProposal(research(data))));
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /\/items\/0\/data\/pfad \[pfad_missing\]/);
+    r = run('proposal-check', post(putProposal(research({ ...data, pfad: 'werk' }))));
+    assert.doesNotMatch(r.stderr, /pfad_missing/);
+    rmSync(join(dir, 'agents', 'proposals', `research.talbund.T${TURN}.json`));
+    rmSync(join(dir, `agents/tasks/T00${TURN}/research-talbund.json`));
+  });
 });
 
 describe('subagent-status', () => {
