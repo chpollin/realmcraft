@@ -582,5 +582,103 @@
     "magie": {
       "source": "opfer"
     }
+  },
+  "pfade": {
+    "paths": [
+      {
+        "id": "nahrung",
+        "tags": [
+          "nahrung",
+          "weide",
+          "herde",
+          "winter",
+          "wetter",
+          "bleiben",
+          "zug"
+        ],
+        "opens": null
+      },
+      {
+        "id": "gemeinschaft",
+        "tags": [
+          "ordnung",
+          "rat",
+          "bund",
+          "verhandlung",
+          "siedlung",
+          "machtprobe",
+          "unfreiheit",
+          "vertragsbruch"
+        ],
+        "opens": null
+      },
+      {
+        "id": "militaer",
+        "tags": [
+          "angriff",
+          "verteidigung",
+          "befestigung",
+          "belagerung",
+          "hinterhalt",
+          "krieg",
+          "fuss",
+          "schuetzen",
+          "beute",
+          "befohlen"
+        ],
+        "opens": null
+      },
+      {
+        "id": "werk",
+        "tags": [
+          "bau",
+          "erz",
+          "pulver",
+          "weg",
+          "glut",
+          "salz",
+          "markt",
+          "handel"
+        ],
+        "opens": null
+      },
+      {
+        "id": "erkenntnis",
+        "tags": [
+          "erkundung",
+          "wandel",
+          "bestimmung"
+        ],
+        "opens": null
+      },
+      {
+        "id": "magie",
+        "tags": [
+          "magie",
+          "schau",
+          "feuer",
+          "dunkel",
+          "opfer"
+        ],
+        "opens": {
+          "practice": [
+            "magie",
+            "schau",
+            "feuer",
+            "dunkel",
+            "opfer"
+          ],
+          "min": 1
+        }
+      }
+    ],
+    "unlock": [
+      0,
+      2,
+      2,
+      2,
+      2
+    ],
+    "fallback": "gemeinschaft"
   }
 }

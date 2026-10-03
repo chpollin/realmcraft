@@ -57,6 +57,8 @@ export const CODES = Object.freeze({
   ungrounded: 'error',
   limit: 'error',
   missing_label: 'error',
+  pfad_tier: 'error',
+  pfad_closed: 'error',
 
   // proposal ingest (kernel draft section 7)
   conflict: 'error',

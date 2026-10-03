@@ -55,7 +55,9 @@ function envelope(kind) {
     replaces: arr(str('^[a-z][a-z0-9-]{2,40}$'), 2),
     spec: SPECS[kind],
     origin: ref('origin'),
-  });
+    // Path of the achievement (regeln.pfade); absent, the tags decide (engine/core/pfade.js pfadOf).
+    pfad: ref('id'),
+  }, ['pfad']);
 }
 
 export const ENTWICKLUNG_DEFS = Object.freeze({

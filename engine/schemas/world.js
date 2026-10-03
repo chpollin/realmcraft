@@ -104,7 +104,24 @@ export const WORLD_DEFS = Object.freeze({
     }, ['spoilage', 'loyaltyDecay', 'machtprobeCap', 'bestimmungBand', 'eventBands', 'terrainRules', 'knowledgeSpend', 'approval', 'featureYield']),
     aiProfiles: arr(obj({ id: ref('id'), name: text(60, 2), stance: text(400, 1), weights: map(str(PATTERNS.tag), int(-3, 3)) }), 8),
     moduleBindings: map(str(PATTERNS.id), map(str(PATTERNS.id), ref('key'))),
-  }),
+    // Research paths (engine/core/pfade.js). Absent, the world has no paths
+    // and research runs without a path gate. The order of `paths` breaks
+    // ties of the tag mapping and is the order of the board's wheel.
+    pfade: obj({
+      paths: arr(obj({
+        id: ref('id'),
+        tags: arr(ref('tag'), 16, 1),
+        // null: always open. Otherwise open from the first season in which the
+        // practice ledger sums at least `min` over these tags.
+        opens: nullable(obj({ practice: arr(ref('tag'), 8, 1), min: int(1, 99) })),
+      }), 8, 1),
+      // unlock[k-1]: completed achievements on the path of tier k-1 or higher
+      // that open tier k on the path. unlock[0] is 0.
+      unlock: arr(int(0, 20), MAX_TIER, 1),
+      // Path of an Entwicklung whose tags meet no path.
+      fallback: ref('id'),
+    }),
+  }, ['pfade']),
   labels: obj({
     ...head('realmcraft-labels'),
     locale: str('^[a-z]{2}$'),

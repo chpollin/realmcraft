@@ -3,73 +3,6 @@
     "id": "T1-e1",
     "turn": 1,
     "source": "kernel",
-    "kind": "research.offer",
-    "target": {
-      "kind": "people",
-      "id": "bergnomaden"
-    },
-    "change": {
-      "field": "developments.candidates",
-      "before": [
-        {
-          "ref": "rauchschau@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
-          "ref": "saumpfad@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
-          "ref": "sesshaft@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        }
-      ],
-      "after": [
-        {
-          "ref": "rauchschau@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
-          "ref": "saumpfad@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
-          "ref": "sesshaft@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
-          "ref": "speertraeger@1",
-          "offeredAt": 1,
-          "expiresAt": 5,
-          "origin": "pool"
-        }
-      ]
-    },
-    "reason": "pool offers speertraeger@1",
-    "refs": [
-      "speertraeger@1"
-    ],
-    "visibleTo": [
-      "bergnomaden"
-    ],
-    "step": "open"
-  },
-  {
-    "id": "T1-e3",
-    "turn": 1,
-    "source": "kernel",
     "kind": "campaign.phase",
     "target": {
       "kind": "campaign",
@@ -88,7 +21,7 @@
     "step": "open"
   },
   {
-    "id": "T1-e4",
+    "id": "T1-e2",
     "turn": 1,
     "source": "kernel",
     "kind": "event.draw",
@@ -115,7 +48,7 @@
     "step": "seal"
   },
   {
-    "id": "T1-e9",
+    "id": "T1-e8",
     "turn": 1,
     "source": "kernel",
     "kind": "campaign.phase",
@@ -136,7 +69,7 @@
     "step": "seal"
   },
   {
-    "id": "T1-e20",
+    "id": "T1-e19",
     "turn": 1,
     "source": "kernel",
     "kind": "resource.change",
@@ -156,7 +89,7 @@
     "step": "modules"
   },
   {
-    "id": "T1-e21",
+    "id": "T1-e20",
     "turn": 1,
     "source": "kernel",
     "kind": "resource.change",
@@ -176,7 +109,7 @@
     "step": "modules"
   },
   {
-    "id": "T1-e26",
+    "id": "T1-e25",
     "turn": 1,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -198,7 +131,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e27",
+    "id": "T1-e26",
     "turn": 1,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -220,7 +153,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e28",
+    "id": "T1-e27",
     "turn": 1,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -240,7 +173,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e29",
+    "id": "T1-e28",
     "turn": 1,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -260,7 +193,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e30",
+    "id": "T1-e29",
     "turn": 1,
     "source": "kernel",
     "kind": "economy.consumption",
@@ -282,7 +215,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e31",
+    "id": "T1-e30",
     "turn": 1,
     "source": "kernel",
     "kind": "population.growth",
@@ -303,7 +236,7 @@
     "step": "economy"
   },
   {
-    "id": "T1-e56",
+    "id": "T1-e52",
     "turn": 1,
     "source": "kernel",
     "kind": "event.choice",
@@ -336,7 +269,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e57",
+    "id": "T1-e53",
     "turn": 1,
     "source": "kernel",
     "kind": "resource.change",
@@ -358,7 +291,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e58",
+    "id": "T1-e54",
     "turn": 1,
     "source": "kernel",
     "kind": "relation.change",
@@ -392,7 +325,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e59",
+    "id": "T1-e55",
     "turn": 1,
     "source": "kernel",
     "kind": "people.standing",
@@ -414,7 +347,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e66",
+    "id": "T1-e62",
     "turn": 1,
     "source": "kernel",
     "kind": "event.history",
@@ -423,13 +356,10 @@
       "id": "ev-ratsstreit"
     },
     "change": {
-      "field": "modules.kern.draws.ratsstreit@1",
+      "field": "modules.kern.draws.ratsstreit@1.last",
       "before": null,
       "after": {
-        "total": 1,
-        "last": {
-          "bergnomaden": 1
-        }
+        "bergnomaden": 1
       }
     },
     "reason": "Streit im Rat drawn by bergnomaden",
@@ -442,7 +372,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e67",
+    "id": "T1-e64",
     "turn": 1,
     "source": "kernel",
     "kind": "event.drawn",
@@ -461,7 +391,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e68",
+    "id": "T1-e65",
     "turn": 1,
     "source": "kernel",
     "kind": "event.choice",
@@ -495,7 +425,7 @@
     "step": "events"
   },
   {
-    "id": "T1-e78",
+    "id": "T1-e75",
     "turn": 1,
     "source": "kernel",
     "kind": "campaign.turn",

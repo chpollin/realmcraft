@@ -21,6 +21,7 @@ import { homeSettlement, kern, maxKnownTier, peopleIds, settingsOf, settlementsO
 import { RULES } from '../core/rules.js';
 import { distance, parseKey } from '../world/index.js';
 import { calendarOf } from '../core/calendar.js';
+import { pathOfTags, pathsOf, pathsView } from '../core/pfade.js';
 
 const stem = (turn) => `T${String(turn).padStart(4, '0')}`;
 const ALL_PRIMITIVES = [...new Set([...STANDING_OPS, ...ONCE_OPS])];
@@ -211,7 +212,9 @@ function researchTask(state, env, library, pid) {
       openTier: open,
       maxKnownTier: maxKnownTier(view, env, pid),
       tokens: people.tokens,
-      requests: people.developments.requests,
+      // With paths, every request names its path, so the agent proposes on it.
+      requests: pathsOf(env).length ? people.developments.requests.map((r) => ({ ...r, pfad: r.pfad ?? pathOfTags(env, r.tags) })) : people.developments.requests,
+      pfade: pathsView(view, env, pid),
       candidates: people.developments.candidates.length,
       known: people.developments.known.map((k) => k.ref),
       lebensweise: people.lebensweise,

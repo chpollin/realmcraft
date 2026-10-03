@@ -12,6 +12,7 @@ import { catalogueFor, leadMods, orderContext, slotCapacity } from './orders.js'
 import { RULES } from './rules.js';
 import { calendarOf } from './calendar.js';
 import { projectEvents, projectFor } from './project.js';
+import { pathsView } from './pfade.js';
 import { activeModules } from '../modules/index.js';
 import { tradeRoute } from '../modules/handel.js';
 
@@ -169,6 +170,7 @@ export function computeDerived(state, env) {
     const standing = standingOf(state, env, pid);
     const entry = { stats: statsOf(state, env, pid, standing), caps: stockCaps(state, env, pid, standing), popCap: popCap(state, env, pid, standing) };
     let catalogue = [];
+    entry.pfade = pathsView(state, env, pid);
     if (people.population.core > 0 && settlementsOf(state, pid).length) {
       const f = forecast(state, env, pid);
       const ox = orderContext(state, env, pid);

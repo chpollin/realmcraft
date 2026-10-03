@@ -336,6 +336,8 @@
     "issue.missing-label": "Label missing",
     "issue.missing-upkeep": "Upkeep missing",
     "issue.narrative-values": "Numbers do not belong in the narrative",
+    "issue.pfad-closed": "Path not open yet",
+    "issue.pfad-tier": "Tier above the level of the path",
     "issue.phase": "Not possible in this phase",
     "issue.restricted": "Forbidden or limited",
     "issue.roll-missing": "Roll missing",
