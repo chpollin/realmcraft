@@ -4,8 +4,10 @@
 // the world package, the same function ingest uses. On failure the hook exits
 // 2 and names the issues on stderr, which Claude Code hands back to the
 // writing agent so it corrects the file in the same run. On success it marks
-// the proposal items as pending in status.json; the verdict that counts is
-// the one ingest records.
+// the proposal items as pending in status.json and hands the budget per item
+// and the warnings back as additional context; the verdict that counts is
+// the one ingest records. Both outputs carry the budget breakdown, because
+// the agents have no shell for `node engine/cli.mjs validate`.
 //
 // Every other event exits 0 without output.
 
@@ -95,11 +97,27 @@ async function note(fn) {
   }
 }
 
+// The budget breakdown the agents used to fetch with `node engine/cli.mjs
+// validate`, handed back with the verdict.
+const budgetLines = result.items
+  .filter((it) => it.budget)
+  .map((it) => {
+    const item = proposal.items?.[it.index];
+    // Event cards carry their band in the tier slot of the budget line.
+    const level = item?.type === 'event' ? 'band' : 'tier';
+    return `- item ${it.index} ${item?.type ?? ''}: effect ${it.budget.effect}, price ${it.budget.price}, net ${it.budget.net}, ${level} ${it.budget.tier}`;
+  });
+const warnings = [
+  ...result.issues.filter((i) => i.severity === 'warning'),
+  ...result.items.flatMap((it) => it.issues.filter((i) => i.severity === 'warning').map((i) => ({ ...i, path: `item ${it.index} ${i.path || '/'}` }))),
+].slice(0, MAX_LISTED).map((i) => `- ${i.path || '/'} [${i.code}] ${i.message}`);
+
 const stepId = stepIdOf(task);
 if (errors.length) {
   await note((s) => s.updateStep(loc.dir, { id: stepId, agent: task.agent, state: 'running', summary: `Vorprüfung: ${errors.length} Fehler, Agent korrigiert` }));
   const lines = errors.slice(0, MAX_LISTED).map((i) => `- ${i.where ? `${i.where} ` : ''}${i.path || '/'} [${i.code}] ${i.message}`);
   if (errors.length > MAX_LISTED) lines.push(`- … and ${errors.length - MAX_LISTED} more`);
+  if (budgetLines.length) lines.push('Budget per item:', ...budgetLines);
   fail(lines);
 }
 
@@ -118,4 +136,8 @@ if (!result.duplicate) {
     s.updateStep(loc.dir, { id: stepId, agent: task.agent, summary: 'Vorschlag liegt vor, Vorprüfung bestanden' });
   });
 }
+const context = [`RealmCraft: proposal ${pid} passed the pre-check${result.duplicate ? ' (unchanged duplicate)' : ''}.`];
+if (budgetLines.length) context.push('Budget per item:', ...budgetLines);
+if (warnings.length) context.push('Warnings:', ...warnings);
+process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: context.join('\n') } })}\n`);
 process.exit(0);
