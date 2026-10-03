@@ -43,7 +43,7 @@ Liegen unter `<dir>/agents/proposals/` Dateien `judge-*.json` aus der Vorrunde, 
 2. Starte alle zugleich im Hintergrund, in einer einzigen Nachricht mit einem Agent-Aufruf je Auftrag. Subagent `rc-<agent>`, Beschreibung `rc-<agent> <proposalId>` (die Hooks ordnen den Schritt über die proposalId zu), Auftrag wie in Phase A mit dem jeweiligen Auftragspfad `agents/tasks/T<runde4>/<agent>-<volk|all>.json`.
 3. Sobald ein Agent fertig ist, liest du seine Zusammenfassung und dann `node engine/cli.mjs ingest <dir>/<respondAs.path> --campaign <cid> --json`. Schreibt ein Agent keinen Vorschlag, bleibt sein Schritt gescheitert, und der Kern nutzt seinen Ersatz (Pool-Kandidaten, Ersatzpolitik, Chronik ohne Erzählung).
 4. Konflikte entscheidest du vor dem Einlesen. Schlagen Rat und Chronik Unvereinbares vor, etwa zwei Personen für denselben Sitz oder eine Chronik, die einer Ratsstimme widerspricht, bittest du den betroffenen Agenten über SendMessage um eine Korrektur seines Vorschlags und liest danach ein. Gelingt das nicht, liest du den Vorschlag ein, der zu den Ereignissen passt, und lässt den anderen liegen. Der Kohärenzrichter prüft den Rest nach der Runde.
-5. Wenn alle Aufträge eingelesen oder gescheitert sind: `node engine/cli.mjs open --campaign <cid> --json`. Die Kampagne steht wieder in `planning`.
+5. Wenn alle Aufträge eingelesen oder gescheitert sind: `node engine/cli.mjs open --campaign <cid> --json`. Die Kampagne steht wieder in `planning`. Danach `node tools/harness/status-note.mjs sync --campaign <cid>`, damit das Weltgeschehen sofort die neue Phase zeigt.
 
 ## 5 Richter im Hintergrund
 
