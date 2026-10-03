@@ -9,11 +9,12 @@ import { fileURLToPath } from 'node:url';
 
 import { buildEnv, previewDraft, bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, sameWorld, emptyDraft } from '../../spielbrett/js/data/kernel.js';
 import { makeLabels, bandKey } from '../../spielbrett/js/data/labels.js';
-import { adaptView, orderRows, previewDeltas } from '../../spielbrett/js/data/adapter.js';
+import { adaptView, destiny, issueKey, orderRows, previewDeltas, rivals } from '../../spielbrett/js/data/adapter.js';
 import { draftFor, nextOrderId, openRolls, withAssign, withOrder, withoutOrder, withRoll, withMandate } from '../../spielbrett/js/data/draft.js';
 import { candidates, optionsFor } from '../../spielbrett/js/data/options.js';
 import { originOf, pickCampaign } from '../../spielbrett/js/data/game.js';
 import { regionOf } from '../../engine/world/index.js';
+import { evalPredicate } from '../../engine/core/bestimmung.js';
 
 const root = (p) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 const json = (p) => JSON.parse(readFileSync(root(p), 'utf8'));
@@ -265,14 +266,14 @@ describe('optionsFor on the camp tile', () => {
     assert.equal(o.grund, null);
   });
 
-  test('found carries the kernel reason as grund', () => {
+  test('found carries the German label of the kernel refusal as grund, never the English message', () => {
     const o = byType('found');
     assert.ok(o);
     const pv = previewDraft(view, env, withOrder(draft0, { type: 'found', params: { tile: camp.tile } }));
     const refusal = pv.issues.find((i) => i.severity === 'error' && i.path.startsWith('/orders/0'));
     assert.ok(refusal, 'the kernel refuses founding next to the camp');
-    assert.ok(o.grund.length > 0);
-    assert.ok(o.grund.includes(refusal.message), o.grund);
+    assert.equal(o.grund, t(issueKey(refusal.code)));
+    assert.ok(!o.grund.includes(refusal.message), o.grund);
   });
 
   test('types the catalogue marks unavailable never appear', () => {
@@ -498,5 +499,69 @@ describe('game.js helpers', () => {
     assert.equal(originOf('agent:judge-coherence'), 'kern');
     assert.equal(originOf('agent:rival'), 'rivalen');
     assert.equal(originOf(undefined), 'kern');
+  });
+});
+
+describe('destinies and rivals on the projection', () => {
+  const midgame = json('tests/fixtures/engine/view-talbund.json');
+
+  test('a rival destiny stays an unknown marker while the view reveals none', () => {
+    for (const v of [view, midgame]) {
+      for (const r of rivals(v, env)) assert.deepEqual(r.bestimmung, { name: null, bekannt: false, meilensteine: [] }, r.id);
+    }
+  });
+
+  test('a revealed rival destiny shows its name and only the milestones the view lists', () => {
+    const rivalId = Object.keys(view.peoples).find((id) => id !== pid);
+    const def = env.content.bestimmungen.find((d) => d.id === 'hegemonie');
+    const shown = structuredClone(view);
+    shown.peoples[rivalId].bestimmung = { ref: `${def.id}@${def.rev}`, milestones: [{ id: def.milestones[0].id, reached: true }] };
+    const row = rivals(shown, env).find((r) => r.id === rivalId).bestimmung;
+    assert.equal(row.name, def.name);
+    assert.equal(row.bekannt, true);
+    assert.equal(row.meilensteine.length, def.milestones.length);
+    assert.equal(row.meilensteine[0].text, def.milestones[0].text);
+    assert.equal(row.meilensteine[0].erreicht, true);
+    for (const m of row.meilensteine.slice(1)) assert.deepEqual(m, { text: null, erreicht: null });
+  });
+
+  test('the destinies on offer never include the own one or one a rival is known to hold', () => {
+    const rivalId = Object.keys(view.peoples).find((id) => id !== pid);
+    const held = env.content.bestimmungen.find((d) => `${d.id}@${d.rev}` !== own.bestimmung.ref);
+    const heldRef = `${held.id}@${held.rev}`;
+    const shown = structuredClone(view);
+    shown.peoples[rivalId].bestimmung = { ref: heldRef, milestones: [] };
+    const offered = destiny(shown, env).wechsel.map((w) => w.ref);
+    assert.equal(offered.includes(heldRef), false);
+    assert.equal(offered.includes(own.bestimmung.ref), false);
+    assert.equal(offered.length, env.content.bestimmungen.length - 2);
+  });
+
+  test('milestone progress agrees with the kernel verdict of every counted predicate', () => {
+    for (const v of [view, midgame]) {
+      const me = v.peoples[v.people];
+      const def = env.bestimmung(me.bestimmung.ref);
+      const rows = destiny(v, env).meilensteine;
+      assert.equal(rows.length, me.bestimmung.milestones.length);
+      rows.forEach((row, i) => {
+        const state = me.bestimmung.milestones[i];
+        const md = def.milestones.find((x) => x.id === state.id);
+        assert.equal(row.erreicht, state.reached);
+        if (!row.fortschritt) return;
+        if (md.predicate.pred === 'holds') {
+          assert.equal(row.fortschritt.ziel, md.predicate.seasons);
+          assert.equal(row.fortschritt.wert, state.reached ? md.predicate.seasons : state.progress);
+        } else if (!state.reached) {
+          const cx = { state: v, env, pid: v.people, world: env.world(v.map.seed) };
+          assert.equal(row.fortschritt.wert >= row.fortschritt.ziel, evalPredicate(md.predicate, cx), md.id);
+        }
+      });
+    }
+  });
+
+  test('every milestone and every offered destiny carries a symbol name', () => {
+    const d = destiny(midgame, env);
+    for (const m of d.meilensteine) assert.equal(typeof m.icon, 'string');
+    for (const w of d.wechsel) for (const m of w.meilensteine) assert.equal(typeof m.icon, 'string');
   });
 });

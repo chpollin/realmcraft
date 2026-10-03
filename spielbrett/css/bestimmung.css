@@ -1,0 +1,56 @@
+/* Bestimmung overlay: milestones as symbol and bar, change of destiny, rivals' destinies. */
+@layer overlays {
+  .bst-raster { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+  .bst-spalte { --c: var(--ink); display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border-radius: var(--radius-m); background: var(--night-2); }
+  .bst-spalte.spieler { --c: var(--people-own); background: linear-gradient(160deg, oklch(from var(--people-own) l c h / 0.1), transparent 55%), var(--night-2); }
+  .bst-spalte.schaedelklan { --c: var(--people-schaedelklan); }
+  .bst-spalte.talbund { --c: var(--people-talbund); }
+  .bst-name { font-size: var(--step-2); font-weight: 600; }
+  .bst-name.is-fog { color: var(--ink-subtle); font-style: italic; font-weight: 400; }
+  /* The people under its destiny; the mark repeats the shape the map uses for it. */
+  .bst-volk { display: flex; align-items: center; gap: var(--space-2); font-size: var(--step--1); color: var(--ink-dim); margin-block-start: calc(-1 * var(--space-2)); }
+  .bst-volk::before { content: ""; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--c); }
+  .schaedelklan .bst-volk::before { border-radius: 1px; rotate: 45deg; }
+  .talbund .bst-volk::before { border-radius: 3px; }
+
+  .meilensteine { display: grid; gap: var(--space-1); }
+  .meilensteine > li > .has-tip { display: block; }
+  .ms-zeile {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: var(--space-3);
+    min-block-size: 2.25rem;
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-s);
+    cursor: help;
+  }
+  .ms-zeile:hover { background: var(--hover-wash); }
+  .ms-zeile:focus-visible, .ms-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .ms-symbol { color: var(--ink-subtle); }
+  .erreicht .ms-symbol { color: var(--c); }
+  .ms-erreicht { color: var(--c); }
+  .unbekannt .ms-symbol { color: var(--ink-faint); }
+
+  .ms-balken { appearance: none; inline-size: 100%; block-size: 6px; border: 0; border-radius: 3px; background: var(--night-4); overflow: hidden; }
+  .ms-balken::-webkit-progress-bar { background: var(--night-4); border-radius: 3px; }
+  .ms-balken::-webkit-progress-value { background: var(--c); border-radius: 3px; }
+  .ms-balken::-moz-progress-bar { background: var(--c); border-radius: 3px; }
+  .unbekannt .ms-balken { background: transparent; outline: 1px dashed var(--ink-faint); outline-offset: -1px; }
+  .unbekannt .ms-balken::-webkit-progress-bar { background: transparent; }
+  .ms-tip { display: grid; gap: var(--space-1); }
+  .ms-tip span { color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+
+  .wechsel { margin-block-start: var(--space-6); }
+  .wechsel-liste { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-4); }
+  .wechsel-karte { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border-radius: var(--radius-m); background: var(--night-2); }
+  .wechsel-karte h4 { font-size: var(--step-1); font-weight: 600; }
+  .wechsel-karte > .btn, .wechsel-karte > .has-tip { align-self: flex-start; margin-block-start: auto; }
+  .ms-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .ms-chip { display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: var(--radius-s); background: var(--night-3); color: var(--ink-dim); cursor: help; }
+  .ms-chip:hover { background: var(--night-4); }
+}
+
+@media (max-width: 760px) {
+  .bst-raster { grid-template-columns: 1fr; }
+}

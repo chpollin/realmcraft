@@ -92,28 +92,108 @@ export function budgetState(model) {
   return { used, max: BUDGET };
 }
 
-function budgetPips(used, max) {
+export const SLOT_ICON = { haupt: 'haupt', neben: 'neben', frei: 'enthaltung', forschung: 'wissen' };
+export const SLOT_NAME = { haupt: 'Hauptaktion', neben: 'Nebenaktion', frei: 'Freie Handlung', forschung: 'Forschung' };
+const GROUP_NAME = { haupt: ['Haupt', 'Hauptaktionen'], neben: ['Neben', 'Nebenaktionen'] };
+
+/** Slot an option takes on the board: research orders draw on the research budget, not on an action slot. */
+export const slotOf = (opt) => (String(opt.type ?? '').startsWith('research.') ? 'forschung' : opt.art);
+
+/**
+ * Marks the slot an order would take while it is hovered or focused:
+ * { art, ersetzt } or null. A full slot shows as such, with the order the
+ * option would replace marked.
+ */
+export function hintSlot(api, hint) {
+  const same = JSON.stringify(hint) === JSON.stringify(api.model.slotHint ?? null);
+  if (same) return;
+  api.model.slotHint = hint;
+  renderBudget(api);
+}
+
+function focusOrder(orderId) {
+  document.querySelector(`#befehle [data-order-id="${orderId}"] button, #befehle [data-order-id="${orderId}"] [tabindex]`)?.focus();
+}
+
+/** One slot box per available action of a kind; filled boxes name their order. */
+function slotGroup(api, art, used, max) {
+  const { model } = api;
+  const hint = model.slotHint;
+  const orders = model.orders.filter((o) => o.art === art);
   const n = Math.max(used, max);
-  return el('span', { class: 'pips', 'aria-hidden': 'true' },
-    ...Array.from({ length: n }, (_, i) => el('span', { class: `pip${i < used ? ' on' : ''}${i >= max ? ' over' : ''}` })));
+  const target = hint?.art === art && !hint.ersetzt && used < max ? used : -1;
+  const boxes = Array.from({ length: n }, (_, i) => {
+    const o = orders[i];
+    const cls = ['slot', art, i < used ? 'on' : '', i >= max ? 'over' : '', i === target ? 'is-ziel' : '',
+      hint?.art === art && used >= max ? 'is-voll' : '', o && hint?.ersetzt === o.id ? 'is-ersetzt' : ''].filter(Boolean).join(' ');
+    if (!o) return el('span', { class: cls, 'aria-hidden': 'true' }, icon(SLOT_ICON[art], { size: 20 }));
+    return withTip(el('button', { class: cls, type: 'button', 'aria-label': `${o.titel} ${o.ziel ?? ''}`.trim(), onclick: () => focusOrder(o.id) }, icon(SLOT_ICON[art], { size: 20 })),
+      [el('strong', { text: o.titel }), o.ziel ? ` ${o.ziel}` : ''], null, { up: true });
+  });
+  const [short, long] = GROUP_NAME[art];
+  return el('div', { class: `slot-gruppe${used > max ? ' is-ueber' : ''}`, role: 'group', 'aria-label': `${long} ${used} von ${max} vergeben`, 'data-slots': art },
+    el('span', { class: 'slot-name', 'aria-hidden': 'true', text: short }),
+    el('span', { class: 'slot-boxen' }, ...boxes));
+}
+
+/** Research of the season: its own budget beside the action slots, never one of them. */
+function researchBudget(api) {
+  const { game, model } = api;
+  if (!game) return null;
+  const chosen = game.draft.orders.find((o) => o.type === 'research.assign');
+  const running = game.view.peoples[game.pid].developments.research[0];
+  const ref = chosen?.params.development ?? running?.ref ?? null;
+  const name = ref ? game.env.entwicklung(ref)?.name ?? ref : 'offen';
+  const hint = model.slotHint?.art === 'forschung';
+  return withTip(el('button', {
+    class: `forschung-budget${chosen ? ' on' : ''}${hint ? ' is-ziel' : ''}`,
+    type: 'button',
+    'data-forschung': '',
+    'aria-label': `Forschung ${name}${chosen ? ', diese Saison gewählt' : ''}`,
+    onclick: () => api.openDialog('entwicklungen'),
+  }, icon('wissen', { size: 20 }), el('span', { class: 'fb-name', text: name })),
+  [el('strong', { text: 'Forschung' }), ` ${name}`], [el('span', { text: chosen ? 'Diese Saison gewählt, eine Wahl je Saison' : 'Eine Wahl je Saison, ohne Aktion' })], { up: true });
+}
+
+export function renderBudget(api) {
+  const { used, max } = budgetState(api.model);
+  document.getElementById('budget').replaceChildren(
+    slotGroup(api, 'haupt', used.haupt, max.haupt),
+    slotGroup(api, 'neben', used.neben, max.neben),
+    researchBudget(api) ?? '',
+  );
+}
+
+/** The world event of the season as a step of its own in the turn bar, rolled like any probe. */
+function eventChip(api) {
+  const { game } = api;
+  const p = game?.base?.probes?.find((x) => x.target == null && x.roller === 'player');
+  if (!p) return null;
+  const roll = game.draft.rolls?.[p.id];
+  const face = roll ? game.faces(p)[roll.value - 1] : null;
+  const locked = api.model.phase === 'A';
+  return el('li', { class: `befehl ereignis-schritt${roll ? '' : ' is-offen'}`, 'data-order-id': 'event' },
+    icon('welt', { size: 16 }),
+    el('span', { class: 'befehl-titel', text: game.t('ui.weltereignis', 'Weltereignis') }),
+    roll
+      ? withTip(el('span', { class: 'befehl-wurf', tabindex: '0', 'aria-label': `Weltereignis ${roll.value}, ${face.label}` }, icon('wuerfel', { size: 14 }), String(roll.value)), [el('span', { text: face.label })], null, { up: true })
+      : locked ? null : el('button', { class: 'btn btn-klein', type: 'button', 'data-ereignis-wurf': '', onclick: () => api.openDialog('probe', { real: true, probeId: p.id }) }, icon('wuerfel', { size: 16 }), 'Würfeln'));
 }
 
 export function renderOrders(api, { freshId } = {}) {
   const { model } = api;
-  const { used, max } = budgetState(model);
-  document.getElementById('budget').replaceChildren(
-    el('span', { 'aria-label': `Hauptaktionen ${used.haupt} von ${max.haupt}` }, 'Haupt', budgetPips(used.haupt, max.haupt)),
-    el('span', { 'aria-label': `Nebenaktionen ${used.neben} von ${max.neben}` }, 'Neben', budgetPips(used.neben, max.neben)),
-  );
+  renderBudget(api);
   const ol = document.getElementById('befehle');
+  const event = eventChip(api);
   if (!model.orders.length) {
-    ol.replaceChildren(el('li', { class: 'befehle-leer', text: model.phase === 'A' ? 'Befehle werden ausgeführt' : 'Keine Befehle' }));
+    ol.replaceChildren(...[event, el('li', { class: 'befehle-leer', text: model.phase === 'A' ? 'Befehle werden ausgeführt' : 'Keine Befehle' })].filter(Boolean));
     return;
   }
   const locked = model.phase === 'A';
   ol.replaceChildren(
-    ...model.orders.map((o) => el('li', { class: `befehl${o.id === freshId ? ' is-new' : ''}` },
-      el('span', { class: `befehl-art ${o.art}`, title: o.art === 'haupt' ? 'Hauptaktion' : o.art === 'neben' ? 'Nebenaktion' : 'frei' }),
+    ...(event ? [event] : []),
+    ...model.orders.map((o) => el('li', { class: `befehl${o.id === freshId ? ' is-new' : ''}${o.issues?.length ? ' is-problem' : ''}`, 'data-order-id': o.id },
+      icon(SLOT_ICON[slotOf(o)] ?? 'enthaltung', { size: 16, cls: `befehl-art ${o.art}`, label: SLOT_NAME[slotOf(o)] }),
       el('span', {},
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',
         el('span', { class: 'befehl-ziel', text: o.ziel })),
@@ -166,6 +246,63 @@ export function renderEndTurn(api) {
   b.setAttribute('aria-disabled', busy || waiting ? 'true' : 'false');
   b.setAttribute('aria-label', busy ? 'Zug läuft, Befehle gesperrt' : waiting ? 'Agentenrunde läuft, der Zug öffnet danach' : rolls ? `Zug beenden, zuerst ${sub}` : `Zug beenden, weiter zu ${next.saison}, Jahr ${next.jahr}`);
   document.getElementById('zugleiste').classList.toggle('is-locked', busy);
+  renderBlocker(api);
+}
+
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * What keeps the turn from ending, beside "Zug beenden": "2 Probleme" opens
+ * the list of problems, each with the way to it or the fix in place;
+ * "2 Würfe offen" rolls the owed probes one by one.
+ */
+export function renderBlocker(api, { open } = {}) {
+  const box = document.getElementById('blocker');
+  const { game, model } = api;
+  if (!game || model.phase === 'A' || model.kernPhase === 'agents') {
+    box.replaceChildren();
+    return;
+  }
+  const { probleme, wuerfe } = game.blockers();
+  const wasOpen = box.querySelector('.blocker-liste') && !box.querySelector('.blocker-liste').hidden;
+  const isOpen = open ?? wasOpen;
+  if (!probleme.length && !wuerfe.length) {
+    box.replaceChildren();
+    return;
+  }
+  const list = el('ul', { class: 'blocker-liste plain', id: 'blocker-liste', hidden: !isOpen }, ...[...probleme, ...wuerfe].map((b) => blockerItem(api, b)));
+  const toggle = probleme.length ? el('button', {
+    class: 'blocker-knopf problem', type: 'button', 'aria-expanded': String(isOpen), 'aria-controls': 'blocker-liste', 'data-blocker': 'probleme',
+    onclick: () => renderBlocker(api, { open: list.hidden }),
+  }, icon('warnung', { size: 16 }), plural(probleme.length, 'Problem', 'Probleme')) : null;
+  const rolls = wuerfe.length ? el('button', {
+    class: 'blocker-knopf wurf', type: 'button', 'data-blocker': 'wuerfe',
+    onclick: () => api.rollOwed(),
+  }, icon('wuerfel', { size: 16 }), `${plural(wuerfe.length, 'Wurf', 'Würfe')} offen`) : null;
+  box.replaceChildren(el('div', { class: 'blocker-knoepfe' }, toggle ?? '', rolls ?? ''), list);
+}
+
+function blockerItem(api, b) {
+  const { game } = api;
+  const actions = [];
+  const btn = (label, iconName, onclick, data) => el('button', { class: 'btn btn-klein', type: 'button', onclick, ...(data ? { [`data-${data}`]: '' } : {}) }, icon(iconName, { size: 15 }), label);
+  if (b.kind === 'befehl') {
+    if (b.tile) actions.push(btn('Zeigen', 'ziel', () => api.jumpToTile(b.tile)));
+    actions.push(btn('Zurücknehmen', 'schliessen', () => api.removeOrder(b.orderId), 'zuruecknehmen'));
+  } else if (b.kind === 'slots') {
+    actions.push(btn('Zeigen', 'ziel', () => { const o = api.model.orders.find((x) => x.art === b.slot); if (o) focusOrder(o.id); }));
+  } else if (b.kind === 'arbeit') {
+    actions.push(btn('Zeigen', 'ziel', () => api.meldungAktion({ id: 'arbeit' })));
+  } else if (b.kind === 'wurf-verwaist') {
+    actions.push(btn('Verwerfen', 'schliessen', () => game.dropRoll(b.probeId), 'verwerfen'));
+  } else if (b.kind === 'wurf') {
+    actions.push(btn(b.veraltet ? 'Neu würfeln' : 'Würfeln', 'wuerfel', () => api.openDialog('probe', { real: true, probeId: b.probeId }), 'wuerfeln'));
+  }
+  const why = b.kind === 'wurf' ? (b.veraltet ? game.t('issue.roll-stale', 'Wurf veraltet') : game.t('issue.roll-missing', 'Wurf fehlt')) : b.texte.join(', ');
+  return el('li', { class: `blocker-eintrag be-${b.kind}`, 'data-blocker-id': b.id },
+    el('span', { class: 'be-titel' }, el('strong', { text: b.titel }), b.ziel ? ` ${b.ziel}` : ''),
+    why ? el('span', { class: 'be-grund', text: why }) : null,
+    el('span', { class: 'be-aktionen' }, ...actions));
 }
 
 const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'];

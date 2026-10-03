@@ -13,8 +13,12 @@ import { mapLayers } from '../../../engine/core/derive.js';
 import { researchCost } from '../../../engine/core/research.js';
 import { calendarOf } from '../../../engine/core/calendar.js';
 import { SUCCESS_BANDS, BANDS } from '../../../engine/schemas/common.js';
+import { registry } from '../../../engine/core/orders.js';
 
-export { preview, emptyDraft, eventBand, bandOf, resolveProbe, calculation, chance, viewsFor, loyaltyBand, mapLayers, researchCost, calendarOf, SUCCESS_BANDS, BANDS };
+/** True for order types the kernel allows once per season (research.assign, research.direct). */
+export const isUnique = (type) => registry()[type]?.def?.unique === true;
+
+export { tune, preview, emptyDraft, eventBand, bandOf, resolveProbe, calculation, chance, viewsFor, loyaltyBand, mapLayers, researchCost, calendarOf, SUCCESS_BANDS, BANDS };
 
 export const PACK_FILES = ['welt', 'regeln', 'labels'];
 export const CONTENT_FILES = ['entwicklungen', 'ereignisse', 'bestimmungen'];

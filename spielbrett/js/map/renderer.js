@@ -3,6 +3,7 @@
 // flow, the selection settling) and stops by itself afterwards.
 
 import { hexToPixel, pixelToHex, hexKey, neighbors, CORNERS, hexPath, hash01, hexDistance } from './hex.js';
+// EDGE_CORNERS is declared at the end of this module and only read inside methods.
 import { token, col } from './palette.js';
 import { drawTerrainMark } from './terrain.js';
 import { iconPath } from '../icons.js';
@@ -293,6 +294,7 @@ export class MapView {
 
     if (model.layer === 'besitz') this.drawOwnership(cells, s);
     if (model.layer === 'bedrohung') this.drawThreat(cells, s);
+    this.drawRegionBorders(cells, s);
 
     this.drawRoads(s);
     this.drawCampGlow(s);
@@ -495,19 +497,104 @@ export class MapView {
     ctx.restore();
   }
 
-  drawRegionLabels(cells, s) {
-    const { ctx, model } = this;
-    // Label each region at the centroid of its known tiles in view, so a region
-    // whose seed lies in the fog is still named where the player sees it.
-    const acc = new Map();
+  /**
+   * Known part of every region: its tiles and a label anchor, the known tile
+   * nearest to the centroid of all known tiles of the region. The anchor stays
+   * put while panning and lies inside the region even when it is not convex.
+   * Cached until the set of known tiles changes.
+   */
+  regions() {
+    const known = this.model.known;
+    const n = Object.keys(known).length;
+    if (this.regionCache && this.regionCache.known === known && this.regionCache.n === n) return this.regionCache.map;
+    const map = new Map();
+    for (const k of Object.keys(known)) {
+      const [q, r] = k.split(',').map(Number);
+      const id = tileAt(this.model.world, q, r).regionId;
+      const p = hexToPixel(q, r, BASE);
+      const a = map.get(id) ?? { id, tiles: [], x: 0, y: 0 };
+      a.tiles.push({ q, r, k, x: p.x, y: p.y });
+      a.x += p.x;
+      a.y += p.y;
+      map.set(id, a);
+    }
+    for (const a of map.values()) {
+      a.x /= a.tiles.length;
+      a.y /= a.tiles.length;
+      a.anchor = a.tiles.reduce((best, t) => (Math.hypot(t.x - a.x, t.y - a.y) < Math.hypot(best.x - a.x, best.y - a.y) ? t : best));
+      a.keys = new Set(a.tiles.map((t) => t.k));
+    }
+    this.regionCache = { known, n, map };
+    return map;
+  }
+
+  /** Region of the hovered hex, or null. */
+  hoverRegion() {
+    const h = this.model.hover;
+    return h ? tileAt(this.model.world, h.q, h.r).regionId : null;
+  }
+
+  /**
+   * Soft region borders on every layer: each side of a border draws its own
+   * edge slightly inside its hex in the owner's colour (neutral when nobody
+   * controls the region), so a border between two owners reads as a double
+   * line. The hovered region is washed and outlined more strongly.
+   */
+  drawRegionBorders(cells, s) {
+    const { ctx } = this;
+    const owners = this.ownership();
+    const hovered = this.hoverRegion();
+    if (hovered) {
+      ctx.save();
+      ctx.fillStyle = col('--map-region-hover', { a: 0.13 });
+      for (const c of cells) {
+        if (c.status === 'frontier' || c.tile.regionId !== hovered) continue;
+        ctx.beginPath();
+        hexPath(ctx, c.x, c.y, s + 0.5);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    const byStyle = new Map();
     for (const c of cells) {
       if (c.status === 'frontier') continue;
-      const a = acc.get(c.tile.regionId) ?? { x: 0, y: 0, n: 0 };
-      a.x += c.x;
-      a.y += c.y;
-      a.n++;
-      acc.set(c.tile.regionId, a);
+      const id = c.tile.regionId;
+      const strong = id === hovered;
+      neighbors(c.tile.q, c.tile.r).forEach((nb, i) => {
+        if (tileAt(this.model.world, nb.q, nb.r).regionId === id) return;
+        const owner = owners.get(c.k) ?? null;
+        const key = `${owner ?? ''}|${strong ? 1 : 0}`;
+        let path = byStyle.get(key);
+        if (!path) byStyle.set(key, path = { owner, strong, p: new Path2D() });
+        const [a, b] = EDGE_CORNERS[i];
+        const inset = 0.93;
+        path.p.moveTo(c.x + CORNERS[a][0] * s * inset, c.y + CORNERS[a][1] * s * inset);
+        path.p.lineTo(c.x + CORNERS[b][0] * s * inset, c.y + CORNERS[b][1] * s * inset);
+      });
     }
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const { owner, strong, p } of byStyle.values()) {
+      ctx.strokeStyle = col('--map-label-halo', { a: strong ? 0.5 : 0.3 });
+      ctx.lineWidth = Math.max(2, s * (strong ? 0.13 : 0.09));
+      ctx.stroke(p);
+      ctx.strokeStyle = owner ? col(peopleToken(owner), { a: strong ? 0.95 : 0.6 }) : col('--map-region', { a: strong ? 0.9 : 0.42 });
+      ctx.lineWidth = Math.max(1, s * (strong ? 0.06 : 0.035));
+      ctx.stroke(p);
+    }
+    ctx.restore();
+  }
+
+  drawRegionLabels(cells, s) {
+    const { ctx, model } = this;
+    const acc = new Map();
+    for (const [id, a] of this.regions()) {
+      if (a.tiles.length < 3) continue;
+      const p = this.worldToScreen(a.anchor.x, a.anchor.y);
+      if (p.x < -200 || p.y < -60 || p.x > this.w + 200 || p.y > this.h + 60) continue;
+      acc.set(id, { x: p.x, y: p.y, n: 1 });
+    }
+    const hovered = this.hoverRegion();
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -519,7 +606,6 @@ export class MapView {
       .map((o) => this.hexScreen(o.q, o.r));
     const w2 = (t) => ctx.measureText(t).width / 2 + s * 0.3;
     for (const [id, a] of acc) {
-      if (a.n < 5) continue;
       const name = regionName(model, id);
       if (!name) continue;
       const x = a.x / a.n;
@@ -528,11 +614,12 @@ export class MapView {
       const clear = (y) => marks.every((m) => Math.abs(m.y - y) > s * 0.95 || Math.abs(m.x - x) > half);
       const y = [0.15, -1.35, 1.65, -2.85, 3.15].map((d) => a.y / a.n + s * d).find(clear);
       if (y === undefined) continue;
+      const lit = id === hovered;
       ctx.lineWidth = 4;
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = col('--map-label-halo', { a: 0.35 });
+      ctx.strokeStyle = col('--map-label-halo', { a: lit ? 0.6 : 0.4 });
       ctx.strokeText(name, x, y);
-      ctx.fillStyle = col('--map-label', { a: 0.55 });
+      ctx.fillStyle = col('--map-label', { a: lit ? 0.95 : 0.7 });
       ctx.fillText(name, x, y);
     }
     ctx.restore();

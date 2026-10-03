@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="css/panels.css">
   <link rel="stylesheet" href="css/dialoge.css">
   <link rel="stylesheet" href="css/kampagne.css">
+  <link rel="stylesheet" href="css/rat-leiste.css">
+  <link rel="stylesheet" href="css/weltgeschehen.css">
+  <link rel="stylesheet" href="css/bestimmung.css">
+  <link rel="stylesheet" href="css/ereignisse.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -39,6 +43,8 @@
 
     <div class="kartenwerkzeug ebenen" role="radiogroup" aria-label="Kartenebene" id="ebenen"></div>
 
+    <aside class="ratsleiste" id="ratsleiste" aria-label="Rat"></aside>
+
     <div class="kartenwerkzeug zoom" id="zoom"></div>
     <canvas class="minimap" id="minimap" aria-hidden="true"></canvas>
 
@@ -61,6 +67,7 @@
       <h2 class="sr-only" id="meldungen-titel">Meldungen</h2>
       <ul class="meldungen plain" id="meldungen"></ul>
     </section>
+    <div class="blocker" id="blocker"></div>
     <button class="zug-beenden" id="zug-beenden" type="button"></button>
   </footer>
 
@@ -69,6 +76,7 @@
   <dialog class="overlay overlay-lesen" id="dlg-chronik" aria-labelledby="dlg-chronik-titel"></dialog>
   <dialog class="overlay" id="dlg-bestimmung" aria-labelledby="dlg-bestimmung-titel"></dialog>
   <dialog class="overlay overlay-klein" id="dlg-probe" aria-labelledby="dlg-probe-titel"></dialog>
+  <dialog class="overlay overlay-ereignis" id="dlg-ereignis" aria-labelledby="dlg-ereignis-titel"></dialog>
 
   <div class="sr-only" id="ansage" aria-live="polite"></div>
 </body>

@@ -8,6 +8,7 @@ import { el } from '../dom.js';
 import { icon, ICONS } from '../icons.js';
 import { portrait } from './portrait.js';
 import { costChips } from './kontext.js';
+import { hintSlot, slotOf, SLOT_ICON } from './leiste.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const ART = { technik: 'Technik', magie: 'Magie', einheit: 'Einheit', bauwerk: 'Bauwerk', institution: 'Institution' };
@@ -238,9 +239,10 @@ function kernelAction(api, n) {
       'aria-disabled': disabled ? 'true' : 'false',
       'data-order': cand.type,
       onclick: () => { if (!disabled) api.addCandidate(opt); },
-      onpointerenter: () => { if (!disabled) api.setPreview(opt.preview); },
-      onpointerleave: () => api.setPreview(null),
-    }, icon(opt.queued ? 'ja' : 'entwicklungen', { size: 18 }), opt.queued ? 'In den Befehlen' : label),
+      onpointerenter: () => { if (!disabled) { api.setPreview(opt.preview); hintSlot(api, { art: slotOf(opt), ersetzt: opt.ersetzt?.id ?? null }); } },
+      onpointerleave: () => { api.setPreview(null); hintSlot(api, null); },
+    }, icon(opt.queued ? 'ja' : SLOT_ICON[slotOf(opt)] ?? 'entwicklungen', { size: 18 }), opt.queued ? 'In den Befehlen' : label),
+    opt.ersetzt && !opt.queued ? el('p', { class: 'bo-ersetzt' }, icon('praxis', { size: 14 }), `statt ${opt.ersetzt.ziel || opt.ersetzt.titel}`) : null,
     opt.grund ? el('p', { class: 'bo-grund', text: opt.grund }) : null);
 }
 

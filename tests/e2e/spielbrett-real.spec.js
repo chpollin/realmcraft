@@ -159,7 +159,7 @@ test('rolling the probe stores the roll with the preview fingerprint in the draf
   await page.locator('#dlg-probe [data-wuerfeln]').click();
   await expect(page.locator('#dlg-probe .pe-urteil')).toBeVisible();
   await page.locator('#dlg-probe .probe-aktionen button:not([hidden])').click();
-  await expect(page.locator('#befehle .befehl')).toHaveCount(1);
+  await expect(page.locator('#befehle .befehl:not(.ereignis-schritt)')).toHaveCount(1);
   const probe = await page.evaluate(() => window.spielbrett.game.base.probes.find((p) => p.kind === 'explore'));
   await expect.poll(async () => {
     const res = await page.request.get(`${BASE}/api/campaigns/${CID}/draft`);
@@ -173,7 +173,7 @@ test('rolling the probe stores the roll with the preview fingerprint in the draf
 
 test('ending the turn rolls the world event, seals through the server and locks the board', async ({ page }) => {
   await openBoard(page);
-  await expect(page.locator('#befehle .befehl')).toHaveCount(1);
+  await expect(page.locator('#befehle .befehl:not(.ereignis-schritt)')).toHaveCount(1);
   await expect(page.locator('#zug-beenden .zb-sub')).toHaveText('1 Wurf offen');
   await page.locator('#zug-beenden').click();
   await expect(page.locator('#dlg-probe')).toBeVisible();
@@ -196,5 +196,5 @@ test('the prototype stays reachable with ?demo', async ({ page }) => {
   await page.goto(`${BASE}/spielbrett/?demo`);
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('html')).not.toHaveAttribute('data-campaign', /.+/);
-  await expect(page.locator('#befehle .befehl')).toHaveCount(2);
+  await expect(page.locator('#befehle .befehl:not(.ereignis-schritt)')).toHaveCount(2);
 });

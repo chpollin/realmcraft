@@ -1,0 +1,518 @@
+[
+  {
+    "id": "T1-e1",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "research.offer",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "developments.candidates",
+      "before": [
+        {
+          "ref": "rauchschau@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "saumpfad@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "sesshaft@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        }
+      ],
+      "after": [
+        {
+          "ref": "rauchschau@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "saumpfad@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "sesshaft@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
+        },
+        {
+          "ref": "speertraeger@1",
+          "offeredAt": 1,
+          "expiresAt": 5,
+          "origin": "pool"
+        }
+      ]
+    },
+    "reason": "pool offers speertraeger@1",
+    "refs": [
+      "speertraeger@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "open"
+  },
+  {
+    "id": "T1-e3",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "campaign.phase",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "phase",
+      "before": "agents",
+      "after": "planning"
+    },
+    "reason": "planning opens",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "open"
+  },
+  {
+    "id": "T1-e4",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "event.draw",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "eventDraws.bergnomaden",
+      "before": null,
+      "after": {
+        "turn": 1,
+        "roll": 6,
+        "band": 3,
+        "roller": "player",
+        "card": null
+      }
+    },
+    "reason": "world-event roll 6, band 3",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "seal"
+  },
+  {
+    "id": "T1-e9",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "campaign.phase",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "phase",
+      "before": "planning",
+      "after": "resolving"
+    },
+    "reason": "orders sealed",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "seal"
+  },
+  {
+    "id": "T1-e20",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.herden",
+      "delta": 2
+    },
+    "reason": "the herds graze on 1 pasture region(s), 0 clan(s) tend them",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "modules"
+  },
+  {
+    "id": "T1-e21",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": 2
+    },
+    "reason": "the herds feed the people",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "modules"
+  },
+  {
+    "id": "T1-e26",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": 1
+    },
+    "reason": "2 clan(s) harvest nahrung in -1:0:0 (wiese)",
+    "refs": [
+      "-1:0:0"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e27",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.material",
+      "delta": 3
+    },
+    "reason": "1 clan(s) harvest material in -1:0:0 (wiese)",
+    "refs": [
+      "-1:0:0"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e28",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.salz",
+      "delta": 1
+    },
+    "reason": "1 salz from deposits near the settlements",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e29",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "economy.harvest",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.wissen",
+      "delta": 1
+    },
+    "reason": "1 settlement(s) gather knowledge",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e30",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "economy.consumption",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.nahrung",
+      "delta": -3
+    },
+    "reason": "3 clan(s) eat in sommer",
+    "refs": [
+      "nomadisch@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e31",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "population.growth",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "population.growth",
+      "before": 1,
+      "after": 2
+    },
+    "reason": "growth points carried on",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "economy"
+  },
+  {
+    "id": "T1-e56",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "event.choice",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "pendingChoices.c-0-bergnomaden",
+      "before": {
+        "id": "c-0-bergnomaden",
+        "people": "bergnomaden",
+        "event": "ueberfall@1",
+        "offeredAt": 0,
+        "deadline": 1,
+        "options": [
+          "verfolgen",
+          "hinnehmen"
+        ]
+      },
+      "after": null
+    },
+    "reason": "decision c-0-bergnomaden closed with verfolgen (no answer, first option)",
+    "refs": [
+      "ueberfall@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e57",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "resource.change",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "resources.herden",
+      "delta": -1
+    },
+    "reason": "Überfall auf die Herden: Den Räubern nachsetzen",
+    "refs": [
+      "ueberfall@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e58",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "relation.change",
+    "target": {
+      "kind": "relation",
+      "id": "bergnomaden|schaedelklan"
+    },
+    "change": {
+      "field": "relation",
+      "before": {
+        "value": 0,
+        "atWar": false,
+        "since": 0,
+        "contact": false
+      },
+      "after": {
+        "value": -1,
+        "atWar": false,
+        "since": 0,
+        "contact": false
+      }
+    },
+    "reason": "Überfall auf die Herden: Den Räubern nachsetzen",
+    "refs": [
+      "ueberfall@1"
+    ],
+    "visibleTo": [
+      "bergnomaden",
+      "schaedelklan"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e59",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "people.standing",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": {
+      "field": "standing",
+      "delta": 1
+    },
+    "reason": "Überfall auf die Herden: Den Räubern nachsetzen",
+    "refs": [
+      "ueberfall@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e66",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "event.history",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "modules.kern.draws.ratsstreit@1",
+      "before": null,
+      "after": {
+        "total": 1,
+        "last": {
+          "bergnomaden": 1
+        }
+      }
+    },
+    "reason": "Streit im Rat drawn by bergnomaden",
+    "refs": [
+      "ratsstreit@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e67",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "event.drawn",
+    "target": {
+      "kind": "people",
+      "id": "bergnomaden"
+    },
+    "change": null,
+    "reason": "Streit im Rat (roll 6, band 3)",
+    "refs": [
+      "ratsstreit@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e68",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "event.choice",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "pendingChoices.c-1-bergnomaden",
+      "before": null,
+      "after": {
+        "id": "c-1-bergnomaden",
+        "people": "bergnomaden",
+        "event": "ratsstreit@1",
+        "offeredAt": 1,
+        "deadline": 2,
+        "options": [
+          "herden",
+          "flamme",
+          "schweigen"
+        ]
+      }
+    },
+    "reason": "Streit im Rat asks for a decision",
+    "refs": [
+      "ratsstreit@1"
+    ],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "events"
+  },
+  {
+    "id": "T1-e78",
+    "turn": 1,
+    "source": "kernel",
+    "kind": "campaign.turn",
+    "target": {
+      "kind": "campaign",
+      "id": "ev-ratsstreit"
+    },
+    "change": {
+      "field": "turn",
+      "before": 1,
+      "after": 2
+    },
+    "reason": "season ends",
+    "refs": [],
+    "visibleTo": [
+      "bergnomaden"
+    ],
+    "step": "finalize"
+  }
+]

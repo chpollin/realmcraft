@@ -7,7 +7,7 @@
 // appears as volk "spieler" on map objects, a camp (settlement kind lager) is
 // a unit of art "lager", other settlements are places of art "siedlung".
 
-import { key, parseKey, neighbors, regionOf } from '../../../engine/world/index.js';
+import { key, parseKey, neighbors, regionOf, regionInfo } from '../../../engine/world/index.js';
 import { bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, SUCCESS_BANDS } from './kernel.js';
 import { bandKey } from './labels.js';
 
@@ -197,6 +197,30 @@ function stance(rel) {
   return 'neutral';
 }
 
+// What the view reveals of a rival's destiny. The fog projection of a foreign
+// people carries none today, so the result is an unknown marker until the
+// projection reveals { ref, milestones: [{ id, reached }] }; a milestone the
+// view does not list stays unknown, and nothing is filled in by guesswork.
+function rivalDestiny(p, env) {
+  const def = p.bestimmung?.ref ? env.bestimmung(p.bestimmung.ref) : null;
+  if (!def) return { name: null, bekannt: false, meilensteine: [] };
+  return {
+    name: def.name,
+    bekannt: true,
+    meilensteine: def.milestones.map((md) => {
+      const seen = p.bestimmung.milestones?.find((x) => x.id === md.id);
+      return seen ? { text: md.text, erreicht: Boolean(seen.reached), icon: predicateIcon(md.predicate) } : { text: null, erreicht: null };
+    }),
+  };
+}
+
+const PREDICATE_ICON = { controls: 'besitz', 'stat.atLeast': 'schild', 'population.atLeast': 'volk', relation: 'zustimmung', 'development.known': 'entwicklungen', subjugated: 'krieger', settlement: 'siedlung' };
+// A holds milestone shows the symbol of the predicate it watches.
+function predicateIcon(pred) {
+  const inner = pred.pred === 'holds' ? pred.predicate : pred;
+  return inner.pred === 'resource.atLeast' ? inner.key : PREDICATE_ICON[inner.pred] ?? 'meilenstein';
+}
+
 export function rivals(view, env) {
   return Object.values(view.peoples).filter((p) => p.id !== view.people).map((p) => {
     const rel = relationOf(view, view.people, p.id);
@@ -210,7 +234,7 @@ export function rivals(view, env) {
       lebensweise: devName(env, p.lebensweise),
       anfuehrer: null,
       lager: s ? parseKey(s.tile) : null,
-      bestimmung: { name: null, bekannt: false, meilensteine: [] },
+      bestimmung: rivalDestiny(p, env),
     };
   });
 }
@@ -234,27 +258,63 @@ export function council(view, t) {
   });
 }
 
-function milestoneRows(def, state) {
+function milestoneRows(def, state, view, env) {
+  const pid = view.people;
+  const own = view.peoples[pid];
+  // Counts mirror the kernel predicates (engine/core/bestimmung.js evalPredicate)
+  // so the bar can show the distance; whether a milestone is reached stays the
+  // kernel's verdict (m.reached). Predicates without a count have no bar value.
+  const measure = (pred) => {
+    switch (pred.pred) {
+      case 'population.atLeast': return { wert: own.population.core, ziel: pred.value };
+      case 'resource.atLeast': return { wert: own.resources[pred.key] ?? 0, ziel: pred.value };
+      case 'settlement': return { wert: view.map.settlements.filter((s) => s.people === pid && s.kind === pred.kind).length, ziel: pred.count };
+      case 'controls': {
+        const world = pred.terrain ? env.world(view.map.seed) : null;
+        const regions = Object.keys(view.map.control).filter((r) => view.map.control[r] === pid && (!world || regionInfo(world, r)?.dominantTerrain === pred.terrain));
+        return { wert: regions.length, ziel: pred.count };
+      }
+      case 'development.known': {
+        const n = own.developments.known.filter((k) => {
+          const ent = k.state === 'active' ? env.entwicklung(k.ref) : null;
+          return ent && (!pred.kind || ent.kind === pred.kind) && (pred.tier === undefined || ent.tier >= pred.tier) && (!pred.tags || pred.tags.some((g) => ent.tags.includes(g)));
+        }).length;
+        return { wert: n, ziel: pred.count };
+      }
+      default: return null;
+    }
+  };
   return state.milestones.map((m) => {
     const d = def?.milestones.find((x) => x.id === m.id);
-    const seasons = d?.predicate?.pred === 'holds' ? d.predicate.seasons : null;
-    return { id: m.id, text: d?.text ?? m.id, erreicht: m.reached, stand: m.reached ? 'erreicht' : seasons ? `${m.progress} von ${seasons}` : '' };
+    const holds = d?.predicate?.pred === 'holds' ? d.predicate : null;
+    const raw = holds ? { wert: m.progress, ziel: holds.seasons, einheit: 'Jahreszeiten' } : d ? measure(d.predicate) : null;
+    const fortschritt = m.reached && raw ? { ...raw, wert: raw.ziel } : raw;
+    return {
+      id: m.id,
+      text: d?.text ?? m.id,
+      erreicht: m.reached,
+      icon: d ? predicateIcon(d.predicate) : 'meilenstein',
+      fortschritt,
+      stand: m.reached ? 'erreicht' : fortschritt ? `${fortschritt.wert} von ${fortschritt.ziel}` : '',
+    };
   });
 }
 
 export function destiny(view, env) {
   const b = view.peoples[view.people].bestimmung;
   const def = b ? env.bestimmung(b.ref) : null;
+  // A destiny a rival is known to hold is that people's own and is not offered.
+  const rivalRefs = new Set(Object.values(view.peoples).filter((p) => p.id !== view.people).map((p) => p.bestimmung?.ref).filter(Boolean));
   const wechsel = env.content.bestimmungen
     .map((x) => ({ ref: `${x.id}@${x.rev}`, def: x }))
-    .filter((x) => x.ref !== b?.ref)
-    .map(({ ref, def: d }) => ({ ref, name: d.name, weil: d.summary, preis: null, meilensteine: d.milestones.map((m) => m.text) }));
+    .filter((x) => x.ref !== b?.ref && !rivalRefs.has(x.ref))
+    .map(({ ref, def: d }) => ({ ref, name: d.name, weil: d.summary, preis: null, meilensteine: d.milestones.map((m) => ({ text: m.text, icon: predicateIcon(m.predicate) })) }));
   return {
     ref: b?.ref ?? null,
     name: def?.name ?? b?.ref ?? '',
     summary: def?.summary ?? '',
     art: 'start',
-    meilensteine: b ? milestoneRows(def, b) : [],
+    meilensteine: b ? milestoneRows(def, b, view, env) : [],
     wechsel,
   };
 }
@@ -320,16 +380,16 @@ export function chronicle(env, t, entries) {
   });
 }
 
-/** German phrase for a kernel issue; the kernel's own message stays available as detail. */
+/** Label key of an issue code; label keys allow no underscore. */
+export const issueKey = (code) => `issue.${String(code).replace(/^kern\./, '').replaceAll('_', '-')}`;
+
+/**
+ * German text of a kernel issue from the world's labels (issue.<code>). The
+ * kernel's own message is English and never reaches the player; an unlabelled
+ * code falls back to a generic German sentence.
+ */
 export function issueText(issue, t) {
-  const phrases = {
-    cost: 'Vorrat reicht nicht', target: 'Ziel nicht möglich', slots: 'Keine Aktion mehr frei', council_rejected: 'Der Rat lehnt ab',
-    locked_order: 'Gesperrt', restricted: 'Verboten', roll_stale: 'Wurf veraltet', roll_missing: 'Wurf fehlt', duplicate: 'Nur einmal möglich',
-    labour: 'Zu viele Sippen eingeteilt', idle_labour: 'Sippen ohne Arbeit', phase: 'Nicht in dieser Phase', stale: 'Entwurf veraltet',
-    shortfall: 'Mangel zum Saisonende', upkeep_risk: 'Unterhalt gefährdet', unknown_order: 'Unbekannter Befehl', format: 'Entwurf fehlerhaft',
-    free_slots: 'Aktion frei', softcap: 'Modifikatoren gekappt', finished: 'Partie beendet',
-  };
-  return phrases[issue.code] ?? t(`issue.${issue.code}`, issue.code);
+  return t(issueKey(issue.code), t('issue.generic', 'Der Regelkern lässt das so nicht zu'));
 }
 
 export function messages(view, env, t, pv) {
@@ -342,12 +402,14 @@ export function messages(view, env, t, pv) {
   for (const [res, n] of Object.entries(pv?.forecast?.shortfall ?? {})) {
     if (n > 0) out.push({ id: `mangel-${res}`, art: 'warnung', titel: `${t(`resource.${res}`, res)} knapp`, text: `${n} ${t(`resource.${res}`, res)} fehlen zum Saisonende.` });
   }
+  const core = view.peoples[pid].population.core;
+  const assigned = Object.values(pv?.assign ?? {}).reduce((a, n) => a + n, 0);
   for (const i of pv?.issues ?? []) {
-    if (i.code === 'upkeep_risk') out.push({ id: `unterhalt-${out.length}`, art: 'warnung', titel: issueText(i, t), text: i.message });
-    if (i.code === 'labour' || i.code === 'idle_labour') out.push({ id: `arbeit-${i.code}`, art: 'warnung', titel: issueText(i, t), text: i.message, dialog: null, home: true });
+    if (i.code === 'upkeep_risk') out.push({ id: `unterhalt-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
+    if (i.code === 'labour' || i.code === 'idle_labour') out.push({ id: `arbeit-${i.code}`, art: 'warnung', titel: issueText(i, t), text: `${assigned} von ${core} ${t('population.core', 'Sippen')} eingeteilt`, dialog: null, home: true });
     // Errors no order row carries (a malformed roll, a stale draft, a phase) would otherwise go unseen.
-    else if (i.severity === 'error' && !i.path.startsWith('/orders/') && !i.path.startsWith('/rolls/T')) out.push({ id: `entwurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: i.message });
-    else if (i.severity === 'error' && i.path.startsWith('/rolls/') && (i.code !== 'roll_stale' || !(pv.probes ?? []).some((p) => i.path === `/rolls/${p.id}`))) out.push({ id: `wurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: i.message });
+    else if (i.severity === 'error' && !i.path.startsWith('/orders/') && !i.path.startsWith('/rolls/T')) out.push({ id: `entwurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
+    else if (i.severity === 'error' && i.path.startsWith('/rolls/') && (i.code !== 'roll_stale' || !(pv.probes ?? []).some((p) => i.path === `/rolls/${p.id}`))) out.push({ id: `wurf-${out.length}`, art: 'warnung', titel: issueText(i, t), text: issueText(i, t) });
   }
   for (const c of view.pendingChoices ?? []) {
     const card = env.ereignis(c.event);
@@ -428,6 +490,58 @@ export function orderRows(view, env, t, draft, pv, world) {
       venture: draft.venture?.[o.id] === true,
     };
   });
+}
+
+/**
+ * What keeps the turn from ending, from the kernel preview of the draft:
+ * problems (errors of orders and of the draft as a whole, rolls whose probe is
+ * gone) and owed rolls (probes without a roll or with a stale one, the world
+ * event included). Each item carries what the board needs to jump to it or to
+ * fix it in place.
+ */
+export function blockersOf(view, env, t, draft, pv, world) {
+  const probes = pv?.probes ?? [];
+  const errors = (pv?.issues ?? []).filter((i) => i.severity === 'error' && i.code !== 'roll_missing');
+  const stale = new Set(errors.filter((i) => i.code === 'roll_stale').map((i) => i.path.replace('/rolls/', '')));
+  const probleme = [];
+  const byOrder = new Map();
+  for (const i of errors) {
+    const m = /^\/orders\/(\d+)(\/|$)/.exec(i.path);
+    if (m) {
+      const o = draft.orders[Number(m[1])];
+      if (!o) continue;
+      const item = byOrder.get(o.id) ?? { kind: 'befehl', id: `befehl-${o.id}`, orderId: o.id, titel: t(`order.${o.type}`, o.type), ziel: describeParams(view, env, t, o, world), texte: [], tile: o.params?.tile ?? null };
+      const text = issueText(i, t);
+      if (!item.texte.includes(text)) item.texte.push(text);
+      if (!byOrder.has(o.id)) { byOrder.set(o.id, item); probleme.push(item); }
+      continue;
+    }
+    if (i.code === 'roll_stale') {
+      const id = i.path.replace('/rolls/', '');
+      if (!probes.some((p) => p.id === id)) probleme.push({ kind: 'wurf-verwaist', id: `verwaist-${id}`, probeId: id, titel: issueText(i, t), ziel: '', texte: [t('issue.roll-orphan', 'Die Probe dieses Wurfs gibt es nicht mehr')] });
+      continue;
+    }
+    if (i.code === 'slots' && i.path === '/orders') continue;
+    if (i.code === 'labour') {
+      probleme.push({ kind: 'arbeit', id: 'arbeit', titel: issueText(i, t), ziel: '', texte: [] });
+      continue;
+    }
+    probleme.push({ kind: 'entwurf', id: `entwurf-${probleme.length}`, titel: issueText(i, t), ziel: '', texte: [] });
+  }
+  for (const sl of ['main', 'minor']) {
+    const s = pv?.slots?.[sl];
+    if (s && s.used > s.max) probleme.unshift({ kind: 'slots', id: `slots-${sl}`, slot: slotArt(sl), titel: t('issue.slots', 'Keine passende Aktion mehr frei'), ziel: `${t(`slot.${sl}`, sl)} ${s.used} von ${s.max}`, texte: [] });
+  }
+  const wuerfe = probes.filter((p) => p.roller === 'player' && (!draft.rolls?.[p.id] || stale.has(p.id))).map((p) => {
+    const o = p.order ? draft.orders.find((x) => x.id === p.order) : null;
+    return {
+      kind: 'wurf', id: `wurf-${p.id}`, probeId: p.id, orderId: o?.id ?? null, event: p.target == null,
+      titel: o ? t(`order.${o.type}`, o.type) : t('ui.weltereignis', 'Weltereignis'),
+      ziel: o ? describeParams(view, env, t, o, world) : '',
+      veraltet: stale.has(p.id),
+    };
+  });
+  return { probleme, wuerfe };
 }
 
 // --- whole model ---------------------------------------------------------------------

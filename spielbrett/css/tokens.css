@@ -91,6 +91,8 @@
   --map-camp-glow: oklch(0.78 0.16 62);
   --map-label: oklch(0.95 0.012 85);
   --map-label-halo: oklch(0.16 0.012 250);
+  --map-region: oklch(0.90 0.02 85);
+  --map-region-hover: oklch(0.92 0.03 85);
   --map-grid: oklch(0.12 0.01 250);
   --map-threat: oklch(0.62 0.19 28);
   --map-trade: oklch(0.78 0.11 235);

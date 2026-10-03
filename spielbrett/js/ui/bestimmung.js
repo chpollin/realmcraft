@@ -1,44 +1,102 @@
 // Destinies overlay: one's own destiny with its milestones beside the rivals'
-// as far as one knows them, plus the destinies the people could turn to.
-// Unknown names and milestones stay fogged.
+// as far as the view reveals them, plus the destinies the people could turn to.
+// A milestone is a symbol and a progress bar, its wording appears on hover and
+// focus. What the view does not reveal stays an unknown marker.
 
 import { el } from '../dom.js';
-import { icon } from '../icons.js';
+import { ICONS, icon } from '../icons.js';
 import { dialogHead } from './dialoge.js';
+import { withTip } from './tip.js';
 
-function milestone(m, { own }) {
+const symbol = (name) => (ICONS[name] ? name : 'meilenstein');
+
+/** Tooltip text of a milestone: wording first, then where it stands. */
+function milestoneTip(label, status) {
+  return [el('span', { class: 'ms-tip' }, el('strong', { text: label }), status ? el('span', { text: status }) : null)];
+}
+
+function milestone(m) {
   const unknown = m.text === null || m.text === undefined;
+  const label = unknown ? 'Unbekannter Meilenstein' : m.text;
+  const f = m.fortschritt;
+  const total = f?.ziel ?? 1;
+  const status = unknown ? 'unbekannt' : m.erreicht ? 'erreicht' : f ? `${f.wert} von ${f.ziel}${f.einheit ? ` ${f.einheit}` : ''}` : 'offen';
   const state = unknown ? 'unbekannt' : m.erreicht ? 'erreicht' : 'offen';
-  return el('li', { class: `meilenstein ${state}` },
-    el('span', { class: 'ms-marke', 'aria-hidden': 'true' }),
-    el('span', { class: 'ms-text', text: unknown ? 'Unbekannter Meilenstein' : m.text }),
-    own && m.stand ? el('span', { class: 'ms-stand num', text: m.erreicht ? 'erreicht' : m.stand }) : null,
-    !own && !unknown ? el('span', { class: 'sr-only', text: m.erreicht ? ', erreicht' : ', offen' }) : null);
+  const bar = el('progress', {
+    class: 'ms-balken',
+    max: total,
+    value: unknown ? 0 : m.erreicht ? total : Math.min(f?.wert ?? 0, total),
+    'aria-label': label,
+    'aria-valuetext': status,
+  });
+  const row = el('div', { class: 'ms-zeile', tabindex: '0', role: 'group', 'aria-label': `${label}, ${status}` },
+    icon(symbol(m.icon), { size: 20, cls: 'ms-symbol' }),
+    bar,
+    m.erreicht ? icon('ja', { size: 16, cls: 'ms-erreicht' }) : el('span', { class: 'ms-erreicht' }));
+  return el('li', { class: `meilenstein ${state}` }, withTip(row, milestoneTip(label, status)));
 }
 
-function column(title, peopleCls, b, { own = false } = {}) {
+function column(peopleName, peopleCls, b) {
   const known = b.name !== null && b.name !== undefined;
-  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': `${title}, Bestimmung` },
-    el('p', { class: 'bst-volk', text: title }),
+  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': `${peopleName}, Bestimmung` },
     el('h3', { class: `bst-name world${known ? '' : ' is-fog'}`, text: known ? b.name : 'Unbekannte Bestimmung' }),
-    el('ol', { class: 'meilensteine plain' }, ...b.meilensteine.map((m) => milestone(m, { own }))));
+    el('p', { class: 'bst-volk', text: peopleName }),
+    b.meilensteine.length ? el('ol', { class: 'meilensteine plain' }, ...b.meilensteine.map(milestone)) : null);
 }
 
-/** Real campaign: the switch is the kernel order destiny.adopt, disabled with the kernel's reason. */
-function switchButton(api, w) {
+/** One symbol per milestone of a destiny the people could adopt; the wording is on demand. */
+function candidateMilestones(list) {
+  return el('ul', { class: 'ms-chips plain' }, ...list.map((entry) => {
+    const m = typeof entry === 'string' ? { text: entry } : entry;
+    const chip = el('div', { class: 'ms-chip', tabindex: '0', role: 'group', 'aria-label': m.text }, icon(symbol(m.icon), { size: 20 }));
+    return el('li', {}, withTip(chip, milestoneTip(m.text)));
+  }));
+}
+
+function adoptButton({ queued, blocked, reason, onclick, onpointerenter, onpointerleave, order }) {
+  const btn = el('button', {
+    class: queued ? 'btn btn-quiet' : 'btn',
+    type: 'button',
+    'aria-disabled': blocked ? 'true' : 'false',
+    'data-order': order,
+    onclick: () => { if (!blocked) onclick(); },
+    onpointerenter,
+    onpointerleave,
+  }, icon(queued ? 'ja' : 'bestimmung', { size: 18 }), queued ? 'In den Befehlen' : 'Bestimmung wechseln');
+  // The reason (kernel text or price) appears on hover and focus, not as standing text.
+  return reason ? withTip(btn, [reason], undefined, { up: true }) : btn;
+}
+
+/**
+ * Real campaign: the switch is the kernel order destiny.adopt. A destiny the
+ * kernel refuses stays visible but disabled, with the kernel's reason on demand.
+ */
+function realButton(api, w) {
   const opt = api.game.previewOption({ type: 'destiny.adopt', params: { bestimmung: w.ref } });
-  const disabled = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
-  return el('div', { class: 'bs-aktion' },
-    el('button', {
-      class: opt.queued ? 'btn btn-quiet' : 'btn',
-      type: 'button',
-      'aria-disabled': disabled ? 'true' : 'false',
-      'data-order': 'destiny.adopt',
-      onclick: () => { if (!disabled) api.addCandidate(opt); },
-      onpointerenter: () => { if (!disabled) api.setPreview(opt.preview); },
-      onpointerleave: () => api.setPreview(null),
-    }, icon(opt.queued ? 'ja' : 'bestimmung', { size: 18 }), opt.queued ? 'In den Befehlen' : 'Bestimmung wechseln'),
-    opt.grund ? el('p', { class: 'bo-grund', text: opt.grund }) : null);
+  const blocked = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
+  return adoptButton({
+    queued: opt.queued,
+    blocked,
+    reason: opt.grund ?? (api.model.phase === 'A' ? 'Die Saison wird ausgewertet.' : null),
+    order: 'destiny.adopt',
+    onclick: () => api.addCandidate(opt),
+    onpointerenter: () => { if (!blocked) api.setPreview(opt.preview); },
+    onpointerleave: () => api.setPreview(null),
+  });
+}
+
+/** Prototype (?demo): a free order with the price the fixture names. */
+function demoButton(api, w, queued) {
+  const blocked = queued || api.model.phase === 'A';
+  return adoptButton({
+    queued,
+    blocked,
+    reason: w.preis ?? null,
+    onclick: () => {
+      api.addOrder({ id: `b-${w.name}`, quelle: `bestimmung-${w.name}`, titel: 'Bestimmung wechseln', ziel: w.name, kosten: [{ key: 'zustimmung', menge: 2 }], art: 'frei' });
+      api.rerenderDialog('bestimmung');
+    },
+  });
 }
 
 export function renderBestimmung(dlg, api) {
@@ -49,26 +107,15 @@ export function renderBestimmung(dlg, api) {
     dialogHead(dlg, 'Bestimmungen', 'bestimmung'),
     el('div', { class: 'overlay-body' },
       el('div', { class: 'bst-raster' },
-        column(model.volk.name, 'spieler', own, { own: true }),
+        column(model.volk.name, 'spieler', own),
         ...model.rivalen.map((r) => column(r.name, r.id, r.bestimmung))),
-      el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
+      own.wechsel.length ? el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
         el('h3', { class: 'abschnitt', id: 'bst-w', text: 'Neue Bestimmung' }),
-        el('ul', { class: 'wechsel-liste plain' }, ...own.wechsel.map((w) => {
-          const queued = switchQueued(w.name);
-          return el('li', { class: 'wechsel-karte' },
-            el('h4', { class: 'world', text: w.name }),
-            el('p', { class: 'v-weil' }, el('span', { class: 'v-weil-wort', text: 'weil ' }), w.weil),
-            el('ol', { class: 'meilensteine plain klein' }, ...w.meilensteine.map((t) => milestone({ text: t, erreicht: false }, { own: false }))),
-            w.preis ? el('dl', { class: 'v-fakten' }, el('dt', { text: 'Preis' }), el('dd', { class: 'v-preis', text: w.preis })) : null,
-            model.real ? switchButton(api, w) : el('button', {
-              class: queued ? 'btn btn-quiet' : 'btn',
-              type: 'button',
-              disabled: queued || model.phase === 'A',
-              onclick: () => {
-                api.addOrder({ id: `b-${w.name}`, quelle: `bestimmung-${w.name}`, titel: 'Bestimmung wechseln', ziel: w.name, kosten: [{ key: 'zustimmung', menge: 2 }], art: 'frei' });
-                api.rerenderDialog('bestimmung');
-              },
-            }, icon('bestimmung', { size: 18 }), queued ? 'In den Befehlen' : 'Bestimmung wechseln'));
-        })))),
+        el('ul', { class: 'wechsel-liste plain' }, ...own.wechsel.map((w) => el('li', { class: 'wechsel-karte' },
+          el('h4', { class: 'world', text: w.name }),
+          // The prototype names a reason ("weil"), the kernel package only a summary of the destiny.
+          el('p', { class: 'v-weil' }, model.real ? null : el('span', { class: 'v-weil-wort', text: 'weil ' }), w.weil),
+          candidateMilestones(w.meilensteine),
+          model.real ? realButton(api, w) : demoButton(api, w, switchQueued(w.name)))))) : null),
   );
 }
