@@ -17,7 +17,10 @@
     "test:nachtmeer": "node --test tests/unit/nachtmeer.test.js tests/unit/nachtmeer-presentation.test.js",
     "simulate:nachtmeer": "node design/nachtmeer-simulate.mjs",
     "report": "playwright show-report",
-    "test:acceptance": "node --test \"tests/acceptance/**/*.test.js\""
+    "test:acceptance": "node --test \"tests/acceptance/**/*.test.js\"",
+    "sim": "node tools/sim/run.mjs",
+    "sim:balance": "node tools/sim/run.mjs --seeds 24 --seasons 40 --out tools/sim/out/balance-report.json",
+    "test:fuzz": "node tools/sim/fuzz.mjs --runs 20 --seeds 1,2,3"
   },
   "engines": {
     "node": ">=21"
