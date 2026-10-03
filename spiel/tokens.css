@@ -1,9 +1,0 @@
-:root {
-  color-scheme: dark;
-  --bg: #111713; --surface: #1a231d; --raised: #222e25; --line: #3f5041;
-  --ink: #e7e9dc; --muted: #adb9a8; --accent: #c9d5a5; --on-accent: #1a2418;
-  --warning: #efb38b; --danger: #f2a59b; --water: #111f20; --land: #293b2c;
-  --land-high: #394b33; --road: #8c987a; --shadow: #070b08b3;
-  --serif: Georgia, 'Times New Roman', serif; --sans: system-ui, sans-serif;
-  --gap: 20px; --radius: 6px; --small: 12px; --body: 14px;
-}

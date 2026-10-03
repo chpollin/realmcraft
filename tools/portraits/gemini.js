@@ -1,0 +1,114 @@
+// tools/portraits/gemini.js — Bild-API-Client fuer die Gemini generateContent-API.
+// Reine ES-Modul-Datei ohne Top-Level-Seiteneffekt; der Netzaufruf erfolgt
+// ausschliesslich in generateImage via global fetch.
+
+export const MODELS = {
+  portrait: 'gemini-3.1-flash-image',
+};
+
+// Baut die generateContent-URL fuer ein Modell.
+export function endpoint(model) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+}
+
+// Erzeugt ein Bild ueber die Gemini-API.
+// Wirft ohne apiKey (vor dem Netzaufruf), bei fehlgeschlagenem Call und wenn
+// die Antwort kein inlineData-Bild enthaelt.
+export async function generateImage({
+  apiKey,
+  model,
+  prompt,
+  refImages = [],
+  aspectRatio,
+  timeoutMs = 60000,
+} = {}) {
+  if (!apiKey) {
+    throw new Error('Kein API-Key: generateImage benoetigt einen apiKey.');
+  }
+
+  // A bare base64 string is taken as PNG, the type the first callers sent;
+  // { data, mimeType } carries the real type (JPEG photos, WebP demo images).
+  const parts = [
+    { text: prompt },
+    ...refImages.map((r) => ({
+      inlineData: typeof r === 'string'
+        ? { mimeType: 'image/png', data: r }
+        : { mimeType: r.mimeType || 'image/png', data: r.data },
+    })),
+  ];
+
+  const generationConfig = {
+    responseModalities: ['IMAGE'],
+    ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
+  };
+
+  const body = JSON.stringify({
+    contents: [{ parts }],
+    generationConfig,
+  });
+
+  // Harte Obergrenze fuer einen haengenden Aufruf: ohne Timeout blockiert ein
+  // nie antwortender Request den Generieren-Flow unbegrenzt. Manueller Controller
+  // statt AbortSignal.timeout, damit der Timer im finally sicher geloescht wird
+  // (kein lingernder Timer, der z. B. den Unit-Test-Prozess offen haelt).
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('Zeitueberschreitung', 'TimeoutError')),
+    timeoutMs,
+  );
+
+  let response;
+  try {
+    response = await fetch(endpoint(model), {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      throw new Error('Bild-API hat nicht rechtzeitig geantwortet (Zeitueberschreitung).');
+    }
+    throw new Error(`Bild-API nicht erreichbar: ${err.message}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const err = await response.json();
+      detail = err?.error?.message || '';
+    } catch {
+      detail = (await response.text().catch(() => '')) || '';
+    }
+    // Haeufigster Fall: das Gemini-Free-Tier gibt Bildmodellen das Kontingent 0.
+    // Keine Wiederholung und kein Modellwechsel hilft, nur aktiviertes Billing.
+    if (response.status === 429 || /quota|RESOURCE_EXHAUSTED|limit:\s*0/i.test(detail)) {
+      throw new Error(
+        `Bildgenerierung nicht moeglich: ${model} hat im Gemini-Free-Tier kein Kontingent (Limit 0). ` +
+        `Dafuer muss fuer den API-Key in der Google-Cloud-Konsole Billing aktiv sein. ` +
+        `Ohne Bild zeigt RealmCraft das Initial-Medaillon.`,
+      );
+    }
+    // The message is printed by the tool, so a key the API echoes back is cut out.
+    const short = (detail.split(/\r?\n/)[0] || '').split(apiKey).join('***').slice(0, 200);
+    throw new Error(`Bild-API-Fehler (HTTP ${response.status})${short ? `: ${short}` : ''}`);
+  }
+
+  const json = await response.json();
+  const responseParts = json?.candidates?.[0]?.content?.parts ?? [];
+  const inline = responseParts.find((p) => p && p.inlineData)?.inlineData;
+
+  if (!inline || !inline.data) {
+    throw new Error('Antwort enthaelt kein Bild (kein inlineData).');
+  }
+
+  const mimeType = inline.mimeType || 'image/png';
+  const dataUrl = 'data:' + mimeType + ';base64,' + inline.data;
+
+  return { dataUrl, mimeType };
+}

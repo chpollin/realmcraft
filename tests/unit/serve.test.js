@@ -54,7 +54,7 @@ before(async () => {
 after(() => proc?.kill());
 
 test('normale Datei wird ausgeliefert', async () => {
-  assert.equal(await get('/index.html'), 200);
+  assert.equal(await get('/spielbrett/index.html'), 200);
 });
 
 test('Backslash-kodierte Punktdateien werden nicht ausgeliefert', async () => {
@@ -78,7 +78,7 @@ test('/env.js nur same-origin oder ohne Fetch-Metadaten', async () => {
 });
 
 test('fremder Host-Header wird abgewiesen (DNS-Rebinding)', async () => {
-  assert.equal(await get('/index.html', { Host: `evil.example:${port}` }), 403);
+  assert.equal(await get('/spielbrett/index.html', { Host: `evil.example:${port}` }), 403);
   assert.equal(await get('/savegame.json', { Host: 'evil.example' }), 403);
-  assert.equal(await get('/index.html', { Host: `127.0.0.1:${port}` }), 200);
+  assert.equal(await get('/spielbrett/index.html', { Host: `127.0.0.1:${port}` }), 200);
 });
