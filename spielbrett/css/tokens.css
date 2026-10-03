@@ -136,9 +136,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :root:not([data-motion="full"]) {
     --dur-1: 0ms;
     --dur-2: 0ms;
     --dur-3: 0ms;
   }
+}
+/* The motion choice of the settings, set on html by the game shell. */
+:root[data-motion="reduced"] {
+  --dur-1: 0ms;
+  --dur-2: 0ms;
+  --dur-3: 0ms;
 }

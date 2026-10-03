@@ -10,10 +10,20 @@ const json = async (url, { optional = false } = {}) => {
   return res.json();
 };
 
+// A refusal of the server carries issues in the kernel's shape, so the board
+// labels it like a kernel refusal; a network failure becomes one server issue.
 const post = async (url, body) => {
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  let res;
+  try {
+    res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch (err) {
+    return { ok: false, exit: -1, status: 0, issues: [{ code: 'server', severity: 'error', path: '', message: String(err?.message ?? err) }] };
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) return { ok: false, exit: -1, issues: [{ code: 'server', severity: 'error', path: '', message: data.error ?? `HTTP ${res.status}` }] };
+  if (!res.ok) {
+    const issues = Array.isArray(data.issues) && data.issues.length ? data.issues : [{ code: 'server', severity: 'error', path: '', message: data.error ?? `HTTP ${res.status}` }];
+    return { ok: false, exit: -1, status: res.status, issues };
+  }
   return data;
 };
 
@@ -32,6 +42,12 @@ export const server = {
   pack: (worldId, file, opts) => json(`/welten/${encodeURIComponent(worldId)}/${file}`, opts),
   saveDraft: (cid, people, draft) => post('/api/draft', { campaign: cid, people, draft }),
   seal: (cid) => post('/api/seal', { campaign: cid }),
+  worlds: () => json('/api/worlds'),
+  campaigns: () => json('/api/campaigns'),
+  /** New game through the kernel CLI: { id } or { ok: false, issues }. */
+  create: (body) => post('/api/campaigns', body),
+  /** Records the campaign as the one /zug plays next. */
+  activate: (cid) => post(`${a(cid)}/activate`, {}),
 
   /**
    * Server-Sent-Events of one campaign: view, status, chronik, report. The
