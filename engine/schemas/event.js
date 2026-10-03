@@ -25,7 +25,18 @@ export const EVENT_DEFS = Object.freeze({
     },
     reason: text(200, 1),
     refs: arr(text(80, 1), 8),
-  }),
+    // Peoples whose projection receives the entry, or ["all"]. projectFor
+    // filters by this list alone; an entry without it reaches no projection,
+    // only the full round report and the judges.
+    visibleTo: {
+      oneOf: [
+        { type: 'array', items: { const: 'all' }, minItems: 1, maxItems: 1 },
+        arr(str('^(?!all$)[a-z][a-z0-9-]{1,40}$'), 16),
+      ],
+    },
+    // Season step that wrote the entry (Regelkern section 14) or "ingest".
+    step: str('^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$'),
+  }, ['visibleTo', 'step']),
 });
 
 export const event = bundle('event/1', EVENT_DEFS.logEntry, COMMON_DEFS, EVENT_DEFS);

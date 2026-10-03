@@ -150,7 +150,7 @@
       },
       "tokens": [],
       "statuses": [],
-      "meters": {},
+      "meters": { "zustimmung": 0 },
       "shortfall": {},
       "bestimmung": {
         "ref": "ueberdauern@1",
@@ -309,7 +309,7 @@
       },
       "tokens": [],
       "statuses": [],
-      "meters": {},
+      "meters": { "zustimmung": 0 },
       "shortfall": {},
       "bestimmung": null,
       "modules": {},
@@ -391,7 +391,7 @@
       },
       "tokens": [],
       "statuses": [],
-      "meters": {},
+      "meters": { "zustimmung": 0 },
       "shortfall": {},
       "bestimmung": null,
       "modules": {

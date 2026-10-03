@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "type": "event",
+      "data": {
+        "id": "probelauf-frost",
+        "rev": 1,
+        "name": "Frost im Probelauf",
+        "text": "Eine Frostnacht fällt über die Weiden, bevor das Heu eingebracht ist. Ein Teil der Vorräte verdirbt, und ein Tier erfriert am Hang.",
+        "band": 2,
+        "tags": [
+          "winter",
+          "wetter"
+        ],
+        "if": {
+          "season": "herbst"
+        },
+        "effects": [
+          {
+            "op": "resource.delta",
+            "res": "nahrung",
+            "amount": -2
+          },
+          {
+            "op": "resource.delta",
+            "res": "herden",
+            "amount": -1
+          }
+        ],
+        "options": null
+      }
+    }
+  ]
+}

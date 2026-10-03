@@ -75,6 +75,7 @@ for (const entry of manifest) {
     const [mine, theirs] = judge(data);
     assert.equal(mine, theirs, 'fixture itself');
     assert.equal(mine, entry.valid, 'fixture verdict');
+    if (entry.mutate === false) return;
     let count = 0;
     let rejected = 0;
     for (const variant of mutations(data)) {

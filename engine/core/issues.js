@@ -28,6 +28,10 @@ export const CODES = Object.freeze({
   shortfall: 'warning',
   softcap: 'warning',
   upkeep_risk: 'warning',
+  labour: 'error',
+  restricted: 'error',
+  tamper: 'error',
+  idle_labour: 'warning',
 
   // content validator (kernel draft section 5)
   unknown_primitive: 'error',

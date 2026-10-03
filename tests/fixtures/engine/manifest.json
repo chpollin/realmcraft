@@ -1,8 +1,27 @@
 {
-  "about": "Expected schema verdict per fixture. issues lists the exact {code, path} the interpreter reports. budget is computed by hand from WEIGHTS and TIERS in engine/schemas/effects.js (effect = E, price = P, net = E + P, research = net x (tier + 1)) and is the target for the budget validator; budget issues are not schema issues.",
+  "about": "Expected schema verdict per fixture. mutate false skips the node-by-node ajv comparison for large states; view-talbund.json carries the same campaign defs and is mutated instead. The campaign, draft, view and report fixtures of the mid-game come from build-state-fixtures.mjs. issues lists the exact {code, path} the interpreter reports. budget is computed by hand from WEIGHTS and TIERS in engine/schemas/effects.js (effect = E, price = P, net = E + P, research = net x (tier + 1)) and is the target for the budget validator; budget issues are not schema issues.",
   "fixtures": [
     { "file": "campaign-turn0.json", "schema": "campaign", "valid": true },
     { "file": "draft-pending-roll.json", "schema": "draft", "valid": true },
+    { "file": "campaign-midgame.json", "schema": "campaign", "valid": true, "mutate": false },
+    { "file": "campaign-near-victory.json", "schema": "campaign", "valid": true, "mutate": false },
+    { "file": "campaign-near-collapse.json", "schema": "campaign", "valid": true, "mutate": false },
+    { "file": "draft-midgame.json", "schema": "draft", "valid": true },
+    {
+      "file": "draft-invalid-reserved-order-id.json", "schema": "draft", "valid": false,
+      "issues": [{ "code": "schema.pattern", "path": "/orders/0/id" }]
+    },
+    { "file": "view-talbund.json", "schema": "view", "valid": true },
+    { "file": "report-T0011.json", "schema": "report", "valid": true },
+    { "file": "campaigns-index.json", "schema": "campaignIndex", "valid": true },
+    { "file": "task-judge-balance.json", "schema": "task", "valid": true },
+    { "file": "proposal-judge-coherence.json", "schema": "proposal", "valid": true },
+    { "file": "proposal-judge-narrative.json", "schema": "proposal", "valid": true },
+    { "file": "proposal-research-bestimmung.json", "schema": "proposal", "valid": true },
+    {
+      "file": "proposal-invalid-finding-value.json", "schema": "proposal", "valid": false,
+      "issues": [{ "code": "schema.additional", "path": "/items/0/value" }]
+    },
     { "file": "status.json", "schema": "status", "valid": true },
     { "file": "bestimmung-ueberdauern.json", "schema": "bestimmung", "valid": true },
     { "file": "proposal-research.json", "schema": "proposal", "valid": true },

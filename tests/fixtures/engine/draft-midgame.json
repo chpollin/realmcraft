@@ -1,0 +1,59 @@
+{
+  "format": "realmcraft-draft",
+  "version": 1,
+  "people": "talbund",
+  "turn": 12,
+  "baseRev": 37,
+  "orders": [
+    {
+      "id": "o1",
+      "type": "explore",
+      "params": {
+        "unit": "u-talbund-1",
+        "tile": "3,0"
+      }
+    },
+    {
+      "id": "o2",
+      "type": "trade.offer",
+      "params": {
+        "partner": "bergnomaden",
+        "give": {
+          "salz": 2
+        },
+        "get": {
+          "herden": 2
+        },
+        "seasons": 2
+      }
+    }
+  ],
+  "assign": {
+    "nahrung": 2,
+    "material": 1,
+    "salz": 1,
+    "research": 1
+  },
+  "choices": {
+    "wahl-t11-1": "annehmen"
+  },
+  "venture": {
+    "o1": true
+  },
+  "lead": {
+    "o1": "ortwin"
+  },
+  "mandate": {},
+  "rolls": {
+    "T12:talbund:o1": {
+      "value": 7,
+      "fingerprint": "c379693a5d0678ff"
+    },
+    "T12:talbund:event": {
+      "value": 4,
+      "fingerprint": "04570f13f4f3fd06"
+    }
+  },
+  "withdrawn": [],
+  "sealed": false
+}

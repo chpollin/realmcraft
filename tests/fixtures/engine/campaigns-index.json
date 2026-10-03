@@ -1,0 +1,8 @@
+{
+  "format": "realmcraft-campaigns",
+  "version": 1,
+  "campaigns": [
+    { "id": "hochland-mitte", "world": "hochland", "player": "talbund", "turn": 12, "status": "playing", "updatedAt": "2026-10-03T18:02:11Z" },
+    { "id": "hochland-1", "world": "hochland", "player": "bergnomaden", "turn": 31, "status": "ended", "updatedAt": "2026-09-28T21:40:00.250Z" }
+  ]
+}

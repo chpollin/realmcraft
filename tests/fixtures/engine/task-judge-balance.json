@@ -1,0 +1,22 @@
+{
+  "format": "realmcraft-task",
+  "version": 1,
+  "campaign": "hochland-mitte",
+  "turn": 12,
+  "rev": 37,
+  "agent": "judge-balance",
+  "people": null,
+  "respondAs": { "proposalId": "judge-balance.T12", "path": "agents/proposals/judge-balance.T12.json" },
+  "read": ["state.json", "log/T0011.json", "library.json"],
+  "context": { "phase": "judges" },
+  "limits": {
+    "items": ["finding", "correction"],
+    "candidates": 0,
+    "aboveTier": 0,
+    "openPool": 0,
+    "moduleActivations": 0,
+    "allowedPrimitives": ["resource.delta", "loyalty.delta", "relation.delta"],
+    "tags": [],
+    "budget": [{ "tier": 1, "effectMax": 4, "netMin": 1, "netMax": 3, "priceMax": 0 }]
+  }
+}

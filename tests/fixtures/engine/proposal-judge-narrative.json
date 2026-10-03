@@ -1,0 +1,25 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "judge-narrative.T12",
+  "agent": "judge-narrative",
+  "campaign": "hochland-mitte",
+  "turn": 12,
+  "basedOnRev": 37,
+  "people": null,
+  "items": [
+    {
+      "type": "memory",
+      "refs": ["T11-e91", "hegemonie@1"],
+      "text": "## Talbund\n\nDer Talbund hat die Salzstraße aufgegeben und strebt nach Vorherrschaft über das Hochland. Fünf Regionen stehen unter seiner Kontrolle, der Schädelklan ist das letzte Hindernis."
+    },
+    {
+      "type": "finding",
+      "id": "f-bogen-offen",
+      "severity": "info",
+      "for": ["chronicler"],
+      "refs": ["hegemonie@1"],
+      "text": "Der Wechsel der Bestimmung in der vierten Runde ist in der Chronik nicht erzählt."
+    }
+  ]
+}

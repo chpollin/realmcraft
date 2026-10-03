@@ -1,0 +1,146 @@
+{
+  "format": "realmcraft-report",
+  "version": 1,
+  "campaign": "hochland-mitte",
+  "turn": 11,
+  "revBefore": 35,
+  "revAfter": 36,
+  "hashBefore": "bcf38f0618127ef4",
+  "hashAfter": "3fc99a731a41fa89",
+  "sections": {
+    "calendar": {
+      "year": 3,
+      "season": "winter",
+      "winter": true
+    },
+    "orders": [],
+    "probes": [],
+    "substitutions": [
+      {
+        "people": "bergnomaden",
+        "reason": "no draft"
+      },
+      {
+        "people": "schaedelklan",
+        "reason": "no draft"
+      }
+    ],
+    "warnings": [
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "1 main slot(s) unused"
+      },
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "2 minor slot(s) unused"
+      },
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "1 main slot(s) unused"
+      },
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "2 minor slot(s) unused"
+      },
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "1 main slot(s) unused"
+      },
+      {
+        "code": "free_slots",
+        "severity": "warning",
+        "path": "/orders",
+        "message": "2 minor slot(s) unused"
+      }
+    ]
+  },
+  "events": [
+    {
+      "id": "T11-e3",
+      "turn": 11,
+      "source": "kernel",
+      "kind": "campaign.phase",
+      "target": {
+        "kind": "campaign",
+        "id": "hochland-mitte"
+      },
+      "change": {
+        "field": "phase",
+        "before": "resolving",
+        "after": "resolving"
+      },
+      "reason": "season resolves",
+      "refs": [],
+      "visibleTo": [
+        "all"
+      ],
+      "step": "phase"
+    },
+    {
+      "id": "T11-e4",
+      "turn": 11,
+      "source": "kernel",
+      "kind": "draft.fallback",
+      "target": {
+        "kind": "people",
+        "id": "bergnomaden"
+      },
+      "change": null,
+      "reason": "fallback policy orders (no draft)",
+      "refs": [
+        "p:bergnomaden"
+      ],
+      "visibleTo": [
+        "bergnomaden"
+      ]
+    },
+    {
+      "id": "T11-e5",
+      "turn": 11,
+      "source": "kernel",
+      "kind": "draft.fallback",
+      "target": {
+        "kind": "people",
+        "id": "schaedelklan"
+      },
+      "change": null,
+      "reason": "fallback policy orders (no draft)",
+      "refs": [
+        "p:schaedelklan"
+      ],
+      "visibleTo": [
+        "schaedelklan"
+      ]
+    },
+    {
+      "id": "T11-e6",
+      "turn": 11,
+      "source": "kernel",
+      "kind": "campaign.turn",
+      "target": {
+        "kind": "campaign",
+        "id": "hochland-mitte"
+      },
+      "change": {
+        "field": "turn",
+        "before": 11,
+        "after": 12
+      },
+      "reason": "season ends",
+      "refs": [],
+      "visibleTo": [
+        "all"
+      ]
+    }
+  ]
+}

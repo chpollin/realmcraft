@@ -26,3 +26,6 @@ Thumbs.db
 
 # Claude Code runtime lock (machine-local)
 .claude/scheduled_tasks.lock
+
+# Running game campaigns (written only by engine/cli.mjs)
+campaigns/

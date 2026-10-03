@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "type": "finding",
+      "id": "probelauf-befund",
+      "severity": "info",
+      "for": [
+        "chronicler"
+      ],
+      "refs": [
+        "$lastEvent"
+      ],
+      "text": "Die Chronik nennt die Lager am Kamm, der Rundenbericht bestätigt die Siedlung dort."
+    }
+  ]
+}

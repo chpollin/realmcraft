@@ -1,0 +1,36 @@
+{
+  "format": "realmcraft-style",
+  "version": 1,
+  "world": "hochland",
+  "image": {
+    "base": "Tuschelavierung und Kohle auf getöntem, grobem Papier, Feldskizze eines Chronisten aus einem kargen Hochgebirge. Gedämpfte Erdtöne, Schiefergrau, Flechtengrün und Rost, ein einzelner warmer Akzent je Bild. Gletschergipfel, Hochweiden, Lärchen und Steinmännchen als wiederkehrende Motive. Sichtbarer Pinselstrich, natürliche Asymmetrie, Wasser- und Stockflecken am Rand.",
+    "negative": "kein glänzendes 3D-Rendering, keine Airbrush-Glätte, kein Videospiel-Splashart, keine symmetrische Heldenpose, keine moderne Kleidung, kein Text, keine Schrift, kein Wasserzeichen, kein Rahmen"
+  },
+  "imageTypes": {
+    "portrait": {
+      "prompt": "Brustbild im Dreiviertelprofil, eine einzelne Figur leicht aus der Mitte, auf Augenhöhe, schlichter zurückhaltender Hintergrund",
+      "aspect": "2:3"
+    },
+    "entwicklung": {
+      "prompt": "Sinnbild einer Errungenschaft des Volkes als Szene oder Gegenstand im Gebrauch, nah und gegenständlich, ohne Figur im Vordergrund",
+      "aspect": "1:1"
+    },
+    "ereignis": {
+      "prompt": "Szene eines Augenblicks mit Wetter und Licht, mehrere kleine Figuren in weiter Landschaft, Blick vom Hang",
+      "aspect": "3:2"
+    },
+    "volk": {
+      "prompt": "Gruppenbild eines Volkes mit Kleidung, Tieren und Behausung vor seiner Landschaft, Halbtotale",
+      "aspect": "3:2"
+    },
+    "ort": {
+      "prompt": "Ansicht eines Ortes im Gebirge mit seiner Lage im Gelände, Weitwinkel, Spuren von Nutzung",
+      "aspect": "3:2"
+    },
+    "karte": {
+      "prompt": "Handgezeichnete Karte des Hochlands aus der Vogelschau, Höhenzüge in Schraffur, Pfade als punktierte Linien, ohne Beschriftung",
+      "aspect": "16:9"
+    }
+  },
+  "accents": {}
+}

@@ -85,6 +85,62 @@ test('campaign fixture is internally consistent where the schema cannot see it',
   assert.deepEqual(state.milestones.map((m) => m.id), destiny.milestones.map((m) => m.id));
 });
 
+test('mid-game fixtures hold what the acceptance tests start from', () => {
+  const m = load('campaign-midgame.json');
+  const tal = m.peoples.talbund;
+  assert.equal(m.turn, 12);
+  assert.equal(m.phase, 'planning');
+  assert.equal(m.campaign.player, 'talbund');
+  for (const s of m.map.settlements) assert.equal(m.map.control[s.regionId], s.people, `${s.id} lies in a region of its people`);
+  assert.equal(tal.lebensweise, 'sesshaft@1');
+  // Handel: the market that activates the module is known and built, and the module has its slices.
+  assert.ok(tal.developments.known.some((d) => d.ref === 'markt-am-pass@1'));
+  assert.ok(m.map.settlements.some((s) => s.people === 'talbund' && s.buildings.some((b) => b.ref === 'markt-am-pass@1')));
+  assert.ok(m.modules.handel && tal.modules.handel);
+  assert.equal(tal.units.length, 1);
+  assert.equal(tal.bestimmung.milestones.length, 3);
+  assert.equal(tal.bestimmung.milestones.filter((x) => x.reached).length, 2);
+  assert.equal(Object.values(m.map.control).filter((p) => p === 'talbund').length, 5, 'milestone land: five regions');
+  const [choice] = m.pendingChoices;
+  assert.equal(choice.people, 'talbund');
+  assert.ok(choice.deadline >= m.turn);
+  const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
+  assert.ok(sum(tal.population.assigned) <= tal.population.core, 'labour within population');
+
+  const d = load('draft-midgame.json');
+  const orderIds = d.orders.map((o) => o.id);
+  assert.equal(d.turn, m.turn);
+  assert.ok(Object.keys(d.venture).every((id) => orderIds.includes(id)));
+  assert.ok(Object.keys(d.lead).every((id) => orderIds.includes(id)));
+  assert.ok(Object.values(d.lead).every((id) => tal.council.some((c) => c.id === id)));
+  assert.equal(choice.options.includes(d.choices[choice.id]), true);
+  assert.ok(sum(d.assign) <= tal.population.core);
+
+  const v = load('view-talbund.json');
+  assert.ok(v.chronicle.every((e) => e.visibleTo.includes('all') || e.visibleTo.includes('talbund')));
+  assert.deepEqual(Object.keys(v.map.known), ['talbund']);
+  assert.ok(Object.keys(v.relations).every((k) => k.split('|').includes('talbund')));
+
+  const won = load('campaign-near-victory.json');
+  const last = won.map.settlements.filter((s) => s.people === 'schaedelklan');
+  assert.equal(last.length, 1, 'one settlement left to take');
+  assert.equal(won.relations['schaedelklan|talbund'].atWar, true);
+  assert.ok(won.peoples.talbund.units.some((u) => won.map.known.talbund[u.tile] === 'visible'));
+  assert.equal(won.result, null);
+
+  const lost = load('campaign-near-collapse.json');
+  assert.equal(lost.peoples.talbund.population.core, 1);
+  assert.equal(lost.peoples.talbund.resources.nahrung, 0);
+  assert.ok(lost.peoples.talbund.shortfall.nahrung > 0);
+  assert.equal(lost.result, null);
+
+  // The report belongs to the kernel run behind the mid-game state.
+  const r = load('report-T0011.json');
+  assert.equal(r.turn, 11);
+  assert.equal(r.revAfter > r.revBefore, true);
+  assert.ok(r.events.every((e) => e.turn === 11));
+});
+
 test('every primitive op has a weight and every weight belongs to an op', () => {
   assert.deepEqual(Object.keys(WEIGHTS).sort(), Object.keys(PRIMITIVES).sort());
 });

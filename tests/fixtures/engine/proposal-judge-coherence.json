@@ -1,0 +1,38 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "judge-coherence.T12",
+  "agent": "judge-coherence",
+  "campaign": "hochland-mitte",
+  "turn": 12,
+  "basedOnRev": 37,
+  "people": null,
+  "items": [
+    {
+      "type": "finding",
+      "id": "f-markt-ohne-weg",
+      "severity": "warn",
+      "for": ["chronicler", "world"],
+      "refs": ["T11-e91", "narrative/chronik/T0011.md"],
+      "text": "Die Chronik nennt den Markt am Pass seit dem Frühjahr belebt, das Protokoll führt ihn erst ab der achten Runde."
+    },
+    {
+      "type": "finding",
+      "id": "f-salz-doppelt",
+      "severity": "severe",
+      "for": [],
+      "refs": ["T11-e90"],
+      "text": "Die Gesandtschaft wurde gezogen, obwohl dieselbe Karte in der Vorrunde schon für den Talbund lief."
+    },
+    {
+      "type": "correction",
+      "finding": "f-salz-doppelt",
+      "needsConsent": true,
+      "people": "talbund",
+      "item": {
+        "type": "effects",
+        "effects": [{ "op": "resource.delta", "res": "salz", "amount": 1 }]
+      }
+    }
+  ]
+}

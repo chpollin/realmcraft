@@ -1,0 +1,21 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "judge-balance.T12",
+  "agent": "judge-balance",
+  "campaign": "hochland-mitte",
+  "turn": 12,
+  "basedOnRev": 37,
+  "people": null,
+  "items": [
+    {
+      "type": "finding",
+      "id": "f-markt-zu-stark",
+      "severity": "warn",
+      "for": ["research"],
+      "refs": ["markt-am-pass@1"],
+      "text": "Der Markt am Pass bringt mehr Salz als jede andere Entwicklung seiner Stufe.",
+      "value": 3
+    }
+  ]
+}

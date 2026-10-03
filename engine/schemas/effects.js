@@ -33,7 +33,7 @@
 // module.activate has no mechanics counterpart; it is the kernel's handle for
 // switching a mechanics module on (weight 0, modules are balanced as code).
 
-import { arr, int, nullable, obj, ref, str, text, PATTERNS } from './common.js';
+import { arr, int, nullable, obj, ref, str, text, PATTERNS, TOKEN_KINDS } from './common.js';
 
 const op = (name, props, optional = []) => obj({ op: { const: name }, ...props }, optional);
 const seasons = arr(ref('id'), 3, 1);
@@ -70,7 +70,9 @@ const STANDING = {
     module: ref('id'),
     bind: { type: 'object', propertyNames: str(PATTERNS.id), additionalProperties: ref('key') },
   }),
-  'governance.rule': op('governance.rule', { rule: { enum: ['leader', 'council', 'assembly'] }, scopeTags: arr(ref('tag'), 6) }),
+  // scopeTags names order tags ("befohlen", "angriff"); scopeOrders names order
+  // types directly ("destiny.adopt", "trade.cancel"), which carry a dot and are no tags.
+  'governance.rule': op('governance.rule', { rule: { enum: ['leader', 'council', 'assembly'] }, scopeTags: arr(ref('tag'), 6), scopeOrders: arr(ref('order'), 8) }, ['scopeOrders']),
   dependency: op('dependency', { res: ref('key'), amount: int(1, 3), penalty: once(3) }),
   meter: op('meter', {
     id: ref('id'),
@@ -101,7 +103,7 @@ const ONCE = {
     duration: nullable(int(1, 8)),
     endsOn: nullable({ const: 'setback' }),
   }),
-  'token.add': op('token.add', { kind: { enum: ['breakthrough', 'crisis', 'grievance'] }, tags: arr(ref('tag'), 3) }),
+  'token.add': op('token.add', { kind: { enum: [...TOKEN_KINDS] }, tags: arr(ref('tag'), 3) }),
   'unit.spawn': op('unit.spawn', { type: ref('ref'), tile: str(`^(\\$home|${PATTERNS.tile.slice(1, -1)})$`) }),
   'unit.delta': op('unit.delta', { unit: { enum: ['$target', '$all-on-tile'] }, strength: int(-3, 3) }),
   'region.control': op('region.control', { region: str(`^(\\$target|${PATTERNS.region.slice(1, -1)})$`), people: nullable({ const: '$self' }) }),

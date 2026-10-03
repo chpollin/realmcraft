@@ -8,7 +8,7 @@
     "serve": "node serve.mjs",
     "check": "node tools/check.mjs",
     "validate:savegame": "node tools/check.mjs savegame.json",
-    "test": "npm run check && npm run test:unit",
+    "test": "npm run check && npm run test:unit && npm run test:acceptance",
     "test:unit": "node --test \"tests/unit/**/*.test.js\"",
     "test:e2e": "playwright test --project=e2e",
     "test:visual": "playwright test --project=visual",
@@ -16,7 +16,8 @@
     "test:strategy": "node --test tests/unit/strategy.test.js && playwright test --project=e2e tests/e2e/strategy.spec.js",
     "test:nachtmeer": "node --test tests/unit/nachtmeer.test.js tests/unit/nachtmeer-presentation.test.js",
     "simulate:nachtmeer": "node design/nachtmeer-simulate.mjs",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "test:acceptance": "node --test \"tests/acceptance/**/*.test.js\""
   },
   "engines": {
     "node": ">=21"

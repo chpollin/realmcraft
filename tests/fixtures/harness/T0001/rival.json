@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "type": "stance",
+      "refs": [
+        "$lastEvent"
+      ],
+      "text": "Das Volk beobachtet die Nachbarn und hält seine Leute zu Hause."
+    }
+  ]
+}

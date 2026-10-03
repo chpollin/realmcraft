@@ -1,0 +1,634 @@
+{
+  "format": "realmcraft-ereignisse",
+  "version": 1,
+  "world": "hochland",
+  "items": [
+    {
+      "id": "fruehfrost",
+      "rev": 1,
+      "name": "Früher Frost",
+      "text": "Eine Frostnacht fällt über die Weiden, bevor das Heu eingebracht ist. Ein Teil der Vorräte verdirbt, und ein Tier erfriert am Hang.",
+      "band": 2,
+      "tags": [
+        "winter",
+        "wetter"
+      ],
+      "if": {
+        "season": "herbst"
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "nahrung",
+          "amount": -2
+        },
+        {
+          "op": "resource.delta",
+          "res": "herden",
+          "amount": -1
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "lawine",
+      "rev": 1,
+      "name": "Lawine am Kamm",
+      "text": "Ein Schneebrett löst sich über dem Lager und reißt Hütten und Holzstapel mit. Eine Sippe kehrt aus dem Schnee nicht zurück.",
+      "band": 1,
+      "tags": [
+        "winter",
+        "wetter"
+      ],
+      "if": {
+        "season": "winter"
+      },
+      "effects": [
+        {
+          "op": "population.delta",
+          "amount": -1
+        },
+        {
+          "op": "resource.delta",
+          "res": "material",
+          "amount": -2
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "schneesturm",
+      "rev": 1,
+      "name": "Schneesturm über dem Pass",
+      "text": "Drei Tage lang schließt der Sturm den Pass. Die Feuer fressen das Brennholz, und die Vorräte schwinden.",
+      "band": 2,
+      "tags": [
+        "winter",
+        "wetter"
+      ],
+      "if": {
+        "season": "winter"
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "material",
+          "amount": -2
+        },
+        {
+          "op": "resource.delta",
+          "res": "nahrung",
+          "amount": -1
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "fette-weide",
+      "rev": 1,
+      "name": "Fette Sommerweide",
+      "text": "Warmer Regen und lange Tage lassen die Hochweiden stehen wie nie. Die Herden werfen reich, und die Milch reicht für alle.",
+      "band": 5,
+      "tags": [
+        "weide",
+        "herde"
+      ],
+      "if": {
+        "season": "sommer"
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "herden",
+          "amount": 2
+        },
+        {
+          "op": "resource.delta",
+          "res": "nahrung",
+          "amount": 2
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "herdenseuche",
+      "rev": 1,
+      "name": "Seuche unter den Herden",
+      "text": "Die Tiere husten und fallen auf der Weide. Die Hirten müssen entscheiden, ob sie schlachten oder die Herden zerstreuen.",
+      "band": 1,
+      "tags": [
+        "herde"
+      ],
+      "if": {
+        "res": "herden",
+        "cmp": "gte",
+        "value": 4
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "schlachten",
+          "label": "Die kranken Tiere schlachten und das Fleisch räuchern",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "herden",
+              "amount": -3
+            },
+            {
+              "op": "resource.delta",
+              "res": "nahrung",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "zerstreuen",
+          "label": "Die Herden auf entlegene Weiden zerstreuen",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "herden",
+              "amount": -2
+            },
+            {
+              "op": "resource.delta",
+              "res": "nahrung",
+              "amount": -1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "favor:herde",
+              "amount": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ueberfall",
+      "rev": 1,
+      "name": "Überfall auf die Herden",
+      "text": "Reiter mit Schädelstandarten treiben in der Dämmerung Tiere von der Weide. Ihre Spur führt zum Joch.",
+      "band": 2,
+      "tags": [
+        "beute",
+        "angriff"
+      ],
+      "if": {
+        "relation": "schaedelklan",
+        "cmp": "lt",
+        "value": 1
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "verfolgen",
+          "label": "Den Räubern nachsetzen",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "herden",
+              "amount": -1
+            },
+            {
+              "op": "relation.delta",
+              "people": "schaedelklan",
+              "amount": -1
+            },
+            {
+              "op": "standing.delta",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "hinnehmen",
+          "label": "Den Verlust hinnehmen und die Weiden räumen",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "herden",
+              "amount": -3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "salzfund",
+      "rev": 1,
+      "name": "Salzader im Fels",
+      "text": "Ein Hirte findet unter einem Felsabbruch eine weiße Ader. Es ist Steinsalz, genug für viele Tauschgeschäfte.",
+      "band": 5,
+      "tags": [
+        "salz",
+        "erz"
+      ],
+      "if": {
+        "not": {
+          "flag": "salzfund.gefunden"
+        }
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "salz",
+          "amount": 3
+        },
+        {
+          "op": "flag.set",
+          "flag": "salzfund.gefunden",
+          "value": true
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "kristallfund",
+      "rev": 1,
+      "name": "Bergkristall im Geröll",
+      "text": "Nach dem Tauwetter glitzert Kristall im Geröll unter dem Grat. Die Schmiede holen Erz, und die Kunde vom Fund macht das Volk bekannt.",
+      "band": 5,
+      "tags": [
+        "erz"
+      ],
+      "if": {
+        "controls": {
+          "terrain": "gebirge"
+        },
+        "cmp": "gte",
+        "value": 1
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "erz",
+          "amount": 2
+        },
+        {
+          "op": "standing.delta",
+          "amount": 1
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "gemsenjagd",
+      "rev": 1,
+      "name": "Gemsenjagd",
+      "text": "Ein Rudel Gemsen zieht über die Hochweide. Die Jäger kehren mit voller Last ins Lager zurück.",
+      "band": 4,
+      "tags": [
+        "weide"
+      ],
+      "if": {
+        "controls": {
+          "terrain": "alm"
+        },
+        "cmp": "gte",
+        "value": 1
+      },
+      "effects": [
+        {
+          "op": "resource.delta",
+          "res": "nahrung",
+          "amount": 2
+        }
+      ],
+      "options": null
+    },
+    {
+      "id": "wanderhaendler",
+      "rev": 1,
+      "name": "Wandernder Händler",
+      "text": "Ein Händler mit zwei Maultieren und einem Sack Salz bittet um Gastrecht. Er kennt die Pfade jenseits des Kamms.",
+      "band": 4,
+      "tags": [
+        "handel",
+        "weg"
+      ],
+      "if": {
+        "not": {
+          "season": "winter"
+        }
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "tauschen",
+          "label": "Salz gegen ein Tier eintauschen",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "herden",
+              "amount": -1
+            },
+            {
+              "op": "resource.delta",
+              "res": "salz",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "kunde",
+          "label": "Gastrecht gewähren und nach den Pfaden fragen",
+          "effects": [
+            {
+              "op": "reveal",
+              "scope": "tiles",
+              "at": "$home",
+              "radius": 3
+            }
+          ]
+        },
+        {
+          "id": "abweisen",
+          "label": "Den Händler weiterschicken",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "gesandtschaft",
+      "rev": 1,
+      "name": "Gesandtschaft des Talbunds",
+      "text": "Gesandte aus Wiesenfurt bringen Salz als Gastgeschenk und fragen nach Freundschaft und freiem Geleit.",
+      "band": 4,
+      "tags": [
+        "handel",
+        "verhandlung"
+      ],
+      "if": {
+        "relation": "talbund",
+        "cmp": "gte",
+        "value": 0
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "annehmen",
+          "label": "Die Geschenke annehmen und Freundschaft geloben",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "salz",
+              "amount": 1
+            },
+            {
+              "op": "relation.delta",
+              "people": "talbund",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "hinhalten",
+          "label": "Die Gesandten mit leeren Worten heimschicken",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "fluechtlinge",
+      "rev": 1,
+      "name": "Flüchtlinge mit Handwerk",
+      "text": "Eine Gruppe Vertriebener aus einem verbrannten Talhof steht am Lager. Unter ihnen sind Schmiede mit eigenem Werkzeug.",
+      "band": 4,
+      "tags": [
+        "siedlung",
+        "erz"
+      ],
+      "if": null,
+      "effects": [],
+      "options": [
+        {
+          "id": "aufnehmen",
+          "label": "Alle aufnehmen und durchfüttern",
+          "effects": [
+            {
+              "op": "population.delta",
+              "amount": 1
+            },
+            {
+              "op": "resource.delta",
+              "res": "nahrung",
+              "amount": -3
+            }
+          ]
+        },
+        {
+          "id": "schmiede",
+          "label": "Nur die Schmiede aufnehmen",
+          "effects": [
+            {
+              "op": "resource.delta",
+              "res": "erz",
+              "amount": 2
+            },
+            {
+              "op": "resource.delta",
+              "res": "nahrung",
+              "amount": -1
+            }
+          ]
+        },
+        {
+          "id": "weiterschicken",
+          "label": "Die Flüchtlinge weiterschicken",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "ratsstreit",
+      "rev": 1,
+      "name": "Streit im Rat",
+      "text": "Am Ratsfeuer geraten die Stimme der Herden und die Hüterin der Flamme aneinander. Beide verlangen, dass die Führung Partei ergreift.",
+      "band": 3,
+      "tags": [
+        "rat"
+      ],
+      "if": null,
+      "effects": [],
+      "options": [
+        {
+          "id": "herden",
+          "label": "Der Stimme der Herden recht geben",
+          "effects": [
+            {
+              "op": "loyalty.delta",
+              "target": "favor:herde",
+              "amount": 1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "favor:feuer",
+              "amount": -1
+            }
+          ]
+        },
+        {
+          "id": "flamme",
+          "label": "Der Hüterin der Flamme recht geben",
+          "effects": [
+            {
+              "op": "loyalty.delta",
+              "target": "favor:feuer",
+              "amount": 1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "favor:herde",
+              "amount": -1
+            }
+          ]
+        },
+        {
+          "id": "schweigen",
+          "label": "Beiden Schweigen gebieten",
+          "effects": [
+            {
+              "op": "standing.delta",
+              "amount": 1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "all",
+              "amount": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sonnenfinsternis",
+      "rev": 1,
+      "name": "Sonnenfinsternis",
+      "text": "Am hellen Mittag frisst ein Schatten die Sonne. Die Herden brüllen, und das Volk sucht nach einer Deutung.",
+      "band": 3,
+      "tags": [
+        "magie",
+        "schau"
+      ],
+      "if": {
+        "not": {
+          "flag": "sonnenfinsternis.gesehen"
+        }
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "deuten",
+          "label": "Als Zeichen der Ahnen deuten",
+          "effects": [
+            {
+              "op": "loyalty.delta",
+              "target": "favor:magie",
+              "amount": 1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "favor:handel",
+              "amount": -1
+            },
+            {
+              "op": "flag.set",
+              "flag": "sonnenfinsternis.gesehen",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "abtun",
+          "label": "Als Lauf der Gestirne abtun",
+          "effects": [
+            {
+              "op": "loyalty.delta",
+              "target": "favor:magie",
+              "amount": -1
+            },
+            {
+              "op": "standing.delta",
+              "amount": 1
+            },
+            {
+              "op": "flag.set",
+              "flag": "sonnenfinsternis.gesehen",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stimme-im-fels",
+      "rev": 1,
+      "name": "Stimme im Fels",
+      "text": "Im Rauch des Psil hören die Schauenden eine Stimme aus einem alten Stollen. Sie verspricht Kraft für Blut.",
+      "band": 3,
+      "tags": [
+        "magie",
+        "dunkel"
+      ],
+      "if": {
+        "all": [
+          {
+            "knows": "rauchschau"
+          },
+          {
+            "not": {
+              "flag": "stimme-im-fels.erklungen"
+            }
+          }
+        ]
+      },
+      "effects": [],
+      "options": [
+        {
+          "id": "lauschen",
+          "label": "Der Stimme lauschen",
+          "effects": [
+            {
+              "op": "flag.set",
+              "flag": "stimme-im-fels.gehoert",
+              "value": true
+            },
+            {
+              "op": "flag.set",
+              "flag": "stimme-im-fels.erklungen",
+              "value": true
+            },
+            {
+              "op": "resource.delta",
+              "res": "psil",
+              "amount": 1
+            },
+            {
+              "op": "loyalty.delta",
+              "target": "oppose:magie",
+              "amount": -1
+            }
+          ]
+        },
+        {
+          "id": "verschuetten",
+          "label": "Den Stollen verschütten",
+          "effects": [
+            {
+              "op": "flag.set",
+              "flag": "stimme-im-fels.erklungen",
+              "value": true
+            },
+            {
+              "op": "resource.delta",
+              "res": "material",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

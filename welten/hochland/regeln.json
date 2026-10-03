@@ -1,0 +1,586 @@
+{
+  "format": "realmcraft-regeln",
+  "version": 1,
+  "world": "hochland",
+  "calendar": {
+    "seasons": [
+      {
+        "id": "fruehling",
+        "winter": false
+      },
+      {
+        "id": "sommer",
+        "winter": false
+      },
+      {
+        "id": "herbst",
+        "winter": false
+      },
+      {
+        "id": "winter",
+        "winter": true
+      }
+    ],
+    "startYear": 1,
+    "startSeason": "fruehling"
+  },
+  "resources": [
+    {
+      "id": "nahrung",
+      "value": 1,
+      "cap": 12,
+      "module": null
+    },
+    {
+      "id": "material",
+      "value": 1,
+      "cap": 10,
+      "module": null
+    },
+    {
+      "id": "wissen",
+      "value": 1,
+      "cap": 6,
+      "module": null
+    },
+    {
+      "id": "herden",
+      "value": 1,
+      "cap": 12,
+      "module": null
+    },
+    {
+      "id": "erz",
+      "value": 1,
+      "cap": 6,
+      "module": null
+    },
+    {
+      "id": "salz",
+      "value": 1,
+      "cap": 10,
+      "module": null
+    },
+    {
+      "id": "psil",
+      "value": 1,
+      "cap": 4,
+      "module": "magie"
+    },
+    {
+      "id": "opfer",
+      "value": 1,
+      "cap": 6,
+      "module": "magie"
+    }
+  ],
+  "stats": [
+    {
+      "id": "verteidigung",
+      "base": 0
+    },
+    {
+      "id": "mobilitaet",
+      "base": 0
+    },
+    {
+      "id": "wohlstand",
+      "base": 0
+    }
+  ],
+  "vocabulary": {
+    "zug": 1,
+    "erkundung": 1,
+    "wandel": 1,
+    "bau": 2,
+    "angriff": 2,
+    "verteidigung": 2,
+    "befohlen": 2,
+    "machtprobe": 1,
+    "befestigung": 1,
+    "belagerung": 1,
+    "verhandlung": 1,
+    "hinterhalt": 1,
+    "glut": 1,
+    "ordnung": 2,
+    "bestimmung": 1,
+    "vertragsbruch": 1,
+    "weg": 2,
+    "weide": 1,
+    "herde": 1,
+    "winter": 1,
+    "wetter": 1,
+    "bleiben": 1,
+    "siedlung": 1,
+    "nahrung": 1,
+    "handel": 2,
+    "markt": 1,
+    "salz": 1,
+    "bund": 1,
+    "erz": 1,
+    "pulver": 1,
+    "krieg": 2,
+    "fuss": 1,
+    "schuetzen": 1,
+    "beute": 1,
+    "magie": 2,
+    "schau": 1,
+    "feuer": 1,
+    "dunkel": 1,
+    "opfer": 1,
+    "unfreiheit": 1,
+    "rat": 1
+  },
+  "peopleTemplates": [
+    {
+      "id": "bergnomaden",
+      "name": "Hochvolk der Grauen Kämme",
+      "agentProfile": null,
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "zug",
+            "text": "Die Sippen sind auf Pfaden zuhause. Kein Wetter hält einen Zug über den Kamm auf."
+          },
+          "minus": {
+            "tag": "bau",
+            "text": "Was gemauert wird, bindet. Bauen geht den Sippen gegen die Natur."
+          }
+        },
+        "ausrichtung": "weide",
+        "appearance": "Bergnomaden in grauen Filzmänteln mit geflochtenen Haaren, Ziegen- und Schafherden, runde Filzjurten mit Rauchkrone auf kargen Hochweiden unter Gletschergipfeln"
+      },
+      "lebensweise": "nomadisch@1",
+      "population": {
+        "core": 3,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 6,
+        "material": 3,
+        "wissen": 2,
+        "herden": 6,
+        "erz": 0,
+        "salz": 0
+      },
+      "standing": 0,
+      "developments": [
+        "nomadisch@1",
+        "sippenrat@1",
+        "filzjurten@1"
+      ],
+      "council": "rat-graue-kaemme",
+      "bestimmung": "ueberdauern@1"
+    },
+    {
+      "id": "schaedelklan",
+      "name": "Schädelklan",
+      "agentProfile": "raub",
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "angriff",
+            "text": "Der Klan lebt vom Überfall. Wer zuerst zuschlägt, behält die Herde."
+          },
+          "minus": {
+            "tag": "verhandlung",
+            "text": "Ein Klankrieger feilscht nicht. Wer verhandelt, gilt als schwach."
+          }
+        },
+        "ausrichtung": "beute",
+        "appearance": "Reiterbünde auf zottigen Bergponys, Standarten mit gebleichten Tierschädeln, Lederpanzer mit Knochenplatten, Lager am Schwarzen Joch"
+      },
+      "lebensweise": "nomadisch@1",
+      "population": {
+        "core": 3,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 5,
+        "material": 2,
+        "wissen": 2,
+        "herden": 4,
+        "erz": 1,
+        "salz": 0
+      },
+      "standing": 0,
+      "developments": [
+        "nomadisch@1",
+        "sippenrat@1",
+        "speertraeger@1"
+      ],
+      "council": "rat-schaedelklan",
+      "bestimmung": "schaedeljoch@1"
+    },
+    {
+      "id": "talbund",
+      "name": "Talbund",
+      "agentProfile": "handel",
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "verhandlung",
+            "text": "Im Talbund wird alles gewogen und besprochen. Ein guter Handel gilt mehr als ein Sieg."
+          },
+          "minus": {
+            "tag": "angriff",
+            "text": "Die Talstädte haben das Kämpfen verlernt. Ein Angriff ist ihnen fremd."
+          }
+        },
+        "ausrichtung": "markt",
+        "appearance": "Talstädter in gefärbter Wolle, Salzkarawanen mit Maultieren, Fachwerkhäuser und Brücken über einem Wiesenfluss, Waagen und Siegel"
+      },
+      "lebensweise": "sesshaft@1",
+      "population": {
+        "core": 3,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 6,
+        "material": 4,
+        "wissen": 2,
+        "herden": 2,
+        "erz": 0,
+        "salz": 2
+      },
+      "standing": 0,
+      "developments": [
+        "sesshaft@1",
+        "sippenrat@1",
+        "saumpfad@1"
+      ],
+      "council": "rat-talbund",
+      "bestimmung": "salzstrasse@1"
+    }
+  ],
+  "councilTemplates": [
+    {
+      "id": "rat-graue-kaemme",
+      "members": [
+        {
+          "id": "asgra",
+          "name": "Asgra Kammwächterin",
+          "role": "erste",
+          "goal": {
+            "text": "Die Sippen sollen frei bleiben und jeden Winter gemeinsam überstehen.",
+            "favor": [
+              "weg",
+              "winter"
+            ],
+            "oppose": [
+              "unfreiheit"
+            ]
+          },
+          "loyalty": 3,
+          "hollow": false,
+          "age": 47,
+          "lifeStage": "ruestig",
+          "leader": true,
+          "appearance": "Hochgewachsene Frau mit grauen Zöpfen, wettergegerbtes Gesicht, ein Stab mit eingekerbten Wintern"
+        },
+        {
+          "id": "ulrun",
+          "name": "Ulrun vom Weidenhang",
+          "role": "herdenaelteste",
+          "goal": {
+            "text": "Die Herden und das Weiderecht sollen jeden Winter unversehrt bleiben.",
+            "favor": [
+              "herde",
+              "weide"
+            ],
+            "oppose": [
+              "bleiben",
+              "opfer"
+            ]
+          },
+          "loyalty": 3,
+          "hollow": false,
+          "age": 63,
+          "lifeStage": "lebensabend",
+          "leader": false,
+          "appearance": "Alte Hirtin mit Schaffellmantel und Hirtenstab, ruhige helle Augen, Hände voller Schwielen"
+        },
+        {
+          "id": "torhild",
+          "name": "Torhild Aschenhand",
+          "role": "feuerhueterin",
+          "goal": {
+            "text": "Die Flamme der Ahnen soll die Mitte des Volkes bleiben.",
+            "favor": [
+              "feuer",
+              "magie",
+              "schau"
+            ],
+            "oppose": [
+              "pulver",
+              "handel"
+            ]
+          },
+          "loyalty": 1,
+          "hollow": false,
+          "age": 39,
+          "lifeStage": "ruestig",
+          "leader": false,
+          "appearance": "Frau mit rußgeschwärzten Händen und einem Halsreif aus Bronze, Glutschale im Arm"
+        },
+        {
+          "id": "garmund",
+          "name": "Garmund Steinläufer",
+          "role": "pfadmeister",
+          "goal": {
+            "text": "Neue Pfade finden, bevor der Schädelklan sie findet.",
+            "favor": [
+              "weg",
+              "erkundung",
+              "handel"
+            ],
+            "oppose": [
+              "bleiben"
+            ]
+          },
+          "loyalty": 0,
+          "hollow": false,
+          "age": 58,
+          "lifeStage": "lebensabend",
+          "leader": false,
+          "appearance": "Hagerer Mann mit Steigeisen am Gürtel und einem Seil über der Schulter, Narbe über der Braue"
+        },
+        {
+          "id": "brandur",
+          "name": "Brandur Eisenfaust",
+          "role": "schmied",
+          "goal": {
+            "text": "Die Schmiede sollen mit neuen Mitteln und Öfen arbeiten dürfen.",
+            "favor": [
+              "erz",
+              "pulver",
+              "befestigung"
+            ],
+            "oppose": [
+              "magie"
+            ]
+          },
+          "loyalty": 2,
+          "hollow": false,
+          "age": 34,
+          "lifeStage": "ruestig",
+          "leader": false,
+          "appearance": "Breitschultriger Schmied mit Lederschurz und versengtem Bart, ein Hammer im Gürtel"
+        }
+      ]
+    },
+    {
+      "id": "rat-schaedelklan",
+      "members": [
+        {
+          "id": "vargh",
+          "name": "Vargh Schädelträger",
+          "role": "kriegsherr",
+          "goal": {
+            "text": "Kein Pass soll ohne Tribut an den Klan begangen werden.",
+            "favor": [
+              "beute",
+              "angriff"
+            ],
+            "oppose": [
+              "handel"
+            ]
+          },
+          "loyalty": 3,
+          "hollow": false,
+          "age": 41,
+          "lifeStage": "ruestig",
+          "leader": true,
+          "appearance": "Krieger mit einem Widderschädel als Helmzier, Narben über beiden Armen, ein schwerer Speer"
+        },
+        {
+          "id": "skaldra",
+          "name": "Skaldra Knochenruferin",
+          "role": "knochenruferin",
+          "goal": {
+            "text": "Die Ahnen im Knochenberg verlangen Blut, und der Klan soll es geben.",
+            "favor": [
+              "opfer",
+              "dunkel"
+            ],
+            "oppose": [
+              "bleiben"
+            ]
+          },
+          "loyalty": 1,
+          "hollow": false,
+          "age": 52,
+          "lifeStage": "lebensabend",
+          "leader": false,
+          "appearance": "Hagere Frau mit Knochenketten und weiß bemaltem Gesicht, eine Rassel aus Wirbeln"
+        },
+        {
+          "id": "hrodna",
+          "name": "Hrodna Herdenreiterin",
+          "role": "herdenreiterin",
+          "goal": {
+            "text": "Die geraubten Herden sollen den Klan durch jeden Winter tragen.",
+            "favor": [
+              "herde",
+              "zug"
+            ],
+            "oppose": [
+              "opfer"
+            ]
+          },
+          "loyalty": 0,
+          "hollow": false,
+          "age": 29,
+          "lifeStage": "ruestig",
+          "leader": false,
+          "appearance": "Junge Reiterin mit kurzem Bogen und Fellkappe, ein Pony mit geflochtener Mähne"
+        }
+      ]
+    },
+    {
+      "id": "rat-talbund",
+      "members": [
+        {
+          "id": "merla",
+          "name": "Merla Salzwägerin",
+          "role": "bundessprecherin",
+          "goal": {
+            "text": "Das Salz der Täler soll über jeden Pass gehen und in Wiesenfurt gewogen werden.",
+            "favor": [
+              "handel",
+              "salz"
+            ],
+            "oppose": [
+              "krieg"
+            ]
+          },
+          "loyalty": 3,
+          "hollow": false,
+          "age": 45,
+          "lifeStage": "ruestig",
+          "leader": true,
+          "appearance": "Frau in blau gefärbter Wolle mit einer Feinwaage am Gürtel und einem Siegelring"
+        },
+        {
+          "id": "ortwin",
+          "name": "Ortwin Brückenvogt",
+          "role": "vogt",
+          "goal": {
+            "text": "Mauern und Brücken sollen die Talstädte vor dem Klan schützen.",
+            "favor": [
+              "befestigung",
+              "bau"
+            ],
+            "oppose": [
+              "opfer"
+            ]
+          },
+          "loyalty": 1,
+          "hollow": false,
+          "age": 50,
+          "lifeStage": "ruestig",
+          "leader": false,
+          "appearance": "Stämmiger Mann mit Schlüsselbund und Kettenhemd unter dem Rock, ein Messstab in der Hand"
+        },
+        {
+          "id": "gerlind",
+          "name": "Gerlind Kornmutter",
+          "role": "feldaelteste",
+          "goal": {
+            "text": "Kein Korn soll für fremde Händler das Tal verlassen, solange die eigenen hungern.",
+            "favor": [
+              "nahrung",
+              "siedlung"
+            ],
+            "oppose": [
+              "handel"
+            ]
+          },
+          "loyalty": 0,
+          "hollow": false,
+          "age": 61,
+          "lifeStage": "lebensabend",
+          "leader": false,
+          "appearance": "Alte Bäuerin mit Kopftuch und Sichel, Ähren im Korb, misstrauischer Blick"
+        }
+      ]
+    }
+  ],
+  "tuning": {
+    "maxTier": 3,
+    "lossAfter": 4,
+    "newMemberLoyalty": 1,
+    "slots": {
+      "main": 1,
+      "minor": 2
+    },
+    "limits": {
+      "candidatesPerTurn": 3,
+      "aboveTier": 1,
+      "openCandidates": 6,
+      "moduleActivations": 1
+    },
+    "expected": {
+      "population": 4,
+      "units": 2,
+      "regions": 3,
+      "settlements": 1
+    }
+  },
+  "aiProfiles": [
+    {
+      "id": "raub",
+      "name": "Raub und Passherrschaft",
+      "stance": "Der Klan nimmt, was er tragen kann, und sperrt die Pässe für jeden, der keinen Tribut zahlt. Schwäche lädt zum Überfall ein, Stärke zum Abwarten. Opfer an die Ahnen sind ihm nicht fremd.",
+      "weights": {
+        "angriff": 3,
+        "beute": 3,
+        "krieg": 2,
+        "herde": 1,
+        "opfer": 1,
+        "dunkel": 1,
+        "handel": -2,
+        "verhandlung": -2,
+        "bau": -1
+      }
+    },
+    {
+      "id": "handel",
+      "name": "Handel und Talfrieden",
+      "stance": "Der Bund sucht Wege für sein Salz und Frieden für seine Karawanen. Er baut Mauern statt Heere, kauft Freundschaft und meidet jeden, der Blut opfert.",
+      "weights": {
+        "handel": 3,
+        "salz": 2,
+        "verhandlung": 2,
+        "weg": 2,
+        "bau": 1,
+        "befestigung": 1,
+        "angriff": -2,
+        "opfer": -3,
+        "dunkel": -3
+      }
+    },
+    {
+      "id": "weide",
+      "name": "Weide und Zug",
+      "stance": "Die Sippen folgen den Herden und meiden den Streit, solange die Weiden reichen. Sie erkunden neue Pfade und bauen nur, was mitzieht.",
+      "weights": {
+        "herde": 3,
+        "zug": 2,
+        "weg": 2,
+        "erkundung": 1,
+        "winter": 1,
+        "bau": -1,
+        "unfreiheit": -2
+      }
+    }
+  ],
+  "moduleBindings": {
+    "handel": {
+      "currency": "salz"
+    },
+    "magie": {
+      "source": "opfer"
+    }
+  }
+}

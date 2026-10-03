@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "type": "voice",
+      "member": "$member0",
+      "refs": [
+        "$lastEvent"
+      ],
+      "text": "Wir sollten die Herden zusammenhalten, bis der Pass wieder offen ist."
+    }
+  ]
+}

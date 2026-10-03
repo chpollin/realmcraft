@@ -1,0 +1,1791 @@
+{
+  "format": "realmcraft-entwicklungen",
+  "version": 1,
+  "world": "hochland",
+  "items": [
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "nomadisch",
+      "rev": 1,
+      "kind": "lebensweise",
+      "tier": 0,
+      "name": "Wanderhirten",
+      "summary": "Die Sippen ziehen mit Lager und Herden über die Hochweiden. Wer zieht, ist schwer zu fassen, doch der Winter zehrt am Vorrat.",
+      "appearance": "Ein Zug aus Filzzelten, Packtieren und Ziegenherden auf einem Grat im Morgennebel",
+      "tags": [
+        "zug",
+        "herde",
+        "weide"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 2,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "mobilitaet",
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "settlement": "camp",
+        "migrates": true,
+        "consumption": {
+          "fruehling": 1,
+          "sommer": 1,
+          "herbst": 1,
+          "winter": 2
+        },
+        "herdRules": {
+          "pastureTerrains": [
+            "alm",
+            "wiese",
+            "heide"
+          ],
+          "growth": 2,
+          "winterLoss": 2
+        }
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "zug",
+          "herde"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "sippenrat",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 0,
+      "name": "Sippenrat",
+      "summary": "Die Ältesten der Sippen beraten am Winterfeuer, verhandeln für alle und hüten den gemeinsamen Vorrat. Was alle angeht, beschließt der Rat mit Mehrheit, und das Feuer will gespeist sein.",
+      "appearance": "Ein Kreis von Ältesten um ein Feuer in einer großen Jurte, Rauch steigt durch das Dachrad",
+      "tags": [
+        "rat",
+        "ordnung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 2,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "governance.rule",
+          "rule": "council",
+          "scopeTags": [
+            "ordnung",
+            "angriff",
+            "wandel",
+            "bestimmung",
+            "vertragsbruch"
+          ]
+        },
+        {
+          "op": "stock.cap",
+          "res": "nahrung",
+          "amount": 2
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "machtprobe"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "verhandlung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "rat",
+          "ordnung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "sesshaft",
+      "rev": 1,
+      "kind": "lebensweise",
+      "tier": 1,
+      "name": "Die feste Siedlung",
+      "summary": "Das Volk baut Häuser aus Stein und Balken und bleibt. Mauern schützen und Speicher halten mehr, doch das Volk verliert seine Beweglichkeit.",
+      "appearance": "Steinhäuser mit Grasdächern an einem Hang, darunter eingezäunte Weiden und ein Bach",
+      "tags": [
+        "bleiben",
+        "siedlung",
+        "wandel"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": {
+          "res": "nahrung",
+          "cmp": "gte",
+          "value": 3
+        }
+      },
+      "cost": {
+        "research": 2,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "verteidigung",
+          "amount": 1
+        },
+        {
+          "op": "stock.cap",
+          "res": "nahrung",
+          "amount": 2
+        }
+      ],
+      "price": [
+        {
+          "op": "stat.mod",
+          "stat": "mobilitaet",
+          "amount": -1
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [
+        "nomadisch"
+      ],
+      "spec": {
+        "settlement": "village",
+        "migrates": false,
+        "consumption": {
+          "fruehling": 1,
+          "sommer": 1,
+          "herbst": 1,
+          "winter": 1
+        },
+        "herdRules": {
+          "pastureTerrains": [
+            "wiese",
+            "alm"
+          ],
+          "growth": 1,
+          "winterLoss": 1
+        }
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bau",
+          "siedlung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "filzjurten",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Filzjurten",
+      "summary": "Zelte aus gewalktem Filz machen den Zug leichter und den Winter milder. Das Walken kostet im Herbst Material.",
+      "appearance": "Runde Filzzelte mit Rauchkrone auf einer Hochweide",
+      "tags": [
+        "zug",
+        "herde",
+        "winter",
+        "weg"
+      ],
+      "prerequisites": {
+        "all": [
+          "nomadisch"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 2,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "zug"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "zug",
+          "herde"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "saumpfad",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Saumpfad",
+      "summary": "Das Volk sichert Pfade für Saumtiere über Hang und Joch. Jeder angelegte Abschnitt ist ein Weg auf der Karte, über den Züge und Karawanen leichter gehen.",
+      "appearance": "Ein schmaler, mit Steinmännchen markierter Pfad am Hang, ein Maultier mit Lasten",
+      "tags": [
+        "weg",
+        "erkundung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "order.unlock",
+          "order": "road"
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "erkundung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "erkundung",
+          "zug",
+          "weg"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "hochweide-terrassen",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 1,
+      "name": "Hochweide-Terrassen",
+      "summary": "Mit Trockenmauern gestufte Hänge tragen Korn und Heu außer im Winter. Nur wer bleibt, kann sie pflegen.",
+      "appearance": "Gestufte Felder mit Trockenmauern an einer Hochweide, Heuschober auf jeder Stufe",
+      "tags": [
+        "nahrung",
+        "weide",
+        "siedlung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": {
+          "lebensweise": "sesshaft"
+        }
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm"
+        ],
+        "buildCost": {
+          "material": 2
+        },
+        "perRegion": 2,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bau",
+          "nahrung",
+          "weide"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "speertraeger",
+      "rev": 1,
+      "kind": "einheit",
+      "tier": 1,
+      "name": "Speerträger",
+      "summary": "Hirten mit Eschenspeer und Rundschild, aufgeboten aus den Sippen. Langsam, aber am Lager kaum zu werfen.",
+      "appearance": "Eine Reihe von Hirten in Filzmänteln mit langen Speeren und bemalten Rundschilden",
+      "tags": [
+        "krieg",
+        "fuss"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "strength": 2,
+        "mobility": 1,
+        "recruitCost": {
+          "nahrung": 2,
+          "material": 1
+        },
+        "upkeep": {
+          "nahrung": 1
+        },
+        "tags": [
+          "fuss"
+        ]
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "krieg",
+          "angriff",
+          "verteidigung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "rauchschau",
+      "rev": 1,
+      "kind": "disziplin",
+      "tier": 1,
+      "name": "Psilschau",
+      "summary": "Die Schauenden atmen den blauen Rauch des Psil und sehen weit über Grat und Nebel. Der Rauch macht hungrig nach mehr.",
+      "appearance": "Eine Seherin über einer Schale mit blauem Rauch, die Augen halb geschlossen, Nacht über dem Lager",
+      "tags": [
+        "magie",
+        "schau"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "psil",
+          "amount": 1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "price": [
+        {
+          "op": "meter",
+          "id": "psilhunger",
+          "min": 0,
+          "max": 4,
+          "rise": {
+            "on": "use:fernblick",
+            "amount": 1
+          },
+          "decay": 1,
+          "thresholds": [
+            {
+              "at": 4,
+              "effects": [
+                {
+                  "op": "loyalty.delta",
+                  "target": "oppose:schau",
+                  "amount": -1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "source": "psil",
+        "applications": [
+          {
+            "id": "fernblick",
+            "name": "Fernblick",
+            "slot": "minor",
+            "target": 5,
+            "cost": {
+              "psil": 1
+            },
+            "tags": [
+              "schau",
+              "erkundung"
+            ],
+            "targetKind": "tile",
+            "outcomes": {
+              "crit_fail": [
+                {
+                  "op": "meter.delta",
+                  "meter": "psilhunger",
+                  "amount": 2
+                },
+                {
+                  "op": "token.add",
+                  "kind": "crisis",
+                  "tags": [
+                    "schau"
+                  ]
+                }
+              ],
+              "setback": [
+                {
+                  "op": "meter.delta",
+                  "meter": "psilhunger",
+                  "amount": 1
+                }
+              ],
+              "failure": [],
+              "narrow": [
+                {
+                  "op": "reveal",
+                  "scope": "tiles",
+                  "at": "$target",
+                  "radius": 2
+                }
+              ],
+              "success": [
+                {
+                  "op": "reveal",
+                  "scope": "tiles",
+                  "at": "$target",
+                  "radius": 3
+                }
+              ],
+              "crit_success": [
+                {
+                  "op": "reveal",
+                  "scope": "tiles",
+                  "at": "$target",
+                  "radius": 3
+                },
+                {
+                  "op": "token.add",
+                  "kind": "breakthrough",
+                  "tags": [
+                    "schau"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "schau",
+          "magie",
+          "erkundung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "markt-am-pass",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 2,
+      "name": "Markt am Pass",
+      "summary": "Ein Markt dort, wo die Saumpfade über das Joch gehen, öffnet den Handel in Salz. Der Reichtum am Pass weckt Begehrlichkeit.",
+      "appearance": "Steinerne Verkaufsstände an einem Passübergang, Salzblöcke, Waagen und Packtiere",
+      "tags": [
+        "handel",
+        "markt",
+        "weg"
+      ],
+      "prerequisites": {
+        "all": [
+          "saumpfad"
+        ],
+        "any": [],
+        "if": {
+          "relation": "$any",
+          "cmp": "gte",
+          "value": 0
+        }
+      },
+      "cost": {
+        "research": 9,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "module.activate",
+          "module": "handel",
+          "bind": {
+            "currency": "salz"
+          }
+        },
+        {
+          "op": "stat.mod",
+          "stat": "wohlstand",
+          "amount": 1
+        },
+        {
+          "op": "order.unlock",
+          "order": "trade.offer"
+        }
+      ],
+      "price": [
+        {
+          "op": "meter",
+          "id": "begehrlichkeit",
+          "min": 0,
+          "max": 5,
+          "rise": {
+            "on": "season",
+            "amount": 1
+          },
+          "decay": 0,
+          "thresholds": [
+            {
+              "at": 4,
+              "effects": [
+                {
+                  "op": "resource.delta",
+                  "res": "salz",
+                  "amount": -2
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "heide",
+          "wiese"
+        ],
+        "buildCost": {
+          "material": 3
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "handel",
+          "weg",
+          "markt"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "geleitrecht",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 2,
+      "name": "Geleit- und Zollrecht",
+      "summary": "Wer über die eigenen Pfade zieht, zahlt Zoll und erhält Geleit. Das Geleit bindet jedes Jahr Späher, und die Nachbarn murren über den Zoll.",
+      "appearance": "Ein Zöllner mit Kerbholz an einer Schranke aus Lärchenstämmen, dahinter eine Karawane",
+      "tags": [
+        "handel",
+        "weg",
+        "ordnung"
+      ],
+      "prerequisites": {
+        "all": [
+          "saumpfad"
+        ],
+        "any": [],
+        "if": {
+          "module": "handel"
+        }
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "salz",
+          "amount": 1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "verhandlung"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "order.unlock",
+          "order": "trade.market"
+        }
+      ],
+      "price": [
+        {
+          "op": "order.restrict",
+          "mode": "duty",
+          "orders": [
+            "explore"
+          ],
+          "tags": [],
+          "limit": 1,
+          "per": "year",
+          "breach": [
+            {
+              "op": "standing.delta",
+              "amount": -1
+            },
+            {
+              "op": "relation.delta",
+              "people": "neighbours",
+              "amount": -1
+            }
+          ]
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "standing.delta",
+          "amount": 1
+        },
+        {
+          "op": "relation.delta",
+          "people": "neighbours",
+          "amount": -1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "handel",
+          "weg",
+          "verhandlung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "strassenbau",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 2,
+      "name": "Straßenbau",
+      "summary": "Gepflasterte Straßen für Karren ersetzen die Saumpfade. Ein ausgebauter Weg trägt Züge und Handel schneller, muss aber nach jedem Tauwetter ausgebessert werden.",
+      "appearance": "Eine gepflasterte Straße mit Randsteinen in Serpentinen, ein Ochsenkarren mit Fässern",
+      "tags": [
+        "weg",
+        "handel",
+        "bau"
+      ],
+      "prerequisites": {
+        "all": [
+          "saumpfad",
+          "sesshaft"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "order.unlock",
+          "order": "road.pave"
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "zug"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "fruehling"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bau",
+          "weg",
+          "handel"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "steinmauer",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 2,
+      "name": "Steinmauer",
+      "summary": "Eine Ringmauer aus Bruchstein schützt die Siedlung. Frost sprengt jeden Winter Steine heraus.",
+      "appearance": "Eine hohe Mauer aus grauem Bruchstein um ein Bergdorf, ein Tor mit Holzflügeln",
+      "tags": [
+        "befestigung",
+        "bau",
+        "siedlung"
+      ],
+      "prerequisites": {
+        "all": [
+          "sesshaft"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 9,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "verteidigung",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "befestigung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "heide",
+          "bergwald",
+          "wiese"
+        ],
+        "buildCost": {
+          "material": 4
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bau",
+          "befestigung",
+          "verteidigung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "salpetersieden",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 2,
+      "name": "Salpetersieden",
+      "summary": "Aus dem Mist der Herdenpferche sieden die Schmiede Salpeter. Das Sprengpulver öffnet Erzadern und Mauern, das Sieden frisst Brennstoff.",
+      "appearance": "Dampfende Kessel unter einem Felsdach, Säcke mit weißen Kristallen, ein Schmied mit Lederschurz",
+      "tags": [
+        "pulver",
+        "erz",
+        "herde"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "filzjurten",
+          "hochweide-terrassen"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "erz",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "belagerung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "herbst",
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "erz",
+          "herde",
+          "bau"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "pulverwall",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 3,
+      "name": "Pulverwall",
+      "summary": "Pulver aus Salpeter und Erz macht den Wall zur Waffe. Die Pulvermühle frisst laufend Erz, und die Nachbarn fürchten den Donner.",
+      "appearance": "Ein Erdwall mit gemauerten Scharten, davor ein rauchender Mühlschuppen",
+      "tags": [
+        "pulver",
+        "befestigung",
+        "krieg"
+      ],
+      "prerequisites": {
+        "all": [
+          "salpetersieden",
+          "steinmauer"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 12,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "verteidigung",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "befestigung"
+          ],
+          "amount": 2
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "belagerung"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "order.unlock",
+          "order": "ausfall"
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "erz",
+          "amount": -1
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "relation.delta",
+          "people": "neighbours",
+          "amount": -1
+        }
+      ],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "befestigung",
+          "erz",
+          "krieg"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "bannfeuer",
+      "rev": 1,
+      "kind": "disziplin",
+      "tier": 3,
+      "name": "Bannfeuer",
+      "summary": "Gebundene Glut hält den Wall. Sie nährt sich von Opfern, jeder Glutausfall zehrt an den Bindern, und die Glut brennt nur am Berg.",
+      "appearance": "Glimmende Runen im Fels über dem Wall, Binder in rußgeschwärzten Mänteln",
+      "tags": [
+        "magie",
+        "feuer",
+        "opfer",
+        "befestigung"
+      ],
+      "prerequisites": {
+        "all": [
+          "blutritus",
+          "steinmauer"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 12,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "verteidigung",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "befestigung"
+          ],
+          "amount": 2
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "belagerung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "meter",
+          "id": "glutzehrung",
+          "min": 0,
+          "max": 5,
+          "rise": {
+            "on": "use:glutausfall",
+            "amount": 1
+          },
+          "decay": 0,
+          "thresholds": [
+            {
+              "at": 5,
+              "effects": [
+                {
+                  "op": "population.delta",
+                  "amount": -1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "order.restrict",
+          "mode": "forbid",
+          "orders": [],
+          "tags": [
+            "glut"
+          ],
+          "if": {
+            "not": {
+              "controls": {
+                "terrain": "gebirge"
+              },
+              "cmp": "gte",
+              "value": 1
+            }
+          }
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "relation.delta",
+          "people": "neighbours",
+          "amount": -1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "source": "opfer",
+        "applications": [
+          {
+            "id": "glutausfall",
+            "name": "Glutausfall",
+            "slot": "main",
+            "target": 5,
+            "cost": {
+              "opfer": 2
+            },
+            "tags": [
+              "glut",
+              "verteidigung"
+            ],
+            "targetKind": "unit",
+            "outcomes": {
+              "crit_fail": [
+                {
+                  "op": "meter.delta",
+                  "meter": "glutzehrung",
+                  "amount": 2
+                },
+                {
+                  "op": "population.delta",
+                  "amount": -1
+                }
+              ],
+              "setback": [
+                {
+                  "op": "meter.delta",
+                  "meter": "glutzehrung",
+                  "amount": 1
+                }
+              ],
+              "failure": [],
+              "narrow": [
+                {
+                  "op": "unit.delta",
+                  "unit": "$target",
+                  "strength": -1
+                }
+              ],
+              "success": [
+                {
+                  "op": "unit.delta",
+                  "unit": "$target",
+                  "strength": -2
+                }
+              ],
+              "crit_success": [
+                {
+                  "op": "unit.delta",
+                  "unit": "$target",
+                  "strength": -3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "magie",
+          "feuer",
+          "befestigung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "blutritus",
+      "rev": 1,
+      "kind": "disziplin",
+      "tier": 2,
+      "name": "Blutritus",
+      "summary": "Wer der Stimme im Fels Blut gibt, erhält Opferkraft. Die Kraft kann Furcht säen, doch mit jedem Opfer wächst die Furcht auch im eigenen Volk.",
+      "appearance": "Ein Steintisch in einer Höhle, Fackellicht, Schalen mit dunkler Flüssigkeit, Knochen an Schnüren",
+      "tags": [
+        "magie",
+        "dunkel",
+        "opfer"
+      ],
+      "prerequisites": {
+        "all": [
+          "rauchschau"
+        ],
+        "any": [],
+        "if": {
+          "any": [
+            {
+              "flag": "stimme-im-fels.gehoert"
+            },
+            {
+              "tagCount": "unfreiheit",
+              "cmp": "gte",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [],
+      "price": [
+        {
+          "op": "meter",
+          "id": "furcht",
+          "min": 0,
+          "max": 5,
+          "rise": {
+            "on": "use:blutopfer",
+            "amount": 1
+          },
+          "decay": 1,
+          "thresholds": [
+            {
+              "at": 4,
+              "effects": [
+                {
+                  "op": "loyalty.delta",
+                  "target": "all",
+                  "amount": -1
+                },
+                {
+                  "op": "population.delta",
+                  "amount": -1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "loyalty.delta",
+          "target": "oppose:opfer",
+          "amount": -1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "source": "opfer",
+        "applications": [
+          {
+            "id": "blutopfer",
+            "name": "Blutopfer",
+            "slot": "minor",
+            "target": 4,
+            "cost": {
+              "herden": 2
+            },
+            "tags": [
+              "opfer"
+            ],
+            "targetKind": "none",
+            "outcomes": {
+              "crit_fail": [
+                {
+                  "op": "meter.delta",
+                  "meter": "furcht",
+                  "amount": 2
+                },
+                {
+                  "op": "loyalty.delta",
+                  "target": "oppose:opfer",
+                  "amount": -1
+                }
+              ],
+              "setback": [
+                {
+                  "op": "meter.delta",
+                  "meter": "furcht",
+                  "amount": 1
+                }
+              ],
+              "failure": [
+                {
+                  "op": "resource.delta",
+                  "res": "opfer",
+                  "amount": 1
+                }
+              ],
+              "narrow": [
+                {
+                  "op": "resource.delta",
+                  "res": "opfer",
+                  "amount": 2
+                }
+              ],
+              "success": [
+                {
+                  "op": "resource.delta",
+                  "res": "opfer",
+                  "amount": 3
+                }
+              ],
+              "crit_success": [
+                {
+                  "op": "resource.delta",
+                  "res": "opfer",
+                  "amount": 3
+                }
+              ]
+            }
+          },
+          {
+            "id": "schreckensbild",
+            "name": "Schreckensbild",
+            "slot": "minor",
+            "target": 5,
+            "cost": {
+              "opfer": 1
+            },
+            "tags": [
+              "dunkel",
+              "machtprobe"
+            ],
+            "targetKind": "none",
+            "outcomes": {
+              "crit_fail": [
+                {
+                  "op": "meter.delta",
+                  "meter": "furcht",
+                  "amount": 2
+                }
+              ],
+              "setback": [
+                {
+                  "op": "meter.delta",
+                  "meter": "furcht",
+                  "amount": 1
+                }
+              ],
+              "failure": [],
+              "narrow": [
+                {
+                  "op": "status.add",
+                  "id": "schrecken",
+                  "effects": [
+                    {
+                      "op": "probe.mod",
+                      "tags": [
+                        "machtprobe"
+                      ],
+                      "amount": 1
+                    }
+                  ],
+                  "duration": 1,
+                  "endsOn": null
+                }
+              ],
+              "success": [
+                {
+                  "op": "status.add",
+                  "id": "schrecken",
+                  "effects": [
+                    {
+                      "op": "probe.mod",
+                      "tags": [
+                        "machtprobe"
+                      ],
+                      "amount": 2
+                    }
+                  ],
+                  "duration": 1,
+                  "endsOn": null
+                }
+              ],
+              "crit_success": [
+                {
+                  "op": "status.add",
+                  "id": "schrecken",
+                  "effects": [
+                    {
+                      "op": "probe.mod",
+                      "tags": [
+                        "machtprobe"
+                      ],
+                      "amount": 2
+                    }
+                  ],
+                  "duration": 2,
+                  "endsOn": null
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "opfer",
+          "dunkel",
+          "magie"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "schuldknechtschaft",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 2,
+      "name": "Schuldknechtschaft",
+      "summary": "Gefangene und Schuldner arbeiten als Unfreie für das Volk. Raubzüge füllen ihre Reihen, jeder Raubzug schürt Aufruhr, und Unfreie dürfen keine Waffen tragen.",
+      "appearance": "Gebeugte Gestalten mit Halseisen tragen Steine einen Hang hinauf, ein Aufseher mit Stab",
+      "tags": [
+        "unfreiheit",
+        "dunkel",
+        "beute"
+      ],
+      "prerequisites": {
+        "all": [
+          "speertraeger"
+        ],
+        "any": [],
+        "if": {
+          "any": [
+            {
+              "atWar": true
+            },
+            {
+              "relation": "$any",
+              "cmp": "lt",
+              "value": -1
+            }
+          ]
+        }
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "order.unlock",
+          "order": "raubzug"
+        }
+      ],
+      "price": [
+        {
+          "op": "meter",
+          "id": "aufruhr",
+          "min": 0,
+          "max": 5,
+          "rise": {
+            "on": "use:raubzug",
+            "amount": 1
+          },
+          "decay": 0,
+          "thresholds": [
+            {
+              "at": 5,
+              "effects": [
+                {
+                  "op": "population.delta",
+                  "amount": -1
+                },
+                {
+                  "op": "loyalty.delta",
+                  "target": "all",
+                  "amount": -1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "order.restrict",
+          "mode": "limit",
+          "orders": [
+            "recruit"
+          ],
+          "tags": [],
+          "limit": 1,
+          "per": "season"
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "population.delta",
+          "amount": 1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "angriff",
+          "beute",
+          "bau"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "schwarzer-zirkel",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 3,
+      "name": "Der Schwarze Zirkel",
+      "summary": "Ein Zirkel der Opfernden nimmt Sitz im Rat. Er mehrt das Wissen der Magie und bricht Widerstand durch Furcht, doch er verlangt jede Saison ein Opfer.",
+      "appearance": "Gestalten in schwarzen Kapuzen um einen Kreis aus Knochen und Glut in einer Felshalle",
+      "tags": [
+        "magie",
+        "dunkel",
+        "opfer",
+        "ordnung"
+      ],
+      "prerequisites": {
+        "all": [
+          "blutritus",
+          "schuldknechtschaft"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 12,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "research.mod",
+          "tags": [
+            "magie"
+          ],
+          "amount": 2
+        },
+        {
+          "op": "stock.cap",
+          "res": "opfer",
+          "amount": 4
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "machtprobe"
+          ],
+          "amount": 2
+        }
+      ],
+      "price": [
+        {
+          "op": "dependency",
+          "res": "opfer",
+          "amount": 1,
+          "penalty": [
+            {
+              "op": "loyalty.delta",
+              "target": "favor:opfer",
+              "amount": -1
+            }
+          ]
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "relation.delta",
+          "people": "all",
+          "amount": -1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "seat": {
+          "role": "zirkelmeister",
+          "favor": [
+            "dunkel",
+            "opfer",
+            "unfreiheit"
+          ],
+          "oppose": [
+            "handel"
+          ]
+        }
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "opfer",
+          "dunkel",
+          "magie"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "bergschuetzen",
+      "rev": 1,
+      "kind": "einheit",
+      "tier": 2,
+      "name": "Bergschützen",
+      "summary": "Schützen mit Hornbogen, die von Graten und Felsbändern aus treffen. Pfeile und Bogen verbrauchen im Herbst Material.",
+      "appearance": "Schützen in grauen Mänteln knien auf einem Felsband, gespannte Hornbogen, Nebel im Tal",
+      "tags": [
+        "krieg",
+        "schuetzen"
+      ],
+      "prerequisites": {
+        "all": [
+          "speertraeger"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 9,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "hinterhalt"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "strength": 3,
+        "mobility": 2,
+        "recruitCost": {
+          "nahrung": 2,
+          "material": 2
+        },
+        "upkeep": {
+          "nahrung": 1
+        },
+        "tags": [
+          "schuetzen"
+        ]
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "krieg",
+          "verteidigung",
+          "erkundung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "research.talbund.T12",
+  "agent": "research",
+  "campaign": "hochland-mitte",
+  "turn": 12,
+  "basedOnRev": 37,
+  "people": "talbund",
+  "items": [
+    {
+      "type": "bestimmung",
+      "data": {
+        "id": "salzherren",
+        "rev": 1,
+        "name": "Herren des Salzes",
+        "summary": "Der Talbund beherrscht den Salzhandel über die Pässe und bindet die Nachbarn durch Verträge statt durch Waffen.",
+        "tags": ["handel", "salz"],
+        "milestones": [
+          { "id": "maerkte", "text": "Drei Entwicklungen des Handels sind bekannt", "predicate": { "pred": "development.known", "count": 3, "tags": ["handel"] } },
+          { "id": "vorrat", "text": "Zehn Salz lagern vier Saisons lang", "predicate": { "pred": "holds", "predicate": { "pred": "resource.atLeast", "key": "salz", "value": 10 }, "seasons": 4 } },
+          { "id": "frieden", "text": "Mit jedem Volk herrscht wenigstens Duldung", "predicate": { "pred": "relation", "people": "$all", "cmp": "gte", "value": 1 } }
+        ]
+      }
+    }
+  ]
+}

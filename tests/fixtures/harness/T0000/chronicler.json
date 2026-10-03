@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "type": "narrative",
+      "refs": [
+        "$lastEvent"
+      ],
+      "text": "Die Sippen schlagen ihre Lager am Kamm auf und zählen, was der Winter übrig ließ."
+    }
+  ]
+}

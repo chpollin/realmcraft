@@ -3,10 +3,8 @@
 // on `kind`, so the schema is one closed variant per kind, discriminated by
 // the kind constant.
 
-import { COMMON_DEFS, KINDS, MAX_TIER, arr, bundle, int, map, nullable, obj, ref, str, text, PATTERNS } from './common.js';
+import { BANDS, COMMON_DEFS, KINDS, MAX_TIER, arr, bundle, int, map, nullable, obj, ref, str, text, PATTERNS } from './common.js';
 import { EFFECT_DEFS } from './effects.js';
-
-const BANDS = ['crit_success', 'strong', 'success', 'fail', 'bad_fail', 'crit_fail'];
 
 const application = obj({
   id: ref('id'),

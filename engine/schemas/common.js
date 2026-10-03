@@ -14,11 +14,17 @@ export const PATTERNS = Object.freeze({
   // engine/world/regions.js regionId(): "cq:cr:i".
   region: '^(0|-?[1-9][0-9]*):(0|-?[1-9][0-9]*):(0|[1-9][0-9]*)$',
   order: '^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)?$',
-  // Probe ids name turn, people and order: "T6:schar:o2".
+  // Probe ids name turn, people and subject: "T6:schar:o2" for the probe of
+  // order o2, "T6:schar:event" for the world-event roll of that people. The
+  // subject "event" is reserved, so no draft order may take it as its id.
   probe: '^T(0|[1-9][0-9]*):[a-z][a-z0-9-]{1,40}:[a-z0-9][a-z0-9-]{0,40}$',
+  // Id of an order inside a draft; excludes the reserved probe subject "event".
+  orderId: '^(?!event$)[a-z][a-z0-9-]{1,40}$',
   hash: '^[0-9a-f]{16}$',
-  // Issued by the kernel in each task: "research.schar.T6", campaign-wide agents omit the people.
-  proposal: '^[a-z]+(\.[a-z][a-z0-9-]{1,40})?\.T(0|[1-9][0-9]*)$',
+  // Issued by the kernel in each task: "research.schar.T6"; campaign-wide
+  // agents omit the people ("judge-balance.T6"). The agent part allows the
+  // hyphen of the judge ids, and the dots are escaped for the regex itself.
+  proposal: '^[a-z][a-z0-9-]{1,24}(\\.[a-z][a-z0-9-]{1,40})?\\.T(0|[1-9][0-9]*)$',
   // welt.json carries a semver string ("0.1.0").
   semver: '^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$',
   // Flags are namespaced by the development that sets them: "rauchorakel.befragt".
@@ -28,11 +34,21 @@ export const PATTERNS = Object.freeze({
   labelKey: '^[a-z][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)*$',
 });
 
-export const AGENTS = Object.freeze(['research', 'rival', 'council', 'world', 'chronicler', 'image']);
+export const JUDGES = Object.freeze(['judge-coherence', 'judge-balance', 'judge-narrative']);
+export const AGENTS = Object.freeze(['research', 'rival', 'council', 'world', 'chronicler', 'image', ...JUDGES]);
 export const KINDS = Object.freeze(['technik', 'disziplin', 'einheit', 'bauwerk', 'institution', 'lebensweise', 'doktrin']);
 export const MAX_TIER = 5;
 export const LIFE_STAGES = Object.freeze(['ruestig', 'lebensabend', 'hinfaellig']);
 export const PHASES = Object.freeze(['planning', 'resolving', 'agents']);
+// Result bands of every probe, worst first. Probe resolution, application
+// outcomes (entwicklung) and label keys ("band.crit-success", "_" written as
+// "-" because label keys allow no underscore) all use exactly this list.
+export const BANDS = Object.freeze(['crit_fail', 'setback', 'failure', 'narrow', 'success', 'crit_success']);
+// Bands that count as success; the other three end statuses with endsOn "setback".
+export const SUCCESS_BANDS = Object.freeze(['narrow', 'success', 'crit_success']);
+export const TOKEN_KINDS = Object.freeze(['breakthrough', 'impulse', 'crisis', 'grievance']);
+// Core meter every people carries in people.meters (owner decision 2026-10-03).
+export const APPROVAL_METER = 'zustimmung';
 // Comparison for conditions and destiny predicates. gte and lt are
 // complementary, so with integers and "not" every threshold is expressible.
 export const CMP = Object.freeze(['gte', 'lt']);
@@ -126,6 +142,7 @@ export const COMMON_DEFS = Object.freeze({
   tile: str(PATTERNS.tile),
   region: str(PATTERNS.region),
   order: str(PATTERNS.order),
+  orderId: str(PATTERNS.orderId),
   probe: str(PATTERNS.probe),
   hash: str(PATTERNS.hash),
   proposalId: str(PATTERNS.proposal),

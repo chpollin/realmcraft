@@ -1,0 +1,14 @@
+{
+  "format": "realmcraft-draft",
+  "version": 1,
+  "people": "talbund",
+  "turn": 12,
+  "baseRev": 37,
+  "orders": [
+    { "id": "event", "type": "explore", "params": { "unit": "u-talbund-1", "tile": "3,0" } }
+  ],
+  "mandate": {},
+  "rolls": {},
+  "withdrawn": [],
+  "sealed": false
+}

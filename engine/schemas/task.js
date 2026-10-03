@@ -3,7 +3,7 @@
 // so the agent sees what the people sees and nothing more. The context shape
 // differs per agent and is produced by the kernel, so it stays an open object.
 
-import { AGENTS, COMMON_DEFS, MAX_TIER, arr, bundle, int, nullable, obj, ref, str, text } from './common.js';
+import { AGENTS, COMMON_DEFS, MAX_TIER, PATTERNS, arr, bundle, int, nullable, obj, ref, str, text } from './common.js';
 import { ONCE_OPS, STANDING_OPS } from './effects.js';
 import { ITEM_TYPES } from './proposal.js';
 
@@ -16,7 +16,8 @@ export const TASK_DEFS = Object.freeze({
     rev: int(0, 999999),
     agent: { enum: [...AGENTS] },
     people: nullable(ref('id')),
-    respondAs: obj({ proposalId: ref('proposalId'), path: str('^agents/proposals/[a-z0-9.-]{3,80}\\.json$') }),
+    // path is agents/proposals/<proposalId>.json; the validator checks that both name the same id.
+    respondAs: obj({ proposalId: ref('proposalId'), path: str(`^agents/proposals/${PATTERNS.proposal.slice(1, -1)}\\.json$`) }),
     // Paths relative to the campaign folder.
     read: arr(str('^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,120}$'), 12),
     context: { type: 'object' },
