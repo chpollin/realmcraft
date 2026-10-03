@@ -1,12 +1,14 @@
-// Destinies overlay: one's own destiny with its milestones beside the rivals'
-// as far as the view reveals them, plus the destinies the people could turn to.
-// A milestone is a symbol and a progress bar, its wording appears on hover and
-// focus. What the view does not reveal stays an unknown marker.
+// Destinies overlay: one's own destiny with its milestones, the destinies of
+// rivals only once the kernel reveals them (derived[pid].rivals), and the
+// destinies the people may turn to, which are only those the kernel would let
+// it adopt now. A milestone is a symbol and a progress bar, its wording appears
+// on hover and focus; a switch shows its consequences from the kernel preview.
 
-import { el } from '../dom.js';
+import { el, signed } from '../dom.js';
 import { ICONS, icon } from '../icons.js';
 import { dialogHead } from './dialoge.js';
 import { withTip } from './tip.js';
+import { predicateIcon } from '../data/adapter.js';
 import { t } from '../i18n/index.js';
 
 const symbol = (name) => (ICONS[name] ? name : 'meilenstein');
@@ -37,11 +39,11 @@ function milestone(m) {
   return el('li', { class: `meilenstein ${state}` }, withTip(row, milestoneTip(label, status)));
 }
 
-function column(peopleName, peopleCls, b) {
+function column(peopleName, peopleCls, b, { rival = false } = {}) {
   const known = b.name !== null && b.name !== undefined;
-  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': `${peopleName}, ${t('view.bestimmung')}` },
+  return el('section', { class: `bst-spalte ${peopleCls}`, 'aria-label': rival ? t.fmt('board.destiny.rival', { name: peopleName }) : `${peopleName}, ${t('view.bestimmung')}`, ...(rival ? { 'data-rivale': peopleCls } : {}) },
     el('h3', { class: `bst-name world${known ? '' : ' is-fog'}`, text: known ? b.name : t('board.destiny.unknown') }),
-    el('p', { class: 'bst-volk', text: peopleName }),
+    el('p', { class: 'bst-volk' }, rival ? icon('rivalen', { size: 14 }) : null, peopleName),
     b.meilensteine.length ? el('ol', { class: 'meilensteine plain' }, ...b.meilensteine.map(milestone)) : null);
 }
 
@@ -63,27 +65,26 @@ function adoptButton({ queued, blocked, reason, onclick, onpointerenter, onpoint
     onclick: () => { if (!blocked) onclick(); },
     onpointerenter,
     onpointerleave,
+    onfocus: onpointerenter,
+    onblur: onpointerleave,
   }, icon(queued ? 'ja' : 'bestimmung', { size: 18 }), t(queued ? 'board.option.queued' : 'board.destiny.switch'));
-  // The reason (kernel text or price) appears on hover and focus, not as standing text.
+  // The reason (kernel issue label or price) appears on hover and focus, not as standing text.
   return reason ? withTip(btn, [reason], undefined, { up: true }) : btn;
 }
 
-/**
- * Real campaign: the switch is the kernel order destiny.adopt. A destiny the
- * kernel refuses stays visible but disabled, with the kernel's reason on demand.
- */
-function realButton(api, w) {
-  const opt = api.game.previewOption({ type: 'destiny.adopt', params: { bestimmung: w.ref } });
-  const blocked = Boolean(opt.grund) || opt.queued || api.model.phase === 'A';
-  return adoptButton({
-    queued: opt.queued,
-    blocked,
-    reason: opt.grund ?? (api.model.phase === 'A' ? t('board.destiny.resolving') : null),
-    order: 'destiny.adopt',
-    onclick: () => api.addCandidate(opt),
-    onpointerenter: () => { if (!blocked) api.setPreview(opt.preview); },
-    onpointerleave: () => api.setPreview(null),
-  });
+/** Consequences of a switch from the kernel preview (destiny.adopt row): standing, loyalty, stores. */
+function deltaChips(api, delta) {
+  if (!delta) return null;
+  const council = api.game.view.peoples[api.game.pid].council;
+  const chip = (iconName, text, n) => el('li', {}, withTip(el('span', { class: `folge-chip ${n > 0 ? 'up' : 'down'}`, tabindex: '0', 'aria-label': `${text} ${signed(n)}` }, icon(iconName, { size: 15 }), signed(n)), [el('span', { text })], null, { up: true }));
+  const chips = [
+    delta.standing ? chip('schild', t('board.destiny.standing'), delta.standing) : null,
+    ...Object.entries(delta.resources ?? {}).map(([k, n]) => chip(k, api.resourceName(k), n)),
+    ...Object.entries(delta.meters ?? {}).map(([k, n]) => chip(k, t(`meter.${k}`, k), n)),
+    ...Object.entries(delta.loyalty ?? {}).map(([id, n]) => chip('rat', `${council.find((m) => m.id === id)?.name ?? id}, ${t('ui.loyalitaet')}`, n)),
+    delta.population ? chip('volk', t('population.core'), delta.population) : null,
+  ].filter(Boolean);
+  return chips.length ? el('ul', { class: 'folgen-chips plain', 'aria-label': t('board.destiny.change') }, ...chips) : null;
 }
 
 /** Prototype (?demo): a free order with the price the fixture names. */
@@ -100,23 +101,70 @@ function demoButton(api, w, queued) {
   });
 }
 
+/** Rival columns: the kernel reveals a rival's destiny after contact and a reached milestone, or by a reveal. */
+function rivalColumns(api) {
+  const { game, model } = api;
+  if (!game) return model.rivalen.filter((r) => r.bestimmung.bekannt).map((r) => column(r.name, r.id, r.bestimmung, { rival: true }));
+  const rivals = game.view.derived?.[game.pid]?.rivals ?? [];
+  return rivals.filter((r) => r.destiny).map((r) => {
+    const def = game.env.bestimmung(r.destiny.ref);
+    const iconOf = (id) => {
+      const md = def?.milestones.find((x) => x.id === id);
+      return md ? predicateIcon(md.predicate) : 'meilenstein';
+    };
+    return column(game.view.peoples[r.people]?.name ?? r.people, r.people, {
+      name: r.destiny.name,
+      meilensteine: r.destiny.milestones.map((m) => ({ id: m.id, text: m.text, erreicht: m.reached, icon: iconOf(m.id), fortschritt: null })),
+    }, { rival: true });
+  });
+}
+
+/** Offer cards. In a real campaign only destinies the kernel accepts now, each with the preview of the switch. */
+function offerCards(api) {
+  const { model } = api;
+  const own = model.bestimmung;
+  if (!model.real) {
+    const switchQueued = (name) => model.orders.some((o) => o.quelle === `bestimmung-${name}`);
+    return own.wechsel.map((w) => ({ w, button: demoButton(api, w, switchQueued(w.name)), delta: null }));
+  }
+  return own.wechsel.map((w) => {
+    const opt = api.game.previewOption({ type: 'destiny.adopt', params: { bestimmung: w.ref } });
+    if (opt.grund && !opt.queued) return null;
+    const locked = api.model.phase === 'A';
+    const row = opt.pv?.orders?.find((o) => o.type === 'destiny.adopt' && o.destiny?.ref === w.ref);
+    return {
+      w,
+      delta: row?.destiny?.delta ?? null,
+      button: adoptButton({
+        queued: opt.queued,
+        blocked: opt.queued || locked,
+        reason: locked ? t('board.destiny.resolving') : null,
+        order: 'destiny.adopt',
+        onclick: () => api.addCandidate(opt),
+        onpointerenter: () => { if (!locked && !opt.queued) api.setPreview(opt.preview); },
+        onpointerleave: () => api.setPreview(null),
+      }),
+    };
+  }).filter(Boolean);
+}
+
 export function renderBestimmung(dlg, api) {
   const { model } = api;
   const own = model.bestimmung;
-  const switchQueued = (name) => model.orders.some((o) => o.quelle === `bestimmung-${name}`);
+  const offers = offerCards(api);
   dlg.replaceChildren(
     dialogHead(dlg, t('board.destiny.title'), 'bestimmung'),
     el('div', { class: 'overlay-body' },
       el('div', { class: 'bst-raster' },
         column(model.volk.name, 'spieler', own),
-        ...model.rivalen.map((r) => column(r.name, r.id, r.bestimmung))),
-      own.wechsel.length ? el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
-        el('h3', { class: 'abschnitt', id: 'bst-w', text: t('board.destiny.new') }),
-        el('ul', { class: 'wechsel-liste plain' }, ...own.wechsel.map((w) => el('li', { class: 'wechsel-karte' },
-          el('h4', { class: 'world', text: w.name }),
-          // The prototype names a reason ("weil"), the kernel package only a summary of the destiny.
-          el('p', { class: 'v-weil' }, model.real ? null : el('span', { class: 'v-weil-wort', text: `${t('board.tree.because')} ` }), w.weil),
+        ...rivalColumns(api)),
+      offers.length ? el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
+        el('h3', { class: 'abschnitt', id: 'bst-w', text: t('board.destiny.offers') }),
+        el('ul', { class: 'wechsel-liste plain' }, ...offers.map(({ w, button, delta }) => el('li', { class: 'wechsel-karte', 'data-angebot': w.ref ?? w.name },
+          // The summary of the destiny sits in the tooltip of its name, not as standing text.
+          w.weil ? withTip(el('h4', { class: 'world', tabindex: '0', text: w.name }), [el('span', { text: w.weil })], null, { up: true }) : el('h4', { class: 'world', text: w.name }),
           candidateMilestones(w.meilensteine),
-          model.real ? realButton(api, w) : demoButton(api, w, switchQueued(w.name)))))) : null),
+          model.real ? deltaChips(api, delta) : null,
+          button)))) : null),
   );
 }

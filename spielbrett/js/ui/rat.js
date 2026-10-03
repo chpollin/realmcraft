@@ -12,6 +12,7 @@ import { dialogHead, loyaltyMeter } from './dialoge.js';
 import { portrait } from './portrait.js';
 import { withTip } from './tip.js';
 import { t } from '../i18n/index.js';
+import { ROLE_ICON } from './ratsleiste.js';
 
 const WAHL_ICON = { ja: 'dafuer', nein: 'dagegen', enthaltung: 'enthaltung_hand' };
 const wahl = (w) => ({ icon: WAHL_ICON[w], text: t(`board.vote.${w}`) });
@@ -118,8 +119,10 @@ export function renderRat(dlg, api) {
 
 // --- real campaign ---------------------------------------------------------------
 
-// The kernel's vote reasons are English phrases; spaces become dashes in the label key.
-const reason = (grund) => t(`board.vote-reason.${String(grund).replaceAll(' ', '-')}`, grund);
+// The kernel's vote reasons (engine/core/council.js voteOf) are fixed codes, one an
+// English phrase; each maps to its label and the text itself never reaches the player.
+const VOTE_REASON = { favours: 'favours', opposes: 'opposes', loyal: 'loyal', discontent: 'discontent', 'loyalty at breaking point': 'loyalty-at-breaking-point' };
+const reason = (grund) => (VOTE_REASON[grund] ? t(`board.vote-reason.${VOTE_REASON[grund]}`) : '');
 const TALK = ['listen', 'ask', 'honor'];
 
 /** Button for a kernel option: disabled with the kernel's reason, previews its store changes on hover. */
@@ -181,13 +184,14 @@ function renderRatReal(dlg, api) {
   const { model, game } = api;
   const questions = model.ratsfragen ?? [];
   const members = model.rat;
+  const roleOf = (id) => game.view.peoples[game.pid].council.find((m) => m.id === id)?.role;
   const card = (a) => {
     const talks = TALK.map((mode) => game.previewOption({ type: 'talk', params: { mode, member: a.id } }));
     return el('li', { 'data-berater': a.id },
       withTip(el('button', { class: 'berater-karte', type: 'button', 'aria-label': `${a.name}, ${a.rolle}, ${a.band}, ${t('ui.loyalitaet')} ${signed(a.loyalitaet)}` },
         portrait(a.id, a.name, { size: 76 }),
         el('span', { class: 'rb-name world', text: a.name.split(' ')[0] }),
-        el('span', { class: 'rb-rolle' }, icon(ROLLE_ICON[a.id] ?? 'volk', { size: 14 }), a.rolle),
+        el('span', { class: 'rb-rolle' }, icon(ROLE_ICON[roleOf(a.id)] ?? 'volk', { size: 14 }), a.rolle),
         el('span', { class: 'b-loyal' },
           loyaltyMeter(a.loyalitaet, { label: t.fmt('board.council.loyalty-of', { name: a.name }) }),
           el('span', { class: 'num', text: signed(a.loyalitaet) }))),

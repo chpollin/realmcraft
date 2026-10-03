@@ -15,7 +15,7 @@ export const OWN = 'spieler';
 const ROAD_KIND = 'weg';
 const SLOT_ART = { main: 'haupt', minor: 'neben', free: 'frei' };
 // Board icons for Entwicklung kinds without a glyph of their own.
-const KIND_ICON = { technik: 'technik', disziplin: 'magie', einheit: 'einheit', bauwerk: 'bauwerk', institution: 'institution', lebensweise: 'lager', doktrin: 'praxis' };
+export const KIND_ICON = { technik: 'technik', disziplin: 'magie', einheit: 'einheit', bauwerk: 'bauwerk', institution: 'institution', lebensweise: 'lager', doktrin: 'praxis' };
 // Base stores shown first in the top bar: the first three resources of the
 // world package (food, material, knowledge in Hochland); the others follow as
 // special goods once held, flowing or bound to an active module.
@@ -216,7 +216,7 @@ function rivalDestiny(p, env) {
 
 const PREDICATE_ICON = { controls: 'besitz', 'stat.atLeast': 'schild', 'population.atLeast': 'volk', relation: 'zustimmung', 'development.known': 'entwicklungen', subjugated: 'krieger', settlement: 'siedlung' };
 // A holds milestone shows the symbol of the predicate it watches.
-function predicateIcon(pred) {
+export function predicateIcon(pred) {
   const inner = pred.pred === 'holds' ? pred.predicate : pred;
   return inner.pred === 'resource.atLeast' ? inner.key : PREDICATE_ICON[inner.pred] ?? 'meilenstein';
 }
@@ -321,7 +321,7 @@ export function destiny(view, env, t = makeLabels()) {
 
 // --- developments ------------------------------------------------------------
 
-function kurzOf(ent) {
+export function kurzOf(ent) {
   const e = (ent?.effects ?? []).find((x) => Number.isInteger(x.amount));
   if (!e) return null;
   const iconName = e.res ?? (e.op === 'probe.mod' ? 'wuerfel' : e.op === 'stat.mod' ? 'schild' : 'pfeil');

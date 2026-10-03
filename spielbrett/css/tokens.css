@@ -67,6 +67,14 @@
   --origin-rat: oklch(0.76 0.09 320);
   --origin-chronist: oklch(0.80 0.05 25);
 
+  /* Research paths: one hue per path, always paired with the path's glyph */
+  --pfad-nahrung: oklch(0.80 0.12 125);
+  --pfad-gemeinschaft: oklch(0.78 0.09 320);
+  --pfad-militaer: oklch(0.72 0.15 30);
+  --pfad-werk: oklch(0.76 0.09 55);
+  --pfad-erkenntnis: oklch(0.80 0.09 230);
+  --pfad-magie: oklch(0.74 0.13 295);
+
   /* Verdicts */
   --accepted: oklch(0.80 0.12 150);
   --rejected: oklch(0.74 0.14 32);

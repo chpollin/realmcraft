@@ -20,7 +20,9 @@
   .ratsleiste:empty { display: none; }
   .rl-schalter { align-self: flex-start; }
   .rl-liste { display: grid; gap: 2px; overflow-y: auto; scrollbar-width: thin; }
-  .rl-liste > li > .has-tip { display: block; }
+  .rl-liste > li { display: grid; grid-template-columns: 1fr auto; align-items: start; }
+  .rl-liste > li > .has-tip { display: block; min-inline-size: 0; }
+  .rl-zeigen { inline-size: 2rem; block-size: 2rem; margin-block-start: var(--space-1); color: var(--ink-subtle); }
   .rl-karte {
     position: relative;
     display: grid;
@@ -74,6 +76,7 @@
   .rl-chip.fuehrung.up { color: var(--up); }
   .rl-chip.fuehrung.down { color: var(--down); }
   .rl-chip.auftrag { color: var(--ink); }
+  .rl-chip.gegen { color: var(--ink-subtle); }
 
   /* Slot indicator, bottom left of the turn bar: one box per action, filled when taken. */
   .budget { display: flex; flex-direction: row; align-items: center; gap: var(--space-4); }
@@ -120,7 +123,13 @@
   .forschung-budget.on { border-style: solid; background: oklch(from var(--origin-forschung) l c h / 0.14); color: var(--ink); }
   .forschung-budget.is-ziel { box-shadow: 0 0 0 4px oklch(from var(--origin-forschung) l c h / 0.35); }
   .forschung-budget:hover { background: oklch(from var(--origin-forschung) l c h / 0.2); }
+  .forschung-budget:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .fb-punkte { font-weight: 700; color: var(--origin-forschung); }
+  .fb-projekt { display: grid; gap: 3px; min-inline-size: 0; }
   .fb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--step--1); font-weight: 500; }
+  .fb-balken { display: flex; block-size: 4px; border-radius: 999px; background: oklch(from var(--origin-forschung) l c h / 0.2); overflow: hidden; }
+  .fb-stand { background: var(--origin-forschung); }
+  .fb-zuwachs { background: var(--ember); }
 
   /* Orders in the turn bar carry their slot symbol. */
   .befehl > .befehl-art { inline-size: 16px; block-size: 16px; rotate: none; border: 0; border-radius: 0; background: none; color: var(--ember); flex: none; }

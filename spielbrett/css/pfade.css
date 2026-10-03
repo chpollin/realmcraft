@@ -1,0 +1,172 @@
+/* Paths wheel in the full-screen sheet below the top bar: the wheel fills the
+   stage, the panel of the selection sits beside it on wide screens and below
+   it on narrow ones. Every path carries its hue in --pf and its own glyph, so
+   no meaning rides on colour alone. */
+
+@layer overlays {
+  .pfade { flex: 1; display: flex; flex-direction: column; min-block-size: 0; }
+  .pf-kopf { padding-block-end: var(--space-2); }
+  .pf-kopf .overlay-siegel { color: var(--origin-forschung); }
+
+  .pf-buehne {
+    flex: 1;
+    min-block-size: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 25rem);
+    gap: var(--space-4);
+    padding: 0 var(--space-4) var(--space-4) var(--space-5);
+  }
+  .pf-rad-feld { position: relative; min-block-size: 0; }
+  .pf-rad { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; overflow: visible; }
+
+  /* Sectors: the field of each path, lit up to the tier it can research. */
+  .pf-feld { fill: oklch(from var(--pf) l c h / 0.05); stroke: oklch(from var(--pf) l c h / 0.22); stroke-width: 1.5; cursor: pointer; }
+  .pf-reich { fill: oklch(from var(--pf) l c h / 0.16); pointer-events: none; }
+  .pf-gehalten { fill: none; stroke: oklch(from var(--pf) l c h / 0.5); stroke-width: 2; stroke-dasharray: 6 8; pointer-events: none; }
+  .pf-speiche { stroke: oklch(from var(--pf) l c h / 0.45); stroke-width: 2; pointer-events: none; }
+  .pf-sektor:hover .pf-feld { fill: oklch(from var(--pf) l c h / 0.1); }
+  .pf-sektor.is-sel .pf-feld { stroke: var(--pf); stroke-width: 3; fill: oklch(from var(--pf) l c h / 0.12); }
+  .pf-sektor.is-zu .pf-feld { fill: oklch(from var(--night-3) l c h / 0.35); stroke: var(--ink-faint); stroke-dasharray: 4 6; }
+  .pf-sektor.is-zu .pf-speiche { stroke: var(--ink-faint); }
+  .pf-sektor.is-gelenkt .pf-speiche { stroke: var(--pf); stroke-width: 4; }
+  .pf-schloss path { fill: none; stroke: var(--ink-faint); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .pf-ring { fill: none; stroke: var(--hairline); stroke-width: 1.5; stroke-dasharray: 2 7; }
+
+  .pf-glyph path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Path labels at the rim. */
+  .pf-pfad { cursor: pointer; color: var(--pf); outline: none; }
+  .pf-pfad-feld { fill: oklch(from var(--night-1) l c h / 0.88); stroke: oklch(from var(--pf) l c h / 0.4); stroke-width: 1.5; }
+  .pf-pfad:hover .pf-pfad-feld { fill: var(--night-2); }
+  .pf-pfad.is-sel .pf-pfad-feld { stroke: var(--pf); stroke-width: 3; }
+  .pf-pfad:focus-visible .pf-pfad-feld { stroke: var(--ember); stroke-width: 4; }
+  .pf-pfad.is-zu { color: var(--ink-subtle); }
+  .pf-pfad-name { fill: var(--ink); font: 600 24px var(--font-ui); text-anchor: middle; }
+  .pf-pips circle { fill: none; stroke: var(--ink-faint); stroke-width: 1.5; }
+  .pf-pips circle.on { fill: var(--pf); stroke: var(--pf); }
+  .pf-pips circle.gehalten { stroke: var(--pf); stroke-dasharray: 2 2; }
+
+  /* Achievements. */
+  .pf-knoten { cursor: pointer; color: var(--ink); outline: none; }
+  .pf-scheibe { fill: var(--night-2); stroke: var(--pf); stroke-width: 2; }
+  .pf-knoten.s-known { color: var(--night-0); }
+  .pf-knoten.s-known .pf-scheibe { fill: var(--pf); }
+  .pf-knoten.s-known.is-ruhend .pf-scheibe { fill: oklch(from var(--pf) calc(l - 0.25) c h); }
+  .pf-knoten.s-candidate .pf-scheibe { fill: var(--night-1); stroke-dasharray: 5 4; }
+  .pf-knoten.s-candidate { color: var(--ink-dim); }
+  .pf-spur { fill: none; stroke: oklch(from var(--pf) l c h / 0.22); stroke-width: 5; }
+  .pf-fortschritt { fill: none; stroke: var(--pf); stroke-width: 5; stroke-linecap: round; }
+  .pf-zuwachs { fill: none; stroke: var(--ember); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 3 5; }
+  .pf-fokus { fill: none; stroke: transparent; stroke-width: 3; }
+  .pf-knoten:hover .pf-fokus { stroke: oklch(from var(--pf) l c h / 0.6); }
+  .pf-knoten.is-sel .pf-fokus { stroke: var(--pf); }
+  .pf-knoten:focus-visible .pf-fokus, .pf-nabe:focus-visible .pf-fokus { stroke: var(--ember); stroke-width: 4; }
+  .pf-knoten.is-jetzt .pf-scheibe { stroke: var(--ember); stroke-width: 3; }
+  .pf-marke circle { fill: var(--ember); }
+  .pf-marke { color: var(--on-ember); }
+  .pf-name { fill: var(--ink-dim); font: 500 21px var(--font-ui); text-anchor: middle; paint-order: stroke; stroke: var(--night-0); stroke-width: 4px; pointer-events: none; }
+  .pf-knoten.is-sel .pf-name { fill: var(--ink); }
+
+  /* Hub: research points of the season. */
+  .pf-nabe { cursor: pointer; color: var(--origin-forschung); outline: none; }
+  .pf-nabe-scheibe { fill: var(--night-1); stroke: oklch(from var(--origin-forschung) l c h / 0.6); stroke-width: 2; }
+  .pf-nabe.is-sel .pf-nabe-scheibe { stroke: var(--origin-forschung); stroke-width: 3; }
+  .pf-punkte { fill: var(--ink); font: 700 34px var(--font-ui); text-anchor: middle; font-variant-numeric: tabular-nums; }
+
+  .pf-tip {
+    position: absolute;
+    z-index: 3;
+    translate: -50% -100%;
+    display: grid;
+    gap: 2px;
+    max-inline-size: 18rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--night-3);
+    box-shadow: var(--shadow-float);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    pointer-events: none;
+  }
+  .pf-tip.is-unten { translate: -50% 0; }
+  .pf-tip[hidden] { display: none; }
+  .pf-tip span { color: var(--ink-dim); }
+
+  /* Panel of the selection. */
+  .pf-panel {
+    align-self: stretch;
+    min-block-size: 0;
+    overflow-y: auto;
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: oklch(from var(--night-1) l c h / 0.94);
+    box-shadow: var(--shadow-float);
+    scrollbar-width: thin;
+  }
+  .pf-seite { display: grid; gap: var(--space-4); align-content: start; }
+  .pf-titel { display: flex; align-items: center; gap: var(--space-3); font-size: var(--step-2); font-weight: 600; }
+  .pf-titel .icon { color: var(--pf, var(--origin-forschung)); flex: none; }
+  .pf-zurueck { justify-self: start; color: var(--pf); }
+  .pf-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-block-start: calc(var(--space-3) * -1); color: var(--ink-subtle); font-size: var(--step--1); }
+  .pf-stufe-chip { display: inline-block; padding: 0 var(--space-2); border-radius: 999px; border: 1px solid oklch(from var(--pf, var(--origin-forschung)) l c h / 0.6); color: var(--ink-dim); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .pf-status.s-research { color: var(--pf); font-weight: 600; }
+  .pf-status.s-candidate { color: var(--ink-dim); }
+  .pf-stufen { display: flex; align-items: center; gap: var(--space-1); margin-block-start: calc(var(--space-3) * -1); }
+  .pf-pip { inline-size: 0.8rem; block-size: 0.8rem; border-radius: 50%; border: 1.5px solid var(--ink-faint); }
+  .pf-pip.on { background: var(--pf); border-color: var(--pf); }
+  .pf-pip.gehalten { border-color: var(--pf); border-style: dashed; }
+  .pf-stufe-text { margin-inline-start: var(--space-2); color: var(--ink-dim); font-size: var(--step--1); font-weight: 600; }
+  .pf-zeile { display: grid; grid-template-columns: 1.5rem 1fr; gap: var(--space-3); align-items: start; }
+  .pf-zeile-icon { color: var(--ink-subtle); padding-block-start: 1px; }
+  .pf-zeile-inhalt { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
+  .pf-text { color: var(--ink-dim); font-size: var(--step--1); line-height: 1.45; }
+  .pf-text.world { inline-size: 100%; }
+  .pf-wert { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 600; }
+  .pf-wert.up { color: var(--up); }
+  .pf-wert.down { color: var(--down); }
+  .pf-wirkung { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--step-1); }
+  .pf-balken { position: relative; display: flex; inline-size: 100%; block-size: 0.6rem; border-radius: 999px; background: oklch(from var(--pf, var(--origin-forschung)) l c h / 0.18); overflow: hidden; }
+  .pf-balken-stand { background: var(--pf, var(--origin-forschung)); }
+  .pf-balken-zuwachs { background: repeating-linear-gradient(90deg, var(--ember) 0 5px, transparent 5px 8px); }
+  .pf-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .pf-tag { padding: 0 var(--space-2); border-radius: 999px; background: var(--night-3); color: var(--ink-dim); font-size: 0.75rem; }
+
+  .pf-gruppe h4 { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); margin-block-end: var(--space-1); }
+  .pf-eintrag { display: flex; align-items: center; gap: var(--space-2); inline-size: 100%; padding: var(--space-2); border-radius: var(--radius-s); text-align: start; }
+  .pf-eintrag:hover { background: var(--hover-wash); }
+  .pf-eintrag > .icon { color: var(--pf, var(--ink-dim)); flex: none; }
+  .pf-eintrag.is-zu > .icon { color: var(--ink-faint); }
+  .pf-eintrag.is-jetzt { box-shadow: inset 3px 0 0 var(--ember); }
+  .pf-eintrag-name { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+  .pf-eintrag .pf-mini { color: var(--ink-subtle); font-size: var(--step--1); }
+  .pf-eintrag .pf-zustand { color: var(--up); }
+  .pf-punkte-liste { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1) var(--space-4); font-size: var(--step--1); }
+  .pf-punkte-liste dt { color: var(--ink-dim); }
+  .pf-punkte-liste dd { text-align: end; font-weight: 600; }
+  .pf-punkte-liste .pf-summe { padding-block-start: var(--space-1); border-block-start: 1px solid var(--hairline); color: var(--ink); font-weight: 700; }
+
+  .pf-aktion { display: grid; gap: var(--space-2); justify-items: start; }
+  .pf-aktion .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+  .pf-aktion .btn[aria-pressed="true"] { opacity: 1; color: var(--up); }
+  .pf-ersetzt { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--ink-dim); font-size: var(--step--1); }
+  .pf-grund { color: var(--down); font-size: var(--step--1); }
+  .pf-lenken { display: grid; gap: var(--space-2); }
+  .pf-tagwahl { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .pf-tagknopf { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: 999px; background: var(--night-2); font-size: var(--step--1); cursor: pointer; }
+  .pf-tagknopf:has(input:checked) { background: oklch(from var(--pf, var(--origin-forschung)) l c h / 0.25); color: var(--ink); }
+  .pf-tagknopf:has(input:focus-visible) { outline: 2px solid var(--ember); outline-offset: 1px; }
+  .pf-tagknopf input { accent-color: var(--ember); }
+  .pf-notiz { padding: var(--space-2) var(--space-3); border: 1px solid var(--ink-faint); border-radius: var(--radius-s); background: var(--night-0); color: var(--ink); font: inherit; resize: vertical; }
+  .pf-notiz:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+}
+
+@media (max-width: 900px) {
+  .pf-buehne { grid-template-columns: 1fr; grid-template-rows: auto auto; padding: 0 var(--space-2) var(--space-2); overflow-y: auto; }
+  .pf-rad-feld { block-size: min(92vw, 30rem); }
+  .pf-panel { max-block-size: none; overflow: visible; padding: var(--space-4); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pf-knoten.is-jetzt .pf-zuwachs { animation: pf-zuwachs 1.6s linear infinite; }
+  @keyframes pf-zuwachs { to { stroke-dashoffset: -16; } }
+}

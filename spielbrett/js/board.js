@@ -14,7 +14,7 @@ import { renderOrtsliste } from './ui/ortsliste.js';
 import { renderRatsleiste } from './ui/ratsleiste.js';
 import { initEreignisse } from './ui/ereignisse.js';
 import { renderWeltgeschehen, runZwischenzug } from './ui/weltgeschehen.js';
-import { renderBaum } from './ui/baum.js';
+import { renderPfade } from './ui/pfade.js';
 import { renderRat } from './ui/rat.js';
 import { renderChronik } from './ui/chronik.js';
 import { renderBestimmung } from './ui/bestimmung.js';
@@ -25,7 +25,7 @@ import { t, onLanguage, applyStatic } from './i18n/index.js';
 import { renderSprache } from './ui/sprache.js';
 
 const DIALOGS = {
-  entwicklungen: renderBaum,
+  entwicklungen: renderPfade,
   rat: renderRat,
   chronik: renderChronik,
   bestimmung: renderBestimmung,

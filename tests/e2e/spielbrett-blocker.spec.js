@@ -97,7 +97,8 @@ test('a second main order offers the swap instead of overflowing the slot', asyn
   await page.evaluate((k) => window.spielbrett.jumpToTile(k), tile);
   const migrate = page.locator('#kontext .befehl-option[data-order="migrate"]');
   await expect(migrate).toHaveAttribute('aria-disabled', 'true');
-  await expect(migrate.locator('.bo-grund')).toHaveText('Keine passende Aktion mehr frei');
+  // The kernel's reason key over-capacity picks the precise label issue.slots.over-capacity.
+  await expect(migrate.locator('.bo-grund')).toHaveText('Mehr Befehle als Aktionen (2 für 1)');
   // Hovering the swap marks the order it would replace in the slot indicator.
   const swap = page.locator('#kontext [data-ersetzen="migrate"]');
   await swap.hover();

@@ -1,6 +1,8 @@
 /* Bestimmung overlay: milestones as symbol and bar, change of destiny, rivals' destinies. */
 @layer overlays {
-  .bst-raster { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+  /* Compact: one destiny reads as a short list, rivals and offers wrap below it. */
+  dialog#dlg-bestimmung { inline-size: min(52rem, 100vw - 3rem); }
+  .bst-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4); align-items: start; }
   .bst-spalte { --c: var(--ink); display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border-radius: var(--radius-m); background: var(--night-2); }
   .bst-spalte.spieler { --c: var(--people-own); background: linear-gradient(160deg, oklch(from var(--people-own) l c h / 0.1), transparent 55%), var(--night-2); }
   .bst-spalte.schaedelklan { --c: var(--people-schaedelklan); }
@@ -49,6 +51,9 @@
   .ms-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .ms-chip { display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: var(--radius-s); background: var(--night-3); color: var(--ink-dim); cursor: help; }
   .ms-chip:hover { background: var(--night-4); }
+  .wechsel-karte .folge-chip.up { color: var(--up); }
+  .wechsel-karte .folge-chip.down { color: var(--down); }
+  .wechsel-karte .folge-chip:focus-visible, .wechsel-karte h4:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-s); }
 }
 
 @media (max-width: 760px) {
