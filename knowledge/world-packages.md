@@ -58,14 +58,19 @@ The content implements the developments of the worked path in [game-design.md](g
 
 M1 adds an optional `pfade` block to `regeln.json` with the paths of the world, their tags, an opening condition per path, the number of completed achievements that unlocks each path tier and a fallback path. A world without the block has no paths and researches as before. Hochland ships the six paths `nahrung`, `gemeinschaft`, `militaer`, `werk`, `erkenntnis` and `magie`, of which only `magie` waits for a practice condition, with `gemeinschaft` as fallback. The contract, the tag lists and the path tier rule are in [plan-m1.md](plan-m1.md). World labels gain a key `pfad.<id>` per path and English label files beside the German ones ([decisions.md](decisions.md), D16 and D17).
 
-## Known content findings
+## Balance of M1
 
-The live judges and the budget review reported content issues that wait for the balance work of M1 ([plan-m1.md](plan-m1.md)).
+The live judges, the budget review and the balance simulation (`npm run sim:balance`, [testing.md](testing.md)) reported content findings that the balance lane of M1 answered with a simulation before and after each change. The figures of a run live in the report under `tools/sim/out/`, not here.
 
-- Herds do not grow in mountain regions. Herd growth counts only controlled regions whose dominant terrain is a pasture terrain of the way of life (`alm`, `wiese` and `heide` for nomads), plus one per two herding clans.
-- Defence options are missing.
-- Agent proposals lean towards exploration.
-- The dark path (`blutritus`, `schuldknechtschaft`, `schwarzer-zirkel`) is too cheap, because some of its prices are avoidable or one-off but are counted like standing burdens.
+- Seed achievements on every path. Under the path gate a path needs two achievements of tier 1 before it offers tier 2, and the original pool left Gemeinschaft and Erkenntnis without tier 1 and Werk and Militär with one each, so research stalled on the first tier. Every path now holds several tier 1 achievements and at least one of tier 2, and a path with tier 3 holds enough tier 2 achievements to unlock it. New achievements name their path in `pfad`, and so do `steinmauer` (Militär) and `schuldknechtschaft` (Gemeinschaft), which the tag mapping placed by a tie. A unit test checks the seed rule.
+- Magic opens through practice. The `ahnenfeuer` building carries the tag `feuer`, so a people that builds it touches magic in its practice and the Magie path opens without a magic achievement.
+- Herds in the mountains. Herd growth counts a region as pasture when its dominant terrain or the land around an own settlement in it is a pasture terrain, the rule the harvest already follows. Start camps stand on an alm, often inside a mountain region, and lost their herds before.
+- Defence options. Militär offers `wachtfeuer` and `fluchtburg` on tier 1 beside `speertraeger`, and `steinmauer` and `bergschuetzen` on tier 2. Under threat the fallback recruits and builds defences first.
+- The dark path. `blutritus` and `bannfeuer` paid their minimum price only on use or once, and `schwarzer-zirkel` counted its dependency twice. Under the budget rules of [data-contracts.md](data-contracts.md) the blood rite takes a herd every winter, the arcane fire Opferkraft in autumn and winter, and the circle costs more research.
+- Surplus and scarcity. `salzlecke` turns salt into herds, `raeucherkammer` herds into winter food, `almkaeserei` herds into food the year round and `rennofen` ore into material.
+- Exploration in agent proposals is a matter of the research agent's instructions (lane H). In the fallback, exploring is one minor order beside founding, building, research and the care of the council.
+
+The fallback policy (`engine/ai/fallback.js`) decides by the weights of its profile plus the nature of its people (Wesensart and Ausrichtung of the template), declines candidates its leanings reject, keeps a winter food reserve, puts clans the land cannot employ on research or the herds, founds settlements once it can spare a clan, moves a camp or a unit towards free ground when nothing lies within founding reach, uses minor discipline applications and honours aggrieved council members. Open findings of the simulation are the convergence of cheap tier 1 achievements across peoples, ore at its cap for the nomads, the rarity of a finished destiny within forty seasons and the absence of wars under the fallback, so that battles and the defence options are not measured by the simulation.
 
 ## A second world
 

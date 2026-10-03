@@ -948,7 +948,8 @@
         "token": null,
         "request": null,
         "proposal": null
-      }
+      },
+      "pfad": "militaer"
     },
     {
       "format": "realmcraft-entwicklung",
@@ -1105,7 +1106,7 @@
       "kind": "disziplin",
       "tier": 3,
       "name": "Bannfeuer",
-      "summary": "Gebundene Glut hält den Wall. Sie nährt sich von Opfern, jeder Glutausfall zehrt an den Bindern, und die Glut brennt nur am Berg.",
+      "summary": "Gebundene Glut hält den Wall. Sie nährt sich im Herbst und Winter von Opferkraft, jeder Glutausfall zehrt an den Bindern, und die Glut brennt nur am Berg.",
       "appearance": "Glimmende Runen im Fels über dem Wall, Binder in rußgeschwärzten Mänteln",
       "tags": [
         "magie",
@@ -1185,15 +1186,18 @@
               "value": 1
             }
           }
-        }
-      ],
-      "onAcquire": [
+        },
         {
-          "op": "relation.delta",
-          "people": "neighbours",
-          "amount": -1
+          "op": "resource.flow",
+          "res": "opfer",
+          "amount": -1,
+          "when": [
+            "herbst",
+            "winter"
+          ]
         }
       ],
+      "onAcquire": [],
       "replaces": [],
       "spec": {
         "source": "opfer",
@@ -1276,7 +1280,7 @@
       "kind": "disziplin",
       "tier": 2,
       "name": "Blutritus",
-      "summary": "Wer der Stimme im Fels Blut gibt, erhält Opferkraft. Die Kraft kann Furcht säen, doch mit jedem Opfer wächst die Furcht auch im eigenen Volk.",
+      "summary": "Wer der Stimme im Fels Blut gibt, erhält Opferkraft. Die Kraft kann Furcht säen, doch mit jedem Opfer wächst die Furcht auch im eigenen Volk, und jeden Winter verlangt der Fels ein Tier aus der Herde.",
       "appearance": "Ein Steintisch in einer Höhle, Fackellicht, Schalen mit dunkler Flüssigkeit, Knochen an Schnüren",
       "tags": [
         "magie",
@@ -1333,15 +1337,17 @@
               ]
             }
           ]
-        }
-      ],
-      "onAcquire": [
+        },
         {
-          "op": "loyalty.delta",
-          "target": "oppose:opfer",
-          "amount": -1
+          "op": "resource.flow",
+          "res": "herden",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
         }
       ],
+      "onAcquire": [],
       "replaces": [],
       "spec": {
         "source": "opfer",
@@ -1606,7 +1612,8 @@
         "token": null,
         "request": null,
         "proposal": null
-      }
+      },
+      "pfad": "gemeinschaft"
     },
     {
       "format": "realmcraft-entwicklung",
@@ -1633,7 +1640,7 @@
         "if": null
       },
       "cost": {
-        "research": 12,
+        "research": 16,
         "resources": {}
       },
       "effects": [
@@ -1775,6 +1782,1280 @@
         "request": null,
         "proposal": null
       }
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "erdkeller",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Erdkeller",
+      "summary": "In kühle Gruben unter dem Lager wandert, was der Sommer übrig lässt. Der Vorrat hält länger und reicht weiter in den Winter, doch jeden Herbst müssen die Gruben neu ausgekleidet werden.",
+      "appearance": "Mit Steinplatten abgedeckte Erdgruben neben den Zelten, Körbe mit Rüben und getrocknetem Fleisch",
+      "tags": [
+        "nahrung",
+        "winter"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stock.cap",
+          "res": "nahrung",
+          "amount": 4
+        },
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "nahrung",
+          "winter"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "nahrung"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "salzlecke",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Salzlecken",
+      "summary": "Die Hirten legen Steinsalz an die Wege der Herde. Die Tiere bleiben gesund und mehren sich, solange das Salz in der warmen Jahreszeit nicht ausgeht.",
+      "appearance": "Ziegen lecken an grauen Salzbrocken auf einem flachen Stein, ein Hirtenjunge mit Salzbeutel daneben",
+      "tags": [
+        "herde",
+        "salz"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "herden",
+          "amount": 1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        },
+        {
+          "op": "stock.cap",
+          "res": "herden",
+          "amount": 4
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "salz",
+          "amount": -1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "herde",
+          "salz"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "nahrung"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "raeucherkammer",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Räucherkammer",
+      "summary": "Im Herbst wird geschlachtet, was den Winter nicht übersteht, und im Rauch haltbar gemacht. Das Fleisch trägt das Volk durch die kalte Zeit, die Herde wird dafür kleiner.",
+      "appearance": "Fleischstreifen hängen unter dem Dach einer verrußten Hütte, darunter glimmt ein Feuer aus Wacholder",
+      "tags": [
+        "herde",
+        "winter",
+        "nahrung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 2,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 3,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "herden",
+          "amount": -2,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "herde",
+          "winter"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "nahrung"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "heuwirtschaft",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 2,
+      "name": "Heuwirtschaft",
+      "summary": "Im Sommer mähen die Sippen die Bergwiesen und tragen das Heu in Schober. Im Winter bleibt mehr von der Herde übrig, das Mähen bindet aber im Sommer Hände und Material.",
+      "appearance": "Heuschober aus Lärchenholz an einem steilen Bergmahd, Sensen und Rechen an der Wand",
+      "tags": [
+        "herde",
+        "weide",
+        "winter"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "filzjurten",
+          "hochweide-terrassen",
+          "erdkeller"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 9,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "herden",
+          "amount": 1,
+          "when": [
+            "winter"
+          ]
+        },
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1,
+          "when": [
+            "winter"
+          ]
+        },
+        {
+          "op": "stock.cap",
+          "res": "herden",
+          "amount": 4
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "sommer"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "herde",
+          "weide",
+          "winter"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "nahrung"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "almkaeserei",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 2,
+      "name": "Almkäserei",
+      "summary": "In der Sennhütte wird die Milch der Herde zu Käse, der das ganze Jahr hält. Für jeden Laib gehen im Sommer und Herbst Tiere aus der Herde.",
+      "appearance": "Eine niedrige Steinhütte mit Kupferkessel über dem Feuer, Käselaibe auf Brettern unter dem Dach",
+      "tags": [
+        "nahrung",
+        "herde",
+        "siedlung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "filzjurten",
+          "hochweide-terrassen",
+          "erdkeller"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1
+        },
+        {
+          "op": "stock.cap",
+          "res": "nahrung",
+          "amount": 2
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "herden",
+          "amount": -1,
+          "when": [
+            "sommer",
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "wiese",
+          "heide"
+        ],
+        "buildCost": {
+          "material": 2
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "nahrung",
+          "herde",
+          "siedlung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "nahrung"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "gastrecht",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 1,
+      "name": "Gastrecht",
+      "summary": "Wer am Feuer der Sippen um Obdach bittet, ist drei Tage unantastbar. Das Gastrecht öffnet Türen bei den Nachbarn und kostet jeden Herbst einen Teil des Vorrats.",
+      "appearance": "Ein Fremder in nassem Mantel wird in eine Jurte gebeten, Brot und Salz auf einem Holzbrett",
+      "tags": [
+        "verhandlung",
+        "bund"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "verhandlung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "relation.delta",
+          "people": "neighbours",
+          "amount": 1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "verhandlung",
+          "bund"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "gemeinschaft"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "ahnenfeuer",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 1,
+      "name": "Ahnenfeuer",
+      "summary": "Ein Feuer, das nie erlischt, hütet die Namen der Ahnen. Wer an ihm spricht, spricht für alle, und wer lange hineinsieht, ahnt mehr als andere. Im Winter will das Feuer genährt sein.",
+      "appearance": "Eine runde Steinsetzung mit einem Feuer in der Mitte, Ahnenpfähle mit eingeschnitzten Gesichtern im Kreis",
+      "tags": [
+        "feuer",
+        "rat",
+        "ordnung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "machtprobe"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "research.mod",
+          "tags": [
+            "magie",
+            "schau",
+            "feuer"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "heide",
+          "wiese",
+          "wald",
+          "bergwald"
+        ],
+        "buildCost": {
+          "material": 1
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "feuer",
+          "rat",
+          "ordnung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "gemeinschaft"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "sippenbund",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 1,
+      "name": "Sippenbund",
+      "summary": "Die Sippen schwören einander Beistand. Mehr Familien finden im Lager Platz, und im Winter teilt jede Sippe mit den anderen.",
+      "appearance": "Älteste mehrerer Sippen legen die Hände auf einen Schwurstein, ringsum Kinder und Hunde",
+      "tags": [
+        "bund",
+        "siedlung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "population.cap",
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bund",
+          "siedlung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "gemeinschaft"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "landfrieden",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 2,
+      "name": "Landfrieden",
+      "summary": "Täler und Sippen beschwören einen Frieden über Pass und Weide. Wer ihn hält, wird wohlhabend und findet Gehör. Der Frieden verbietet den Angriff und den Raubzug und will im Herbst sein Salz.",
+      "appearance": "Gesandte mehrerer Völker auf einer Passhöhe, ein aufgerichteter Friedensstein, Salzsäcke als Gabe",
+      "tags": [
+        "ordnung",
+        "bund",
+        "verhandlung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "gastrecht",
+          "sippenbund"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 12,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "wohlstand",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "verhandlung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "order.restrict",
+          "mode": "forbid",
+          "orders": [
+            "attack",
+            "raubzug"
+          ],
+          "tags": []
+        },
+        {
+          "op": "resource.flow",
+          "res": "salz",
+          "amount": -1,
+          "when": [
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [
+        {
+          "op": "relation.delta",
+          "people": "all",
+          "amount": 1
+        }
+      ],
+      "replaces": [],
+      "spec": {
+        "seat": null
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "ordnung",
+          "bund",
+          "verhandlung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "gemeinschaft"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "wachtfeuer",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Wachtfeuer",
+      "summary": "Auf den Graten brennen Wachtfeuer, die einander Gefahr melden. Kein Feind kommt ungesehen ans Lager, doch das Holz für die Feuer fehlt im Winter anderswo.",
+      "appearance": "Ein Holzstoß auf einem Grat, daneben ein Wächter im Fellmantel, in der Ferne ein zweites Feuer",
+      "tags": [
+        "verteidigung",
+        "hinterhalt"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "verteidigung"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "sight.mod",
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "verteidigung",
+          "hinterhalt"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "militaer"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "fluchtburg",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 1,
+      "name": "Fluchtburg",
+      "summary": "Ein Ring aus Trockenmauern auf einer Kuppe nimmt Sippe und Herde auf, wenn Feinde kommen. Er hält keine Belagerung aus, wohl aber einen Überfall.",
+      "appearance": "Eine Kuppe mit einem Ring aus aufgeschichteten Steinen, ein schmales Tor, Schafe im Inneren",
+      "tags": [
+        "befestigung",
+        "verteidigung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stat.mod",
+          "stat": "verteidigung",
+          "amount": 1
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "heide",
+          "bergwald",
+          "wald",
+          "wiese"
+        ],
+        "buildCost": {
+          "material": 2
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "befestigung",
+          "verteidigung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "militaer"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "koehlerei",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Köhlerei",
+      "summary": "In Meilern am Waldrand schwelt Holz zu Kohle. Die Kohle trägt das Feuer der Schmiede, und aus wenig Holz wird viel Brauchbares.",
+      "appearance": "Ein rauchender, mit Erde bedeckter Meiler am Waldrand, ein Köhler mit geschwärztem Gesicht",
+      "tags": [
+        "glut",
+        "erz"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 4,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": 1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "glut",
+          "erz"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "werk"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "steinbruch",
+      "rev": 1,
+      "kind": "bauwerk",
+      "tier": 1,
+      "name": "Steinbruch",
+      "summary": "Am Hang wird Bruchstein gebrochen und behauen. Was das Volk bauen will, liegt nun jede Saison bereit.",
+      "appearance": "Eine helle Abbruchkante am Hang, Steinblöcke auf Holzschlitten, Männer mit Keilen und Schlägeln",
+      "tags": [
+        "bau",
+        "erz"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": 1
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "terrains": [
+          "alm",
+          "heide",
+          "bergwald"
+        ],
+        "buildCost": {
+          "material": 1
+        },
+        "perRegion": 1,
+        "upkeep": {}
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bau",
+          "erz"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "werk"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "rennofen",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 2,
+      "name": "Rennofen",
+      "summary": "Im Rennofen schmilzt Erz mit Holzkohle zu Luppen, aus denen Werkzeug und Beschläge werden. Der Ofen will jede Saison Erz.",
+      "appearance": "Ein brusthoher Lehmofen mit Blasebälgen, glühende Schlacke rinnt aus einer Öffnung am Fuß",
+      "tags": [
+        "erz",
+        "glut",
+        "bau"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "koehlerei",
+          "steinbruch"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 9,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "material",
+          "amount": 2
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "erz",
+          "amount": -1
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "erz",
+          "glut",
+          "bau"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "werk"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "kerbholz",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Kerbhölzer",
+      "summary": "In Kerbhölzer schneiden die Alten, was jedes Jahr geschah. Wer die Kerben lesen kann, lernt schneller, was dem Volk bevorsteht, und die langen Winterabende bringen neues Wissen.",
+      "appearance": "Ein Bündel gekerbter Haselstäbe an einer Zeltstange, ein alter Mann zählt die Kerben mit dem Daumen",
+      "tags": [
+        "bestimmung",
+        "wandel"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "research.mod",
+          "tags": [
+            "bestimmung",
+            "wandel",
+            "erkundung"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "resource.flow",
+          "res": "wissen",
+          "amount": 1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bestimmung",
+          "wandel"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "erkenntnis"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "spaeher",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Späherdienst",
+      "summary": "Junge Leute ziehen allein über die Grate und kommen mit Nachrichten zurück. Das Volk sieht weiter und findet sich in fremdem Land schneller zurecht.",
+      "appearance": "Eine junge Späherin auf einem Felsvorsprung, Bogen über der Schulter, ein Tal voller Nebel unter ihr",
+      "tags": [
+        "erkundung"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "sight.mod",
+          "amount": 1
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "erkundung"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "erkundung"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "erkenntnis"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "sternkunde",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Sternkunde",
+      "summary": "Die Ältesten lesen aus dem Lauf der Sterne, wann der Schnee kommt und wann er geht. Das Wetter überrascht das Volk seltener, und die klaren Herbst- und Winternächte lehren viel.",
+      "appearance": "Eine Steinreihe auf einem Grat, nach dem Sonnenaufgang ausgerichtet, ein Kind blickt in den Sternenhimmel",
+      "tags": [
+        "wandel",
+        "wetter"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "probe.mod",
+          "tags": [
+            "wetter"
+          ],
+          "amount": 1
+        },
+        {
+          "op": "resource.flow",
+          "res": "wissen",
+          "amount": 1,
+          "when": [
+            "herbst",
+            "winter"
+          ]
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "wandel",
+          "wetter"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "erkenntnis"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "sagenhalle",
+      "rev": 1,
+      "kind": "institution",
+      "tier": 2,
+      "name": "Sagenhalle",
+      "summary": "In einer Halle bewahren die Sagenhüter, was das Volk weiß, und lehren es die Jungen. Eine Sagenhüterin erhält Sitz im Rat, und wer lernt, arbeitet in der warmen Jahreszeit nicht auf dem Feld.",
+      "appearance": "Eine lange Holzhalle mit geschnitzten Pfeilern, Kinder um eine alte Frau, Kerbhölzer und Schnüre an den Wänden",
+      "tags": [
+        "bestimmung",
+        "rat",
+        "wandel"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [
+          "kerbholz",
+          "sternkunde"
+        ],
+        "if": null
+      },
+      "cost": {
+        "research": 12,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "stock.cap",
+          "res": "wissen",
+          "amount": 4
+        },
+        {
+          "op": "resource.flow",
+          "res": "wissen",
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": -1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": {
+        "seat": {
+          "role": "sagenhueterin",
+          "favor": [
+            "bestimmung",
+            "erkundung"
+          ],
+          "oppose": [
+            "dunkel"
+          ]
+        }
+      },
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "bestimmung",
+          "rat",
+          "wandel"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "erkenntnis"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "kraeuterkunde",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 1,
+      "name": "Kräuterkunde",
+      "summary": "Die Kräuterkundigen kennen Wurzel und Blüte der Hochweide. Ihre Tränke senken das Fieber der Kinder, und manche sagen, sie sähen dabei Dinge, die anderen verborgen bleiben.",
+      "appearance": "Eine Frau mit Kräuterbündeln am Gürtel kniet an einem Bach, Mörser und Tonschalen neben ihr",
+      "tags": [
+        "magie",
+        "schau"
+      ],
+      "prerequisites": {
+        "all": [],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "population.growth",
+          "amount": 1
+        }
+      ],
+      "price": [],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "magie",
+          "schau"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "magie"
+    },
+    {
+      "format": "realmcraft-entwicklung",
+      "version": 1,
+      "id": "wetterzauber",
+      "rev": 1,
+      "kind": "technik",
+      "tier": 2,
+      "name": "Wetterzauber",
+      "summary": "Die Schauenden lesen im blauen Rauch das Wetter der kommenden Wochen und bitten den Himmel um Regen zur rechten Zeit. Jeden Winter verbrennen sie dafür Psil.",
+      "appearance": "Eine Schauende auf einem Felsen hebt eine rauchende Schale gegen dunkle Wolken über einer Weide",
+      "tags": [
+        "magie",
+        "wetter",
+        "schau"
+      ],
+      "prerequisites": {
+        "all": [
+          "rauchschau"
+        ],
+        "any": [],
+        "if": null
+      },
+      "cost": {
+        "research": 6,
+        "resources": {}
+      },
+      "effects": [
+        {
+          "op": "resource.flow",
+          "res": "nahrung",
+          "amount": 1,
+          "when": [
+            "fruehling",
+            "sommer",
+            "herbst"
+          ]
+        },
+        {
+          "op": "probe.mod",
+          "tags": [
+            "wetter"
+          ],
+          "amount": 1
+        }
+      ],
+      "price": [
+        {
+          "op": "resource.flow",
+          "res": "psil",
+          "amount": -1,
+          "when": [
+            "winter"
+          ]
+        }
+      ],
+      "onAcquire": [],
+      "replaces": [],
+      "spec": null,
+      "origin": {
+        "source": "world",
+        "practiceTags": [
+          "magie",
+          "wetter",
+          "schau"
+        ],
+        "token": null,
+        "request": null,
+        "proposal": null
+      },
+      "pfad": "magie"
     }
   ]
 }

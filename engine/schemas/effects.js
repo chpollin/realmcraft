@@ -157,7 +157,7 @@ export const WEIGHTS = Object.freeze({
   'resource.flow': { perPoint: { seasons4: 3, seasons3: 2, seasons2: 2, seasons1: 1 }, earmarked: 2, scaleBound: 2, note: 'seasons2 derived, no row in the draft; a scaled benefit counts scaleBound x tuning.expected units (an upper bound, the expected count is a campaign average), a scaled burden the expected count' },
   'yield.mod': { perPoint: { seasons4: 3, seasons3: 2, seasons2: 2, seasons1: 1 }, note: 'derived: treated as flow' },
   'research.mod': { perPoint: 2, note: 'flow of research, earmarked to tags' },
-  dependency: { perPoint: -3, note: 'derived: upkeep flow -1 is -3, plus the harmful part of the penalty (a helpful penalty counts 0)' },
+  dependency: { perPoint: -3, note: 'derived: upkeep flow -1 is -3; the people pays or takes the penalty each season, so the weight is the lighter of the payment and the harmful part of the penalty on the resource.flow scale of every season (a helpful penalty counts 0)' },
   'order.unlock': { plain: 2, withStandingOutcome: 3 },
   'order.restrict': { forbidNarrow: -1, forbidBroad: -2, limitNarrow: -1, limitBroad: -2, duty: 0, note: 'duty weighs 0 while the kernel has no duty rule, the draft value -2 returns with an enforcing kernel; a restriction without orders and tags weighs 0' },
   meter: { severity: { light: 1, heavy: 2, existential: 3 }, cadence: { use: 1, season: 2 }, severityByThresholdWeight: [[2, 1], [5, 2], [null, 3]], repeat: 2, note: 'weight = gain - severity x cadence; severity from |w| of the worst harmful threshold the meter reaches, null = no upper bound; gain = sum of the beneficial thresholds in range, x repeat when the meter can fall and cross again (a use meter with decay crosses at most every other season)' },

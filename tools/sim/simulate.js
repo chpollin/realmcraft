@@ -18,7 +18,7 @@ import { RULES_VERSION } from '../../engine/core/rules.js';
 import { apply, createCampaign, open, preview } from '../../engine/core/turn.js';
 import { fallbackDraft } from '../../engine/ai/fallback.js';
 import { validateCampaign } from '../../engine/content/validate.js';
-import { scoreEntwicklung } from '../../engine/content/budget.js';
+import { scoreEntwicklung, useBound } from '../../engine/content/budget.js';
 import { controlledRegions, homeSettlement, peopleIds, regionTerrain, settlementsOf } from '../../engine/core/state.js';
 import { makeRng, hashSeed } from '../../engine/world/index.js';
 
@@ -366,13 +366,12 @@ export function runSimulation(env, { seeds, seasons, rotate = true, as = null, p
   };
 }
 
-// A standing price is paid only on use when every primitive in it waits for
-// the people to use something, a meter that rises on use: or a trigger on
-// use:. Such a development costs nothing to hold while its applications stay
-// unused. One-off burdens of onAcquire are left out.
-const useBound = (p) => (p.op === 'meter' && p.rise.on.startsWith('use:')) || (p.op === 'trigger' && p.on.startsWith('use:'));
-
-/** Budget of every world Entwicklung and whether only a use pays its standing price. */
+/**
+ * Budget of every world Entwicklung and whether only a use pays its standing
+ * price: every primitive of its price waits for the people to use something
+ * (useBound), so it costs nothing to hold while its applications stay unused.
+ * One-off burdens of onAcquire are left out.
+ */
 export function auditContent(env) {
   const ctx = { regeln: env.regeln, resolve: (ref) => env.entwicklung(ref) };
   return env.content.entwicklungen.map((ent) => {

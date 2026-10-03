@@ -1,7 +1,7 @@
 // Kernel and validator defects the fuzz sweeps found, each reduced to its
-// smallest reproduction and marked todo: the lanes that own engine/ fix them,
-// then the todo mark and the matching knownFinding filter in
-// fuzz-content.test.js or fuzz-kernel.test.js go.
+// smallest reproduction and kept as a regression test once fixed. A new
+// finding enters here marked todo, with a matching filter in the sweep that
+// found it until the owning lane fixes it.
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ import { hochland } from '../../fixtures/engine/k1/harness.js';
 const { env } = hochland();
 
 describe('fuzz findings', () => {
-  it('validateProposal rejects a null item instead of throwing', { todo: 'kernel lanes: validateProposal reads item.type of a null item (engine/content/validate.js)' }, () => {
+  it('validateProposal rejects a null item instead of throwing', () => {
     const proposal = {
       format: 'realmcraft-proposal', version: 1, proposalId: 'research.fuzz.T0', agent: 'research', campaign: 'fuzz', turn: 0, basedOnRev: 1, people: 'bergnomaden',
       items: [null],
@@ -23,7 +23,7 @@ describe('fuzz findings', () => {
     assert.equal(res.items[0].verdict, 'rejected');
   });
 
-  it('a famine leaves no more clans assigned than the people has', { todo: 'kernel lanes: population.assigned is not trimmed when the economy step lowers population.core' }, () => {
+  it('a famine leaves no more clans assigned than the people has', () => {
     const state = structuredClone(open(createCampaign(env, { id: 'fuzz', seed: 7 }).state, env).state);
     const pid = state.campaign.player;
     const p = state.peoples[pid];

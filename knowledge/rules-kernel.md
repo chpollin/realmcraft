@@ -119,7 +119,7 @@ The season of a people is planned by `planEconomy`, which the preview shares, an
 4. Famine. Missing food costs one clan per `famineDivisor` missing (rounded up) and lowers Zustimmung by 1.
 5. Growth. Without famine the people gains `baseGrowth` plus `population.growth` points, `growthPerClan` points make a clan while the clan capacity allows (`popCapPerSettlement` per settlement plus `population.cap`). A winter without famine raises Zustimmung by 1.
 
-Every stock has a cap from `regeln.json` plus `stock.cap`. At cleanup a stock above its cap loses part of the surplus by `tuning.spoilage`. Herds grow on controlled regions whose dominant terrain is a pasture terrain of the way of life and shrink in winter by its `herdRules` (module Lebensweise).
+Every stock has a cap from `regeln.json` plus `stock.cap`. At cleanup a stock above its cap loses part of the surplus by `tuning.spoilage`. A cap that rises during the season acts from the next one, a cap that falls because its source was suspended binds at once. Herds grow on controlled regions whose land holds a pasture terrain of the way of life, the dominant terrain or the terrain around an own settlement as for the harvest, and shrink in winter by its `herdRules` (module Lebensweise). Clans lost in a season, by famine, settlers or an effect, leave the labour assignment at cleanup, food work last.
 
 ### Research
 
@@ -137,7 +137,7 @@ A development (`entwicklung`) is the one generic content object. Its effects and
 
 ## 10 Validator and power budget
 
-`engine/content/validate.js` checks every development, event card, destiny, world package and proposal in stages, and `engine/content/budget.js` prices it with `WEIGHTS`, `SPEC_WEIGHTS` and `TIERS`. A development is valid when its effect stays within the tier's ceiling, its net value lies in the tier's range, its price reaches the tier's minimum and its research cost equals net value times tier plus one. Stages, codes and the refined weight rules are in [data-contracts.md](data-contracts.md).
+`engine/content/validate.js` checks every development, event card, destiny, world package and proposal in stages, and `engine/content/budget.js` prices it with `WEIGHTS`, `SPEC_WEIGHTS` and `TIERS`. A development is valid when its effect stays within the tier's ceiling, its net value lies in the tier's range, its standing price, the part a people pays while it holds the development, reaches the tier's minimum and its research cost equals net value times tier plus one. Stages, codes and the refined weight rules are in [data-contracts.md](data-contracts.md).
 
 ## 11 Modules
 

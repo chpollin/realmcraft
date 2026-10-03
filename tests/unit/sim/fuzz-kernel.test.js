@@ -80,11 +80,6 @@ function perturbHidden(state, pid) {
   return s;
 }
 
-// Open kernel findings, pinned as todo tests in fuzz-findings.test.js. The
-// sweep passes over them so that it keeps finding new ones; remove an entry
-// once its todo test passes.
-const knownFinding = (issue) => issue.code === 'labour' && /\/population\/assigned$/.test(issue.path);
-
 const STATES = [];
 
 describe('fuzz: turn pipeline', () => {
@@ -136,7 +131,7 @@ describe('fuzz: turn pipeline', () => {
       }
       applied++;
       const next = res.state;
-      const v = validateCampaign(next).issues.filter((x) => x.severity === 'error' && !knownFinding(x));
+      const v = validateCampaign(next).issues.filter((x) => x.severity === 'error');
       assert.deepEqual(v, [], `${at('apply', i, ` ${label}`)}\ndraft ${JSON.stringify(draft)}`);
       for (const [id, p] of Object.entries(next.peoples)) {
         for (const [res2, n] of Object.entries(p.resources)) assert.ok(Number.isInteger(n) && n >= 0, `${at('apply', i)}: ${id}.${res2} = ${n}`);

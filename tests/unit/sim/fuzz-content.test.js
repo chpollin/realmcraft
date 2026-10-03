@@ -15,10 +15,6 @@ const vocab = vocabularyOf(env);
 const ctx = withCatalogue({ regeln: env.regeln, welt: env.welt, library });
 const ents = env.content.entwicklungen;
 const at = (label, i) => `${label} case ${i} (FUZZ_SEED=${SEED})`;
-// Open validator findings, pinned as todo tests in fuzz-findings.test.js. The
-// sweep passes over them so that it keeps finding new ones; remove an entry
-// once its todo test passes.
-const knownFinding = (proposal) => Array.isArray(proposal?.items) && proposal.items.some((x) => x === null);
 const randomPrimitive = (r) => (r.chance(0.5) ? standingPrimitive(r, vocab) : oncePrimitive(r, vocab));
 
 // The direction a weight takes when the amount grows: a dependency and more
@@ -183,7 +179,6 @@ describe('fuzz: content validator', () => {
     };
     for (let i = 0; i < runs(200); i++) {
       const p = mutate(r, base);
-      if (knownFinding(p)) continue;
       let res;
       try {
         res = validateProposal(p, ctx);

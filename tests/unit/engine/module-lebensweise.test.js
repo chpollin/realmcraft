@@ -309,6 +309,27 @@ test('pasture growth is capped at the number of clans', () => {
   assert.equal(herdOf(tc.state), 4 + 1, 'growth 2 x 1 region, capped at core 1');
 });
 
+// Hochland starts every people on an alm tile, often inside a mountain region.
+// The herds graze the land around the camp, as the harvest does.
+test('a camp on pasture land in a mountain region grazes its herds', () => {
+  const real = hochlandEnv();
+  const pid = 'bergnomaden';
+  let found = null;
+  for (let seed = 1; seed <= 24 && !found; seed++) {
+    const s = startState(real, seed);
+    const w = real.world(s.map.seed);
+    const c = settlementsOf(s, pid)[0];
+    const pasture = real.entwicklung(s.peoples[pid].lebensweise).spec.herdRules.pastureTerrains;
+    if (!pasture.includes(regionTerrain(w, c.regionId)) && pasture.includes(tileOf(w, c.tile).terrain)) found = s;
+  }
+  assert.ok(found, 'a seed whose start camp stands on pasture in a region of other terrain');
+  const s = edited(found, (x) => { x.peoples[pid].population.assigned = { nahrung: x.peoples[pid].population.core }; });
+  const tc = contextOf(s, real);
+  runHook(tc, 'resolve', pid);
+  const growth = real.entwicklung(s.peoples[pid].lebensweise).spec.herdRules.growth;
+  assert.equal(tc.state.peoples[pid].resources.herden, s.peoples[pid].resources.herden + Math.min(s.peoples[pid].population.core, growth));
+});
+
 test('herds lose winterLoss in winter, never below zero, and give no food', () => {
   const winter = atTurn(base, 3);
   const tc = contextOf(winter, env);

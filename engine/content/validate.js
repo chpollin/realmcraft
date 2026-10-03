@@ -1003,6 +1003,10 @@ export function validateProposal(proposal, ctx = {}) {
   const items = p.items.map((item, index) => {
     const base = `/items/${index}`;
     const done = (issues, budget = null) => ({ index, verdict: hasErrors(issues) ? 'rejected' : 'accepted', issues, budget });
+    // An agent file is untrusted input: a non-object item is rejected, never read.
+    if (item === null || typeof item !== 'object' || Array.isArray(item)) {
+      return done(hasErrors(itemIssues[index]) ? itemIssues[index] : [issue('schema', base, 'item must be an object', { severity: 'error' })]);
+    }
     if (!allowed.has(item.type) || (taskItems && !taskItems.has(item.type))) {
       return done([issue('content.item_not_allowed', `${base}/type`, `agent "${p.agent}" may not send "${item.type}" items`, { severity: 'error' })]);
     }

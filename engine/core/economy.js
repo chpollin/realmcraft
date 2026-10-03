@@ -508,11 +508,15 @@ export function capStocks(tc) {
   for (const pid of peopleIds(tc.state)) {
     const people = tc.state.peoples[pid];
     if (!people.developments) continue;
+    // A cap that rises this season acts from the next (opening state); one
+    // that falls this season, because its source was suspended or lost,
+    // binds now, so the stock it no longer covers starts to spoil.
     const caps = stockCaps(tc.s0, tc.env, pid);
+    const now = stockCaps(tc.state, tc.env, pid);
     const opening = tc.s0.peoples[pid]?.resources ?? {};
     for (const res of Object.keys(people.resources).sort()) {
       let v = people.resources[res];
-      const cap = caps[res];
+      const cap = caps[res] === undefined ? undefined : Math.min(caps[res], now[res] ?? caps[res]);
       // Gains from any source this season (modules, events, trade) are capped
       // too: a stock never ends above its cap or its opening value, whichever is higher.
       const limit = cap === undefined ? MAX_STOCK : Math.max(cap, opening[res] ?? 0);
