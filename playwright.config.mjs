@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Own port and no server reuse, so a run never hits the game-master's live
-// server on 4173 (which mirrors the running campaign's savegame.json).
+// Own port and no server reuse, so a run never hits the operator's live
+// server on 4173.
 const PORT = Number(process.env.PORT) || 4391;
 const baseURL = `http://localhost:${PORT}`;
 
@@ -24,14 +24,6 @@ export default defineConfig({
   },
   projects: [
     { name: 'e2e', testDir: './tests/e2e', use: browser },
-    {
-      name: 'visual',
-      testDir: './tests/visual',
-      use: browser,
-      // Keeps the checked-in baseline names (<view>-chromium-<platform>.png)
-      // independent of the project name.
-      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}-chromium{-snapshotSuffix}{ext}',
-    },
   ],
   webServer: {
     command: 'node serve.mjs',

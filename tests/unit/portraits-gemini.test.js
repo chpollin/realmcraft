@@ -1,12 +1,11 @@
-// Unit-Tests fuer js/images/gemini.js — Bild-API-Client.
-// Vertrag: docs/Frontend-Contract.md, Abschnitt "js/images/gemini.js".
+// Unit-Tests fuer tools/portraits/gemini.js — Bild-API-Client.
 // global.fetch wird gemockt; geprueft werden URL, Header, Body und das Parsen
 // von inlineData zur data:-URL anhand des Mock-Pixels.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MODELS, endpoint, generateImage, toRefImage } from '../../js/images/gemini.js';
+import { MODELS, endpoint, generateImage } from '../../tools/portraits/gemini.js';
 import {
   MOCK_PIXEL_BASE64,
   MOCK_PIXEL_MIME,
@@ -50,10 +49,8 @@ function installFetch(handler) {
   };
 }
 
-test('MODELS traegt die Vertrags-Modellnamen', () => {
+test('MODELS traegt das Porträtmodell', () => {
   assert.equal(MODELS.portrait, 'gemini-3.1-flash-image');
-  // Karte ebenfalls auf Flash (Nano Banana 2): Pro hat im Free-Tier Kontingent 0.
-  assert.equal(MODELS.map, 'gemini-3.1-flash-image');
 });
 
 test('endpoint(model) baut die generateContent-URL korrekt', () => {
@@ -167,36 +164,12 @@ test('generateImage: refImages als Objekt tragen ihren echten mimeType', async (
   }
 });
 
-test('toRefImage: data-URL wird ohne Netz zerlegt', async () => {
-  const mock = installFetch(() => { throw new Error('kein Netz erwartet'); });
-  try {
-    assert.deepEqual(await toRefImage('data:image/jpeg;base64,QUJD'), { data: 'QUJD', mimeType: 'image/jpeg' });
-    assert.equal(await toRefImage(''), null);
-    assert.equal(mock.calls.length, 0);
-  } finally {
-    mock.restore();
-  }
-});
-
-test('toRefImage: Pfad wird geladen und base64-kodiert, Fehler ergibt null', async () => {
-  const bytes = Buffer.from(MOCK_PIXEL_BASE64, 'base64');
-  const mock = installFetch((url) => (url === 'bilder/a.webp'
-    ? { ok: true, blob: async () => new Blob([bytes], { type: 'image/webp' }) }
-    : { ok: false, status: 404 }));
-  try {
-    assert.deepEqual(await toRefImage('bilder/a.webp'), { data: MOCK_PIXEL_BASE64, mimeType: 'image/webp' });
-    assert.equal(await toRefImage('bilder/fehlt.webp'), null);
-  } finally {
-    mock.restore();
-  }
-});
-
 test('generateImage: aspectRatio landet in generationConfig.imageConfig', async () => {
   const mock = installFetch(() => okResponse());
   try {
     await generateImage({
       apiKey: 'K',
-      model: MODELS.map,
+      model: MODELS.portrait,
       prompt: 'Karte',
       aspectRatio: '16:9',
     });
@@ -254,6 +227,23 @@ test('generateImage: fehlgeschlagener Call (fetch ok:false) wirft', async () => 
   try {
     await assert.rejects(() =>
       generateImage({ apiKey: 'K', model: MODELS.portrait, prompt: 'p' }),
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+test('generateImage: ein vom Dienst zurueckgegebener Key erscheint nicht in der Meldung', async () => {
+  const key = 'AIzaGeheimerTestschluessel';
+  const mock = installFetch(() => ({
+    ok: false,
+    status: 400,
+    json: async () => ({ error: { message: `API key ${key} not valid` } }),
+  }));
+  try {
+    await assert.rejects(
+      () => generateImage({ apiKey: key, model: MODELS.portrait, prompt: 'p' }),
+      (err) => !err.message.includes(key) && err.message.includes('***'),
     );
   } finally {
     mock.restore();

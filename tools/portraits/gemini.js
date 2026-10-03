@@ -1,15 +1,9 @@
-// js/images/gemini.js — Bild-API-Client fuer die Gemini generateContent-API.
-// Vertrag: docs/Frontend-Contract.md, Abschnitt "js/images/gemini.js".
+// tools/portraits/gemini.js — Bild-API-Client fuer die Gemini generateContent-API.
 // Reine ES-Modul-Datei ohne Top-Level-Seiteneffekt; der Netzaufruf erfolgt
 // ausschliesslich in generateImage via global fetch.
 
-// Vertrags-Modellnamen.
 export const MODELS = {
   portrait: 'gemini-3.1-flash-image',
-  // Karte ebenfalls auf dem Flash-Bildmodell: das Pro-Bildmodell hat im
-  // Gemini-Free-Tier ein Kontingent von 0. Über die Einstellungen auf
-  // 'gemini-3-pro-image' umstellbar (beste lesbare Beschriftung, braucht Billing).
-  map: 'gemini-3.1-flash-image',
 };
 
 // Baut die generateContent-URL fuer ein Modell.
@@ -100,7 +94,8 @@ export async function generateImage({
         `Ohne Bild zeigt RealmCraft das Initial-Medaillon.`,
       );
     }
-    const short = (detail.split(/\r?\n/)[0] || '').slice(0, 200);
+    // The message is printed by the tool, so a key the API echoes back is cut out.
+    const short = (detail.split(/\r?\n/)[0] || '').split(apiKey).join('***').slice(0, 200);
     throw new Error(`Bild-API-Fehler (HTTP ${response.status})${short ? `: ${short}` : ''}`);
   }
 
@@ -116,27 +111,4 @@ export async function generateImage({
   const dataUrl = 'data:' + mimeType + ';base64,' + inline.data;
 
   return { dataUrl, mimeType };
-}
-
-// Turns any image URL the dashboard holds into a reference image for the API:
-// a data URL directly, a path (slim demo states reference .webp files) or blob
-// URL via fetch. null when the image cannot be read, so the caller generates
-// from the text prompt alone instead of failing.
-export async function toRefImage(url) {
-  if (!url) return null;
-  const m = /^data:([^;,]+)?;base64,(.*)$/s.exec(url);
-  if (m) return { data: m[2], mimeType: m[1] || 'image/png' };
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    // Chunked, because String.fromCharCode(...bytes) overflows the argument
-    // limit for images of a few hundred kilobytes.
-    let bin = '';
-    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    return { data: btoa(bin), mimeType: blob.type || 'image/png' };
-  } catch {
-    return null;
-  }
 }
