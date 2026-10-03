@@ -14,7 +14,7 @@ A session in this repository is either game master or developer.
 | Area | Owner |
 |---|---|
 | `campaigns/` | the kernel CLI only. Agents write only their own proposal file, guarded by hooks |
-| `engine/`, `welten/`, `spielbrett/`, `serve.mjs`, `tools/`, `tests/`, `.claude/` | developer |
+| `engine/`, `welten/`, `spielbrett/`, `serve.mjs`, `server/`, `tools/`, `tests/`, `.claude/` | developer |
 | `knowledge/` | developer, in English, following the Promptotyping convention of the vault |
 
 `savegame.json` and `schwarzkaemme/` are untracked files of the owner and stay untouched.
@@ -28,4 +28,8 @@ A session in this repository is either game master or developer.
 - The board contains no game logic. Every consequence it shows comes from the kernel's `preview()`.
 - Tests and development servers never use the owner's ports 4173, 4185, 4186, 4187 and 4190.
 - `npm test` is green before a commit. Board or server changes also need `npm run test:e2e`.
-- Legacy code of the earlier games (`index.html`, `anleitung.html`, `js/`, `css/`, `schema/`, `spiel/`, `design/`, `docs/`) is not part of the new game and waits for removal.
+- Agent briefs, subagents and saved workflows (`.claude/agents/`, `.claude/workflows/`) change only together with the knowledge document that describes them.
+
+## Continuing development
+
+The open work of the current milestone stands in [knowledge/handoff.md](knowledge/handoff.md). The next step is the saved workflow `realmcraft-refactor-verify` in `.claude/workflows/`: area audits, a refactor proven by a golden replay, the UI optimisation round on the owner's playtest entries, a full game loop in the browser and a check of every acceptance criterion and documented claim. Before a merge into `main` while the owner plays, check the phase of the live campaign with `node engine/cli.mjs status`; merge only in phase `planning` and run `repin` when the world package changed.

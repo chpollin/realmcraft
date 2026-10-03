@@ -59,7 +59,7 @@ The schema version of these documents is the `version` field of this index, and 
 
 ## Outside this folder
 
-The legacy round prototypes, the old savegame dashboard and their documents (`docs/Frontend-Contract.md`, `docs/Spielmechanik.md`, `docs/Spielstart-Prompt.md`) remain on `main` until their removal, because legacy code still references them. The memory of the former game-master campaigns and all earlier documents live in the local branch `archiv/vor-neuaufbau` and in the git history. The Obsidian vault holds the project overview and the owner's design notes under `Project Overview RealmCraft`.
+The earlier games, the old savegame dashboard, their documents, their example saves and the memory of the former game-master campaigns are removed from `main` and live in the local branch `archiv/vor-neuaufbau` and in the git history. The saved workflow `.claude/workflows/realmcraft-refactor-verify.js` carries the next development step named in [handoff.md](handoff.md). The Obsidian vault holds the project overview and the owner's design notes under `Project Overview RealmCraft`.
 
 ## License
 

@@ -55,6 +55,25 @@ The first entries concern the UI prototype under `spielbrett/` with prepared gam
 | 21 | Operation | menu, game start | a new game must be initialised, menu navigation unclear | decided as start screen and Escape menu (D18), implementation in M1 |
 | 22 | Mechanics | rivals | in the first turn the rival Talbund guessed order parameters and its orders were refused | done. Rival tasks carry the order catalogue with parameters, valid targets and an example |
 
+### Live campaign hochland-1, evening of 3 October 2026
+
+| No | Category | Place | Request | State |
+|---|---|---|---|---|
+| 23 | Design | map | the map fills a small part of the screen, most of it is empty | open, UI round. Default view fits the known world to the viewport |
+| 24 | Design | map | region names collide and the letter-spaced italic face is hard to read | open, UI round. Centroid placement with collision avoidance, readable face, halo |
+| 25 | Design | top bar | the game title is clipped at the top edge, resources show icon and number only, milestones appear as unexplained diamonds | open, UI round |
+| 26 | Operation | turn panel | the bottom bar is overloaded, order and blocker chips are truncated, a scrollbar appears, overflowing main orders look like extra slots | open, UI round. A turn panel with order cards, one expandable blocker list with in-place fixes, overflow read as swap |
+| 27 | Design | council | chips do not say whether they are strengths, tasks or places, loyalty has no symbol, the header is an unlabeled icon | open, UI round |
+| 28 | Design | map | border colours, the dots under the settlement and the river course carry no visible meaning | open, UI round. Legend or tooltip for every map mark |
+| 29 | Operation | options | the language switch belongs in an options menu with language, audio and reduced motion | partly done by the shell lane, open in the UI round |
+| 30 | Operation | main menu | a main menu at game start with Continue, New game, Load, Options and Quit | partly done by the shell lane (start screen, Escape menu), Load and Quit open in the UI round |
+| 31 | Operation | saving | the player must be able to save a game under a name and load it later, from the main menu and the in-game menu | kernel, CLI and server done (named saves, crash-safe load with automatic save first). Menu entries open in the UI round |
+| 32 | Operation | overlays | the owner could not leave the developments overlay | not reproducible in a fresh browser; likely a tab loaded before a server restart. Open in the UI round: every overlay closable under all conditions, the board offers a reload when its modules changed |
+| 33 | Content | paths view | tag names of the own-direction panel appear in English while the world is German; nodes and labels overlap; the tree fills a third of the view | open, UI round (paths wheel of the frontend lane replaces the old tree) |
+| 34 | Mechanics | paths | owner confirmation: predefined paths plus an own branch described in a prompt is right | confirmed (D16). Owner idea as decision candidate: configure the set of paths anew for every game at game creation, kept fair by the budget |
+| 35 | Operation | sealing | turn 1 was sealed with no orders after the two rolled orders had been withdrawn, the board did not say so | open, UI round. Warn before sealing an empty turn and name withdrawn rolls |
+| 36 | Mechanics | labour | a clan assigned to Wissen worked for nothing: the board writes the labour key wissen, research counts only research, the kernel accepted the unknown key | in work by the kernel-fix lane: valid labour keys in one place, unknown keys refused, migration |
+
 ## Findings of the live judges
 
 The judges of the first live turns reported findings that count as M1 input beside the entries above.

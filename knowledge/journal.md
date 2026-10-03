@@ -68,3 +68,10 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. `docs/*.md` except the legacy documents that legacy code still references.
 - Target. this knowledge base, with `README.md`, `CLAUDE.md`, `.claude/commands/` and code comments pointing to it.
 - Result. `docs/` keeps only `Frontend-Contract.md`, `Spielmechanik.md` and `Spielstart-Prompt.md` for the legacy dashboard and the dice tool until their removal.
+
+### 2026-10-03 milestone M1 merged in two waves
+
+- Changed. Wave 1 merged the removal of the earlier games, the split server with campaign creation, the label layer with English default and German, synthesized audio, the balance simulation and fuzzing, the paths model with research points and the machine-readable kernel data for the board, and this knowledge base. Wave 2 merged the game shell (start screen, menus, settings, rules, end screens), the paths wheel and council strip, the module views and map plans, the Hochland content for every path with an expanding and defending fallback AI, and the harness on paths. Lanes for named saves with crash-safe load and for kernel defects found by fuzzing followed. The remaining legacy files (`docs/`, `harness/`, `examples/`) were removed.
+- Decided. Paths and achievements, English as default UI language, start screen and menus, synthesized audio and end screens as M1 decisions. The owner confirmed the paths model with an own branch described in a prompt and proposed configuring the set of paths per game, recorded as a decision candidate in [playtests.md](playtests.md).
+- Verified. Unit, acceptance and all board end-to-end specs green on the merged `main`. The live campaign `hochland-1` played through turn 2 on the new kernel, was repinned after content changes, and its journal replays.
+- Open. The independent reviews, the fix round and the reconciliation of every knowledge document with the merged code did not run. The owner's UI feedback (playtest entries 23 to 36), a read-only audit of the live game and kernel defects found by fuzzing wait in [handoff.md](handoff.md) for the saved workflow `realmcraft-refactor-verify`.
