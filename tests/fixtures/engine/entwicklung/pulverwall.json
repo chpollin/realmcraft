@@ -1,0 +1,77 @@
+{
+  "format": "realmcraft-entwicklung",
+  "version": 1,
+  "rev": 1,
+  "appearance": "Ein Erdwall mit gemauerten Scharten, davor ein rauchender Mühlschuppen",
+  "prerequisites": {
+    "all": [],
+    "any": [],
+    "if": {
+      "tierCount": 2,
+      "cmp": "gte",
+      "value": 3
+    }
+  },
+  "replaces": [],
+  "spec": null,
+  "onAcquire": [
+    {
+      "op": "relation.delta",
+      "people": "neighbours",
+      "amount": -1
+    }
+  ],
+  "origin": {
+    "source": "world",
+    "practiceTags": [],
+    "token": null,
+    "request": null,
+    "proposal": null
+  },
+  "id": "pulverwall",
+  "kind": "technik",
+  "tier": 3,
+  "name": "Pulverwall",
+  "summary": "Pulver aus Salpeter und Erz macht den Wall zur Waffe; die Mühle frisst laufend Erz.",
+  "tags": [
+    "feuer",
+    "pulver",
+    "krieg"
+  ],
+  "cost": {
+    "research": 12,
+    "resources": {}
+  },
+  "effects": [
+    {
+      "op": "stat.mod",
+      "stat": "verteidigung",
+      "amount": 1
+    },
+    {
+      "op": "probe.mod",
+      "tags": [
+        "befestigung"
+      ],
+      "amount": 2
+    },
+    {
+      "op": "probe.mod",
+      "tags": [
+        "belagerung"
+      ],
+      "amount": 1
+    },
+    {
+      "op": "order.unlock",
+      "order": "ausfall"
+    }
+  ],
+  "price": [
+    {
+      "op": "resource.flow",
+      "res": "erz",
+      "amount": -1
+    }
+  ]
+}

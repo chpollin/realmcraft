@@ -1,0 +1,36 @@
+{
+  "format": "realmcraft-draft",
+  "version": 1,
+  "people": "hochweide",
+  "turn": 0,
+  "baseRev": 1,
+  "orders": [
+    {
+      "id": "o1",
+      "type": "explore",
+      "params": {
+        "tile": "-1,-12"
+      }
+    },
+    {
+      "id": "o2",
+      "type": "research.direct",
+      "params": {
+        "tags": [
+          "weg",
+          "winter"
+        ],
+        "note": "Wege über den Kamm vor dem Schnee"
+      }
+    }
+  ],
+  "mandate": {},
+  "rolls": {
+    "T0:hochweide:o1": {
+      "value": 7,
+      "fingerprint": "d5f4d8645e54b882"
+    }
+  },
+  "withdrawn": [],
+  "sealed": false
+}

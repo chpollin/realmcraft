@@ -1,0 +1,515 @@
+{
+  "format": "realmcraft-campaign",
+  "version": 1,
+  "rulesVersion": 1,
+  "campaign": {
+    "id": "hochweide-1",
+    "world": {
+      "id": "hochland",
+      "version": "0.1.0",
+      "hash": "c293748a919014ff"
+    },
+    "player": "hochweide"
+  },
+  "rev": 1,
+  "turn": 0,
+  "phase": "agents",
+  "rng": {
+    "algo": "sfc32",
+    "s": [
+      1894486587,
+      164193670,
+      3216269633,
+      3736021896
+    ]
+  },
+  "map": {
+    "seed": 7,
+    "packId": "hochland",
+    "control": {
+      "-1:-1:0": "hochweide",
+      "0:0:0": "esk",
+      "-1:0:0": "glutreiter"
+    },
+    "settlements": [
+      {
+        "id": "lager-hochweide",
+        "name": "Lager am Silberegg",
+        "people": "hochweide",
+        "kind": "lager",
+        "tile": "-2,-10",
+        "regionId": "-1:-1:0",
+        "mobile": true,
+        "buildings": []
+      },
+      {
+        "id": "dorf-esk",
+        "name": "Esk",
+        "people": "esk",
+        "kind": "dorf",
+        "tile": "0,11",
+        "regionId": "0:0:0",
+        "mobile": false,
+        "buildings": []
+      },
+      {
+        "id": "lager-glutreiter",
+        "name": "Aschenlager",
+        "people": "glutreiter",
+        "kind": "lager",
+        "tile": "-5,6",
+        "regionId": "-1:0:0",
+        "mobile": true,
+        "buildings": []
+      }
+    ],
+    "known": {
+      "hochweide": {
+        "-2,-10": "visible",
+        "-3,-9": "visible",
+        "-2,-9": "visible",
+        "-1,-10": "visible",
+        "-1,-11": "visible",
+        "-2,-11": "visible",
+        "-3,-10": "visible"
+      },
+      "esk": {
+        "0,11": "visible",
+        "-1,12": "visible",
+        "0,12": "visible",
+        "1,11": "visible",
+        "1,10": "visible",
+        "0,10": "visible",
+        "-1,11": "visible"
+      },
+      "glutreiter": {
+        "-5,6": "visible",
+        "-6,7": "visible",
+        "-5,7": "visible",
+        "-4,6": "visible",
+        "-4,5": "visible",
+        "-5,5": "visible",
+        "-6,6": "visible"
+      }
+    },
+    "features": {
+      "-9,-7": {
+        "id": "erzader-kamm",
+        "kind": "lagerstaette",
+        "name": "Erzader am Kamm",
+        "tags": [
+          "erz",
+          "gemsen"
+        ],
+        "resources": [
+          {
+            "key": "eisenerz",
+            "amount": 41
+          },
+          {
+            "key": "gemsen",
+            "amount": 9
+          }
+        ],
+        "since": 0,
+        "source": "agent:world"
+      }
+    }
+  },
+  "peoples": {
+    "hochweide": {
+      "agentProfile": null,
+      "standing": 0,
+      "developments": {
+        "known": [
+          {
+            "ref": "wanderhirten@1",
+            "since": 0,
+            "effectiveFrom": 0,
+            "state": "active",
+            "suspendedSince": null
+          },
+          {
+            "ref": "sippenrat@1",
+            "since": 0,
+            "effectiveFrom": 0,
+            "state": "active",
+            "suspendedSince": null
+          }
+        ],
+        "research": [],
+        "candidates": [],
+        "requests": [],
+        "instituted": [
+          "sippenrat@1"
+        ]
+      },
+      "units": [],
+      "practice": {
+        "ledger": []
+      },
+      "tokens": [],
+      "statuses": [],
+      "meters": {},
+      "shortfall": {},
+      "bestimmung": {
+        "ref": "ueberdauern@1",
+        "adoptedAt": 0,
+        "milestones": [
+          {
+            "id": "weiden",
+            "reached": false,
+            "reachedAt": null,
+            "progress": 0
+          },
+          {
+            "id": "winter",
+            "reached": false,
+            "reachedAt": null,
+            "progress": 0
+          },
+          {
+            "id": "pfade",
+            "reached": false,
+            "reachedAt": null,
+            "progress": 0
+          },
+          {
+            "id": "wintersiedlung",
+            "reached": false,
+            "reachedAt": null,
+            "progress": 0
+          }
+        ],
+        "history": []
+      },
+      "modules": {
+        "lebensweise": {
+          "camp": "lager-hochweide",
+          "migratedAt": 0
+        }
+      },
+      "id": "hochweide",
+      "name": "Die Hochweide-Sippen",
+      "controller": "player",
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "wege",
+            "text": "Sie kennen jeden Pfad und jedes Wetterzeichen der Kämme."
+          },
+          "minus": {
+            "tag": "mauern",
+            "text": "Was fest steht, ist ihnen fremd; Bauen und Bleiben fällt schwer."
+          }
+        },
+        "ausrichtung": "geist",
+        "appearance": "Hirten in Filz und Fell mit Ziegen- und Schafherden auf den Almen"
+      },
+      "lebensweise": "wanderhirten@1",
+      "population": {
+        "core": 3,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 3,
+        "holz": 1,
+        "stein": 0,
+        "erz": 0,
+        "wissen": 1,
+        "herden": 4
+      },
+      "council": [
+        {
+          "id": "ulrun",
+          "name": "Ulrun vom Weidenhang",
+          "role": "herdenaelteste",
+          "goal": {
+            "text": "Die Herden und das Weiderecht sollen jeden Winter unversehrt bleiben.",
+            "favor": [
+              "herde",
+              "weide"
+            ],
+            "oppose": [
+              "krieg"
+            ]
+          },
+          "loyalty": 3,
+          "hollow": false,
+          "age": 58,
+          "lifeStage": "lebensabend",
+          "leader": true,
+          "appearance": ""
+        },
+        {
+          "id": "torhild",
+          "name": "Torhild Aschenhand",
+          "role": "feuerhueterin",
+          "goal": {
+            "text": "Die Flamme der Ahnen soll die Mitte des Volkes bleiben.",
+            "favor": [
+              "geist",
+              "feuer"
+            ],
+            "oppose": [
+              "handel"
+            ]
+          },
+          "loyalty": 1,
+          "hollow": false,
+          "age": 41,
+          "lifeStage": "ruestig",
+          "leader": false,
+          "appearance": ""
+        },
+        {
+          "id": "garmund",
+          "name": "Garmund Steinläufer",
+          "role": "pfadmeister",
+          "goal": {
+            "text": "Neue Pfade finden, bevor andere sie finden.",
+            "favor": [
+              "wege",
+              "erkundung"
+            ],
+            "oppose": [
+              "mauern"
+            ]
+          },
+          "loyalty": -2,
+          "hollow": false,
+          "age": 63,
+          "lifeStage": "lebensabend",
+          "leader": false,
+          "appearance": ""
+        }
+      ]
+    },
+    "esk": {
+      "agentProfile": "handel",
+      "standing": 0,
+      "developments": {
+        "known": [
+          {
+            "ref": "talbauern@1",
+            "since": 0,
+            "effectiveFrom": 0,
+            "state": "active",
+            "suspendedSince": null
+          }
+        ],
+        "research": [],
+        "candidates": [],
+        "requests": [],
+        "instituted": []
+      },
+      "units": [],
+      "practice": {
+        "ledger": []
+      },
+      "tokens": [],
+      "statuses": [],
+      "meters": {},
+      "shortfall": {},
+      "bestimmung": null,
+      "modules": {},
+      "id": "esk",
+      "name": "Die Talbauern von Esk",
+      "controller": "ai",
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "felder",
+            "text": "Ihre Felder tragen, wo andere nur Gras sehen."
+          },
+          "minus": {
+            "tag": "krieg",
+            "text": "Sie haben nie gelernt, ein Feld mit der Waffe zu halten."
+          }
+        },
+        "ausrichtung": "wohlstand",
+        "appearance": "Bauern in Leinen auf Terrassenfeldern am Talgrund"
+      },
+      "lebensweise": "talbauern@1",
+      "population": {
+        "core": 4,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 4,
+        "holz": 2,
+        "stein": 1,
+        "erz": 0,
+        "wissen": 1,
+        "herden": 1
+      },
+      "council": [
+        {
+          "id": "vesna",
+          "name": "Vesna Talgrund",
+          "role": "dorfvorsteherin",
+          "goal": {
+            "text": "Die Ernte soll in jedem Herbst die Speicher füllen.",
+            "favor": [
+              "felder",
+              "handel"
+            ],
+            "oppose": [
+              "krieg"
+            ]
+          },
+          "loyalty": 2,
+          "hollow": false,
+          "age": 47,
+          "lifeStage": "ruestig",
+          "leader": true,
+          "appearance": ""
+        }
+      ]
+    },
+    "glutreiter": {
+      "agentProfile": "raub",
+      "standing": 0,
+      "developments": {
+        "known": [
+          {
+            "ref": "wanderhirten@1",
+            "since": 0,
+            "effectiveFrom": 0,
+            "state": "active",
+            "suspendedSince": null
+          }
+        ],
+        "research": [],
+        "candidates": [],
+        "requests": [],
+        "instituted": []
+      },
+      "units": [],
+      "practice": {
+        "ledger": []
+      },
+      "tokens": [],
+      "statuses": [],
+      "meters": {},
+      "shortfall": {},
+      "bestimmung": null,
+      "modules": {
+        "lebensweise": {
+          "camp": "lager-glutreiter",
+          "migratedAt": 0
+        }
+      },
+      "id": "glutreiter",
+      "name": "Die Glutreiter vom Aschenhang",
+      "controller": "ai",
+      "identity": {
+        "wesensart": {
+          "plus": {
+            "tag": "reiten",
+            "text": "Sie sind schneller auf den Pässen als jede Nachricht."
+          },
+          "minus": {
+            "tag": "geduld",
+            "text": "Was sich nicht im Sturm nehmen lässt, lassen sie liegen."
+          }
+        },
+        "ausrichtung": "macht",
+        "appearance": "Reiter mit rußgeschwärzten Umhängen auf zottigen Bergpferden"
+      },
+      "lebensweise": "wanderhirten@1",
+      "population": {
+        "core": 3,
+        "growth": 0
+      },
+      "resources": {
+        "nahrung": 2,
+        "holz": 1,
+        "stein": 0,
+        "erz": 1,
+        "wissen": 0,
+        "herden": 3
+      },
+      "council": [
+        {
+          "id": "brakk",
+          "name": "Brakk Aschenhand",
+          "role": "heerfuehrer",
+          "goal": {
+            "text": "Die Pässe gehören dem, der sie zuerst reitet.",
+            "favor": [
+              "krieg",
+              "reiten"
+            ],
+            "oppose": [
+              "handel"
+            ]
+          },
+          "loyalty": 1,
+          "hollow": false,
+          "age": 36,
+          "lifeStage": "ruestig",
+          "leader": true,
+          "appearance": ""
+        }
+      ]
+    }
+  },
+  "relations": {
+    "esk|glutreiter": {
+      "value": -1,
+      "atWar": false,
+      "since": 0
+    },
+    "esk|hochweide": {
+      "value": 0,
+      "atWar": false,
+      "since": 0
+    },
+    "glutreiter|hochweide": {
+      "value": -1,
+      "atWar": false,
+      "since": 0
+    }
+  },
+  "modules": {},
+  "eventPool": [],
+  "ingested": {
+    "world.T0": "a89a09b75d4c3a5d"
+  },
+  "chronicle": [
+    {
+      "id": "T0-e1",
+      "turn": 0,
+      "source": "kernel",
+      "kind": "campaign.created",
+      "target": {
+        "kind": "campaign",
+        "id": "hochweide-1"
+      },
+      "change": null,
+      "reason": "Kampagne aus Welt hochland mit Seed 7 angelegt",
+      "refs": []
+    },
+    {
+      "id": "T0-e2",
+      "turn": 0,
+      "source": "agent:world",
+      "kind": "map.feature",
+      "target": {
+        "kind": "tile",
+        "id": "-9,-7"
+      },
+      "change": {
+        "field": "map.features.-9,-7",
+        "before": null,
+        "after": "erzader-kamm"
+      },
+      "reason": "Vorschlag world.T0 angenommen",
+      "refs": [
+        "world.T0"
+      ]
+    }
+  ],
+  "status": "playing"
+}

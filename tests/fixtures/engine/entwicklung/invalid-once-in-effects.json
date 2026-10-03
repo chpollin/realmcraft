@@ -1,0 +1,63 @@
+{
+  "format": "realmcraft-entwicklung",
+  "version": 1,
+  "rev": 1,
+  "appearance": "Runde Filzzelte mit Rauchkrone auf einer Hochweide",
+  "prerequisites": {
+    "all": [],
+    "any": [],
+    "if": null
+  },
+  "replaces": [],
+  "spec": null,
+  "onAcquire": [],
+  "origin": {
+    "source": "agent",
+    "practiceTags": [
+      "zug",
+      "herde"
+    ],
+    "token": null,
+    "request": null,
+    "proposal": "research.hochweide.T0"
+  },
+  "id": "filzjurten",
+  "kind": "technik",
+  "tier": 1,
+  "name": "Filzjurten",
+  "summary": "Zelte aus gewalktem Filz machen den Zug leichter und den Winter milder; das Walken kostet im Herbst Holz.",
+  "tags": [
+    "zug",
+    "herde",
+    "winter"
+  ],
+  "cost": {
+    "research": 2,
+    "resources": {}
+  },
+  "effects": [
+    {
+      "op": "resource.delta",
+      "res": "nahrung",
+      "amount": 2
+    },
+    {
+      "op": "resource.flow",
+      "res": "nahrung",
+      "amount": 1,
+      "when": [
+        "winter"
+      ]
+    }
+  ],
+  "price": [
+    {
+      "op": "resource.flow",
+      "res": "holz",
+      "amount": -1,
+      "when": [
+        "herbst"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "world.T0",
+  "agent": "world",
+  "campaign": "hochweide-1",
+  "turn": 0,
+  "basedOnRev": 0,
+  "people": null,
+  "items": [
+    {
+      "type": "feature",
+      "tile": "-9,-7",
+      "data": {
+        "id": "erzader-kamm",
+        "kind": "lagerstaette",
+        "name": "Erzader am Kamm",
+        "tags": [
+          "erz",
+          "gemsen"
+        ],
+        "resources": [
+          {
+            "key": "eisenerz",
+            "amount": 41
+          },
+          {
+            "key": "gemsen",
+            "amount": 9
+          }
+        ]
+      }
+    }
+  ]
+}

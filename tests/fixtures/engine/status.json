@@ -1,0 +1,68 @@
+{
+  "format": "realmcraft-status",
+  "version": 1,
+  "campaign": "hochweide-1",
+  "turn": 0,
+  "phase": "agents",
+  "steps": [
+    {
+      "id": "world",
+      "agent": "world",
+      "state": "done",
+      "startedAt": "2026-10-03T14:00:00Z",
+      "endedAt": "2026-10-03T14:01:10Z",
+      "summary": "Eine Erzader am Kamm vorgeschlagen.",
+      "proposals": [
+        {
+          "proposalId": "world.T0",
+          "kind": "feature",
+          "title": "Erzader am Kamm",
+          "verdict": "accepted",
+          "budget": null,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "id": "research-hochweide",
+      "agent": "research",
+      "state": "done",
+      "startedAt": "2026-10-03T14:01:12Z",
+      "endedAt": "2026-10-03T14:02:40Z",
+      "summary": "Ein Kandidat der Stufe 1 für die Hochweide-Sippen.",
+      "proposals": [
+        {
+          "proposalId": "research.hochweide.T0",
+          "kind": "entwicklung",
+          "title": "Filzjurten",
+          "verdict": "accepted",
+          "budget": {
+            "effect": 2,
+            "price": -1,
+            "net": 1,
+            "tier": 1
+          },
+          "reason": null
+        }
+      ]
+    },
+    {
+      "id": "rival-esk",
+      "agent": "rival",
+      "state": "running",
+      "startedAt": "2026-10-03T14:02:41Z",
+      "endedAt": null,
+      "summary": "",
+      "proposals": []
+    },
+    {
+      "id": "chronicler",
+      "agent": "chronicler",
+      "state": "waiting",
+      "startedAt": null,
+      "endedAt": null,
+      "summary": "",
+      "proposals": []
+    }
+  ]
+}

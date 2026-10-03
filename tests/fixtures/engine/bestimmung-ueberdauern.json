@@ -1,0 +1,54 @@
+{
+  "id": "ueberdauern",
+  "rev": 1,
+  "name": "Überdauern in den Kämmen",
+  "summary": "Die Sippen halten ihre Weiden, kommen ohne Hungertote durch die Winter und finden die Pfade über den Kamm.",
+  "tags": [
+    "weide",
+    "winter",
+    "wege"
+  ],
+  "milestones": [
+    {
+      "id": "weiden",
+      "text": "Drei Regionen mit Hochweide dauerhaft halten",
+      "predicate": {
+        "pred": "controls",
+        "count": 3,
+        "terrain": "alm"
+      }
+    },
+    {
+      "id": "winter",
+      "text": "Acht Jahreszeiten lang mindestens vier Sippen",
+      "predicate": {
+        "pred": "holds",
+        "predicate": {
+          "pred": "population.atLeast",
+          "value": 4
+        },
+        "seasons": 8
+      }
+    },
+    {
+      "id": "pfade",
+      "text": "Drei Entwicklungen der Wege kennen",
+      "predicate": {
+        "pred": "development.known",
+        "count": 3,
+        "tags": [
+          "wege"
+        ]
+      }
+    },
+    {
+      "id": "wintersiedlung",
+      "text": "Eine Wintersiedlung errichten",
+      "predicate": {
+        "pred": "settlement",
+        "kind": "wintersiedlung",
+        "count": 1
+      }
+    }
+  ]
+}

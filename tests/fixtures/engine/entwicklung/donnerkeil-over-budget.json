@@ -1,0 +1,48 @@
+{
+  "format": "realmcraft-entwicklung",
+  "version": 1,
+  "rev": 1,
+  "appearance": "",
+  "prerequisites": {
+    "all": [],
+    "any": [],
+    "if": null
+  },
+  "replaces": [],
+  "spec": null,
+  "onAcquire": [],
+  "origin": {
+    "source": "world",
+    "practiceTags": [],
+    "token": null,
+    "request": null,
+    "proposal": null
+  },
+  "id": "donnerkeil",
+  "kind": "technik",
+  "tier": 1,
+  "name": "Donnerkeil",
+  "summary": "Ein zu starker Wurf für die erste Stufe: zwei Punkte Verteidigung für einen Holzfluss.",
+  "tags": [
+    "krieg",
+    "holz"
+  ],
+  "cost": {
+    "research": 6,
+    "resources": {}
+  },
+  "effects": [
+    {
+      "op": "stat.mod",
+      "stat": "verteidigung",
+      "amount": 2
+    }
+  ],
+  "price": [
+    {
+      "op": "resource.flow",
+      "res": "holz",
+      "amount": -1
+    }
+  ]
+}

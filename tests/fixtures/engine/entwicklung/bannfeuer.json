@@ -1,0 +1,111 @@
+{
+  "format": "realmcraft-entwicklung",
+  "version": 1,
+  "rev": 1,
+  "appearance": "Glimmende Runen im Fels über dem Wall, Binder in rußgeschwärzten Mänteln",
+  "prerequisites": {
+    "all": [],
+    "any": [],
+    "if": {
+      "tierCount": 2,
+      "cmp": "gte",
+      "value": 3
+    }
+  },
+  "replaces": [],
+  "spec": null,
+  "onAcquire": [
+    {
+      "op": "relation.delta",
+      "people": "neighbours",
+      "amount": -1
+    }
+  ],
+  "origin": {
+    "source": "world",
+    "practiceTags": [],
+    "token": null,
+    "request": null,
+    "proposal": null
+  },
+  "id": "bannfeuer",
+  "kind": "technik",
+  "tier": 3,
+  "name": "Bannfeuer",
+  "summary": "Gebundene Glut hält den Wall; jede Entladung zehrt an den Bindern, und die Glut brennt nur am Berg.",
+  "tags": [
+    "magie",
+    "feuer",
+    "krieg"
+  ],
+  "cost": {
+    "research": 12,
+    "resources": {}
+  },
+  "effects": [
+    {
+      "op": "stat.mod",
+      "stat": "verteidigung",
+      "amount": 1
+    },
+    {
+      "op": "probe.mod",
+      "tags": [
+        "befestigung"
+      ],
+      "amount": 2
+    },
+    {
+      "op": "probe.mod",
+      "tags": [
+        "belagerung"
+      ],
+      "amount": 1
+    },
+    {
+      "op": "order.unlock",
+      "order": "ausfall"
+    }
+  ],
+  "price": [
+    {
+      "op": "meter",
+      "id": "glutzehrung",
+      "min": 0,
+      "max": 5,
+      "rise": {
+        "on": "use:ausfall",
+        "amount": 1
+      },
+      "decay": 0,
+      "thresholds": [
+        {
+          "at": 5,
+          "effects": [
+            {
+              "op": "population.delta",
+              "amount": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "op": "order.restrict",
+      "mode": "forbid",
+      "orders": [
+        "ausfall"
+      ],
+      "tags": [],
+      "if": {
+        "not": {
+          "controls": {
+            "terrain": "gebirge"
+          },
+          "cmp": "gte",
+          "value": 1
+        }
+      }
+    }
+  ]
+}

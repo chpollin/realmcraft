@@ -1,0 +1,69 @@
+{
+  "id": "hochland",
+  "name": "Hochland",
+  "version": "0.1.0",
+  "generation": {
+    "chunkSize": 16,
+    "elevation": { "scale": 0.045, "octaves": 5, "lacunarity": 2, "gain": 0.5, "base": 0.15, "amplitude": 1.3, "ridgeScale": 0.6, "ridgeWeight": 0.8 },
+    "moisture": { "scale": 0.07, "octaves": 3, "lacunarity": 2, "gain": 0.5, "valleyBias": 0.25 },
+    "temperature": { "scale": 0.03, "octaves": 2, "lacunarity": 2, "gain": 0.5, "amplitude": 0.5, "lapseRate": 0.7 },
+    "seaLevel": -0.2,
+    "hillThreshold": 0.22,
+    "mountainThreshold": 0.45,
+    "peakThreshold": 0.78,
+    "snowLine": -0.62,
+    "rivers": { "scale": 0.035, "octaves": 2, "width": 0.025, "moistureWidth": 0.02, "minElevation": "seaLevel", "maxElevation": "mountainThreshold" },
+    "regions": { "seedsPerChunk": [1, 2] },
+    "classification": [
+      { "terrain": "see", "elevation": [null, "seaLevel"] },
+      { "terrain": "gipfel", "elevation": ["peakThreshold", null] },
+      { "terrain": "gipfel", "elevation": ["mountainThreshold", null], "temperature": [null, "snowLine"] },
+      { "terrain": "gebirge", "elevation": ["mountainThreshold", null] },
+      { "terrain": "bergwald", "elevation": ["hillThreshold", null], "moisture": [0.1, null] },
+      { "terrain": "alm", "elevation": ["hillThreshold", null] },
+      { "terrain": "moor", "elevation": [null, -0.02], "moisture": [0.2, null] },
+      { "terrain": "wald", "moisture": [0.05, null] },
+      { "terrain": "heide", "moisture": [null, -0.3] },
+      { "terrain": "wiese" }
+    ]
+  },
+  "terrains": [
+    { "id": "see", "name": "Bergsee", "symbol": "wave", "colour": "terrain-water", "moveCost": null, "sightModifier": 0, "blocksSight": false, "buildable": false, "water": true, "yields": { "nahrung": 2, "holz": 0, "stein": 0, "erz": 0 } },
+    { "id": "moor", "name": "Moor", "symbol": "marsh", "colour": "terrain-marsh", "moveCost": 3, "sightModifier": 0, "blocksSight": false, "buildable": false, "yields": { "nahrung": 1, "holz": 0, "stein": 0, "erz": 0 } },
+    { "id": "wiese", "name": "Talwiese", "symbol": "grass", "colour": "terrain-meadow", "moveCost": 1, "sightModifier": 0, "blocksSight": false, "buildable": true, "yields": { "nahrung": 3, "holz": 0, "stein": 0, "erz": 0 } },
+    { "id": "heide", "name": "Heide", "symbol": "heath", "colour": "terrain-heath", "moveCost": 1, "sightModifier": 0, "blocksSight": false, "buildable": true, "yields": { "nahrung": 1, "holz": 0, "stein": 1, "erz": 0 } },
+    { "id": "wald", "name": "Talwald", "symbol": "tree", "colour": "terrain-forest", "moveCost": 2, "sightModifier": -1, "blocksSight": false, "buildable": true, "yields": { "nahrung": 1, "holz": 3, "stein": 0, "erz": 0 } },
+    { "id": "alm", "name": "Hochweide", "symbol": "pasture", "colour": "terrain-pasture", "moveCost": 1, "sightModifier": 1, "blocksSight": false, "buildable": true, "pasture": true, "yields": { "nahrung": 2, "holz": 0, "stein": 1, "erz": 0 } },
+    { "id": "bergwald", "name": "Bergwald", "symbol": "pine", "colour": "terrain-mountain-forest", "moveCost": 2, "sightModifier": -1, "blocksSight": false, "buildable": true, "yields": { "nahrung": 1, "holz": 2, "stein": 1, "erz": 0 } },
+    { "id": "gebirge", "name": "Gebirge", "symbol": "mountain", "colour": "terrain-mountain", "moveCost": 3, "sightModifier": 2, "blocksSight": true, "buildable": false, "mountain": true, "yields": { "nahrung": 0, "holz": 0, "stein": 3, "erz": 1 } },
+    { "id": "gipfel", "name": "Gletschergipfel", "symbol": "peak", "colour": "terrain-peak", "moveCost": null, "sightModifier": 3, "blocksSight": true, "buildable": false, "mountain": true, "yields": { "nahrung": 0, "holz": 0, "stein": 1, "erz": 0 } }
+  ],
+  "resources": [
+    { "key": "eisenerz", "name": "Eisenerz", "terrains": ["gebirge"], "frequency": 0.08, "amount": [20, 60] },
+    { "key": "kupfererz", "name": "Kupfererz", "terrains": ["gebirge", "bergwald"], "frequency": 0.05, "amount": [15, 45] },
+    { "key": "salz", "name": "Steinsalz", "terrains": ["gebirge", "alm"], "frequency": 0.04, "amount": [20, 50] },
+    { "key": "edelsteine", "name": "Bergkristall", "terrains": ["gebirge", "gipfel"], "frequency": 0.015, "amount": [3, 10] },
+    { "key": "flussgold", "name": "Flussgold", "terrains": ["wiese", "wald", "heide", "alm", "bergwald"], "river": true, "frequency": 0.04, "amount": [3, 12] },
+    { "key": "wild", "name": "Wild", "terrains": ["wald", "bergwald"], "frequency": 0.14, "amount": [10, 30] },
+    { "key": "gemsen", "name": "Gemsen", "terrains": ["alm", "gebirge"], "frequency": 0.08, "amount": [8, 20] },
+    { "key": "fisch", "name": "Fischgründe", "terrains": ["see"], "river": true, "frequency": 0.18, "amount": [10, 30] },
+    { "key": "heilkraeuter", "name": "Heilkräuter", "terrains": ["alm", "wiese", "bergwald"], "frequency": 0.06, "amount": [5, 15] },
+    { "key": "torf", "name": "Torf", "terrains": ["moor"], "frequency": 0.3, "amount": [20, 50] },
+    { "key": "feuerstein", "name": "Feuerstein", "terrains": ["heide"], "frequency": 0.12, "amount": [10, 25] },
+    { "key": "lehm", "name": "Lehm", "terrains": ["wiese", "moor"], "river": true, "frequency": 0.07, "amount": [20, 40] }
+  ],
+  "start": {
+    "terrains": ["alm"],
+    "adjacentTerrains": ["gebirge", "gipfel"],
+    "waterTerrains": ["see"],
+    "waterRadius": 2,
+    "resourceRadius": 2,
+    "minResources": 1,
+    "searchRadius": 48,
+    "peopleTerrains": ["wiese", "heide", "wald", "alm", "bergwald"]
+  },
+  "names": {
+    "prefixes": ["Hoch", "Schwarz", "Grau", "Wolfs", "Adler", "Eis", "Stein", "Kalt", "Wind", "Rauh", "Fels", "Bären", "Gams", "Nebel", "Sturm", "Tannen", "Weiß", "Moos", "Lärchen", "Silber", "Eisen", "Raben", "Geier", "Hirsch", "Krähen", "Föhren", "Zirben", "Lahn", "Ur", "Dorn", "Hagel", "Brand", "Mittag", "Roß", "Kessel", "Wetter"],
+    "suffixes": ["tal", "kar", "alm", "grat", "eck", "horn", "au", "wald", "stein", "joch", "boden", "leiten", "matt", "berg", "moos", "feld", "schlag", "egg", "wand", "kogel", "rain", "graben", "hang", "kamm"]
+  }
+}

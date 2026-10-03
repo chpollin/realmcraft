@@ -1,0 +1,59 @@
+{
+  "about": "Expected schema verdict per fixture. issues lists the exact {code, path} the interpreter reports. budget is computed by hand from WEIGHTS and TIERS in engine/schemas/effects.js (effect = E, price = P, net = E + P, research = net x (tier + 1)) and is the target for the budget validator; budget issues are not schema issues.",
+  "fixtures": [
+    { "file": "campaign-turn0.json", "schema": "campaign", "valid": true },
+    { "file": "draft-pending-roll.json", "schema": "draft", "valid": true },
+    { "file": "status.json", "schema": "status", "valid": true },
+    { "file": "bestimmung-ueberdauern.json", "schema": "bestimmung", "valid": true },
+    { "file": "proposal-research.json", "schema": "proposal", "valid": true },
+    { "file": "proposal-world-feature.json", "schema": "proposal", "valid": true },
+    {
+      "file": "proposal-invalid-narrative-value.json", "schema": "proposal", "valid": false,
+      "issues": [{ "code": "schema.additional", "path": "/items/0/amount" }]
+    },
+    {
+      "file": "entwicklung/filzjurten.json", "schema": "entwicklung", "valid": true,
+      "budget": { "effect": 2, "price": -1, "net": 1, "tier": 1, "research": 2, "issues": [] }
+    },
+    {
+      "file": "entwicklung/pulverwall.json", "schema": "entwicklung", "valid": true,
+      "budget": { "effect": 8, "price": -5, "net": 3, "tier": 3, "research": 12, "issues": [] }
+    },
+    {
+      "file": "entwicklung/bannfeuer.json", "schema": "entwicklung", "valid": true,
+      "budget": { "effect": 8, "price": -5, "net": 3, "tier": 3, "research": 12, "issues": [] }
+    },
+    {
+      "file": "entwicklung/donnerkeil-over-budget.json", "schema": "entwicklung", "valid": true,
+      "budget": { "effect": 6, "price": -3, "net": 3, "tier": 1, "research": 6, "issues": ["budget_effect"] }
+    },
+    {
+      "file": "entwicklung/invalid-unknown-op.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.discriminator", "path": "/effects/0/op" }]
+    },
+    {
+      "file": "entwicklung/invalid-once-in-effects.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.discriminator", "path": "/effects/0/op" }]
+    },
+    {
+      "file": "entwicklung/invalid-amount-range.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.maximum", "path": "/effects/0/amount" }]
+    },
+    {
+      "file": "entwicklung/invalid-missing-price.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.required", "path": "/price" }]
+    },
+    {
+      "file": "entwicklung/invalid-spec-for-kind.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.type", "path": "/spec" }]
+    },
+    {
+      "file": "entwicklung/invalid-extra-field.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.additional", "path": "/power" }]
+    },
+    {
+      "file": "entwicklung/invalid-condition-depth.json", "schema": "entwicklung", "valid": false,
+      "issues": [{ "code": "schema.one_of", "path": "/effects/0/if/all/0/any/0" }]
+    }
+  ]
+}

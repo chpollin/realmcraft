@@ -1,0 +1,20 @@
+{
+  "format": "realmcraft-proposal",
+  "version": 1,
+  "proposalId": "chronicler.T0",
+  "agent": "chronicler",
+  "campaign": "hochweide-1",
+  "turn": 0,
+  "basedOnRev": 1,
+  "people": null,
+  "items": [
+    {
+      "type": "narrative",
+      "refs": [
+        "T0-e1"
+      ],
+      "text": "Die Sippen schlagen die Jurten am Silberegg auf.",
+      "amount": 3
+    }
+  ]
+}
