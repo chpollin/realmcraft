@@ -88,7 +88,8 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
   if (v.duplicate) return { ok: true, verdict: 'duplicate', hash: v.hash, issues: [], items: [], state, library, drafts: {}, texts: [], events: [] };
   if (hasErrors(v.issues)) return failed(state, library, 'rejected', v.hash, v.issues, v.items.map((it) => ({ ...it, type: proposal?.items?.[it.index]?.type ?? null, title: '' })));
 
-  const barred = proposal.items.filter((i) => !phaseAllows(state.phase, proposal.agent, i.type));
+  // A non-object item is already rejected by the validator and has no type to bar.
+  const barred = proposal.items.filter((i) => i && typeof i === 'object' && !Array.isArray(i) && !phaseAllows(state.phase, proposal.agent, i.type));
   if (barred.length) {
     const issues = barred.map((i) => issue('phase', '/phase', `phase ${state.phase} does not admit "${i.type}" items of agent "${proposal.agent}"`, {
       params: { reason: 'item-barred', phase: state.phase, type: i.type, agent: proposal.agent },
@@ -267,7 +268,7 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
 
   const items = v.items.map((it) => {
     const item = proposal.items[it.index];
-    const entry = { ...it, type: item.type, title: titleOf(item) };
+    const entry = { ...it, type: item?.type ?? null, title: item && typeof item === 'object' ? titleOf(item) : '' };
     if (it.verdict !== 'accepted') return entry;
     const kernelIssues = applyItem(item, proposal.people, `/items/${it.index}`);
     if (kernelIssues.length) return { ...entry, verdict: 'rejected', issues: [...entry.issues, ...kernelIssues] };

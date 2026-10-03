@@ -24,7 +24,7 @@ import { kissue } from './codes.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
 import { calendarOf } from './calendar.js';
-import { createContext, finish, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
+import { createContext, finish, fitLabour, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
 import { clone, peopleIds, relKey, settlementsOf, KERN_SLICE, DEFAULT_SETTINGS } from './state.js';
 import { DIFFICULTIES, PATTERNS } from '../schemas/common.js';
 import { applyOnce, applyOnceList, standingOf, ofOp } from './effects.js';
@@ -96,7 +96,8 @@ export function orderTile(state, world, pid, order) {
 
 /**
  * Fields added in M1 that a campaign created before them lacks: the settings
- * and the location of every council member. Written with a log entry at the
+ * and the location of every council member; labour that a loss of clans left
+ * larger than the people is trimmed. Written with a log entry at the
  * first transition after the kernel update, so the state accounts for them.
  */
 export function migrate(tc) {
@@ -109,6 +110,8 @@ export function migrate(tc) {
     for (const m of tc.state.peoples[pid].council) {
       if (!Object.hasOwn(m, 'at')) setMember(tc, pid, m.id, 'at', null, `${m.name} is at home`, { kind: 'member.at' });
     }
+    // States saved before a loss of clans trimmed the labour may assign more clans than exist.
+    fitLabour(tc, pid);
   }
 }
 
@@ -788,27 +791,8 @@ function cleanup(tc) {
       return true;
     });
     if (keep.length !== people.statuses.length) setPeople(tc, pid, 'statuses', keep, 'statuses expire or end on a setback', { kind: 'status.end' });
-    trimLabour(tc, pid);
   }
   research.expire(tc);
-}
-
-// Clans lost this season (famine, settlers, an effect) no longer work. The
-// standing assignment keeps at most core clans, food filled first, so the
-// written state stays valid and the next draft starts from a feasible labour.
-function trimLabour(tc, pid) {
-  const pop = tc.state.peoples[pid].population;
-  const assigned = pop.assigned ?? {};
-  if (Object.values(assigned).reduce((a, b) => a + b, 0) <= pop.core) return;
-  const keys = Object.keys(assigned).sort((a, b) => (b === RULES.food) - (a === RULES.food) || (a < b ? -1 : a > b ? 1 : 0));
-  let left = pop.core;
-  const next = {};
-  for (const k of keys) {
-    const n = Math.min(assigned[k], left);
-    left -= n;
-    if (n > 0) next[k] = n;
-  }
-  setPeople(tc, pid, 'population.assigned', next, 'labour follows the clans that are left', { kind: 'population.assign' });
 }
 
 // Practice ledger, module slices of newly active modules, counters.

@@ -140,6 +140,35 @@ test('an empty or unparseable lock blocks only briefly, an old one is broken', (
   }
 });
 
+test('a stale lock is broken by one waiter at a time, under a guard that is itself breakable', (t) => {
+  const dir = tempCampaign(t);
+  const path = join(dir, '.x.lock');
+  const dead = JSON.stringify({ pid: 2 ** 31 - 1, at: Date.now(), token: 'dead' });
+  writeFileSync(path, dead);
+  writeFileSync(`${path}.break`, JSON.stringify({ pid: process.pid, at: Date.now(), token: 'breaker' }));
+  assert.throws(() => withLock(dir, 'x', () => 'ran', { timeoutMs: 50 }), LockError, 'a live breaker holds the guard');
+  assert.equal(readFileSync(path, 'utf8'), dead);
+  writeFileSync(`${path}.break`, dead);
+  assert.equal(withLock(dir, 'x', () => 'ran', { timeoutMs: 1000 }), 'ran', 'the guard of a dead breaker is broken too');
+  assert.deepEqual(readdirSync(dir).filter((f) => f.startsWith('.x.')), []);
+});
+
+// Many short-lived writers: a waiter read the record of a holder that then
+// released and exited, judged the lock abandoned by the dead pid and removed
+// the lock the next holder had just taken, which lost increments.
+test('heavy contention: thirty-two short-lived processes lose no increment', async (t) => {
+  const dir = tempCampaign(t);
+  const counter = join(dir, 'n.json');
+  writeJsonAtomic(counter, 0);
+  const code = `
+    import { readJson, withLock, writeJsonAtomic } from ${JSON.stringify(IO)};
+    for (let j = 0; j < 5; j++) withLock(${JSON.stringify(dir)}, 'n', () => writeJsonAtomic(${JSON.stringify(counter)}, readJson(${JSON.stringify(counter)}) + 1), { timeoutMs: 60000 });`;
+  const runs = await Promise.all(Array.from({ length: 32 }, () => child(code)));
+  assert.deepEqual(runs.map((r) => r.status), Array(32).fill(0), runs.map((r) => r.err).join('\n'));
+  assert.equal(readJson(counter), 160);
+  assert.deepEqual(readdirSync(dir).filter((f) => f.startsWith('.n.') || f.endsWith('.tmp')), []);
+});
+
 test('readJson: fallback for missing files, readable errors otherwise', (t) => {
   const dir = tempCampaign(t);
   assert.equal(readJson(join(dir, 'fehlt.json'), { fallback: 7 }), 7);
