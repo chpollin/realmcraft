@@ -44,7 +44,7 @@ The data contracts of RealmCraft are the schemas under `engine/schemas/`. Where 
 
 `welt.json` is validated by `engine/world` (required keys in `WELT_REQUIRED_KEYS`). `node engine/cli.mjs schema <name>` prints any schema as JSON.
 
-Files without a schema of their own are `world.lock.json`, `rolls.json` (append-only roll ledger, format `realmcraft-rolls`, entries `{ turn, people, probe, fingerprint, value }`), `log/journal.json` (hash chain, entries of format 2 carry `kernel`, `prev`, `hash`, `libraryCount`, `libraryHash`, `draftsHash`, `rolls` with count and hash, and `worldHash`, the first chained entry after an older journal carries `base` with an anchor), `anchors/` (anchor states of `repin` and of the chain start) and `run.json`.
+Files without a schema of their own are `world.lock.json`, `rolls.json` (append-only roll ledger, format `realmcraft-rolls`, entries `{ turn, people, probe, fingerprint, value }`), `log/journal.json` (hash chain, entries of format 2 carry `kernel`, `prev`, `hash`, `libraryCount`, `libraryHash`, `draftsHash`, `rolls` with count and hash, and `worldHash`, the first chained entry after an older journal carries `base` with an anchor), `anchors/` (anchor states of `repin` and of the chain start), `run.json` and the save manifests (section Saves).
 
 ## Campaign state
 
@@ -130,6 +130,36 @@ A `task` carries `campaign`, `turn`, `rev`, `agent`, `people`, `respondAs { prop
 A log entry (`event`) is `{ id, turn, source, kind, target { kind, id }, change, reason, refs, step, visibleTo }`. `source` is `kernel`, `player` or `agent:<id>`. `change` is `{ field, before, after }`, `{ field, delta }` or null. `visibleTo` lists the peoples whose projection shows the entry, or exactly `["all"]`. An entry without `visibleTo` reaches no projection.
 
 A round report `log/T<turn>.json` holds `revBefore`, `revAfter`, `hashBefore`, `hashAfter`, `sections` (calendar, orders, probes, draws, substitutions and more in kernel form) and `events`, the full unfiltered log of the turn. The view `view/<people>.json` is the projection of the state ([rules-kernel.md](rules-kernel.md), section 13) without `rulesVersion`, `rng`, `eventPool` and `ingested`, with foreign peoples in the `foreignPeople` shape.
+
+## Saves
+
+A save lives in `saves/<slot>/` of its campaign, with the copy of the campaign folder under `campaign/` and the manifest `manifest.json` (format `realmcraft-save`, version 1, no schema of its own). Slot ids match the campaign id pattern `^[a-z][a-z0-9-]{1,40}$`. The kernel names them `save-<rev>` and `autosave-<rev>` and appends `-2`, `-3` and so on instead of overwriting a slot.
+
+```js
+{
+  format: 'realmcraft-save', version: 1,
+  slot,                        // folder name under saves/
+  label,                       // the player's text, 1 to 80 characters without control or bidi override characters; null for an autosave
+  auto,                        // null, or { reason: 'load', slot } for the files a load replaced
+  campaign, turn, season, year, phase, status, rev,
+  created,                     // ISO time
+  stateHash,                   // kernel hash of the saved state
+  journalHead,                 // hash of the last journal entry of the copy
+  world: { id, hash },         // the package hash the copy is pinned to
+}
+```
+
+The CLI answers `save` with `{ save: manifest }`, `saves` with `{ saves: [manifest] }` newest first, and `load` with `{ slot, autosave, turn, phase, status, rev, stateHash, drift }`. Refusals are `cli.missing_input` (no `--name` or `--slot`, exit 3), `format` with reason `label`, `slot-id` or `fork-unsupported` (exit 2), `cli.no_save` (exit 3), `phase` with reason `save-needs-planning` or `load-needs-planning`, `cli.turn_running` while `run.json` is active, `cli.locked` while another command holds the campaign lock, and `tamper` with reason `save-edited` or `save-campaign` for a copy that fails its checks (all exit 4). Warnings are `cli.world_drift` with reason `save-world` after loading a save of another package, and `cli.recovered` with reason `load-completed` or `load-dropped` after an interrupted load.
+
+The dev server relays these commands ([architecture.md](architecture.md), route table in `serve.mjs`).
+
+| Method and path | Body | Answer |
+|---|---|---|
+| `GET /api/campaigns/<cid>/saves` | none | 200 `{ ok, exit, saves, issues }` |
+| `POST /api/campaigns/<cid>/saves` | `{ label }` | 201 `{ ok, exit, save, issues }` |
+| `POST /api/campaigns/<cid>/load` | `{ slot }` | 200 `{ ok, exit, slot, autosave, turn, phase, status, rev, stateHash, drift, issues }`, then the events `view` and `status` |
+
+Bodies are JSON objects of at most 1 KB without other fields. Errors answer `{ error, issues }` with 400 for an invalid field, 404 for an unknown campaign or slot, 409 for the phase, a running turn or a held lock, and 413 for a larger body.
 
 ## Gaps known on main
 

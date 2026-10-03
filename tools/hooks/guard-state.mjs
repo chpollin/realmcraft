@@ -12,8 +12,8 @@
 //     write anywhere, and no command filter closes that.
 //   Read, Glob, Grep: only their task, the files the task lists under read,
 //     their own proposal, role-specific folders of the judges, welten/ and
-//     engine/schemas/. Other peoples' views, drafts, the journal and the full
-//     state (unless the task lists it) stay closed.
+//     engine/schemas/. Other peoples' views, drafts, the journal, saves/ and
+//     the full state (unless the task lists it) stay closed.
 // Main session and other subagents:
 //   file tools: deny any target under <root>/campaigns/ except a proposal file.
 //   Bash, PowerShell: deny commands that would write under campaigns/. This is
@@ -95,8 +95,10 @@ const JUDGE_DIRS = {
   'judge-coherence': ['narrative', 'log', 'agents/ingested'],
   'judge-narrative': ['narrative/chronik', 'log', 'view'],
 };
-// Raw kernel files no agent reads directly, whatever a task lists.
-const CLOSED = /^(?:log\/journal\.json|drafts(?:\/|$)|run\.json$|\.[^/]*\.lock$)/;
+// Raw kernel files no agent reads directly, whatever a task lists. Saves and
+// the staging folder of a load hold whole earlier campaigns, every people's
+// drafts and the journal included.
+const CLOSED = /^(?:log\/journal\.json|drafts(?:\/|$)|saves(?:\/|$)|\.restore(?:\/|$)|run\.json$|\.[^/]*\.lock$)/;
 const OPEN_TREES = ['welten', 'engine/schemas'];
 
 const under = (rel, dir) => foldCase(rel) === foldCase(dir) || foldCase(rel).startsWith(`${foldCase(dir)}/`);

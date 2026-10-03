@@ -79,6 +79,18 @@ node engine/cli.mjs repin --campaign <cid> --json
 
 `repin` validates the package, refuses during `resolving`, records `campaign.repin` with source `player`, updates `world.lock.json`, writes an anchor under `anchors/` from which `replay` starts, and answers `changed: false` when nothing changed.
 
+## Save and load
+
+Saving and loading work in phase planning while no `/zug` run is active. A load also works after the campaign has ended.
+
+```sh
+node engine/cli.mjs save --name "Vor dem Winter" --campaign <cid> --json   # -> save.slot, e.g. save-37
+node engine/cli.mjs saves --campaign <cid> --json                          # manifests, newest first
+node engine/cli.mjs load --slot save-37 --campaign <cid> --json            # -> autosave names the replaced files
+```
+
+A load restores the save in place and keeps the files it replaces as `autosave-<rev>`, so loading that slot undoes the load. A save made under another world package restores into the drift state and needs `repin` before the next transition. The board reaches the same commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load` ([data-contracts.md](data-contracts.md)). Saves stay under `campaigns/<cid>/saves/` and are deleted with the campaign folder. Agents never read them.
+
 ## Recovery
 
 | Symptom | Meaning | Action |
@@ -89,6 +101,10 @@ node engine/cli.mjs repin --campaign <cid> --json
 | warning `cli.downstream` | a view, report or text file after the commit could not be written | the state is committed. The next transition rewrites the derived files |
 | exit 4 with `cli.stale_rev` or `phase` | wrong phase or a newer revision | read `status` and continue from the actual phase, `/zug` resumes an interrupted turn |
 | exit 4 with `cli.world_drift` | the world package changed | `repin` as above |
+| exit 4 with `cli.turn_running` | save or load during an active `/zug` run | finish the turn. After a crashed run, `node tools/harness/run-marker.mjs end --campaign <cid>` |
+| exit 4 with `cli.locked` | another command holds the campaign lock | repeat when it has finished |
+| warning `cli.recovered` with reason `load-completed` or `load-dropped` | a load was interrupted and the next command completed or dropped it | nothing. A completed load names its autosave |
+| exit 4 with `tamper` on `load` | the save differs from its manifest or journal | load another slot. The campaign is unchanged |
 | an agent hangs | a phase B step does not end | `node tools/harness/status-note.mjs step <agent>-<people or all> failed --summary "<reason>" --campaign <cid>` and continue, the kernel uses the fallback |
 | the board shows an outdated agent status | status and files disagree | `node tools/harness/status-note.mjs sync --campaign <cid>` |
 | a lock file remains after a crash | `.campaign.lock` or another `.<name>.lock` in the campaign folder nothing. A lock whose process is gone or which is older than its stale limit is broken by the next writer, an empty or unreadable lock after 2 seconds |

@@ -9,6 +9,7 @@ import { ALLOWED_HOSTS, HOST, LOOPBACK_BIND, PORT } from './server/config.mjs';
 import { forbidden, notFound, sendIssues, serverIssue } from './server/http.mjs';
 import { handleCampaignApi, handleCampaignFile, handleCampaignList, isCampaignPath } from './server/campaigns.mjs';
 import { handleActivate, handleCreate } from './server/newgame.mjs';
+import { handleLoad, handleSaveCreate, handleSaveList } from './server/saves.mjs';
 import { handleDraft, handleSeal } from './server/turn.mjs';
 import { handleEvents, watchCampaigns } from './server/sse.mjs';
 import { handleEnvJs, handleStatic } from './server/static.mjs';
@@ -41,6 +42,24 @@ import { handleWorlds } from './server/worlds.mjs';
  *   GET  /api/campaigns/<cid>/content       library items referenced by the player's view
  *   GET  /api/campaigns/<cid>/draft         { draft } the player's stored draft or null
  *   GET  /api/campaigns/<cid>/chronik       { entries: [{ turn, file, text }] }
+ *   GET  /api/campaigns/<cid>/saves         `cli saves`: { ok, exit, saves: [manifest], issues },
+ *                                           newest first. manifest: { format, version, slot,
+ *                                           label (string, null for an autosave), auto (null or
+ *                                           { reason: 'load', slot }), campaign, turn, season,
+ *                                           year, phase, status, rev, created, stateHash,
+ *                                           journalHead, world: { id, hash } }. The label is
+ *                                           the player's text and is shown as text only.
+ *   POST /api/campaigns/<cid>/saves { label }
+ *                                           `cli save`, label 1 to 80 characters without control
+ *                                           characters: 201 { ok, exit, save: manifest, issues }
+ *   POST /api/campaigns/<cid>/load { slot } `cli load`, which first saves the current files as
+ *                                           autosave-<rev>: { ok, exit, slot, autosave, turn,
+ *                                           phase, status, rev, stateHash, drift, issues }, then
+ *                                           SSE view and status. Save and load answer 400 for an
+ *                                           invalid field, 404 for an unknown campaign or slot,
+ *                                           409 while a turn runs (cli.turn_running), outside
+ *                                           planning (phase) or while the lock is held
+ *                                           (cli.locked). Their bodies are at most 1 KiB.
  *   GET  /api/worlds                        world packages: [{ id, name, version,
  *                                           templates: [{ id, name }], languages,
  *                                           difficulties, defaultDifficulty, seed: { min, max } }]
@@ -60,6 +79,8 @@ const ROUTES = [
   { path: /^\/api\/campaigns$/, on: { GET: handleCampaignList, POST: handleCreate } },
   { path: /^\/api\/campaigns\/([^/]+)\/(content|draft|chronik)$/, on: { GET: handleCampaignApi } },
   { path: /^\/api\/campaigns\/([^/]+)\/activate$/, on: { POST: handleActivate } },
+  { path: /^\/api\/campaigns\/([^/]+)\/saves$/, on: { GET: handleSaveList, POST: handleSaveCreate } },
+  { path: /^\/api\/campaigns\/([^/]+)\/load$/, on: { POST: handleLoad } },
   { path: /^\/api\/worlds$/, on: { GET: handleWorlds } },
   { path: /^\/api\/draft$/, on: { POST: handleDraft } },
   { path: /^\/api\/seal$/, on: { POST: handleSeal } },

@@ -30,7 +30,7 @@ RealmCraft is plain ES modules without a build step on Node 21 or later. Four pa
 | Schemas | `engine/schemas/` | Data contracts of every file, the primitive set and the budget tables ([data-contracts.md](data-contracts.md)) |
 | Harness IO | `engine/harness/` | Atomic file IO with locks, task building, ingest of proposals, `status.json` (Node only) |
 | Fallback AI | `engine/ai/fallback.js` | Deterministic draft for an AI people without a valid agent draft, computed on its projection |
-| CLI | `engine/cli.mjs` | The only writer of `campaigns/<cid>/`, with journal, roll ledger, campaign lock and replay |
+| CLI | `engine/cli.mjs` | The only writer of `campaigns/<cid>/`, with journal, roll ledger, campaign lock, replay and named saves |
 | World packages | `welten/<id>/` | Generator, rules, labels, style and content of a world ([world-packages.md](world-packages.md)) |
 | Agent harness | `.claude/agents/`, `.claude/commands/`, `tools/hooks/`, `tools/harness/`, `.claude/settings.json` | Subagents, `/zug` and `/partie`, guard and status hooks, helpers ([agents-harness.md](agents-harness.md)) |
 | Game board | `spielbrett/` | Map-first browser surface that runs the kernel's preview on the player's projection ([frontend.md](frontend.md)) |
@@ -64,10 +64,14 @@ The server never computes game logic. A draft change becomes a CLI `preview --dr
 ## Trust boundaries
 
 - Agents to kernel. Agents write only one proposal file. The validator checks every item against schema, primitive set, budget, grounding and limits, and `ingest` applies only accepted items. Text items carry no values.
-- Agents to files. Hooks deny rc subagents any shell, any write except their own proposal and any read beyond their task, the files it lists, their proposal, `welten/` and `engine/schemas/` ([agents-harness.md](agents-harness.md)). The hooks are a guard, the kernel is the proof.
+- Agents to files. Hooks deny rc subagents any shell, any write except their own proposal and any read beyond their task, the files it lists, their proposal, `welten/` and `engine/schemas/` ([agents-harness.md](agents-harness.md)). `saves/` and the staging folder `.restore/` stay closed even when a task lists a file in them. The hooks are a guard, the kernel is the proof.
 - Kernel to files on disk. Every transition appends to `log/journal.json`, a hash chain over state, library prefix, drafts, roll ledger and world package. A transition on files that do not match the last entry is refused (`tamper`). An interrupted commit is rolled forward by the next transition. `replay` re-runs the campaign from `new` or the latest anchor and compares hashes, which is the full proof.
-- Browser to server. Campaign files are served from a strict whitelist, namely the campaign index, the player's view and events, `status.json`, narrative files and a player-filtered summary of round reports. POST endpoints accept only loopback clients, same-origin requests, `application/json` up to 64 KB and drafts of the campaign's player people. The server binds to 127.0.0.1 by default and checks the `Host` header.
+- Browser to server. Campaign files are served from a strict whitelist, namely the campaign index, the player's view and events, `status.json`, narrative files and a player-filtered summary of round reports. POST endpoints accept only loopback clients, same-origin requests, `application/json` up to 64 KB (1 KB for save and load) and drafts of the campaign's player people. Save labels and slot ids are checked against the kernel's limits before the CLI runs, and a label is the player's text, which the board shows as text only. The server binds to 127.0.0.1 by default and checks the `Host` header.
 - Secrets. The `.env` key serves only the legacy dashboard's image generation. It never enters campaign files, knowledge or commits.
+
+## Saves
+
+`save` copies the campaign folder under the campaign lock into a hidden folder below `saves/` and renames it to the slot once the copy and the manifest are complete. `load` stages the slot in `.restore/new` and checks the staged copy with the checks of a transition (journal chain, state hash, library and roll ledger prefixes, world drift allowed) and against its manifest. It then writes `autosave-<rev>` of the current files and only after that `.restore/step.json`. The swap moves the current entries into `.restore/old` (step `staged`), rewrites the marker to `swapped` and moves the staged entries in. Every rename is atomic, so the next command of any kind drops a staging without marker and completes one with marker, as an interrupted commit is rolled forward. After the swap the CLI checks the campaign again and rewrites the player views, the index row and `status.json`. The server then pushes `view` and `status` over the event stream, because its watcher reports no event for a renamed folder ([decisions.md](decisions.md), D24).
 
 ## Determinism
 
@@ -98,6 +102,9 @@ campaigns/
     agents/verdicts/                 ingest verdict per proposal
     narrative/chronik/T0006.md       chronicle per turn
     narrative/images/                images
+    saves/<slot>/manifest.json       manifest of a named save or an autosave
+    saves/<slot>/campaign/           copy of the folder without saves/, lock files and run.json
+    .restore/                        staging of a load (new/, old/, step.json), removed when it ends
 ```
 
 The formats are described in [data-contracts.md](data-contracts.md).

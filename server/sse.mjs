@@ -42,6 +42,17 @@ function notify(event, cid, file, key = '') {
   }, 120));
 }
 
+/**
+ * Pushes 'view' and 'status' of a campaign without waiting for the watcher.
+ * A load swaps whole folders, and a renamed folder is no file event the
+ * watcher matches. Debounced together with the watcher's own events.
+ */
+export async function pushCampaign(cid) {
+  const player = await playerOf(cid);
+  if (player) notify('view', cid, `view/${player}.json`, player);
+  notify('status', cid, 'status.json');
+}
+
 function onChange(_event, filename) {
   if (!filename) return;
   const [cid, ...rest] = String(filename).replace(/\\/g, '/').split('/');
