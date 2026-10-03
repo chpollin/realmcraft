@@ -1,90 +1,68 @@
 # RealmCraft
 
-## Entwicklung zum Echtzeitstrategiespiel
+RealmCraft is a turn-based open-world strategy game in the browser. You lead a people through the seasons of a generated hex world that grows as you explore it. There is no fixed technology tree. Your people develops from what it actually does, language-model agents propose new achievements, events, council voices, rival moves and a chronicle, and a deterministic rules kernel checks every proposal against a power budget before it counts. Every decision shows its consequences before you make it, and victory comes from fulfilling your people's destiny.
 
-Das Ziel ist ein Echtzeitstrategiespiel im Browser mit Basisaufbau, organisierter Bevölkerung, Zuzug, Technologie und fortwirkenden politischen Entscheidungen. Friedliche Entwicklung, Umwelt- und Geschäftskonflikte sowie Verteidigung und offensiver Krieg gehören dazu. Neue Weltpakete sollen unterschiedliche Welten, Level und Gestaltungen ermöglichen. Die laufende Partie benötigt keine Modellantwort.
+The specification and architecture live in [knowledge/](knowledge/INDEX.md).
 
-Der [Implementierungsplan](docs/RealmCraft-Echtzeitstrategie.md) konkretisiert Architektur und ersten Siedlungsausschnitt. [User Stories und Abnahme](docs/RealmCraft-User-Stories.md) vergleichen das Ziel mit der vorhandenen Umsetzung. Der [Arbeitsstand](docs/RealmCraft-Arbeitsstand.md) ermöglicht die Fortsetzung, [docs/INDEX.md](docs/INDEX.md) erschließt das Entwicklungswissen. Die Echtzeitlaufzeit ist noch nicht implementiert. Die folgenden Spiele bleiben Rundenprototypen.
+## How it works
 
-## Strategiespiel Nachtmeer
+- A deterministic rules kernel under `engine/` computes every value. `engine/cli.mjs` is the only writer of campaign state.
+- World packages under `welten/` hold generator, rules, labels and content. Hochland is the first world.
+- The game board under `spielbrett/` is a map-first browser surface that runs the kernel's preview on your people's view.
+- Claude Code is the game master. The command `/zug` runs a turn with subagents for world, research, council, rivals and chronicle, and judges check coherence, balance and narrative in the background.
 
-Unter [spiel/](spiel/) führt eine vollständige Partie durch sechs Gezeiten. Du erschließt Inseln, versorgst den Hafen von Lys und baust ein Leuchtfeuernetz auf. Entscheidungen über Schutzsuchende, Gildenrechte und gemeinsames Wissen verändern spätere Handlungen. Die Partie läuft ohne Würfel und ohne Modellzugang und besitzt eigene Speicherstände einschließlich offener Befehle.
+## Requirements
 
-Nach `npm run serve` öffnet `http://localhost:4173/spiel/` das Strategiespiel. Umfang, Regeln und Prüfergebnisse stehen in [docs/Nachtmeer-Implementierung.md](docs/Nachtmeer-Implementierung.md). `npm run simulate:nachtmeer` führt zwei unterschiedliche Strategien ohne Oberfläche aus. Gestaltung, Geschichte und Spielbalance sind noch nicht vom Nutzer abgenommen.
+Node 21 or later and Claude Code for play with agents. There is no build step.
 
-Die [Kartenkammer](docs/Nachtmeer-Kartenkammer.md) verbindet eine gezeichnete Seekarte mit Ortsberichten und dem Beschlussregister. Eine [isolierte Gestaltungsprobe](design/nachtmeer/kartenkammer.html) zeigt die Sternwarte vor der Erschließung, im Bauentwurf und mit aktivem Feuer. Sie verändert keine gespeicherte Partie.
-
-Die drei früheren [Designstudien](design/nachtmeer/vergleich.html) bleiben zum Vergleich verfügbar. Das frühere Szenario [Der erste Winter](spiel/winter.html) und seine [Regeldokumentation](docs/Strategiespiel-M1.md) sind weiterhin erreichbar.
-
-## Spielleiterverfahren und Dashboard
-
-RealmCraft ist zugleich ein erzählendes Strategie-Rollenspiel mit einem Large Language Model (LLM) als Spielleiter, dem Chronisten. Du führst ein Volk über Jahre und Kapitel. Der Chronist legt die Lage offen und nennt Zielwert und Modifikatoren, du entscheidest und würfelst 1d10 selbst. Ein mitlaufendes Dashboard spiegelt den Stand und erzeugt Bilder im einheitlichen Stil der Partie, etwa von Beratern, Mächten, Karte und Siedlungen.
-
-Gespielt wird im Chat mit einem LLM oder im Terminal mit [Claude Code](https://claude.com/claude-code) gegen den lokalen Live-Server. Beide Wege beschreibt [CLAUDE.md](CLAUDE.md) im Abschnitt Zwei Spielweisen.
-
-## Schnellstart
-
-```bash
+```sh
 npm install
-npm run serve                    # Bash: PORT=4173 node serve.mjs
 ```
 
-```powershell
-$env:PORT=4173; node serve.mjs   # PowerShell
+## Run
+
+```sh
+npm run serve
 ```
 
-Dann im Browser `http://localhost:4173` öffnen und einen Speicherstand laden, per Knopf, Drag and Drop oder Einfügen. Auf der veröffentlichten Seite ist ein Beispielstand voreingestellt, ein eigener lässt sich jederzeit darüberladen.
+Open `http://localhost:4173/spielbrett/`. Without a campaign the board shows how to create one, and `?demo` shows the design prototype.
 
-## Bildgenerierung (optional)
+## Play with Claude Code
 
-Für die Bilder braucht es einen Gemini-API-Key. Er wird entweder in den Einstellungen eingegeben oder in einer `.env` im Repository-Root abgelegt:
+1. Start Claude Code in the repository.
+2. Create a campaign with `/partie neu hochland 48213 bergnomaden hochland-1`, or in the terminal with `node engine/cli.mjs new hochland --seed 48213 --as bergnomaden --id hochland-1`.
+3. Type `/zug` to run the first agent round, then plan in the browser at `http://localhost:4173/spielbrett/?campaign=hochland-1`.
+4. Roll your probes on the board, click "Zug beenden" and type `/zug`. The game master resolves the season and the agents work while you plan the next one.
 
-```
-GEMINI_API_KEY=dein-key
-```
-
-Der Key bleibt lokal und wird nie committet.
+Without agents a campaign also runs from the CLI alone, with pool content and a fallback policy for the rivals. The runbook is [knowledge/operations.md](knowledge/operations.md).
 
 ## Tests
 
-```bash
-npm test                    # npm run check und Unit-Tests (node:test)
-npm run test:e2e            # End-to-End-Tests (Playwright)
-npm run test:visual         # Visual-Snapshots (Playwright)
-npm run test:visual:update  # Baselines nach gewollter UI-Änderung neu schreiben
-npm run validate:savegame   # savegame.json gegen das Schema prüfen
+```sh
+npm test                                   # static check, unit and acceptance tests
+PLAYWRIGHT_CHANNEL=chrome npm run test:e2e # browser tests in the installed Chrome
 ```
 
-`npm run check` prüft die Syntax aller versionierten Module und die Schemakonformität der Beispielstände. Die Playwright-Tests starten ihren eigenen Server auf Port 4391 und greifen nie auf einen laufenden Server zu. Fehlt das mitgelieferte Chromium, laufen sie mit `PLAYWRIGHT_CHANNEL=chrome` im installierten Chrome. Details zu den Baselines stehen in [tests/visual/README.md](tests/visual/README.md).
+Details in [knowledge/testing.md](knowledge/testing.md).
 
-## Struktur
+## Structure
 
-- `index.html`, `anleitung.html`, `js/`, `css/` enthalten das Dashboard aus ES-Modulen ohne Build-Schritt.
-- `fonts/` hält die lokal eingebundenen Schriften Inter und Space Grotesk mit ihren OFL-Lizenzen.
-- `serve.mjs` ist der Entwicklungsserver mit Live-Reload.
-- `spiel/` enthält die Rundenprototypen Nachtmeer und Der erste Winter.
-- `design/` enthält Designstudien, Gestaltungsproben und Screenshot-Skripte.
-- `schema/` enthält das JSON-Schema des Speicherstands.
-- `examples/` enthält Beispielstände, Demostände für die veröffentlichte Seite und Sicherungen der Spielleiterpartien.
-- `tools/` enthält Prüf-, Demo- und Bildwerkzeuge.
-- `tests/` enthält Unit-, E2E- und Visual-Tests.
-- `docs/` enthält das Entwicklungswissen, erschlossen über [docs/INDEX.md](docs/INDEX.md).
-- `knowledge/` enthält das verdichtete Partie-Gedächtnis.
+- `engine/` rules kernel, modules, content validator, schemas, world generator, harness IO and CLI.
+- `welten/` world packages.
+- `spielbrett/` game board.
+- `serve.mjs` development server with the campaign bridge.
+- `.claude/` subagents, the commands `/zug` and `/partie`, and hook settings.
+- `tools/hooks/`, `tools/harness/` hooks and helpers of the agent harness.
+- `tests/` unit, acceptance, end-to-end and visual tests.
+- `knowledge/` specification, architecture, decisions and journal.
+- `campaigns/` running campaigns, private and ignored by git.
 
-## Weiterlesen
-
-- [docs/Spielmechanik.md](docs/Spielmechanik.md) mit den Regeln des Spielleiterverfahrens.
-- [docs/UI-Gesamtbild.md](docs/UI-Gesamtbild.md) mit Stil, Architektur, Reitern, Bildpipeline und Live-Spiegelung des Dashboards.
-- [docs/Frontend-Contract.md](docs/Frontend-Contract.md) mit den verbindlichen Feldern und testids.
-- [docs/Speicherstand-Format.md](docs/Speicherstand-Format.md) mit dem Format des Speicherstands.
-- [knowledge/INDEX.md](knowledge/INDEX.md) als Hub der Spielleiterpartien.
+The savegame dashboard of the former chat game-master procedure (`index.html`, `anleitung.html`, `js/`, `css/`, `schema/`, `examples/`), the round prototypes (`spiel/`, `design/`) and the documents in `docs/` belong to earlier versions and are kept until their removal.
 
 ## Promptotyping
 
-RealmCraft ist ein [Promptotyping](https://dhcraft.org/Promptotyping/)-Projekt von [Christopher Pollin](https://dhcraft.org) (DHCraft).
+RealmCraft is a [Promptotyping](https://dhcraft.org/Promptotyping/) project by [Christopher Pollin](https://dhcraft.org) (DHCraft).
 
-## Licence
+## License
 
-The code in this repository is released under the MIT Licence (see `LICENSE`).
-Documentation, knowledge documents, and other textual content are licensed under
-CC BY 4.0. Any third-party material included retains the rights of its holders.
+Code is released under the MIT License (see `LICENSE`). Documentation, knowledge documents and other text are licensed under CC BY 4.0. Third-party material keeps the rights of its holders.

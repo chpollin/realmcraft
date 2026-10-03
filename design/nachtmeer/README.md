@@ -1,6 +1,6 @@
 # Nachtmeer, drei UI-Entwürfe
 
-Die drei Entwürfe dokumentieren einen früheren Gestaltungsschritt vom 9. September 2026. Die erste Strategieoberfläche wurde als visuell unzureichend bewertet. Der damalige Auftrag verlangte eine neue Geschichte und drei stärkere Gestaltungen zum Vergleich. Die Studien bleiben Referenzen; [der aktuelle Arbeitsstand](../../docs/RealmCraft-Arbeitsstand.md) führt zum inzwischen maßgeblichen Echtzeitspiel.
+Die drei Entwürfe dokumentieren einen früheren Gestaltungsschritt vom 9. September 2026. Die erste Strategieoberfläche wurde als visuell unzureichend bewertet. Der damalige Auftrag verlangte eine neue Geschichte und drei stärkere Gestaltungen zum Vergleich. Die Studien bleiben Referenzen; die [Wissensbasis](../../knowledge/INDEX.md) führt zum inzwischen maßgeblichen rundenbasierten Spiel.
 
 ## Gemeinsame Ausgangslage
 

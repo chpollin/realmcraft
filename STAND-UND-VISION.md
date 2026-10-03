@@ -1,6 +1,6 @@
 # RealmCraft, Stand und Vision
 
-> Dieses Dokument hält den Entwicklungsstand vom 30. Mai 2026 fest. Der aktuelle Einstieg ist [docs/INDEX.md](docs/INDEX.md). Echtzeitziel, Implementierungsplan und Wiedereinstieg stehen im dort verlinkten Entwicklungswissen. Die folgenden Angaben zu Projektstand, Dateien und laufender Partie sind zeitgebundene Referenzen.
+> Dieses Dokument hält den Entwicklungsstand vom 30. Mai 2026 fest. Der aktuelle Einstieg ist [knowledge/INDEX.md](knowledge/INDEX.md). Die folgenden Angaben zu Projektstand, Dateien und laufender Partie sind zeitgebundene Referenzen.
 
 Kompaktes Arbeitsdokument zum Mitnehmen über Sitzungs- und Kontextgrenzen. Es hält fest, was RealmCraft ist, was gebaut ist, und wohin es geht. Es ist die eine Quelle, aus der eine frische Claude-Code-Sitzung weiterarbeiten kann.
 

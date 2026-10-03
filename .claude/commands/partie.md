@@ -33,4 +33,4 @@ Keine Empfehlung, welche Aktion der Spieler wählen soll.
 
 ## Lauschender Modus (nächster Ausbauschritt)
 
-Noch nicht eingerichtet. Geplant ist, dass `/partie` mit dem Monitor-Werkzeug ein kleines Wachskript auf `campaigns/<cid>/state.json` startet, das eine Zeile meldet, sobald der Spieler im Browser „Zug beenden" klickt und die Phase auf `resolving` wechselt. Die Spielleitung führt dann ohne getipptes `/zug` die Schritte ab Phase A aus. Der Monitor läuft unter Windows nur mit Git Bash und hat eine Frist von höchstens 30 Minuten, das Wachskript muss deshalb nach Ablauf neu gestartet werden. Beschrieben in `docs/Harness.md`.
+Noch nicht eingerichtet. Geplant ist, dass `/partie` mit dem Monitor-Werkzeug ein kleines Wachskript auf `campaigns/<cid>/state.json` startet, das eine Zeile meldet, sobald der Spieler im Browser „Zug beenden" klickt und die Phase auf `resolving` wechselt. Die Spielleitung führt dann ohne getipptes `/zug` die Schritte ab Phase A aus. Der Monitor läuft unter Windows nur mit Git Bash und hat eine Frist von höchstens 30 Minuten, das Wachskript muss deshalb nach Ablauf neu gestartet werden. Beschrieben in `knowledge/agents-harness.md`.

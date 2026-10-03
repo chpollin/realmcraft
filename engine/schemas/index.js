@@ -1,6 +1,6 @@
 // Data contracts of the engine. SCHEMA_VERSION moves when any contract changes
 // incompatibly; each file format also carries its own `version`. Version 2 is
-// the amendment of docs/Vertragsaenderungen.md (band ids, accent tokens,
+// the amendment recorded in knowledge/data-contracts.md (band ids, accent tokens,
 // stricter proposal and order id patterns); no persisted campaign predates it,
 // so the per-file versions stay 1.
 

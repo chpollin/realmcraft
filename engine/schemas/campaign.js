@@ -8,7 +8,7 @@
 // match their regionId, resource keys exist in regeln.json) belong to the
 // content validator.
 //
-// Fields added after the first freeze (docs/Vertragsaenderungen.md) are
+// Fields added after the first freeze (knowledge/data-contracts.md) are
 // optional with a stated default, so states written before the amendment stay
 // valid; the kernel writes them on every write. The exception is the core
 // meter zustimmung, which the kernel has written since turn 0.

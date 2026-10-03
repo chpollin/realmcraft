@@ -3,7 +3,7 @@
 // path (stdin, path matching) avoids engine imports, so an unrelated tool call
 // costs one node start and a regex; engine modules load lazily where needed.
 //
-// Campaign layout and file ownership: docs/Agentenvertrag.md, engine/harness/io.js.
+// Campaign layout and file ownership: knowledge/agents-harness.md, engine/harness/io.js.
 
 import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
 import { dirname, basename, posix, resolve } from 'node:path';
@@ -306,7 +306,7 @@ export function recordedStep(root, agentId) {
  * main session and for other subagents. agent_type decides when present;
  * without it the launch record and then the run marker are asked. When none
  * of them knows the agent id, the call keeps main-session rights: that is
- * the documented fail-open of docs/Harness.md.
+ * the documented fail-open of knowledge/agents-harness.md.
  */
 export function roleOf(input, root, launch) {
   const type = subagentTypeOf(input);
