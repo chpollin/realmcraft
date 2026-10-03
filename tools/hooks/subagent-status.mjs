@@ -1,4 +1,4 @@
-// SubagentStart and SubagentStop hook of the game harness (docs/Harness.md).
+// SubagentStart and SubagentStop hook of the game harness (knowledge/agents-harness.md).
 // For RealmCraft subagents (agent_type rc-<id>) it records the start and end
 // of their status step in status.json of the active campaign. The matcher in
 // the settings already limits it to ^rc-; the check here keeps it silent if

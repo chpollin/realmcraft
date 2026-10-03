@@ -1,6 +1,6 @@
 # Acceptance tests of the rules kernel
 
-Black-box tests for the turn-based RealmCraft kernel, written from the specification without knowledge of the implementation (lane A in [RealmCraft-Plan](../../docs/RealmCraft-Plan.md)). They drive the kernel only through `node engine/cli.mjs` and check the JSON files it writes, using the schemas in `engine/schemas/` through Ajv. The kernel lanes do not change these tests. The readings in `lib/harness.js` are verified against the delivered `engine/cli.mjs`; a changed CLI contract is reconciled in that file or in the assumption block of the affected test.
+Black-box tests for the turn-based RealmCraft kernel, written from the specification without knowledge of the implementation (lane A of the first plan, see [knowledge/testing.md](../../knowledge/testing.md)). They drive the kernel only through `node engine/cli.mjs` and check the JSON files it writes, using the schemas in `engine/schemas/` through Ajv. The kernel lanes do not change these tests. The readings in `lib/harness.js` are verified against the delivered `engine/cli.mjs`; a changed CLI contract is reconciled in that file or in the assumption block of the affected test.
 
 ## Running
 

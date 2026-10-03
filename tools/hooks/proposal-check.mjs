@@ -1,4 +1,4 @@
-// PostToolUse check of the game harness (docs/Harness.md). When a tool has
+// PostToolUse check of the game harness (knowledge/agents-harness.md). When a tool has
 // written campaigns/<cid>/agents/proposals/<proposalId>.json, the proposal is
 // validated with validateProposal against its task, the campaign state and
 // the world package, the same function ingest uses. On failure the hook exits

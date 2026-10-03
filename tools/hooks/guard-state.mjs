@@ -1,4 +1,4 @@
-// PreToolUse guard of the game harness (docs/Harness.md, Agentenvertrag
+// PreToolUse guard of the game harness (knowledge/agents-harness.md
 // section Hooks). Only the kernel writes a campaign folder; agents write
 // exactly their proposal file agents/proposals/<proposalId>.json.
 //

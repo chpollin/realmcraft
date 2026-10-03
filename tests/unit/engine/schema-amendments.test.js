@@ -1,4 +1,4 @@
-// Contract amendment of docs/Vertragsaenderungen.md: each amended rule has one
+// Contract amendment recorded in knowledge/data-contracts.md: each amended rule has one
 // check here that goes red when the schema loses it.
 
 import { test } from 'node:test';
