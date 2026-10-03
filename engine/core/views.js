@@ -14,8 +14,8 @@ const CORE_VIEWS = Object.freeze([
   { id: 'lage', order: 20, icon: 'volk', scope: 'people', sections: ['resources', 'forecast', 'slots', 'catalogue', 'assigned'] },
   { id: 'rat', order: 30, icon: 'rat', scope: 'people', sections: ['council', 'seats'] },
   { id: 'entwicklungen', order: 40, icon: 'entwicklungen', scope: 'people', sections: ['known', 'research', 'candidates', 'requests', 'tokens'] },
-  { id: 'bestimmung', order: 50, icon: 'bestimmung', scope: 'people', sections: ['destiny', 'milestones', 'history'] },
-  { id: 'voelker', order: 70, icon: 'rivalen', scope: 'world', sections: ['peoples', 'relations'] },
+  { id: 'bestimmung', order: 50, icon: 'bestimmung', scope: 'people', sections: ['destiny', 'milestones', 'history', 'rivals'] },
+  { id: 'voelker', order: 70, icon: 'rivalen', scope: 'world', sections: ['peoples', 'relations', 'trade'] },
   { id: 'chronik', order: 80, icon: 'chronik', scope: 'world', sections: ['entries'] },
 ].map((v) => Object.freeze({ ...v, labelKey: `view.${v.id}`, active: true })));
 
@@ -107,10 +107,11 @@ function lage(p, env, pid) {
 
 function rat(p, env, pid) {
   const own = p.peoples[pid];
+  const placed = new Map((p.derived[pid]?.council ?? []).map((c) => [c.id, c]));
   return {
     members: own.council.map((m) => {
       const band = loyaltyBand(m.loyalty);
-      return { ...m, band, labelKey: `loyalty.${band}` };
+      return { ...m, band, labelKey: `loyalty.${band}`, location: placed.get(m.id)?.location ?? null, strengths: placed.get(m.id)?.strengths ?? null };
     }),
     seats: kern(own).seats ?? [],
   };
@@ -129,7 +130,8 @@ function entwicklungen(p, env, pid) {
 
 function bestimmung(p, env, pid) {
   const b = p.peoples[pid].bestimmung;
-  if (!b) return { current: null, history: [] };
+  const rivals = p.derived[pid]?.rivals ?? [];
+  if (!b) return { current: null, history: [], rivals };
   const def = env.bestimmung(b.ref);
   return {
     current: {
@@ -140,13 +142,20 @@ function bestimmung(p, env, pid) {
       milestones: b.milestones.map((m) => ({ ...m, text: def?.milestones.find((x) => x.id === m.id)?.text ?? m.id })),
     },
     history: b.history.map((h) => ({ ...h, name: env.bestimmung(h.ref)?.name ?? h.ref })),
+    rivals,
   };
 }
 
 function voelker(p, env, pid) {
+  const d = p.derived[pid] ?? {};
+  const destiny = new Map((d.rivals ?? []).map((r) => [r.people, r.destiny]));
+  const trade = new Map((d.trade?.routes ?? []).map((r) => [r.partner, r]));
   return {
-    peoples: peopleIds(p).filter((id) => id !== pid).map((id) => ({ ...p.peoples[id], relation: relation(p, pid, id) })),
+    peoples: peopleIds(p).filter((id) => id !== pid).map((id) => ({
+      ...p.peoples[id], relation: relation(p, pid, id), destiny: destiny.get(id) ?? null, trade: trade.get(id) ?? null,
+    })),
     relations: p.relations,
+    tradeOrders: d.trade?.orders ?? [],
   };
 }
 

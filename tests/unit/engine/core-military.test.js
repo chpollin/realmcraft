@@ -477,3 +477,41 @@ test('resolveMilitary: units in the region of a people at peace cost the relatio
   resolveMilitary(w.tc);
   assert.equal(w.tc.state.relations[relKey('hochweide', 'esk')].value, 0);
 });
+
+test('specs carry machine keys beside their texts: errorReason and the reason and state of invalid entries', () => {
+  const { env, state } = scenario();
+  state.peoples.hochweide.units = [
+    unit('u-1', 'speerwall@1', '0,1'), unit('u-2', 'speerwall@1', '0,1', { state: 'routed' }),
+    unit('u-3', 'speerwall@1', '-1,2'), unit('u-5', 'speerwall@1', '0,1', { strength: 0 }),
+  ];
+  state.peoples.esk.units = [unit('e-1', 'speerwall@1', '0,0')];
+  const { ox } = ctx(state, env);
+  const spec = battleSpec(ox, ['u-1', 'u-2', 'u-3', 'u-9'], '0,0');
+  assert.equal(spec.error, null);
+  assert.equal(spec.errorReason, null);
+  assert.deepEqual(spec.invalid, [
+    { id: 'u-2', why: 'is routed and cannot attack', reason: 'unit-not-ready', state: 'routed' },
+    { id: 'u-3', why: 'does not border the tile', reason: 'not-adjacent' },
+    { id: 'u-9', why: 'is no unit of this people', reason: 'not-own-unit' },
+  ]);
+  const reasonOf = (s) => [s.error, s.errorReason];
+  assert.deepEqual(reasonOf(battleSpec(ox, ['u-1'], '0,2')), ['no foreign unit or settlement stands on the tile', 'no-foreign-target']);
+  assert.deepEqual(reasonOf(battleSpec(ox, [], '0,0')), ['no unit named', 'no-unit-named']);
+  assert.deepEqual(reasonOf(battleSpec(ox, ['u-5'], '0,0')), ['the attack has no strength', 'no-strength']);
+  const home = { id: 'x-village', name: 'Hochdorf', people: 'hochweide', kind: 'dorf', tile: '0,2', regionId: '-1:0:0', mobile: false, buildings: [] };
+  assert.deepEqual(reasonOf(battleSpec(ox, [], '2,1', { from: home })), ['the settlement does not border the tile', 'not-adjacent']);
+  state.map.known.hochweide['0,0'] = 'seen';
+  assert.deepEqual(reasonOf(battleSpec(ctx(state, env).ox, ['u-1'], '0,0')), ['the tile is not in sight', 'not-in-sight']);
+
+  const raidState = scenario();
+  raidState.state.peoples.hochweide.units = [unit('u-1', 'speerwall@1', '-1,2'), unit('u-2', 'speerwall@1', '0,1', { state: 'moved' }), unit('u-3', 'speerwall@1', '0,1')];
+  const raidOx = ctx(raidState.state, raidState.env).ox;
+  assert.deepEqual(raidSpec(raidOx, ['u-1', 'u-2', 'u-9'], '0:-1:1').invalid, [
+    { id: 'u-1', why: 'is neither in nor next to the region', reason: 'not-near-region' },
+    { id: 'u-2', why: 'is moved and cannot raid', reason: 'unit-not-ready', state: 'moved' },
+    { id: 'u-9', why: 'is no unit of this people', reason: 'not-own-unit' },
+  ]);
+  assert.deepEqual(reasonOf(raidSpec(raidOx, ['u-3'], '-1:0:0')), ['the region is controlled by the raider', 'own-region']);
+  assert.deepEqual(reasonOf(raidSpec(raidOx, ['u-3'], 'nowhere')), ['no people controls that region', 'region-uncontrolled']);
+  assert.deepEqual(reasonOf(raidSpec(raidOx, [], '0:-1:1')), ['no unit named', 'no-unit-named']);
+});

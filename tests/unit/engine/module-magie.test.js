@@ -258,3 +258,16 @@ test('derive lists disciplines, source stock and withdrawal', () => {
   assert.deepEqual(d.sources, { rauchkraut: 4 });
   assert.deepEqual(d.withdrawal, { rauchkraut: 2 });
 });
+
+test('refusals are machine-readable: code and reason per target kind', () => {
+  const first = (s, params) => errors(checkOrders(s, env, PLAYER, [{ id: 'o1', type: 'discipline.use', params }]).issues)[0];
+  const shape = (i) => [i.code, i.params];
+  assert.deepEqual(shape(first(mage, { development: 'sippenrat@1', application: 'stille' })), ['target', { reason: 'not-application' }]);
+  assert.deepEqual(shape(first(mage, use('sicht', '999,999'))), ['target', { reason: 'unknown-tile' }]);
+  assert.deepEqual(shape(first(mage, use('weihe', '99:99:0'))), ['target', { reason: 'unknown-region' }]);
+  assert.deepEqual(shape(first(mage, use('gruss', PLAYER))), ['target', { reason: 'not-other-people' }]);
+  assert.deepEqual(shape(first(mage, use('rufen', 'vesna'))), ['target', { reason: 'not-own-member' }]);
+  assert.deepEqual(shape(first(mage, use('bann', 'u-7'))), ['target', { reason: 'not-unit' }]);
+  const hidden = edited(mage, (s) => { s.map.known[PLAYER][visible] = 'seen'; });
+  assert.deepEqual(shape(first(hidden, use('bann', `${PARTNER}:u-7`))), ['target', { reason: 'unit-not-visible' }]);
+});

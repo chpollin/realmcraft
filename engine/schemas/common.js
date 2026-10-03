@@ -32,7 +32,12 @@ export const PATTERNS = Object.freeze({
   source: '^(kernel|player|agent:[a-z][a-z0-9-]{1,24})$',
   isoTime: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,3})?Z$',
   labelKey: '^[a-z][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)*$',
+  // Two-letter language code of the campaign's narrative ("de", "en").
+  language: '^[a-z]{2}$',
 });
+
+// Difficulty of a campaign (state.settings); it scales the start stock of the AI peoples.
+export const DIFFICULTIES = Object.freeze(['easy', 'normal', 'hard']);
 
 export const JUDGES = Object.freeze(['judge-coherence', 'judge-balance', 'judge-narrative']);
 export const AGENTS = Object.freeze(['research', 'rival', 'council', 'world', 'chronicler', 'image', ...JUDGES]);

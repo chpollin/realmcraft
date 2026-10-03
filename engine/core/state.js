@@ -52,6 +52,13 @@ export const KERN_SLICE = () => ({
   deaths: [], // deaths of the last turn for honor-dead: [{ member, turn }]
 });
 
+export const DEFAULT_SETTINGS = Object.freeze({ difficulty: 'normal', language: 'de' });
+
+/** Campaign settings with their defaults; states written before M1 carry none. */
+export function settingsOf(state) {
+  return { ...DEFAULT_SETTINGS, ...(state.settings ?? {}) };
+}
+
 /** The camp or first settlement of a people; its tile is "$home". */
 export function homeSettlement(state, pid) {
   const people = state.peoples[pid];

@@ -136,7 +136,10 @@ describe('selectView', () => {
     const b = selectView(state, env, PLAYER, 'bestimmung');
     assert.equal(b.current.ref, 'ueberdauern@1');
     assert.deepEqual(b.current.milestones.map((m) => m.text), env.bestimmung('ueberdauern@1').milestones.map((m) => m.text));
-    assert.deepEqual(selectView(state, env, 'esk', 'bestimmung'), { current: null, history: [], id: 'bestimmung' });
+    // Without contact no rival destiny is revealed.
+    assert.deepEqual(selectView(state, env, 'esk', 'bestimmung'), {
+      current: null, history: [], id: 'bestimmung', rivals: [{ people: 'glutreiter', destiny: null }, { people: 'hochweide', destiny: null }],
+    });
   });
 
   it('voelker lists the foreign peoples as projected with their relation, without stocks', () => {

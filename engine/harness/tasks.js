@@ -1,4 +1,6 @@
 // Tasks the kernel hands to the agents (agents/tasks/T<turn>/<agent>-<scope>.json).
+// Every task that asks for prose (rival stance, council voices, world cards,
+// chronicle, judges) carries context.language, the campaign's narrative language.
 // Pure: no file access, so the CLI, the server and tests share it. A task for
 // one people carries only data derived from projectFor(state, env, people), so
 // an agent never sees a stock or draft of another people.
@@ -15,7 +17,7 @@ import { projectFor } from '../core/project.js';
 import { practiceTop, openTier } from '../content/validate.js';
 import { libraryFrom } from '../content/library.js';
 import { catalogueFor, orderContext, registry, slotCapacity } from '../core/orders.js';
-import { homeSettlement, kern, maxKnownTier, peopleIds, settlementsOf } from '../core/state.js';
+import { homeSettlement, kern, maxKnownTier, peopleIds, settingsOf, settlementsOf } from '../core/state.js';
 import { RULES } from '../core/rules.js';
 import { distance, parseKey } from '../world/index.js';
 import { calendarOf } from '../core/calendar.js';
@@ -235,6 +237,7 @@ function rivalTask(state, env, pid) {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
+      language: settingsOf(state).language,
       draftTurn: state.turn,
       profile: profile ? { id: profile.id, name: profile.name, stance: profile.stance, weights: profile.weights } : null,
       catalogue: catalogueFor(view, env, pid),
@@ -254,6 +257,7 @@ function councilTask(state, env, pid) {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
+      language: settingsOf(state).language,
       council: people.council,
       seats: kern(people).seats,
       newMemberLoyalty: env.regeln.tuning?.newMemberLoyalty ?? 0,
@@ -277,7 +281,7 @@ function worldTask(state, env) {
   const cal = calendarOf(env.regeln, state.turn);
   return envelope(state, 'world', null, {
     read: ['state.json', 'library.json'],
-    context: { phase: 'a', season: cal.season, year: cal.year, eventDraws, situation },
+    context: { phase: 'a', language: settingsOf(state).language, season: cal.season, year: cal.year, eventDraws, situation },
     limits: limitsFor(env, ITEMS_BY_AGENT.world, { tags: tagsFor(env) }),
   });
 }
@@ -289,7 +293,7 @@ function chroniclerTask(state, env) {
   if (state.turn > 0) reads.push(`view/${player}/events/${stem(state.turn - 1)}.json`);
   return envelope(state, 'chronicler', null, {
     read: reads,
-    context: { phase: 'b', player, season: cal.season, year: cal.year, chapter: stem(state.turn) },
+    context: { phase: 'b', language: settingsOf(state).language, player, season: cal.season, year: cal.year, chapter: stem(state.turn) },
     limits: limitsFor(env, ITEMS_BY_AGENT.chronicler),
   });
 }
@@ -320,7 +324,7 @@ export function buildJudgeTask(state, env, judge) {
   if (judge === 'judge-narrative') read.push('narrative/gedaechtnis.md');
   return envelope(state, judge, null, {
     read,
-    context: { phase: 'judges' },
+    context: { phase: 'judges', language: settingsOf(state).language },
     limits: limitsFor(env, ITEMS_BY_AGENT[judge], {
       allowedPrimitives: [...ONCE_OPS],
       tags: tagsFor(env),

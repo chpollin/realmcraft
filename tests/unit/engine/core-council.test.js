@@ -591,3 +591,48 @@ test('checkDraft result stays free of errors for a talk and a Machtprobe', () =>
   d.orders = [{ id: 't1', type: 'talk', params: { mode: 'listen', member: 'ulrun' } }, { id: 'm1', type: 'machtprobe', params: { aim: 'rally' } }];
   assert.equal(hasErrors(checkDraft(state, env, d, { as: PLAYER, mode: 'preview' }).issues), false);
 });
+
+// --- machine-readable refusals ----------------------------------------------------------
+
+test('Machtprobe refusals name their reason and carry the interpolated params', () => {
+  const clean = world();
+  const ox = { ...oxOf(clean.state, clean.env), path: '/orders/0' };
+  const refuse = (params) => MP.check(ox, order(params));
+  const one = (params, reason) => {
+    const issues = refuse(params);
+    assert.equal(issues.length, 1, reason);
+    assert.equal(issues[0].code, 'target');
+    assert.equal(issues[0].path, '/orders/0/params');
+    assert.equal(issues[0].params.reason, reason);
+    return issues[0].params;
+  };
+  assert.deepEqual(one({}, 'aim').aims, ['override', 'rally', 'reconcile', 'quell']);
+  one({ aim: 'rally', approach: 'Not A Tag' }, 'approach-not-tag');
+  one({ aim: 'rally', cause: 'greed' }, 'cause');
+  assert.equal(one({ aim: 'rally', against: 'nobody' }, 'against-not-member').member, 'nobody');
+  assert.equal(one({ aim: 'rally', against: 7 }, 'against-not-member').member, '7', 'a malformed name still yields a flat param');
+  one({ aim: 'override' }, 'override-needs-order');
+  one({ aim: 'reconcile' }, 'reconcile-needs-member');
+  one({ aim: 'quell' }, 'quell-needs-grievance');
+});
+
+test('talk refusals name their reason and carry the member name', () => {
+  const { env, state } = world((s) => {
+    member(s, 'torhild').hollow = true;
+    member(s, 'torhild').loyalty = -1;
+    s.peoples[PLAYER].modules.kern.honored.garmund = 1;
+  });
+  const ox = { ...oxOf(state, env), path: '/orders/0' };
+  const refuse = (params) => {
+    const issues = TALK.check(ox, talk(params));
+    assert.equal(issues.length, 1);
+    assert.equal(issues[0].code, 'target');
+    return issues[0].params;
+  };
+  assert.deepEqual(refuse({ mode: 'sing', member: 'ulrun' }), { reason: 'mode', modes: ['listen', 'ask', 'honor', 'honor-dead'] });
+  assert.deepEqual(refuse({ mode: 'honor-dead' }), { reason: 'no-death-to-honor' });
+  assert.deepEqual(refuse({ mode: 'listen', member: 'nobody' }), { reason: 'not-member' });
+  assert.deepEqual(refuse({ mode: 'honor', member: 'ulrun' }), { reason: 'no-grievance', name: member(state, 'ulrun').name });
+  assert.deepEqual(refuse({ mode: 'honor', member: 'torhild' }), { reason: 'member-hollow', name: member(state, 'torhild').name });
+  assert.deepEqual(refuse({ mode: 'honor', member: 'garmund' }), { reason: 'honored-this-year', name: member(state, 'garmund').name });
+});

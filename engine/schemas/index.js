@@ -39,7 +39,7 @@ export const SCHEMAS = Object.freeze({
 });
 
 export { campaign, entwicklung, bestimmung, event, draft, proposal, task, status, report, view, campaignIndex, ereignis, regeln, labels, style, entwicklungen, ereignisse, bestimmungen };
-export { PATTERNS, AGENTS, JUDGES, KINDS, PHASES, LIFE_STAGES, MAX_TIER, BANDS, SUCCESS_BANDS, TOKEN_KINDS, APPROVAL_METER } from './common.js';
+export { PATTERNS, AGENTS, JUDGES, KINDS, PHASES, LIFE_STAGES, MAX_TIER, BANDS, SUCCESS_BANDS, TOKEN_KINDS, APPROVAL_METER, DIFFICULTIES } from './common.js';
 export { PRIMITIVES, STANDING_OPS, ONCE_OPS, WEIGHTS, SPEC_WEIGHTS, TIERS } from './effects.js';
 export { ITEM_TYPES, ITEMS_BY_AGENT } from './proposal.js';
 export { WELT_REQUIRED_KEYS } from './world.js';

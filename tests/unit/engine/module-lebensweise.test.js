@@ -371,3 +371,18 @@ test('descriptor: views, label keys and hints are well formed and the labels exi
   assert.equal(d.camp.id, camp0.id);
   assert.equal(d.herds.stock, 4);
 });
+
+test('refusals are machine-readable: code, reason and the interpolated params', () => {
+  const first = (s, type, params) => checkOrders(s, env, PLAYER, [{ id: 'o1', type, params }]).issues.filter((i) => i.severity === 'error')[0];
+  const shape = (i) => [i.code, i.params];
+  const move = (s, tile) => shape(first(s, 'migrate', { tile }));
+  assert.deepEqual(move(base, 'nowhere'), ['target', { reason: 'not-tile' }]);
+  assert.deepEqual(move(base, camp0.tile), ['target', { reason: 'camp-on-tile' }]);
+  assert.deepEqual(move(base, unbuildable), ['target', { reason: 'not-buildable' }]);
+  assert.deepEqual(move(base, farAway), ['target', { reason: 'out-of-reach', range: RULES.migrateRange }]);
+  const foreign = edited(base, (s) => { s.map.control[regionAt(world, otherRegion)] = PARTNER; });
+  assert.deepEqual(move(foreign, otherRegion), ['target', { reason: 'region-controlled', people: PARTNER }]);
+  const settled = edited(base, (s) => { s.map.settlements.push({ id: 's-x', name: 'Fremdhof', people: PARTNER, kind: 'dorf', tile: otherRegion, regionId: regionAt(world, otherRegion), mobile: false, buildings: [] }); });
+  assert.deepEqual(move(settled, otherRegion), ['target', { reason: 'settlement-on-tile' }]);
+  assert.deepEqual(shape(first(talbauern, 'adopt', { lebensweise: 'wanderhirten@1' })), ['target', { reason: 'not-adoptable' }]);
+});

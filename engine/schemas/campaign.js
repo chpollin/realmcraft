@@ -13,7 +13,7 @@
 // valid; the kernel writes them on every write. The exception is the core
 // meter zustimmung, which the kernel has written since turn 0.
 
-import { APPROVAL_METER, COMMON_DEFS, LIFE_STAGES, PATTERNS, PHASES, TOKEN_KINDS, arr, bundle, int, map, nullable, obj, ref, str, text } from './common.js';
+import { APPROVAL_METER, COMMON_DEFS, DIFFICULTIES, LIFE_STAGES, PATTERNS, PHASES, TOKEN_KINDS, arr, bundle, int, map, nullable, obj, ref, str, text } from './common.js';
 import { EFFECT_DEFS } from './effects.js';
 import { BESTIMMUNG_DEFS } from './bestimmung.js';
 import { EVENT_DEFS } from './event.js';
@@ -32,7 +32,10 @@ const member = obj({
   lifeStage: { enum: [...LIFE_STAGES] },
   leader: { type: 'boolean' },
   appearance: text(200),
-});
+  // Default null: the target tile of the order the member led last season,
+  // set at resolution and cleared when planning opens; null means at home.
+  at: nullable(ref('tile')),
+}, ['at']);
 
 // Wesensart: a +2 tag bound to a -2 tag, the same for every people.
 const identity = obj({
@@ -249,8 +252,13 @@ export const CAMPAIGN_DEFS = Object.freeze({
     status: { enum: ['playing', 'ended'] },
     // Default null.
     result: nullable(ref('result')),
+    // Default { difficulty: 'normal', language: 'de' } (settingsOf in engine/core/state.js).
+    settings: ref('settings'),
     derived: ref('derived'),
-  }, ['derived', 'eventDraws', 'pendingChoices', 'result', 'sealed']),
+  }, ['derived', 'eventDraws', 'pendingChoices', 'result', 'sealed', 'settings']),
+  // Options of a campaign chosen at creation. language is the narrative
+  // language the agents write in; the UI language is a setting of the viewer.
+  settings: obj({ difficulty: { enum: [...DIFFICULTIES] }, language: str(PATTERNS.language) }),
 });
 
 export const campaign = bundle('campaign/1', CAMPAIGN_DEFS.campaign, COMMON_DEFS, EFFECT_DEFS, BESTIMMUNG_DEFS, EVENT_DEFS, CAMPAIGN_DEFS);

@@ -1,7 +1,10 @@
 // Campaign creation and the turn pipeline.
 //
-//   createCampaign(env, { id, seed, player? })   -> { state, events }   phase agents, turn 0
-//   preview(state, env, draft, { as })            -> preview (pure; state or projection)
+//   createCampaign(env, { id, seed, player?, rivals?, difficulty?, language? })
+//                                                 -> { state, events }   phase agents, turn 0
+//   preview(state, env, draft, { as })            -> preview (pure; state or projection),
+//                                                    with the consequences of draft.choices
+//                                                    and of a destiny.adopt order
 //   seal(state, env, drafts)                      -> { ok, issues, state, drafts, events }
 //                                                    planning -> resolving: orders locked,
 //                                                    AI drafts filled, world-event draws made
@@ -21,14 +24,15 @@ import { kissue } from './codes.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
 import { calendarOf } from './calendar.js';
-import { createContext, finish, notice, noteChange, record, setPeople, setRelation, fireHook } from './log.js';
-import { clone, peopleIds, relKey, settlementsOf, KERN_SLICE } from './state.js';
-import { applyOnce, standingOf, ofOp } from './effects.js';
+import { createContext, finish, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
+import { clone, peopleIds, relKey, settlementsOf, KERN_SLICE, DEFAULT_SETTINGS } from './state.js';
+import { DIFFICULTIES, PATTERNS } from '../schemas/common.js';
+import { applyOnce, applyOnceList, standingOf, ofOp } from './effects.js';
 import { checkDraft, orderContext, catalogueFor } from './orders.js';
 import { calculation, eventBand, resolveProbe, SUCCESS } from './probes.js';
 import { visionUpdate } from './map.js';
 import { MODULES, activeModules } from '../modules/index.js';
-import { findStart, placePeoples, key as tileKey, regionOf, reveal, hashSeed } from '../world/index.js';
+import { findStart, placePeoples, key as tileKey, regionOf, regionInfo, reveal, hashSeed } from '../world/index.js';
 import * as economy from './economy.js';
 import * as research from './research.js';
 import * as military from './military.js';
@@ -70,6 +74,44 @@ const hideEntry = (entry) => {
 
 const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
+const TILE_KEY = new RegExp(PATTERNS.tile);
+
+/**
+ * The tile an order acts on, read from its params as the order checks name
+ * them (tile, target, region, settlement, unit, units), or null for an order
+ * without a place (talk, research). Read from the opening state.
+ */
+export function orderTile(state, world, pid, order) {
+  const p = order.params ?? {};
+  for (const v of [p.tile, p.target]) if (typeof v === 'string' && TILE_KEY.test(v)) return v;
+  if (typeof p.region === 'string') {
+    const c = regionInfo(world, p.region)?.centre;
+    if (c) return tileKey(c.q, c.r);
+  }
+  const s = typeof p.settlement === 'string' ? state.map.settlements.find((x) => x.id === p.settlement) : null;
+  if (s) return s.tile;
+  const unit = typeof p.unit === 'string' ? p.unit : Array.isArray(p.units) ? p.units[0] : null;
+  return state.peoples[pid]?.units.find((u) => u.id === unit)?.tile ?? null;
+}
+
+/**
+ * Fields added in M1 that a campaign created before them lacks: the settings
+ * and the location of every council member. Written with a log entry at the
+ * first transition after the kernel update, so the state accounts for them.
+ */
+export function migrate(tc) {
+  if (!tc.state.settings) {
+    noteChange(tc, 'campaign.settings', { kind: 'campaign', id: tc.state.campaign.id }, 'settings', null, { ...DEFAULT_SETTINGS },
+      'campaign settings take their defaults', { visibleTo: 'all' });
+    tc.state.settings = { ...DEFAULT_SETTINGS };
+  }
+  for (const pid of peopleIds(tc.state)) {
+    for (const m of tc.state.peoples[pid].council) {
+      if (!Object.hasOwn(m, 'at')) setMember(tc, pid, m.id, 'at', null, `${m.name} is at home`, { kind: 'member.at' });
+    }
+  }
+}
+
 // --- creation ----------------------------------------------------------------
 
 /**
@@ -100,18 +142,50 @@ function seedOf(seed) {
   return typeof seed === 'number' && Number.isInteger(seed) ? seed >>> 0 : hashSeed('campaign', String(seed));
 }
 
+// Start stock of the AI peoples per difficulty, a step of a quarter either way
+// (owner decision M1 names the scaling, the factor is the lane's choice).
+const DIFFICULTY_STOCK = Object.freeze({ easy: 0.75, normal: 1, hard: 1.25 });
+const LANGUAGE = new RegExp(PATTERNS.language);
+
+/**
+ * Throws on creation options the kernel cannot honour; the CLI checks the same
+ * at its boundary and reports issues instead.
+ */
+export function creationProblem(env, { player = null, rivals = null, difficulty = DEFAULT_SETTINGS.difficulty, language = DEFAULT_SETTINGS.language } = {}) {
+  const ids = env.regeln.peopleTemplates.map((t) => t.id);
+  const own = player ?? ids[0];
+  if (!ids.includes(own)) return { reason: 'unknown-template', template: String(own), message: `no people template ${own}` };
+  if (rivals !== null) {
+    if (!Array.isArray(rivals)) return { reason: 'rivals', message: 'rivals must be a list of template ids' };
+    for (const r of rivals) {
+      if (!ids.includes(r)) return { reason: 'unknown-template', template: String(r), message: `no people template ${r}` };
+      if (r === own) return { reason: 'rival-is-player', template: r, message: `${r} is the player's people` };
+    }
+    if (new Set(rivals).size !== rivals.length) return { reason: 'rival-twice', message: 'a rival is named twice' };
+  }
+  if (!DIFFICULTIES.includes(difficulty)) return { reason: 'difficulty', difficulty: String(difficulty), message: `difficulty must be one of ${DIFFICULTIES.join(', ')}` };
+  if (typeof language !== 'string' || !LANGUAGE.test(language)) return { reason: 'language', language: String(language), message: 'language must be a two-letter code' };
+  return null;
+}
+
+const scaled = (bag, f) => Object.fromEntries(Object.entries(bag).map(([res, n]) => [res, Math.min(999, Math.round(n * f))]));
+
 /**
  * New campaign at turn 0 in phase agents. The first people template (or
- * `player`) is the player's people, all others are AI peoples placed at
- * least RULES.minStartDistance away.
+ * `player`) is the player's people; `rivals` names the templates of the AI
+ * peoples (default all others), placed at least RULES.minStartDistance away.
+ * `difficulty` scales the start stock of the AI peoples, `language` is the
+ * narrative language of the campaign.
  */
-export function createCampaign(env, { id, seed, player = null }) {
+export function createCampaign(env, { id, seed, player = null, rivals = null, difficulty = DEFAULT_SETTINGS.difficulty, language = DEFAULT_SETTINGS.language }) {
+  const problem = creationProblem(env, { player, rivals, difficulty, language });
+  if (problem) throw new Error(`createCampaign: ${problem.message}`);
   const { regeln } = env;
   const world = env.world(seed);
   const templates = [...regeln.peopleTemplates];
   const pi = player ? templates.findIndex((t) => t.id === player) : 0;
-  if (pi < 0) throw new Error(`createCampaign: no people template ${player}`);
-  const ordered = [templates[pi], ...templates.filter((_, i) => i !== pi)];
+  const others = templates.filter((t, i) => i !== pi && (rivals === null || rivals.includes(t.id)));
+  const ordered = [templates[pi], ...others];
   const start = findStart(world);
   if (!start) throw new Error('createCampaign: no start tile for the player');
   const tiles = [start, ...startTiles(world, start, ordered.length - 1)];
@@ -137,6 +211,7 @@ export function createCampaign(env, { id, seed, player = null }) {
     chronicle: [],
     status: 'playing',
     result: null,
+    settings: { difficulty, language },
   };
   const tc = createContext(s0, env);
   tc.step = 'create';
@@ -158,7 +233,7 @@ export function createCampaign(env, { id, seed, player = null }) {
       identity: clone(tpl.identity),
       lebensweise: tpl.lebensweise,
       population: { ...clone(tpl.population), assigned: defaultAssign(env, tpl.population.core) },
-      resources: clone(tpl.resources),
+      resources: i === 0 ? clone(tpl.resources) : scaled(tpl.resources, DIFFICULTY_STOCK[difficulty]),
       standing: tpl.standing,
       developments: {
         known: known.map((ref) => ({ ref, since: 0, effectiveFrom: 0, state: 'active', suspendedSince: null })),
@@ -168,7 +243,7 @@ export function createCampaign(env, { id, seed, player = null }) {
         instituted: known.filter((ref) => env.entwicklung(ref)?.kind === 'institution'),
       },
       units: [],
-      council: clone(councilTpl?.members ?? []),
+      council: clone(councilTpl?.members ?? []).map((m) => ({ ...m, at: null })),
       practice: { ledger: [] },
       tokens: [],
       statuses: [],
@@ -233,6 +308,7 @@ export function preview(state, env, draft, { as } = {}) {
       probe: e.probe?.id ?? null, venture: e.venture, ok: !hasErrors(e.errors),
     })),
     unresolved: chk.unresolved,
+    choices: [],
     forecast: null,
     catalogue: null,
     council: null,
@@ -245,14 +321,98 @@ export function preview(state, env, draft, { as } = {}) {
       const f = byOrder.get(o.id);
       o.council = f ? { loyalty: f.loyalty, meters: f.meters, depends: f.depends } : null;
     }
-    result.forecast = economy.forecast(state, env, pid, { spend: chk.costs, assign: chk.assign });
-    for (const [res, n] of Object.entries(result.forecast.shortfall ?? {})) {
-      if (n > 0) result.issues.push(issue('shortfall', `/forecast/${res}`, `${res}: ${n} missing at season end`));
+    // Answers to open decisions (D15): each option's once effects on its own,
+    // and their resources folded into the forecast's stock.
+    const choices = draft?.choices && typeof draft.choices === 'object' && !Array.isArray(draft.choices) ? draft.choices : {};
+    result.choices = previewChoices(state, env, pid, choices);
+    const spend = { ...chk.costs };
+    for (const c of result.choices) for (const [res, n] of Object.entries(c.delta.resources ?? {})) spend[res] = (spend[res] ?? 0) - n;
+    for (const o of result.orders) {
+      const e = chk.entries.find((x) => x.order.id === o.id);
+      if (o.type === 'destiny.adopt' && o.ok && e) o.destiny = previewAdopt(state, env, pid, e);
     }
-    for (const r of result.forecast.upkeepRisk ?? []) result.issues.push(issue('upkeep_risk', '/forecast/upkeep', r));
+    result.forecast = economy.forecast(state, env, pid, { spend, assign: chk.assign });
+    for (const c of result.choices) {
+      for (const [res, n] of Object.entries(c.delta.resources ?? {})) {
+        const net = (result.forecast.net[res] ?? 0) + n;
+        if (net) result.forecast.net[res] = net;
+        else delete result.forecast.net[res];
+      }
+    }
+    for (const [res, n] of Object.entries(result.forecast.shortfall ?? {})) {
+      if (n > 0) result.issues.push(issue('shortfall', `/forecast/${res}`, `${res}: ${n} missing at season end`, { params: { res, missing: n } }));
+    }
+    for (const r of result.forecast.upkeepRisks ?? []) result.issues.push(issue('upkeep_risk', '/forecast/upkeep', r.message, { params: r.params }));
     result.catalogue = catalogueFor(state, env, pid);
   }
   return result;
+}
+
+// A scratch transition for the preview on a copy of the state (or projection,
+// which carries no rng); nothing of it is written back.
+function dryRun(state, env, run) {
+  const tc = createContext({ ...state, rng: state.rng ?? seedState(0) }, env);
+  tc.step = 'preview';
+  run(tc);
+  return tc.state;
+}
+
+const changed = (a = {}, b = {}) => {
+  const out = {};
+  for (const k of [...new Set([...Object.keys(a), ...Object.keys(b)])].sort()) {
+    const n = (b[k] ?? 0) - (a[k] ?? 0);
+    if (n) out[k] = n;
+  }
+  return out;
+};
+
+/**
+ * What a change does to one people, { resources, meters, loyalty, population,
+ * standing, tokens, statuses } with only the keys that change: numbers are
+ * deltas, tokens the kinds and statuses the ids that are added.
+ */
+export function peopleDelta(before, after) {
+  const loyalty = (p) => Object.fromEntries(p.council.map((m) => [m.id, m.loyalty]));
+  const out = {
+    resources: changed(before.resources, after.resources),
+    meters: changed(before.meters, after.meters),
+    loyalty: changed(loyalty(before), loyalty(after)),
+    population: after.population.core - before.population.core,
+    standing: after.standing - before.standing,
+    tokens: after.tokens.filter((t) => !before.tokens.some((x) => x.id === t.id)).map((t) => t.kind),
+    statuses: after.statuses.filter((s) => !before.statuses.some((x) => x.id === s.id && JSON.stringify(x) === JSON.stringify(s))).map((s) => s.id),
+  };
+  for (const [k, v] of Object.entries(out)) {
+    if (v === 0 || (Array.isArray(v) ? v.length === 0 : typeof v === 'object' && Object.keys(v).length === 0)) delete out[k];
+  }
+  return out;
+}
+
+function previewChoices(state, env, pid, choices) {
+  const out = [];
+  for (const [id, option] of Object.entries(choices)) {
+    const pc = (state.pendingChoices ?? []).find((c) => c.id === id && c.people === pid);
+    const card = pc && pc.options.includes(option) ? env.ereignis(pc.event) : null;
+    const opt = card?.options?.find((o) => o.id === option);
+    if (!opt) continue;
+    const after = dryRun(state, env, (tc) => applyOnceList(tc, pid, opt.effects, { reason: `${card.name}: ${opt.label}`, refs: [pc.event] }));
+    out.push({ id, option, delta: peopleDelta(state.peoples[pid], after.peoples[pid]) });
+  }
+  return out;
+}
+
+// The adoption runs its own resolve on a scratch copy, so the preview shows
+// exactly what the order does: the standing cost and the mourning of members.
+function previewAdopt(state, env, pid, entry) {
+  const def = env.bestimmung(entry.order.params.bestimmung);
+  if (!def) return null;
+  const after = dryRun(state, env, (tc) => entry.def.resolve(tc, orderContext(tc.s0, env, pid, { path: `/orders/${entry.index}` }), entry.order, entry.plan, null));
+  return {
+    ref: entry.order.params.bestimmung,
+    name: def.name,
+    milestones: def.milestones.map((m) => ({ id: m.id, text: m.text })),
+    delta: peopleDelta(state.peoples[pid], after.peoples[pid]),
+  };
 }
 
 // --- drafts of all peoples ----------------------------------------------------
@@ -302,14 +462,17 @@ function gatherDrafts(state, env, drafts) {
 export function seal(state, env, drafts = {}) {
   const issues = [];
   if (state.status === 'ended') issues.push(issue('finished', '', 'the campaign has ended'));
-  if (state.phase !== 'planning') issues.push(issue('phase', '/phase', `seal needs planning, state is ${state.phase}`));
-  if (state.rulesVersion !== RULES_VERSION) issues.push(issue('phase', '/rulesVersion', `campaign rules ${state.rulesVersion}, kernel rules ${RULES_VERSION}`));
+  if (state.phase !== 'planning') issues.push(issue('phase', '/phase', `seal needs planning, state is ${state.phase}`, { params: { reason: 'seal-needs-planning', phase: state.phase } }));
+  if (state.rulesVersion !== RULES_VERSION) {
+    issues.push(issue('phase', '/rulesVersion', `campaign rules ${state.rulesVersion}, kernel rules ${RULES_VERSION}`, { params: { reason: 'rules-version', campaign: state.rulesVersion, kernel: RULES_VERSION } }));
+  }
   if (hasErrors(issues)) return { ok: false, issues, state, drafts };
   const g = gatherDrafts(state, env, drafts);
   if (hasErrors(g.issues)) return { ok: false, issues: g.issues, state, drafts };
 
   const tc = createContext(state, env);
   tc.step = 'seal';
+  migrate(tc);
   const bands = tune(env, 'eventBands');
   const draws = {};
   for (const pid of Object.keys(g.used).sort()) {
@@ -355,14 +518,14 @@ export function apply(state, env, drafts = {}) {
   }
   const issues = [];
   if (s0.status === 'ended') issues.push(issue('finished', '', 'the campaign has ended'));
-  if (s0.phase !== 'resolving') issues.push(issue('phase', '/phase', `apply needs resolving, state is ${s0.phase}`));
+  if (s0.phase !== 'resolving') issues.push(issue('phase', '/phase', `apply needs resolving, state is ${s0.phase}`, { params: { reason: 'apply-needs-resolving', phase: s0.phase } }));
   if (hasErrors(issues)) return { ok: false, issues, state };
   // The seal lock: apply resolves exactly the drafts whose hashes the seal
   // recorded. States sealed before the lock existed carry no hashes.
   if (s0.sealed) {
     for (const pid of Object.keys(s0.sealed).sort()) {
       if (!drafts[pid] || hashValue(drafts[pid]) !== s0.sealed[pid]) {
-        issues.push(kissue('tamper', `/drafts/${pid}`, `the draft of ${pid} differs from the one sealed for turn ${s0.turn}`));
+        issues.push(kissue('tamper', `/drafts/${pid}`, `the draft of ${pid} differs from the one sealed for turn ${s0.turn}`, { params: { reason: 'sealed-draft', people: pid, turn: s0.turn } }));
       }
     }
     if (hasErrors(issues)) return { ok: false, issues, state };
@@ -374,6 +537,7 @@ export function apply(state, env, drafts = {}) {
 
   const tc = createContext(s0, env);
   tc.step = 'orders';
+  migrate(tc);
   for (const s of g.substitutions) notice(tc, 'draft.fallback', { kind: 'people', id: s.people }, `fallback policy orders (${s.reason})`, { people: s.people });
 
   // Labour of the season becomes the people's standing assignment.
@@ -424,6 +588,9 @@ export function apply(state, env, drafts = {}) {
     } else {
       e.def.resolve(tc, ox, e.order, e.plan, out);
     }
+    const lead = used[pid].draft.lead?.[e.order.id];
+    const at = lead ? orderTile(s0, tc.world, pid, e.order) : null;
+    if (at) setMember(tc, pid, lead, 'at', at, `leads order ${e.order.id} (${e.order.type}) at ${at}`, { kind: 'member.at' });
     (tc.scratch.executed[pid] ??= []).push({ order: e.order, slot: e.slot, tags: e.tags, band: out?.band ?? null });
     fireHook(tc, pid, `use:${e.order.type}`, e.tags);
     orderReport.push({ people: pid, id: e.order.id, type: e.order.type, status: 'executed', band: out?.band ?? null, venture: e.venture });
@@ -659,11 +826,12 @@ export function repin(state, env) {
   const before = state.campaign.world;
   const after = { id: env.welt.id, version: env.welt.version, hash: env.hash };
   const issues = [];
-  if (state.phase === 'resolving') issues.push(issue('phase', '/phase', 'repin is refused while a season resolves'));
-  if (before.id !== after.id) issues.push(issue('target', '/world', `the campaign plays world ${before.id}, not ${after.id}`));
+  if (state.phase === 'resolving') issues.push(issue('phase', '/phase', 'repin is refused while a season resolves', { params: { reason: 'repin-resolving', phase: state.phase } }));
+  if (before.id !== after.id) issues.push(issue('target', '/world', `the campaign plays world ${before.id}, not ${after.id}`, { params: { reason: 'other-world', campaign: before.id, world: after.id } }));
   if (hasErrors(issues)) return { ok: false, issues, state };
   const tc = createContext(state, env, { source: 'player' });
   tc.step = 'repin';
+  migrate(tc);
   noteChange(tc, 'campaign.repin', { kind: 'campaign', id: state.campaign.id }, 'campaign.world', before, after,
     `world package re-pinned from ${before.hash} to ${after.hash}`, { people: state.campaign.player });
   tc.state.campaign.world = after;
@@ -678,10 +846,15 @@ export function repin(state, env) {
 /** agents -> planning: deterministic pool candidates for every people. */
 export function open(state, env) {
   if (state.status === 'ended') return { ok: false, issues: [issue('finished', '', 'the campaign has ended')], state };
-  if (state.phase !== 'agents') return { ok: false, issues: [issue('phase', '/phase', `open needs agents, state is ${state.phase}`)], state };
+  if (state.phase !== 'agents') return { ok: false, issues: [issue('phase', '/phase', `open needs agents, state is ${state.phase}`, { params: { reason: 'open-needs-agents', phase: state.phase } })], state };
   const tc = createContext(state, env);
   tc.step = 'open';
+  migrate(tc);
   for (const pid of peopleIds(state)) {
+    // Members led orders in the season just resolved; planning finds them at home.
+    for (const m of tc.state.peoples[pid].council) {
+      if (m.at != null) setMember(tc, pid, m.id, 'at', null, `${m.name} returns home as planning opens`, { kind: 'member.at' });
+    }
     if (!alive(state, pid)) continue;
     research.offerPool(tc, pid);
     bestimmung.offerDestinyPool(tc, pid);

@@ -137,6 +137,31 @@ export function recordVerdict(dir, stepId, { proposalId, kind, title, verdict, b
 }
 
 /**
+ * Records an accepted finding of a judge under a step, { id, judge, severity,
+ * text, refs }. The caller passes only findings the player may see. A finding
+ * with the same id and judge is replaced, so re-running ingest does not
+ * duplicate it.
+ */
+export function recordFinding(dir, stepId, { id, judge, severity, text, refs = [] }, { lock } = {}) {
+  return commit(dir, (cur) => {
+    const status = requireStatus(cur, dir);
+    let step = status.steps.find((s) => s.id === stepId);
+    if (!step) {
+      step = { id: stepId, agent: judge, state: 'done', startedAt: now(), endedAt: now(), summary: '', proposals: [] };
+      status.steps.push(step);
+    }
+    const entry = { id, judge, severity, text: clip(text, 1000), refs: refs.slice(0, 12).map((r) => clip(r, 80)) };
+    const list = (step.findings ??= []);
+    const at = list.findIndex((f) => f.id === id && f.judge === judge);
+    if (at >= 0) list[at] = entry;
+    else list.push(entry);
+    // The schema holds 24 per step; the oldest give way.
+    while (list.length > 24) list.shift();
+    return status;
+  }, lock);
+}
+
+/**
  * Brings status.json in line with the campaign state after a kernel
  * transition: the phase always follows the state. When apply moves to a new
  * turn, the steps of the resolved turn (phase B before it, the world step of

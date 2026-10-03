@@ -3,7 +3,7 @@
 // validator decided on each proposal. It is a view: nothing reads it back
 // into the state.
 
-import { AGENTS, COMMON_DEFS, MAX_TIER, PHASES, arr, bundle, int, nullable, obj, ref, text } from './common.js';
+import { AGENTS, COMMON_DEFS, JUDGES, MAX_TIER, PHASES, arr, bundle, int, nullable, obj, ref, text } from './common.js';
 import { ITEM_TYPES } from './proposal.js';
 
 export const STATUS_DEFS = Object.freeze({
@@ -23,7 +23,16 @@ export const STATUS_DEFS = Object.freeze({
       budget: nullable(obj({ effect: int(0, 99), price: int(-99, 0), net: int(-99, 99), tier: int(0, MAX_TIER) })),
       reason: nullable(text(400, 1)),
     }), 24),
-  }), 40),
+    // Default absent: accepted findings of a judge that the player may see
+    // (every entry they cite is visible to him), with the judge's severity.
+    findings: arr(obj({
+      id: ref('id'),
+      judge: { enum: [...JUDGES] },
+      severity: { enum: ['info', 'warn', 'severe'] },
+      text: text(1000, 1),
+      refs: arr(text(80, 1), 12),
+    }), 24),
+  }, ['findings']), 40),
   status: obj({
     format: { const: 'realmcraft-status' },
     version: { const: 1 },
