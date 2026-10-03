@@ -59,7 +59,7 @@ German project terms with their id in code where one exists and an English expla
 |---|---|---|
 | Entwicklung | `entwicklung` | Development, the one generic content object for technique, doctrine, institution, discipline, unit, building and way of life |
 | Errungenschaft | `entwicklung` | Achievement, the player-facing term for a development on a research path from M1 on (D16) |
-| Pfad | | Research path. From M1 the six paths Nahrung, Gemeinschaft, Militär, Werk, Erkenntnis and Magie, each with tiers (D16) |
+| Pfad | `pfad`, `regeln.json/pfade`, `people.pfade` | Research path. From M1 the six paths Nahrung, Gemeinschaft, Militär, Werk, Erkenntnis and Magie, each with tiers (D16) |
 | Stufe | `tier` | Tier of a development, which fixes its budget row and gate |
 | Art | `kind` | Kind of a development, `technik`, `doktrin`, `institution`, `disziplin`, `einheit`, `bauwerk`, `lebensweise` |
 | Kandidat | `developments.candidates` | A development offered to a people for research, from the pool or from an agent |

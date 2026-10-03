@@ -160,7 +160,7 @@ Standing fundamental decisions of the rebuild with date, decision, reason, conse
 
 ## Milestone M1, owner decisions of 3 October 2026
 
-The owner settled the open questions for M1 as follows. Each can be revised by the owner.
+The owner settled the open questions for M1 as follows. Each can be revised by the owner. D16 to D21 are the decisions M1-1 to M1-6 of [plan-m1.md](plan-m1.md) in the same order, and the plan holds their binding contracts.
 
 ### D16 Research paths and achievements
 
