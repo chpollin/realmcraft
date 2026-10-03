@@ -76,12 +76,14 @@ describe('research replaces its namesake', () => {
 describe('a full slot offers the swap', () => {
   test('a second main order is refused for the slot and carries an ersatz replacing the first', () => {
     const ctx0 = ctxOf(draft0);
-    // Two main orders of different types, each accepted on its own (a second order of a once-per-season type would replace the first instead).
+    // Two main orders, each accepted on its own. At turn 0 the fixture offers no found, institute or destiny.adopt
+    // (no free region in range, the only institution already in force, the practice still touches the destiny), so the
+    // pair is two migrations to different tiles; migrate is not once-per-season, so the second overflows the slot.
     const ok = (c) => { const o = previewOption(ctx0, c); return !o.grund && o.art === 'haupt'; };
-    const adopt = env.content.bestimmungen.map((b) => ({ type: 'destiny.adopt', params: { bestimmung: `${b.id}@${b.rev}` } })).find(ok);
-    const migrate = Object.keys(view.map.known[pid]).map((tile) => ({ type: 'migrate', params: { tile } })).find(ok);
-    assert.ok(adopt && migrate, 'two main orders the kernel accepts on their own');
-    const mains = [adopt, migrate];
+    const migrations = Object.keys(view.map.known[pid]).map((tile) => ({ type: 'migrate', params: { tile } })).filter(ok);
+    assert.ok(migrations.length >= 2, 'two main orders the kernel accepts on their own');
+    assert.equal(isUnique('migrate'), false);
+    const mains = migrations.slice(0, 2);
     const draft = withOrder(draft0, mains[0]);
     const opt = previewOption(ctxOf(draft), mains[1]);
     assert.equal(opt.grund, t('issue.slots'));

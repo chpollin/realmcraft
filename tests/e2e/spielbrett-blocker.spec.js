@@ -66,14 +66,20 @@ async function openBoard(page) {
 
 test('a second main order offers the swap instead of overflowing the slot', async ({ page }) => {
   await openBoard(page);
-  // A main order in the draft, then a tile whose migrate the kernel accepts on its own.
+  // A main order in the draft, then a second tile whose migrate the kernel accepts on its own.
+  // At turn 0 migrate is the only main order the fixture admits (found, institute and destiny.adopt are refused).
   const tile = await page.evaluate(() => {
     const g = window.spielbrett.game;
-    const adopt = g.env.content.bestimmungen.map((b) => ({ type: 'destiny.adopt', params: { bestimmung: `${b.id}@${b.rev}` } })).find((c) => !g.previewOption(c).grund);
-    window.spielbrett.addCandidate(g.previewOption(adopt));
+    const known = Object.keys(g.view.map.known[g.pid]);
+    const first = known.map((k) => ({ type: 'migrate', params: { tile: k } })).find((c) => !g.previewOption(c).grund);
+    // Migrating carries a probe, so the first order enters with a roll instead of opening the probe dialog.
+    const opt = g.previewOption(first);
+    const p = opt.probe.kernel;
+    window.spielbrett.addCandidate(opt, { roll: { probe: p.id, value: 6, fingerprint: p.fingerprint } });
     const { model } = window.spielbrett;
     const empty = (k) => !model.units.some((u) => `${u.q},${u.r}` === k) && !model.places.some((p) => `${p.q},${p.r}` === k);
-    return Object.keys(g.view.map.known[g.pid]).find((k) => {
+    return known.find((k) => {
+      if (k === first.params.tile) return false;
       const o = g.previewOption({ type: 'migrate', params: { tile: k } });
       return o.ersatz && !o.ersatz.grund && empty(k);
     });

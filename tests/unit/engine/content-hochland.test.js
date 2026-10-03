@@ -154,8 +154,14 @@ test('every label key the content implies has a text', () => {
 
 test('labels are short UI labels without sentences or middle dots', () => {
   for (const [k, v] of Object.entries(labels)) {
-    assert.ok(v.length <= 40, `${k} is too long for a label`);
     assert.ok(!v.includes('·'), `${k} contains a middle dot`);
+    // Templates with a {placeholder} are event card lines: one short sentence, not a label.
+    if (/\{\w+\}/.test(v)) {
+      assert.ok(v.length <= 100, `${k} is too long for a card line`);
+      continue;
+    }
+    // issue.* texts are refusal reasons beside an order and may run a little longer than a label.
+    assert.ok(v.length <= (k.startsWith('issue.') ? 50 : 40), `${k} is too long for a label`);
     assert.ok(!/[.:;!?]$/.test(v), `${k} reads like a sentence`);
   }
 });

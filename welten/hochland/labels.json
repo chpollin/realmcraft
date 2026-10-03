@@ -35,7 +35,7 @@
     "ereignis.krieg": "Krieg",
     "ereignis.krieg.text": "Zwischen deinem Volk und {name} herrscht Krieg.",
     "ereignis.nachfolge": "{name} führt nun den Rat.",
-    "ereignis.ohne-antwort": "Keine Antwort, die erste Möglichkeit galt",
+    "ereignis.ohne-antwort": "Ohne Antwort galt die erste Wahl",
     "ereignis.reaktion": "In die Befehle aufnehmen",
     "ereignis.staerke": "Stärke",
     "ereignis.tod": "Tod im Rat",
