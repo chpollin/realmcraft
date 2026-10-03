@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openTier, validateBestimmung, validateCampaign, validateEntwicklung, validateEreignis, validateProposal, validateTask, validateWorldPackage } from '../../../engine/content/validate.js';
+import { changesState, findingsOf, openTier, validateBestimmung, validateCampaign, validateEntwicklung, validateEreignis, validateProposal, validateTask, validateWorldPackage, withCatalogue } from '../../../engine/content/validate.js';
 import { libraryFrom } from '../../../engine/content/library.js';
 import { hashValue } from '../../../engine/core/hash.js';
 
@@ -90,6 +90,28 @@ test('a bad content item is reported without hiding the others', () => {
   const codes = at(validateWorldPackage(pack));
   assert.ok(codes.some(([c, p]) => c === 'unknown_primitive' && p === '/entwicklungen/items/1/effects/2/op'));
   assert.ok(codes.some(([c, p]) => c === 'budget_net' && p === '/entwicklungen/items/2'));
+});
+
+test('world package: orders against the kernel catalogue, reserved ids', () => {
+  const pack = minimalPack();
+  const salz = pack.entwicklungen.items.find((e) => e.id === 'salzpfad');
+  const at0 = `/entwicklungen/items/${pack.entwicklungen.items.indexOf(salz)}`;
+  salz.effects.push({ op: 'order.unlock', order: 'gibt.esnicht' });
+  pack.regeln.resources[0].id = 'constructor';
+  pack.regeln.peopleTemplates[1].id = 'constructor';
+  const codes = at(validateWorldPackage(pack));
+  assert.ok(codes.some(([c, p]) => c === 'unknown_tag' && p === `${at0}/effects/${salz.effects.length - 1}/order`), 'the kernel registry knows no order gibt.esnicht');
+  assert.ok(codes.some(([c, p]) => c === 'format' && p === '/regeln/resources/0'));
+  assert.ok(codes.some(([c, p]) => c === 'format' && p === '/regeln/peopleTemplates/1'));
+});
+
+test('proposal helpers: state-changing items, findings from the chronicle', () => {
+  assert.deepEqual(['entwicklung', 'event', 'correction', 'narrative', 'finding', 'image'].map(changesState), [true, true, true, false, false, false]);
+  assert.equal(findingsOf({}), null, 'no chronicle, no check');
+  assert.deepEqual(findingsOf({ chronicle: [{ kind: 'ingest.finding', refs: ['f-1', 'T3-e2'] }, { kind: 'ingest.correction', refs: ['p', 'f-2'] }] }), ['f-1']);
+  const ctx = withCatalogue({});
+  assert.ok(Object.hasOwn(ctx.orders, 'explore') && ctx.modules.includes('handel'));
+  assert.equal(withCatalogue({ orders: {}, modules: [] }).orders.explore, undefined, 'a caller catalogue wins');
 });
 
 test('open tier follows the gates of TIERS for the corpus people', () => {

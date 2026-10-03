@@ -1,5 +1,5 @@
 {
-  "about": "Case corpus of the content validator for the synthetic world \"korpus\". Expectations are computed by hand from the weight, tier and stage rules of the kernel draft, independent of the validator. Entwicklung cases give the issue codes and the hand-computed budget (effect, price, net), Bestimmung cases the issue codes and the total difficulty, proposal cases the envelope issues and the verdict of each item. A case of kind \"world\" is judged as shipped world content, \"candidate\" as an agent candidate of the people schar (open tier, stack cap and grounding apply). Item verdicts of a proposal whose envelope has issues are rejected with empty codes, the reason sits in expect.issues. Drafts, states and tasks carry the invariants the schemas cannot express; a state case is a base fixture of tests/fixtures/engine plus set and move operations on JSON pointers, a task case the context task plus such operations.",
+  "about": "Case corpus of the content validator for the synthetic world \"korpus\". Expectations are computed by hand from the weight, tier and stage rules of the kernel draft, independent of the validator. Entwicklung cases give the issue codes and the hand-computed budget (effect, price, net), Bestimmung cases the issue codes and the total difficulty, proposal cases the envelope issues and the verdict of each item. A case of kind \"world\" is judged as shipped world content, \"candidate\" as an agent candidate of the people schar (open tier, stack cap and grounding apply). Item verdicts of a proposal whose envelope has issues are rejected with empty codes, the reason sits in expect.issues. Drafts, states and tasks carry the invariants the schemas cannot express; a state case is a base fixture of tests/fixtures/engine plus set and move operations on JSON pointers, a task case the context task plus such operations. A case may carry extraLibrary (Entwicklungen added to the library of that case only), and a proposal case chronicle (entries put into the state) and requireTask (the ingest switch that rejects state-changing items without a task).",
   "context": {
     "regeln": {
       "format": "realmcraft-regeln",
@@ -1935,15 +1935,18 @@
     },
     {
       "id": "kinderreiche-sippen",
-      "note": "Scaled flow with an integral scale factor (expected population 6, step 3).",
+      "note": "Scaled flow per clan: a benefit counts the upper bound scaleBound 2 x expected population 6 = 12 per step 3 = 4, so +1 nahrung in one season weighs 4 (it weighed 2 with the expected count before lane V). E 5 (flow 4, probe 1), P -1, net 4: above effectMax 4 and netMax 3 of tier 1.",
       "as": "world",
       "expect": {
-        "verdict": "accepted",
-        "codes": [],
+        "verdict": "rejected",
+        "codes": [
+          "budget_effect",
+          "budget_net"
+        ],
         "budget": {
-          "effect": 3,
+          "effect": 5,
           "price": -1,
-          "net": 2
+          "net": 4
         }
       },
       "data": {
@@ -2015,15 +2018,15 @@
     },
     {
       "id": "viele-zelte",
-      "note": "Scaled flow with a fractional weight (1.5) that rounds up when positive.",
+      "note": "Scaled flow with a fractional weight that rounds up when positive: upper bound 12 clans per step 5 = 2.4, x 1 for one season, rounds up to 3. E 4 (flow 3, probe 1), P -1, net 3, research 6. Step 4 and research 4 before lane V priced the expected count.",
       "as": "world",
       "expect": {
         "verdict": "accepted",
         "codes": [],
         "budget": {
-          "effect": 3,
+          "effect": 4,
           "price": -1,
-          "net": 2
+          "net": 3
         }
       },
       "data": {
@@ -2056,7 +2059,7 @@
           "wege"
         ],
         "cost": {
-          "research": 4,
+          "research": 6,
           "resources": {}
         },
         "effects": [
@@ -2069,7 +2072,7 @@
             ],
             "scale": {
               "per": "population",
-              "step": 4
+              "step": 5
             }
           },
           {
@@ -3492,15 +3495,18 @@
     },
     {
       "id": "zugpflicht",
-      "note": "Candidate paid with a duty restriction (-2); stack exactly at the cap of 3.",
+      "note": "Candidate paid with a duty restriction: the kernel has no duty rule, so the duty is content.inert and weighs 0 (it weighed -2 before lane V). E 3 (probe zug +2, flow nahrung +1 in one season), P 0, net 3, research must be 6, the stated 2 is content.research_cost. The accepted twin with a real price is zugmarsch.",
       "as": "candidate",
       "expect": {
-        "verdict": "accepted",
-        "codes": [],
+        "verdict": "rejected",
+        "codes": [
+          "content.inert",
+          "content.research_cost"
+        ],
         "budget": {
           "effect": 3,
-          "price": -2,
-          "net": 1
+          "price": 0,
+          "net": 3
         }
       },
       "data": {
@@ -7917,6 +7923,1971 @@
           }
         ]
       }
+    },
+    {
+      "id": "zugmarsch",
+      "as": "candidate",
+      "note": "Twin of zugpflicht with an enforced price, flow holz -1 in winter (-1). E 3, P -1, net 2, research 4; the probe modifiers on zug sum exactly to the cap of 3.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "agent",
+          "practiceTags": [
+            "zug"
+          ],
+          "token": null,
+          "request": null,
+          "proposal": "research.schar.T9"
+        },
+        "id": "zugmarsch",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Zugmarsch",
+        "summary": "Testfall Zugmarsch.",
+        "tags": [
+          "zug",
+          "herde"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "zug"
+            ],
+            "amount": 2,
+            "label": "Zugpflicht"
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "sommer"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "statusschmuggel",
+      "as": "world",
+      "note": "A permanent status weighs its standing effects in full: status.add with flow holz +2 in every season weighs 2 x 3 = 6 (a flat 1 before lane V). E 7 with probe geist +1, P 0, net 7: above effectMax 4 and netMax 3 of tier 1.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "status.add",
+            "id": "dauergunst",
+            "effects": [
+              {
+                "op": "resource.flow",
+                "res": "holz",
+                "amount": 2
+              }
+            ],
+            "duration": null,
+            "endsOn": null
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "statusschmuggel",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Statusschmuggel",
+        "summary": "Testfall Statusschmuggel.",
+        "tags": [
+          "geist"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "geist"
+            ],
+            "amount": 1
+          }
+        ],
+        "price": []
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "budget_effect",
+          "budget_net"
+        ],
+        "budget": {
+          "effect": 7,
+          "price": 0,
+          "net": 7
+        }
+      }
+    },
+    {
+      "id": "kurzer-rausch",
+      "as": "world",
+      "note": "A status of two seasons weighs its share of the year: stat.mod +1 (3) x 2/4 = 1.5, rounds up to 2. E 3 with probe feuer +1, P -1, net 2, research 4.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "status.add",
+            "id": "rausch",
+            "effects": [
+              {
+                "op": "stat.mod",
+                "stat": "wohlstand",
+                "amount": 1
+              }
+            ],
+            "duration": 2,
+            "endsOn": null
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "kurzer-rausch",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Kurzer Rausch",
+        "summary": "Testfall Kurzer Rausch.",
+        "tags": [
+          "feuer"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "feuer"
+            ],
+            "amount": 1
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "ahnenfeuer",
+      "as": "world",
+      "note": "A trigger on season fires every season: population.delta +1 (3) x flow factor 3 = 9 (3 before lane V, as if once). E 9, P -1, net 8: above effectMax 4 and netMax 3 of tier 1.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "ahnenfeuer",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Ahnenfeuer",
+        "summary": "Testfall Ahnenfeuer.",
+        "tags": [
+          "opfer"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "trigger",
+            "on": "season",
+            "effects": [
+              {
+                "op": "population.delta",
+                "amount": 1
+              }
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "budget_effect",
+          "budget_net"
+        ],
+        "budget": {
+          "effect": 9,
+          "price": -1,
+          "net": 8
+        }
+      }
+    },
+    {
+      "id": "herdfeuer",
+      "as": "world",
+      "note": "A season trigger of resource.delta nahrung +1 weighs 1 x 3 = 3, as much as resource.flow +1. E 3, P -1, net 2, research 4.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "herdfeuer",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Herdfeuer",
+        "summary": "Testfall Herdfeuer.",
+        "tags": [
+          "wege"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "trigger",
+            "on": "season",
+            "effects": [
+              {
+                "op": "resource.delta",
+                "res": "nahrung",
+                "amount": 1
+              }
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "gabenpfad",
+      "as": "world",
+      "note": "A benefit on use: fires as often as the people chooses and counts every season: resource.delta +1 x 3 = 3. E 3, P -1, net 2, research 4. Without an order catalogue in the context the hook is not checked.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "gabenpfad",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Gabenpfad",
+        "summary": "Testfall Gabenpfad.",
+        "tags": [
+          "weg"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "trigger",
+            "on": "use:explore",
+            "effects": [
+              {
+                "op": "resource.delta",
+                "res": "nahrung",
+                "amount": 1
+              }
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "salzschuld",
+      "as": "world",
+      "note": "A dependency whose penalty helps (population.delta +1) would reward the shortfall: misplaced_effect at the penalty. The budget counts only the harmful part of a penalty, so the dependency weighs 1 x v 1 x -3 = -3 (0 before lane V). E 6, P -3, net 3, research 9.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "salzschuld",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Salzschuld",
+        "summary": "Testfall Salzschuld.",
+        "tags": [
+          "salz"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "dependency",
+            "res": "nahrung",
+            "amount": 1,
+            "penalty": [
+              {
+                "op": "population.delta",
+                "amount": 1
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "misplaced_effect"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": -3,
+          "net": 3
+        }
+      }
+    },
+    {
+      "id": "segensmeter",
+      "as": "world",
+      "note": "A meter with a beneficial threshold is an effect: population.delta +1 (3) at 1, a use meter with decay 1 crosses again, x repeat 2 = +6, so it is misplaced in price (it weighed -3 before lane V). Price side +6: P 6, net 12, above netMax 4 and priceMax -1 of tier 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "segensmeter",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Segensmeter",
+        "summary": "Testfall Segensmeter.",
+        "tags": [
+          "geist",
+          "furcht"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "meter",
+            "id": "segen",
+            "min": 0,
+            "max": 1,
+            "rise": {
+              "on": "use:explore",
+              "amount": 1
+            },
+            "decay": 1,
+            "thresholds": [
+              {
+                "at": 1,
+                "effects": [
+                  {
+                    "op": "population.delta",
+                    "amount": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "budget_net",
+          "budget_price",
+          "misplaced_effect"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": 6,
+          "net": 12
+        }
+      }
+    },
+    {
+      "id": "zustimmungsmeter",
+      "as": "world",
+      "note": "A meter with the id zustimmung would take over the core approval meter: conflict. Budget: standing -1 at 5 is light 1 x season 2 = -2. E 6, P -2, net 4, research 12.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "zustimmungsmeter",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Zustimmungsmeter",
+        "summary": "Testfall Zustimmungsmeter.",
+        "tags": [
+          "wache",
+          "furcht"
+        ],
+        "cost": {
+          "research": 12,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "meter",
+            "id": "zustimmung",
+            "min": 0,
+            "max": 5,
+            "rise": {
+              "on": "season",
+              "amount": 1
+            },
+            "decay": 0,
+            "thresholds": [
+              {
+                "at": 5,
+                "effects": [
+                  {
+                    "op": "standing.delta",
+                    "amount": -1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "conflict"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": -2,
+          "net": 4
+        }
+      }
+    },
+    {
+      "id": "nie-reif",
+      "as": "world",
+      "note": "A threshold at 5 on a meter with max 3 is never reached and is no price (it weighed -2 before lane V). E 6, P 0, net 6: above netMax 4 and priceMax -1 of tier 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "nie-reif",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Nie reif",
+        "summary": "Testfall Nie reif.",
+        "tags": [
+          "geist"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "meter",
+            "id": "reifezeit",
+            "min": 0,
+            "max": 3,
+            "rise": {
+              "on": "use:explore",
+              "amount": 1
+            },
+            "decay": 0,
+            "thresholds": [
+              {
+                "at": 5,
+                "effects": [
+                  {
+                    "op": "population.delta",
+                    "amount": -1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "budget_net",
+          "budget_price"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": 0,
+          "net": 6
+        }
+      }
+    },
+    {
+      "id": "reservierter-meter",
+      "as": "world",
+      "note": "The meter id constructor names a property every object inherits; the kernel keys people.meters by it: format. Budget: nahrung -2 at 3 is light 1 x use 1 = -1. E 2, P -1, net 1, research 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "reservierter-meter",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Reservierter Meter",
+        "summary": "Testfall Reservierter Meter.",
+        "tags": [
+          "jagd"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "jagd"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "meter",
+            "id": "constructor",
+            "min": 0,
+            "max": 3,
+            "rise": {
+              "on": "use:explore",
+              "amount": 1
+            },
+            "decay": 0,
+            "thresholds": [
+              {
+                "at": 3,
+                "effects": [
+                  {
+                    "op": "resource.delta",
+                    "res": "nahrung",
+                    "amount": -2
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "format"
+        ],
+        "budget": {
+          "effect": 2,
+          "price": -1,
+          "net": 1
+        }
+      }
+    },
+    {
+      "id": "fremder-meter",
+      "as": "world",
+      "note": "meter.delta on a meter no development defines: dangling_ref. Budget: probe reiter +2 (2), flow nahrung +1 in autumn (1), price flow holz -1 in winter (-1) and meter.delta -1 (-1). E 3, P -2, net 1, research 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "meter.delta",
+            "meter": "unbekannt",
+            "amount": -1
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "fremder-meter",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Fremder Meter",
+        "summary": "Testfall Fremder Meter.",
+        "tags": [
+          "reiter"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "reiter"
+            ],
+            "amount": 2
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "dangling_ref"
+        ],
+        "budget": {
+          "effect": 3,
+          "price": -2,
+          "net": 1
+        }
+      }
+    },
+    {
+      "id": "zustimmungsgabe",
+      "as": "world",
+      "note": "meter.delta on the core approval meter is always defined. E 3 (probe fuss +1, flow nahrung +1 in summer, meter.delta +1), P -1, net 2, research 4.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "meter.delta",
+            "meter": "zustimmung",
+            "amount": 1
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "zustimmungsgabe",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Zustimmungsgabe",
+        "summary": "Testfall Zustimmungsgabe.",
+        "tags": [
+          "fuss"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "fuss"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "sommer"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "fremdfreund",
+      "as": "world",
+      "note": "relation.delta towards a people the world does not have: dangling_ref. E 3 (probe wege +1, flow nahrung +1 in autumn, relation +1), P -1, net 2, research 4.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "relation.delta",
+            "people": "niemand",
+            "amount": 1
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "fremdfreund",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Fremdfreund",
+        "summary": "Testfall Fremdfreund.",
+        "tags": [
+          "wege",
+          "weg"
+        ],
+        "cost": {
+          "research": 4,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "wege"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "dangling_ref"
+        ],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "reserviertes-volk",
+      "as": "world",
+      "note": "relation.delta towards \"constructor\": a reserved name, format. E 2 (probe befestigung +1, flow nahrung +1 in autumn), P -1 (relation -1), net 1, research 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [
+          {
+            "op": "relation.delta",
+            "people": "constructor",
+            "amount": -1
+          }
+        ],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "reserviertes-volk",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Reserviertes Volk",
+        "summary": "Testfall Reserviertes Volk.",
+        "tags": [
+          "befestigung"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "befestigung"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": []
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "format"
+        ],
+        "budget": {
+          "effect": 2,
+          "price": -1,
+          "net": 1
+        }
+      }
+    },
+    {
+      "id": "leere-verbote",
+      "as": "world",
+      "note": "Two restrictions naming neither orders nor tags bind nothing: content.inert twice, weight 0 each (-1 each before lane V). E 6, P 0, net 6: above netMax 4 and priceMax -1 of tier 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "leere-verbote",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Leere Verbote",
+        "summary": "Testfall Leere Verbote.",
+        "tags": [
+          "pulver"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "order.restrict",
+            "mode": "forbid",
+            "orders": [],
+            "tags": []
+          },
+          {
+            "op": "order.restrict",
+            "mode": "limit",
+            "orders": [],
+            "tags": [],
+            "limit": 1
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "budget_net",
+          "budget_price",
+          "content.inert"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": 0,
+          "net": 6
+        }
+      }
+    },
+    {
+      "id": "nie-ausloeser",
+      "as": "world",
+      "note": "A trigger whose if can never hold (approval below -5, the meter floor): content.inert. Budget: a burden under an if counts once, nahrung -3 = -3. E 6, P -3, net 3, research 9.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "nie-ausloeser",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Nie-Ausloeser",
+        "summary": "Testfall Nie-Ausloeser.",
+        "tags": [
+          "belagerung"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "trigger",
+            "on": "season",
+            "if": {
+              "meter": "zustimmung",
+              "cmp": "lt",
+              "value": -5
+            },
+            "effects": [
+              {
+                "op": "resource.delta",
+                "res": "nahrung",
+                "amount": -3
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "content.inert"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": -3,
+          "net": 3
+        }
+      }
+    },
+    {
+      "id": "einheitenzoll",
+      "as": "world",
+      "note": "A flow scaled per unit with tag magie, which no unit type carries, counts nothing at runtime: unknown_tag at scale/tag. Budget: burden with expected 4 units per step 4 = 1, -1 x 3 = -3. E 6, P -3, net 3, research 9.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "einheitenzoll",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Einheitenzoll",
+        "summary": "Testfall Einheitenzoll.",
+        "tags": [
+          "schmiede"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": -1,
+            "scale": {
+              "per": "units",
+              "tag": "magie",
+              "step": 4
+            }
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "unknown_tag"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": -3,
+          "net": 3
+        }
+      }
+    },
+    {
+      "id": "reiterzoll",
+      "as": "world",
+      "note": "The same scaled burden on tag reiter, which the unit type reiterschar carries. E 6, P -3, net 3, research 9.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "reiterzoll",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Reiterzoll",
+        "summary": "Testfall Reiterzoll.",
+        "tags": [
+          "schmiede",
+          "reiter"
+        ],
+        "cost": {
+          "research": 9,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": -1,
+            "scale": {
+              "per": "units",
+              "tag": "reiter",
+              "step": 4
+            }
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 6,
+          "price": -3,
+          "net": 3
+        }
+      }
+    },
+    {
+      "id": "hungerwache",
+      "as": "world",
+      "note": "A shortfall hook on a resource the world does not have never fires: unknown_resource at the hook. Budget: a harmful shortfall trigger is negative on omission, -2. E 3 (probe wache +2, flow nahrung +1 in summer), P -2, net 1, research 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "hungerwache",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Hungerwache",
+        "summary": "Testfall Hungerwache.",
+        "tags": [
+          "wache"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "wache"
+            ],
+            "amount": 2
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "sommer"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "trigger",
+            "on": "shortfall:gold",
+            "effects": [
+              {
+                "op": "population.delta",
+                "amount": -1
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "unknown_resource"
+        ],
+        "budget": {
+          "effect": 3,
+          "price": -2,
+          "net": 1
+        }
+      }
+    },
+    {
+      "id": "stufe-null",
+      "as": "candidate",
+      "note": "Agent content at tier 0 would use the tier-1 budget row for half the research: tier_gap. Otherwise treibjagd: E 3, P -1, net 2, research 2 x (0 + 1) = 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "agent",
+          "practiceTags": [
+            "jagd"
+          ],
+          "token": null,
+          "request": null,
+          "proposal": "research.schar.T9"
+        },
+        "id": "stufe-null",
+        "kind": "technik",
+        "tier": 0,
+        "name": "Stufe Null",
+        "summary": "Testfall Stufe Null.",
+        "tags": [
+          "jagd",
+          "fuss"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "jagd"
+            ],
+            "amount": 2,
+            "label": "Treibjagd"
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "tier_gap"
+        ],
+        "budget": {
+          "effect": 3,
+          "price": -1,
+          "net": 2
+        }
+      }
+    },
+    {
+      "id": "altlast-abloesen",
+      "as": "world",
+      "extraLibrary": [
+        {
+          "format": "realmcraft-entwicklung",
+          "version": 1,
+          "rev": 1,
+          "appearance": "",
+          "prerequisites": {
+            "all": [],
+            "any": [],
+            "if": null
+          },
+          "replaces": [],
+          "spec": null,
+          "onAcquire": [],
+          "origin": {
+            "source": "world",
+            "practiceTags": [],
+            "token": null,
+            "request": null,
+            "proposal": null
+          },
+          "id": "altlast",
+          "kind": "technik",
+          "tier": 1,
+          "name": "Altlast",
+          "summary": "Testfall Altlast.",
+          "tags": [
+            "furcht"
+          ],
+          "cost": {
+            "research": 2,
+            "resources": {}
+          },
+          "effects": [],
+          "price": [
+            {
+              "op": "meter",
+              "id": "altschuld",
+              "min": 0,
+              "max": 3,
+              "rise": {
+                "on": "season",
+                "amount": 1
+              },
+              "decay": 0,
+              "thresholds": [
+                {
+                  "at": 3,
+                  "effects": [
+                    {
+                      "op": "resource.delta",
+                      "res": "nahrung",
+                      "amount": -2
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "Replacing altlast (net -2 under the current weights, in this case's library) sheds a burden: +2 on the effect side. E 4 (probe furcht +1, flow nahrung +1 in summer, replaces 2), P -1, net 3, research 6.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [
+          "altlast"
+        ],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "altlast-abloesen",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Altlast abloesen",
+        "summary": "Testfall Altlast abloesen.",
+        "tags": [
+          "furcht",
+          "geist"
+        ],
+        "cost": {
+          "research": 6,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "furcht"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "sommer"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 4,
+          "price": -1,
+          "net": 3
+        }
+      }
+    },
+    {
+      "id": "filz-abloesen",
+      "as": "world",
+      "note": "Replacing filzjurten (positive net) ends it; the loss is this development's own cost and is not credited. E 2 (probe zug +1, flow nahrung +1 in autumn), P -1, net 1, research 2.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [
+          "filzjurten"
+        ],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "filz-abloesen",
+        "kind": "technik",
+        "tier": 1,
+        "name": "Filz abloesen",
+        "summary": "Testfall Filz abloesen.",
+        "tags": [
+          "zug",
+          "winter"
+        ],
+        "cost": {
+          "research": 2,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "probe.mod",
+            "tags": [
+              "zug"
+            ],
+            "amount": 1
+          },
+          {
+            "op": "resource.flow",
+            "res": "nahrung",
+            "amount": 1,
+            "when": [
+              "herbst"
+            ]
+          }
+        ],
+        "price": [
+          {
+            "op": "resource.flow",
+            "res": "holz",
+            "amount": -1,
+            "when": [
+              "winter"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "accepted",
+        "codes": [],
+        "budget": {
+          "effect": 2,
+          "price": -1,
+          "net": 1
+        }
+      }
+    },
+    {
+      "id": "altschuld-zwei",
+      "as": "world",
+      "extraLibrary": [
+        {
+          "format": "realmcraft-entwicklung",
+          "version": 1,
+          "rev": 1,
+          "appearance": "",
+          "prerequisites": {
+            "all": [],
+            "any": [],
+            "if": null
+          },
+          "replaces": [],
+          "spec": null,
+          "onAcquire": [],
+          "origin": {
+            "source": "world",
+            "practiceTags": [],
+            "token": null,
+            "request": null,
+            "proposal": null
+          },
+          "id": "altlast",
+          "kind": "technik",
+          "tier": 1,
+          "name": "Altlast",
+          "summary": "Testfall Altlast.",
+          "tags": [
+            "furcht"
+          ],
+          "cost": {
+            "research": 2,
+            "resources": {}
+          },
+          "effects": [],
+          "price": [
+            {
+              "op": "meter",
+              "id": "altschuld",
+              "min": 0,
+              "max": 3,
+              "rise": {
+                "on": "season",
+                "amount": 1
+              },
+              "decay": 0,
+              "thresholds": [
+                {
+                  "at": 3,
+                  "effects": [
+                    {
+                      "op": "resource.delta",
+                      "res": "nahrung",
+                      "amount": -2
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "A meter id another development already defines (altschuld of altlast): the kernel keeps the first definition, so this meter would never charge: conflict. Budget: nahrung -2 at 3 is light 1 x season 2 = -2. E 6, P -2, net 4, research 12.",
+      "data": {
+        "format": "realmcraft-entwicklung",
+        "version": 1,
+        "rev": 1,
+        "appearance": "",
+        "prerequisites": {
+          "all": [],
+          "any": [],
+          "if": null
+        },
+        "replaces": [],
+        "spec": null,
+        "onAcquire": [],
+        "origin": {
+          "source": "world",
+          "practiceTags": [],
+          "token": null,
+          "request": null,
+          "proposal": null
+        },
+        "id": "altschuld-zwei",
+        "kind": "technik",
+        "tier": 2,
+        "name": "Altschuld zwei",
+        "summary": "Testfall Altschuld zwei.",
+        "tags": [
+          "furcht",
+          "opfer"
+        ],
+        "cost": {
+          "research": 12,
+          "resources": {}
+        },
+        "effects": [
+          {
+            "op": "stat.mod",
+            "stat": "wohlstand",
+            "amount": 2
+          }
+        ],
+        "price": [
+          {
+            "op": "meter",
+            "id": "altschuld",
+            "min": 0,
+            "max": 3,
+            "rise": {
+              "on": "season",
+              "amount": 1
+            },
+            "decay": 0,
+            "thresholds": [
+              {
+                "at": 3,
+                "effects": [
+                  {
+                    "op": "resource.delta",
+                    "res": "nahrung",
+                    "amount": -2
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "verdict": "rejected",
+        "codes": [
+          "conflict"
+        ],
+        "budget": {
+          "effect": 6,
+          "price": -2,
+          "net": 4
+        }
+      }
     }
   ],
   "bestimmungen": [
@@ -12108,6 +14079,841 @@
               "withdrawn": [],
               "sealed": false
             }
+          }
+        ]
+      }
+    },
+    {
+      "id": "welt-dauerstatus",
+      "useTask": false,
+      "note": "A band 3 card with a permanent status of two year-round +2 flows weighs 6 + 6 = 12, outside -2..2: budget_net (a flat 1 before lane V). A status of one season with stat.mod +1 weighs 3 x 1/4, rounded up to 1, and fits.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "world.T9",
+        "agent": "world",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "event",
+            "data": {
+              "id": "goldregen",
+              "rev": 1,
+              "name": "Goldregen",
+              "text": "Ereignis Goldregen.",
+              "band": 3,
+              "tags": [
+                "winter"
+              ],
+              "if": null,
+              "effects": [
+                {
+                  "op": "status.add",
+                  "id": "goldregen",
+                  "effects": [
+                    {
+                      "op": "resource.flow",
+                      "res": "nahrung",
+                      "amount": 2
+                    },
+                    {
+                      "op": "resource.flow",
+                      "res": "holz",
+                      "amount": 2
+                    }
+                  ],
+                  "duration": null,
+                  "endsOn": null
+                }
+              ],
+              "options": null
+            }
+          },
+          {
+            "type": "event",
+            "data": {
+              "id": "festtag",
+              "rev": 1,
+              "name": "Festtag",
+              "text": "Ereignis Festtag.",
+              "band": 3,
+              "tags": [
+                "winter"
+              ],
+              "if": null,
+              "effects": [
+                {
+                  "op": "status.add",
+                  "id": "festtag",
+                  "effects": [
+                    {
+                      "op": "stat.mod",
+                      "stat": "wohlstand",
+                      "amount": 1
+                    }
+                  ],
+                  "duration": 1,
+                  "endsOn": null
+                }
+              ],
+              "options": null
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "rejected",
+            "codes": [
+              "budget_net"
+            ]
+          },
+          {
+            "verdict": "accepted",
+            "codes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "richter-dauerstatus",
+      "useTask": false,
+      "note": "A correction with a permanent status of flow nahrung +1 weighs 3, above the correction band maximum 2: budget_net (a flat 1 before lane V).",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "judge-balance.T9",
+        "agent": "judge-balance",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "finding",
+            "id": "f-salz",
+            "severity": "warn",
+            "for": [
+              "research"
+            ],
+            "refs": [
+              "T8-e1"
+            ],
+            "text": "Der Salzpfad trägt mehr, als seine Stufe erlaubt."
+          },
+          {
+            "type": "correction",
+            "finding": "f-salz",
+            "needsConsent": false,
+            "people": "schar",
+            "item": {
+              "type": "effects",
+              "effects": [
+                {
+                  "op": "status.add",
+                  "id": "gunst",
+                  "effects": [
+                    {
+                      "op": "resource.flow",
+                      "res": "nahrung",
+                      "amount": 1
+                    }
+                  ],
+                  "duration": null,
+                  "endsOn": null
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "accepted",
+            "codes": []
+          },
+          {
+            "verdict": "rejected",
+            "codes": [
+              "budget_net"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "richter-korrektur-ohne-volk",
+      "useTask": false,
+      "note": "A correction without its own people acts on the proposal's people (schar), so the wrapped Entwicklung is judged as a candidate of schar: tags [bau] are ungrounded. Before lane V it was judged without a people and accepted.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "judge-balance.T9",
+        "agent": "judge-balance",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": "schar",
+        "items": [
+          {
+            "type": "finding",
+            "id": "f-salz",
+            "severity": "warn",
+            "for": [
+              "research"
+            ],
+            "refs": [
+              "T8-e1"
+            ],
+            "text": "Der Salzpfad trägt mehr, als seine Stufe erlaubt."
+          },
+          {
+            "type": "correction",
+            "finding": "f-salz",
+            "needsConsent": false,
+            "people": null,
+            "item": {
+              "type": "entwicklung",
+              "data": {
+                "format": "realmcraft-entwicklung",
+                "version": 1,
+                "id": "steinhuetten",
+                "rev": 1,
+                "kind": "technik",
+                "tier": 1,
+                "name": "Steinhütten",
+                "summary": "Feste Hütten am Winterhang.",
+                "appearance": "",
+                "tags": [
+                  "bau"
+                ],
+                "prerequisites": {
+                  "all": [],
+                  "any": [],
+                  "if": null
+                },
+                "cost": {
+                  "research": 2,
+                  "resources": {}
+                },
+                "effects": [
+                  {
+                    "op": "probe.mod",
+                    "tags": [
+                      "bau"
+                    ],
+                    "amount": 1
+                  }
+                ],
+                "price": [
+                  {
+                    "op": "resource.flow",
+                    "res": "holz",
+                    "amount": -1,
+                    "when": [
+                      "winter"
+                    ]
+                  }
+                ],
+                "onAcquire": [],
+                "replaces": [],
+                "spec": null,
+                "origin": {
+                  "source": "agent",
+                  "practiceTags": [],
+                  "token": null,
+                  "request": null,
+                  "proposal": "judge-balance.T9"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "accepted",
+            "codes": []
+          },
+          {
+            "verdict": "rejected",
+            "codes": [
+              "ungrounded"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "richter-alter-befund",
+      "useTask": false,
+      "chronicle": [
+        {
+          "id": "T8-e7",
+          "turn": 8,
+          "kind": "ingest.finding",
+          "source": "agent:judge-balance",
+          "target": {
+            "kind": "campaign",
+            "id": "korpus-1"
+          },
+          "change": null,
+          "reason": "warn: Der Salzpfad trägt zu viel.",
+          "refs": [
+            "f-alt",
+            "T8-e1"
+          ],
+          "visibleTo": []
+        }
+      ],
+      "note": "A correction may cite a finding of an earlier proposal that the chronicle still holds (ingest.finding entry, first ref f-alt). resource.delta salz +1 weighs 2, inside the band.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "judge-balance.T9",
+        "agent": "judge-balance",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "correction",
+            "finding": "f-alt",
+            "needsConsent": false,
+            "people": "schar",
+            "item": {
+              "type": "effects",
+              "effects": [
+                {
+                  "op": "resource.delta",
+                  "res": "salz",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "accepted",
+            "codes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "richter-erfundener-befund",
+      "useTask": false,
+      "chronicle": [
+        {
+          "id": "T8-e7",
+          "turn": 8,
+          "kind": "ingest.finding",
+          "source": "agent:judge-balance",
+          "target": {
+            "kind": "campaign",
+            "id": "korpus-1"
+          },
+          "change": null,
+          "reason": "warn: Der Salzpfad trägt zu viel.",
+          "refs": [
+            "f-alt",
+            "T8-e1"
+          ],
+          "visibleTo": []
+        }
+      ],
+      "note": "A correction citing a finding neither the chronicle nor the proposal holds: dangling_ref.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "judge-balance.T9",
+        "agent": "judge-balance",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "correction",
+            "finding": "f-neu",
+            "needsConsent": false,
+            "people": "schar",
+            "item": {
+              "type": "effects",
+              "effects": [
+                {
+                  "op": "resource.delta",
+                  "res": "salz",
+                  "amount": 1
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "rejected",
+            "codes": [
+              "dangling_ref"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "welt-ohne-auftrag",
+      "useTask": false,
+      "requireTask": true,
+      "note": "With requireTask a proposal that answers no task may not change the campaign: the event is content.no_task.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "world.T9",
+        "agent": "world",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "event",
+            "data": {
+              "id": "schneesturm",
+              "rev": 1,
+              "name": "Schneesturm im Pass",
+              "text": "Ereignis Schneesturm im Pass.",
+              "band": 3,
+              "tags": [
+                "winter"
+              ],
+              "if": null,
+              "effects": [
+                {
+                  "op": "resource.delta",
+                  "res": "nahrung",
+                  "amount": -1
+                }
+              ],
+              "options": null
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "rejected",
+            "codes": [
+              "content.no_task"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chronist-ohne-auftrag",
+      "useTask": false,
+      "requireTask": true,
+      "note": "Text items change no state and stay admissible without a task.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "chronicler.T9",
+        "agent": "chronicler",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "narrative",
+            "refs": [],
+            "text": "Der Schnee liegt tief im Pass."
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "accepted",
+            "codes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "research-katalog",
+      "useTask": true,
+      "note": "Proposals are checked against the kernel order catalogue even when the caller passes none. A meter rising on use:explore (an order type) is fine: E 3, P -1 (light x use), net 2, research 4. A meter on use:nirgends never rises: unknown_tag. order.unlock of an order type the kernel lacks: unknown_tag.",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "research.schar.T9",
+        "agent": "research",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": "schar",
+        "items": [
+          {
+            "type": "entwicklung",
+            "data": {
+              "format": "realmcraft-entwicklung",
+              "version": 1,
+              "rev": 1,
+              "appearance": "",
+              "prerequisites": {
+                "all": [],
+                "any": [],
+                "if": null
+              },
+              "replaces": [],
+              "spec": null,
+              "onAcquire": [],
+              "origin": {
+                "source": "agent",
+                "practiceTags": [
+                  "herde"
+                ],
+                "token": null,
+                "request": null,
+                "proposal": "research.schar.T9"
+              },
+              "id": "treibhunger",
+              "kind": "technik",
+              "tier": 1,
+              "name": "Treibhunger",
+              "summary": "Testfall Treibhunger.",
+              "tags": [
+                "herde",
+                "weide"
+              ],
+              "cost": {
+                "research": 4,
+                "resources": {}
+              },
+              "effects": [
+                {
+                  "op": "probe.mod",
+                  "tags": [
+                    "herde"
+                  ],
+                  "amount": 2
+                },
+                {
+                  "op": "resource.flow",
+                  "res": "nahrung",
+                  "amount": 1,
+                  "when": [
+                    "herbst"
+                  ]
+                }
+              ],
+              "price": [
+                {
+                  "op": "meter",
+                  "id": "treibhunger",
+                  "min": 0,
+                  "max": 3,
+                  "rise": {
+                    "on": "use:explore",
+                    "amount": 1
+                  },
+                  "decay": 0,
+                  "thresholds": [
+                    {
+                      "at": 3,
+                      "effects": [
+                        {
+                          "op": "resource.delta",
+                          "res": "nahrung",
+                          "amount": -2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "entwicklung",
+            "data": {
+              "format": "realmcraft-entwicklung",
+              "version": 1,
+              "rev": 1,
+              "appearance": "",
+              "prerequisites": {
+                "all": [],
+                "any": [],
+                "if": null
+              },
+              "replaces": [],
+              "spec": null,
+              "onAcquire": [],
+              "origin": {
+                "source": "agent",
+                "practiceTags": [
+                  "jagd"
+                ],
+                "token": null,
+                "request": null,
+                "proposal": "research.schar.T9"
+              },
+              "id": "nebelhunger",
+              "kind": "technik",
+              "tier": 1,
+              "name": "Nebelhunger",
+              "summary": "Testfall Nebelhunger.",
+              "tags": [
+                "jagd",
+                "fuss"
+              ],
+              "cost": {
+                "research": 4,
+                "resources": {}
+              },
+              "effects": [
+                {
+                  "op": "probe.mod",
+                  "tags": [
+                    "jagd"
+                  ],
+                  "amount": 2
+                },
+                {
+                  "op": "resource.flow",
+                  "res": "nahrung",
+                  "amount": 1,
+                  "when": [
+                    "herbst"
+                  ]
+                }
+              ],
+              "price": [
+                {
+                  "op": "meter",
+                  "id": "nebelhunger",
+                  "min": 0,
+                  "max": 3,
+                  "rise": {
+                    "on": "use:nirgends",
+                    "amount": 1
+                  },
+                  "decay": 0,
+                  "thresholds": [
+                    {
+                      "at": 3,
+                      "effects": [
+                        {
+                          "op": "resource.delta",
+                          "res": "nahrung",
+                          "amount": -2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "entwicklung",
+            "data": {
+              "format": "realmcraft-entwicklung",
+              "version": 1,
+              "rev": 1,
+              "appearance": "",
+              "prerequisites": {
+                "all": [],
+                "any": [],
+                "if": null
+              },
+              "replaces": [],
+              "spec": null,
+              "onAcquire": [],
+              "origin": {
+                "source": "agent",
+                "practiceTags": [
+                  "zug"
+                ],
+                "token": null,
+                "request": null,
+                "proposal": "research.schar.T9"
+              },
+              "id": "geheimbefehl",
+              "kind": "technik",
+              "tier": 1,
+              "name": "Geheimbefehl",
+              "summary": "Testfall Geheimbefehl.",
+              "tags": [
+                "zug",
+                "herde"
+              ],
+              "cost": {
+                "research": 4,
+                "resources": {}
+              },
+              "effects": [
+                {
+                  "op": "order.unlock",
+                  "order": "gibt.esnicht"
+                },
+                {
+                  "op": "resource.flow",
+                  "res": "nahrung",
+                  "amount": 1,
+                  "when": [
+                    "sommer"
+                  ]
+                }
+              ],
+              "price": [
+                {
+                  "op": "resource.flow",
+                  "res": "holz",
+                  "amount": -1,
+                  "when": [
+                    "winter"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "accepted",
+            "codes": []
+          },
+          {
+            "verdict": "rejected",
+            "codes": [
+              "unknown_tag"
+            ]
+          },
+          {
+            "verdict": "rejected",
+            "codes": [
+              "unknown_tag"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "welt-reservierte-namen",
+      "useTask": false,
+      "note": "A card naming the meter and the people \"constructor\" is format (reserved names); meter.delta on zustimmung and relation.delta towards esk are fine (net 0).",
+      "data": {
+        "format": "realmcraft-proposal",
+        "version": 1,
+        "proposalId": "world.T9",
+        "agent": "world",
+        "campaign": "korpus-1",
+        "turn": 9,
+        "basedOnRev": 12,
+        "people": null,
+        "items": [
+          {
+            "type": "event",
+            "data": {
+              "id": "fluch",
+              "rev": 1,
+              "name": "Fluch",
+              "text": "Ereignis Fluch.",
+              "band": 3,
+              "tags": [
+                "winter"
+              ],
+              "if": null,
+              "effects": [
+                {
+                  "op": "meter.delta",
+                  "meter": "constructor",
+                  "amount": 1
+                },
+                {
+                  "op": "relation.delta",
+                  "people": "constructor",
+                  "amount": 1
+                }
+              ],
+              "options": null
+            }
+          },
+          {
+            "type": "event",
+            "data": {
+              "id": "gesandte",
+              "rev": 1,
+              "name": "Gesandte",
+              "text": "Ereignis Gesandte.",
+              "band": 3,
+              "tags": [
+                "winter"
+              ],
+              "if": null,
+              "effects": [
+                {
+                  "op": "meter.delta",
+                  "meter": "zustimmung",
+                  "amount": -1
+                },
+                {
+                  "op": "relation.delta",
+                  "people": "esk",
+                  "amount": 1
+                }
+              ],
+              "options": null
+            }
+          }
+        ]
+      },
+      "expect": {
+        "issues": [],
+        "duplicate": false,
+        "items": [
+          {
+            "verdict": "rejected",
+            "codes": [
+              "format"
+            ]
+          },
+          {
+            "verdict": "accepted",
+            "codes": []
           }
         ]
       }

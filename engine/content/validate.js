@@ -14,13 +14,20 @@
 //   batch     Entwicklungen already accepted earlier in the same proposal
 //   openTier, practiceTop   precomputed by the kernel, override the derivation here
 //   destinyBand { min, max }   difficulty band of a Bestimmung
+//   orders, modules   order types and module ids; validateProposal and
+//                     validateWorldPackage fill them from the kernel registry
+//   findings   finding ids a correction may cite; validateProposal derives
+//              them from the chronicle of ctx.state when absent
+//   requireTask   reject state-changing items of a proposal that answers no task
 
-import { SCHEMAS, PRIMITIVES, ITEMS_BY_AGENT, TIERS, WELT_REQUIRED_KEYS } from '../schemas/index.js';
+import { SCHEMAS, PRIMITIVES, ITEMS_BY_AGENT, TIERS, WELT_REQUIRED_KEYS, APPROVAL_METER } from '../schemas/index.js';
 import { validate as schemaIssues } from './schema.js';
 import { issue, hasErrors } from '../core/issues.js';
 import { canon } from '../core/canon.js';
 import { hashValue } from '../core/hash.js';
-import { primitiveWeight, scoreBestimmung, scoreEntwicklung, scoreEreignis } from './budget.js';
+import { registry } from '../core/orders.js';
+import { MODULE_IDS } from '../modules/index.js';
+import { primitiveWeight, scoreBestimmung, scoreEntwicklung, scoreEreignis, sumWeights } from './budget.js';
 import { resolveRef, refOf } from './library.js';
 
 // Per proposal, Agentenvertrag (item table): the world agent sends at most
@@ -102,11 +109,34 @@ function primitiveRefs(p, path, out) {
   if (p.op === 'order.unlock') add('order', p.order, `${path}/order`);
   if (p.op === 'order.restrict') p.orders.forEach((o, i) => add('order', o, `${path}/orders/${i}`));
   if (p.op === 'module.activate') add('module', p.module, `${path}/module`);
+  if (p.op === 'meter') {
+    add('meterDef', p.id, `${path}/id`);
+    hookRefs(p.rise.on, `${path}/rise/on`, out);
+  }
+  if (p.op === 'meter.delta') add('meter', p.meter, `${path}/meter`);
+  if (p.op === 'trigger') hookRefs(p.on, `${path}/on`, out);
+  if (p.op === 'relation.delta' && !GROUP_TARGETS.has(p.people)) add('people', p.people, `${path}/people`);
+  if (p.op === 'reveal' && p.scope === 'people' && !p.at.startsWith('$')) add('people', p.at, `${path}/at`);
+  if (p.op === 'resource.flow' && p.scale?.per === 'units' && p.scale.tag) add('unitTag', p.scale.tag, `${path}/scale/tag`);
   if (p.if) conditionRefs(p.if, `${path}/if`, out);
+}
+
+const GROUP_TARGETS = new Set(['$target', 'neighbours', 'all']);
+
+// A hook with an argument names an order type or an application (use:), a
+// resource (shortfall:) or a probe tag (crit_success:, crit_fail:); a hook
+// whose argument nothing carries never fires.
+function hookRefs(on, path, out) {
+  const at = on.indexOf(':');
+  if (at < 0) return;
+  const hook = on.slice(0, at);
+  out.push({ kind: hook === 'use' ? 'use' : hook === 'shortfall' ? 'res' : 'tag', value: on.slice(at + 1), path });
 }
 
 function conditionRefs(cond, base, out) {
   eachCondition(cond, base, (c, path) => {
+    if (c.meter !== undefined) out.push({ kind: 'meter', value: c.meter, path: `${path}/meter` });
+    if (c.relation !== undefined && c.relation !== '$any') out.push({ kind: 'people', value: c.relation, path: `${path}/relation` });
     if (c.res) out.push({ kind: 'res', value: c.res, path: `${path}/res` });
     if (c.season) out.push({ kind: 'season', value: c.season, path: `${path}/season` });
     if (c.tagCount) out.push({ kind: 'tag', value: c.tagCount, path: `${path}/tagCount` });
@@ -132,7 +162,7 @@ function entwicklungRefs(ent) {
   if (ent.kind === 'einheit') {
     bagRefs(s.recruitCost, '/spec/recruitCost', out);
     bagRefs(s.upkeep, '/spec/upkeep', out);
-    s.tags.forEach((t, i) => out.push({ kind: 'tag', value: t, path: `/spec/tags/${i}` }));
+    s.tags.forEach((t, i) => out.push({ kind: 'tag', value: t, path: `/spec/tags/${i}` }, { kind: 'unitTagDef', value: t, path: `/spec/tags/${i}` }));
   }
   if (ent.kind === 'bauwerk') {
     s.terrains.forEach((t, i) => out.push({ kind: 'terrain', value: t, path: `/spec/terrains/${i}` }));
@@ -143,6 +173,7 @@ function entwicklungRefs(ent) {
     out.push({ kind: 'res', value: s.source, path: '/spec/source' });
     s.applications.forEach((a, i) => {
       const base = `/spec/applications/${i}`;
+      out.push({ kind: 'appDef', value: a.id, path: `${base}/id` });
       bagRefs(a.cost, `${base}/cost`, out);
       a.tags.forEach((t, j) => out.push({ kind: 'tag', value: t, path: `${base}/tags/${j}` }));
       for (const [band, list] of Object.entries(a.outcomes)) eachPrimitive(list, `${base}/outcomes/${band}`, (p, path) => primitiveRefs(p, path, out));
@@ -172,17 +203,72 @@ function vocabularies(ctx) {
   if (ctx.modules) v.module = new Set(Array.isArray(ctx.modules) ? ctx.modules : Object.keys(ctx.modules));
   const allowedTags = ctx.task?.limits?.tags;
   if (allowedTags?.length) v.tag = new Set(allowedTags.filter((t) => !v.tag || v.tag.has(t)));
+  // Meters, applications and unit tags are defined by content, so they are
+  // known only with a library: the core approval meter plus whatever the
+  // library and the developments accepted earlier in this proposal define.
+  if (ctx.library) {
+    const ents = [...latestEntwicklungen(ctx.library), ...(ctx.batch ?? [])];
+    v.meter = new Set([APPROVAL_METER, ...ents.flatMap((e) => meterDefs(e).map((m) => m.id))]);
+    v.app = new Set(ents.flatMap((e) => (e.kind === 'disziplin' ? e.spec?.applications ?? [] : []).map((a) => a.id)));
+    v.unitTag = new Set(ents.flatMap((e) => (e.kind === 'einheit' ? e.spec?.tags ?? [] : [])));
+  }
+  const people = peopleIds(ctx);
+  if (people.size) v.people = people;
   return v;
 }
 
-const REF_CODES = { res: 'unknown_resource', stat: 'unknown_tag', season: 'unknown_tag', tag: 'unknown_tag', terrain: 'unknown_tag', order: 'unknown_tag', module: 'unknown_tag' };
+/** Meter definitions of an Entwicklung's standing slots as { id, path }. */
+function meterDefs(ent) {
+  const out = [];
+  for (const slot of ['effects', 'price']) {
+    (Array.isArray(ent?.[slot]) ? ent[slot] : []).forEach((p, i) => {
+      if (p?.op === 'meter') out.push({ id: p.id, path: `/${slot}/${i}/id` });
+    });
+  }
+  return out;
+}
+
+// Ids the kernel uses as keys of plain objects (people.meters, state.peoples)
+// must not name a property every object inherits, such as "constructor".
+const isReserved = (id) => id in Object.prototype || id === 'prototype';
+const KEYED_KINDS = new Set(['meter', 'meterDef', 'people']);
+
+const REF_CODES = {
+  res: 'unknown_resource', stat: 'unknown_tag', season: 'unknown_tag', tag: 'unknown_tag', terrain: 'unknown_tag', order: 'unknown_tag', module: 'unknown_tag',
+  meter: 'dangling_ref', people: 'dangling_ref', unitTag: 'unknown_tag',
+};
+const REF_TEXT = {
+  meter: (x) => `meter "${x}" is defined by no development`,
+  people: (x) => `people "${x}" does not exist`,
+  unitTag: (x) => `no unit type carries tag "${x}", the scaled flow counts nothing`,
+  use: (x) => `hook use:${x} names no order type or application, it never fires`,
+};
 
 function vocabularyIssues(refs, ctx) {
   const v = vocabularies(ctx);
+  // Definitions in the same object count as known.
+  for (const r of refs) {
+    if (r.kind === 'meterDef') v.meter?.add(r.value);
+    if (r.kind === 'appDef') v.app?.add(r.value);
+    if (r.kind === 'unitTagDef') v.unitTag?.add(r.value);
+  }
   const out = [];
   for (const r of refs) {
+    if (KEYED_KINDS.has(r.kind) && isReserved(r.value)) {
+      out.push(issue('format', r.path, `"${r.value}" is a reserved name`));
+      continue;
+    }
+    if (r.kind === 'meterDef' && r.value === APPROVAL_METER) {
+      out.push(issue('conflict', r.path, `meter "${APPROVAL_METER}" is the core approval meter and cannot be redefined`));
+      continue;
+    }
+    if (r.kind === 'use') {
+      // An application id needs the library to be judged, an order type the catalogue.
+      if (v.order && v.app && !v.order.has(r.value) && !v.app.has(r.value)) out.push(issue('unknown_tag', r.path, REF_TEXT.use(r.value)));
+      continue;
+    }
     const set = v[r.kind];
-    if (set && !set.has(r.value)) out.push(issue(REF_CODES[r.kind], r.path, `${r.kind} "${r.value}" is not in the world's vocabulary`));
+    if (set && !set.has(r.value)) out.push(issue(REF_CODES[r.kind], r.path, REF_TEXT[r.kind]?.(r.value) ?? `${r.kind} "${r.value}" is not in the world's vocabulary`));
   }
   return out;
 }
@@ -318,6 +404,13 @@ function referenceIssues(ent, ctx) {
     return o.exact === fp.exact || o.near === fp.near;
   });
   if (twin) out.push(issue('duplicate', '', `same tags and effects as "${twin.id}"`, { refs: [refOf(twin)] }));
+  // The kernel keeps the first definition of a meter id, so a second
+  // development defining it would carry a meter that never charges.
+  const owners = new Map();
+  for (const d of others) for (const m of meterDefs(d)) owners.set(m.id, d.id);
+  for (const m of meterDefs(ent)) {
+    if (owners.has(m.id)) out.push(issue('conflict', m.path, `meter "${m.id}" is already defined by "${owners.get(m.id)}"`));
+  }
   return out;
 }
 
@@ -331,6 +424,9 @@ function tierIssues(ent, ctx) {
   }
   const maxTier = ctx.regeln?.tuning?.maxTier;
   if (maxTier !== undefined && ent.tier > maxTier) out.push(issue('tier_gap', '/tier', `tier ${ent.tier} exceeds the world's maxTier ${maxTier}`));
+  // Tier 0 is a world's start endowment and uses the tier-1 budget row; an
+  // agent candidate at tier 0 would get that row for half the research.
+  if (ent.origin.source === 'agent' && ent.tier < 1) out.push(issue('tier_gap', '/tier', 'agent content starts at tier 1, tier 0 is the start endowment of a world'));
   if (ctx.people) {
     const open = openTier(ctx.people, ctx);
     if (ent.tier > open) out.push(issue('tier_gap', '/tier', `tier ${ent.tier} is above the open tier ${open} of "${ctx.people.id}"`));
@@ -409,11 +505,78 @@ function allowedPrimitiveIssues(ent, ctx) {
   return out;
 }
 
+// Static verdict of a condition, 'never', 'always' or 'maybe', from the range
+// each atom can take in any campaign: stocks and counts never below 0, meters
+// -5..5, relations -3..3, no development above the world's maxTier, one
+// season at a time. Only a condition no campaign can satisfy is 'never'.
+function atomRange(c, ctx) {
+  if (c.res !== undefined || c.tagCount !== undefined || c.controls !== undefined) return [0, Infinity];
+  if (c.meter !== undefined) return [-5, 5];
+  if (c.relation !== undefined) return [-3, 3];
+  if (c.tierCount !== undefined) {
+    const maxTier = ctx.regeln?.tuning?.maxTier;
+    return [0, maxTier !== undefined && c.tierCount > maxTier ? 0 : Infinity];
+  }
+  return null;
+}
+
+function conditionVerdict(cond, ctx) {
+  if (cond.all) {
+    const seasons = new Set(cond.all.filter((c) => c.season !== undefined).map((c) => c.season));
+    const vs = cond.all.map((c) => conditionVerdict(c, ctx));
+    if (seasons.size > 1 || vs.includes('never')) return 'never';
+    return vs.every((x) => x === 'always') ? 'always' : 'maybe';
+  }
+  if (cond.any) {
+    const vs = cond.any.map((c) => conditionVerdict(c, ctx));
+    if (vs.includes('always')) return 'always';
+    return vs.every((x) => x === 'never') ? 'never' : 'maybe';
+  }
+  if (cond.not) {
+    const x = conditionVerdict(cond.not, ctx);
+    return x === 'never' ? 'always' : x === 'always' ? 'never' : 'maybe';
+  }
+  const range = atomRange(cond, ctx);
+  if (!range) return 'maybe';
+  const [lo, hi] = range;
+  if (cond.cmp === 'gte') return cond.value <= lo ? 'always' : cond.value > hi ? 'never' : 'maybe';
+  return cond.value > hi ? 'always' : cond.value <= lo ? 'never' : 'maybe';
+}
+
+// Constructs the kernel never acts on (content.inert): a duty, for which the
+// kernel has no rule, a restriction naming neither orders nor tags, a
+// condition no campaign satisfies, a winter hook in a calendar without
+// winter. Counted as a price they would be free; counted as an effect they
+// promise what never happens. A dependency penalty that helps is
+// misplaced_effect, because the people would then seek the shortfall.
+function inertIssues(list, base, ctx) {
+  const out = [];
+  const inert = (path, msg) => out.push(issue('content.inert', path, msg, { severity: 'error' }));
+  const winter = ctx.regeln ? ctx.regeln.calendar.seasons.some((s) => s.winter) : true;
+  eachPrimitive(list, base, (p, path) => {
+    if (p.op === 'order.restrict' && p.mode === 'duty') inert(`${path}/mode`, 'the kernel has no rule for a duty, it is never enforced');
+    else if (p.op === 'order.restrict' && !p.orders.length && !p.tags.length) inert(path, 'a restriction without orders and tags binds nothing');
+    if (p.op === 'trigger' && p.on === 'winter' && !winter) inert(`${path}/on`, 'the calendar has no winter, the hook never fires');
+    if (p.op === 'dependency' && sumWeights(p.penalty, ctx) > 0) out.push(issue('misplaced_effect', `${path}/penalty`, 'a dependency penalty must be a burden, a helpful one rewards the shortfall'));
+    if (p.if && conditionVerdict(p.if, ctx) === 'never') inert(`${path}/if`, 'the condition can never hold');
+  });
+  return out;
+}
+
 /** Validates one Entwicklung; budget is null when the schema fails. */
 export function validateEntwicklung(ent, ctx = {}) {
   const schema = checkSchema('entwicklung', ent);
   if (schema.length) return { ok: false, issues: schema, budget: null };
   const issues = [];
+  for (const slot of ['effects', 'price', 'onAcquire']) issues.push(...inertIssues(ent[slot], `/${slot}`, ctx));
+  if (ent.kind === 'disziplin') {
+    ent.spec.applications.forEach((a, i) => {
+      for (const [band, list] of Object.entries(a.outcomes)) issues.push(...inertIssues(list, `/spec/applications/${i}/outcomes/${band}`, ctx));
+    });
+  }
+  if (ent.prerequisites.if && conditionVerdict(ent.prerequisites.if, ctx) === 'never') {
+    issues.push(issue('content.inert', '/prerequisites/if', 'the prerequisite can never hold', { severity: 'error' }));
+  }
   ent.effects.forEach((p, i) => {
     const w = primitiveWeight(p, ctx);
     if (w < 0) issues.push(issue('misplaced_effect', `/effects/${i}`, `effect "${p.op}" weighs ${w}, a burden belongs in price`));
@@ -439,6 +602,8 @@ export function validateEreignis(ev, ctx = {}) {
   eachPrimitive(ev.effects, '/effects', (p, path) => primitiveRefs(p, path, refs));
   (ev.options ?? []).forEach((o, i) => eachPrimitive(o.effects, `/options/${i}/effects`, (p, path) => primitiveRefs(p, path, refs)));
   const issues = vocabularyIssues(refs, ctx);
+  issues.push(...inertIssues(ev.effects, '/effects', ctx));
+  (ev.options ?? []).forEach((o, i) => issues.push(...inertIssues(o.effects, `/options/${i}/effects`, ctx)));
   const budget = scoreEreignis(ev, ctx);
   issues.push(...budget.issues);
   return { ok: !hasErrors(issues), issues, budget };
@@ -473,7 +638,9 @@ export function validateBestimmung(b, ctx = {}) {
       if (p.pred === 'controls' && p.terrain) refs.push({ kind: 'terrain', value: p.terrain, path: `${path}/terrain` });
       if (p.pred === 'development.known') (p.tags ?? []).forEach((t, j) => refs.push({ kind: 'tag', value: t, path: `${path}/tags/${j}` }));
       const other = p.pred === 'relation' || p.pred === 'subjugated' ? p.people : null;
-      if (other && other !== '$any' && other !== '$all' && ids.size && !ids.has(other)) issues.push(issue('dangling_ref', `${path}/people`, `people "${other}" does not exist`));
+      if (!other || other === '$any' || other === '$all') return;
+      if (isReserved(other)) issues.push(issue('format', `${path}/people`, `"${other}" is a reserved name`));
+      else if (ids.size && !ids.has(other)) issues.push(issue('dangling_ref', `${path}/people`, `people "${other}" does not exist`));
     });
   });
   issues.push(...vocabularyIssues(refs, ctx));
@@ -518,6 +685,17 @@ function unreachable(ents, startIds, maxTier) {
   return [...byId.values()].filter((e) => !reach.has(e.id));
 }
 
+// Order types and module ids of the kernel registry, so the vocabulary
+// checks on orders, modules and use: hooks run for world packages and agent
+// proposals even when the caller passes no catalogue.
+let kernelCatalogue = null;
+/** ctx with orders and modules from the kernel registry where the caller gave none. */
+export function withCatalogue(ctx) {
+  if (ctx.orders && ctx.modules) return ctx;
+  kernelCatalogue ??= { orders: Object.fromEntries(Object.entries(registry()).map(([type, { origin }]) => [type, { origin }])), modules: [...MODULE_IDS] };
+  return { ...ctx, orders: ctx.orders ?? kernelCatalogue.orders, modules: ctx.modules ?? kernelCatalogue.modules };
+}
+
 const PACK_FILES = ['regeln', 'labels', 'style', 'entwicklungen', 'ereignisse', 'bestimmungen'];
 const CONTENT_FILES = new Set(['entwicklungen', 'ereignisse', 'bestimmungen']);
 
@@ -551,19 +729,21 @@ export function validateWorldPackage(pack, opts = {}) {
 
   const regeln = valid.regeln ? pack.regeln : undefined;
   const lib = packLibrary(pack);
-  const ctx = { regeln, welt: welt?.terrains ? welt : undefined, library: lib, destinyBand: opts.destinyBand, orders: opts.orders, modules: opts.modules };
+  const ctx = withCatalogue({ regeln, welt: welt?.terrains ? welt : undefined, library: lib, destinyBand: opts.destinyBand, orders: opts.orders, modules: opts.modules });
 
   if (regeln) {
     const unique = (list, path, what) => {
       const seen = new Set();
       list.forEach((x, i) => {
         if (seen.has(x)) issues.push(issue('duplicate', `${path}/${i}`, `${what} "${x}" appears twice`));
+        if (isReserved(x)) issues.push(issue('format', `${path}/${i}`, `${what} "${x}" is a reserved name`));
         seen.add(x);
       });
     };
     unique(regeln.resources.map((r) => r.id), '/regeln/resources', 'resource');
     unique(regeln.stats.map((s) => s.id), '/regeln/stats', 'stat');
     unique(regeln.calendar.seasons.map((s) => s.id), '/regeln/calendar/seasons', 'season');
+    unique(regeln.peopleTemplates.map((t) => t.id), '/regeln/peopleTemplates', 'people');
     if (!regeln.calendar.seasons.some((s) => s.id === regeln.calendar.startSeason)) issues.push(issue('unknown_tag', '/regeln/calendar/startSeason', `season "${regeln.calendar.startSeason}" is not in the calendar`));
     const res = new Set(regeln.resources.map((r) => r.id));
     const councils = new Set(regeln.councilTemplates.map((c) => c.id));
@@ -682,7 +862,7 @@ function checkStateItem(item, base, ctx, { people, owner, run }) {
     case 'effects': {
       const refs = [];
       eachPrimitive(item.effects, `${base}/effects`, (prim, path) => primitiveRefs(prim, path, refs));
-      issues.push(...vocabularyIssues(refs, ctx));
+      issues.push(...vocabularyIssues(refs, ctx), ...inertIssues(item.effects, `${base}/effects`, ctx));
       const allowed = ctx.task?.limits?.allowedPrimitives;
       if (allowed?.length) {
         item.effects.forEach((prim, j) => {
@@ -703,15 +883,35 @@ function checkStateItem(item, base, ctx, { people, owner, run }) {
   }
 }
 
+/** Whether an item of this type changes campaign state (everything but text and images). */
+export function changesState(type) {
+  return !TEXT_ITEMS.has(type) && type !== 'image';
+}
+
+/**
+ * Finding ids a correction may cite: the judges' findings the chronicle of
+ * the state still holds (ingest files each as an "ingest.finding" entry whose
+ * first ref is the finding id). Null without a chronicle.
+ */
+export function findingsOf(state) {
+  if (!Array.isArray(state?.chronicle)) return null;
+  return state.chronicle.filter((e) => e.kind === 'ingest.finding' && e.refs?.length).map((e) => e.refs[0]);
+}
+
 /**
  * Validates an agent proposal against the campaign (ctx.state) and the task
  * it answers (ctx.task). Returns { ok, hash, duplicate, issues, items } with
  * one verdict per item; envelope issues reject every item. A proposal whose
  * id was already ingested with the same hash is a duplicate and validates
  * no items, the kernel files it without effect. ctx.findings may list the
- * finding ids of the judge's earlier proposals for corrections to cite.
+ * finding ids of the judge's earlier proposals for corrections to cite,
+ * otherwise they come from the state's chronicle. With ctx.requireTask a
+ * proposal without ctx.task has every state-changing item rejected
+ * (content.no_task); ingest passes it, so only a proposal that answers a
+ * task changes the campaign.
  */
 export function validateProposal(proposal, ctx = {}) {
+  ctx = withCatalogue(ctx);
   let hash = null;
   try {
     hash = hashValue(proposal);
@@ -757,13 +957,17 @@ export function validateProposal(proposal, ctx = {}) {
   const peopleById = (id) => (id ? state?.peoples?.[id] ?? (ctx.people?.id === id ? ctx.people : undefined) : undefined);
   const owner = peopleById(p.people);
   const run = { batch: [], events: 0, features: 0 };
-  const findings = new Set([...(ctx.findings ?? []), ...p.items.filter((i) => i?.type === 'finding').map((i) => i.id)]);
+  const known = ctx.findings ?? findingsOf(state);
+  const findings = new Set([...(known ?? []), ...p.items.filter((i) => i?.type === 'finding').map((i) => i.id)]);
 
   const items = p.items.map((item, index) => {
     const base = `/items/${index}`;
     const done = (issues, budget = null) => ({ index, verdict: hasErrors(issues) ? 'rejected' : 'accepted', issues, budget });
     if (!allowed.has(item.type) || (taskItems && !taskItems.has(item.type))) {
       return done([issue('content.item_not_allowed', `${base}/type`, `agent "${p.agent}" may not send "${item.type}" items`, { severity: 'error' })]);
+    }
+    if (ctx.requireTask && !task && changesState(item.type)) {
+      return done([issue('content.no_task', `${base}/type`, `no task of agent "${p.agent}" for ${p.people ? `"${p.people}"` : 'the world'} admits a "${item.type}" item`, { severity: 'error' })]);
     }
     const stalled = revStale && !TEXT_ITEMS.has(item.type) ? [issue('stale', '/basedOnRev', `based on revision ${p.basedOnRev}, the task is at ${expectRev}`)] : [];
     const own = itemIssues[index];
@@ -778,10 +982,13 @@ export function validateProposal(proposal, ctx = {}) {
 
     if (item.type === 'correction') {
       const issues = [...stalled];
-      if (ctx.findings && !findings.has(item.finding)) issues.push(issue('dangling_ref', `${base}/finding`, `finding "${item.finding}" is unknown`));
-      const target = peopleById(item.people);
-      if (item.people && state?.peoples && !target) issues.push(issue('dangling_ref', `${base}/people`, `people "${item.people}" does not exist`));
-      const r = checkStateItem(item.item, `${base}/item`, ctx, { people: target, owner: item.people, run });
+      if (known && !findings.has(item.finding)) issues.push(issue('dangling_ref', `${base}/finding`, `finding "${item.finding}" is unknown`));
+      // Ingest applies a correction to item.people, else to the proposal's
+      // people, so the candidate checks must judge it against the same one.
+      const targetId = item.people ?? p.people;
+      const target = peopleById(targetId);
+      if (targetId && state?.peoples && !target) issues.push(issue('dangling_ref', `${base}/people`, `people "${targetId}" does not exist`));
+      const r = checkStateItem(item.item, `${base}/item`, ctx, { people: target, owner: targetId, run });
       return done([...issues, ...r.issues], r.budget);
     }
     const r = checkStateItem(item, base, ctx, { people: owner, owner: p.people, run });

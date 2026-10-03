@@ -15,7 +15,11 @@ const c = corpus.context;
 const library = libraryFrom(c.library);
 const world = { regeln: c.regeln, welt: c.welt, library };
 const candidate = { ...world, people: c.people, state: c.state };
-const ctxFor = (as) => (as === 'candidate' ? candidate : world);
+// extraLibrary adds Entwicklungen to the library of one case only.
+const ctxFor = (as, extra) => {
+  const base = as === 'candidate' ? candidate : world;
+  return extra ? { ...base, library: libraryFrom([...c.library, ...extra]) } : base;
+};
 const codesOf = (issues) => [...new Set(issues.map((i) => i.code))].sort();
 
 test('corpus size and coverage', () => {
@@ -30,7 +34,7 @@ test('corpus size and coverage', () => {
 
 for (const k of corpus.entwicklungen) {
   test(`entwicklung ${k.id}: ${k.expect.verdict}`, () => {
-    const r = validateEntwicklung(k.data, ctxFor(k.as));
+    const r = validateEntwicklung(k.data, ctxFor(k.as, k.extraLibrary));
     assert.deepEqual(codesOf(r.issues), k.expect.codes, k.note);
     assert.equal(r.ok ? 'accepted' : 'rejected', k.expect.verdict);
     assert.deepEqual(r.budget && { effect: r.budget.effect, price: r.budget.price, net: r.budget.net }, k.expect.budget);
@@ -48,8 +52,8 @@ for (const k of corpus.bestimmungen) {
 
 for (const k of corpus.proposals) {
   test(`proposal ${k.id}`, () => {
-    const state = { ...c.state, peoples: { [c.people.id]: c.people } };
-    const r = validateProposal(k.data, { ...world, state, destinyBand: c.destinyBand, ...(k.useTask ? { task: c.task } : {}) });
+    const state = { ...c.state, peoples: { [c.people.id]: c.people }, ...(k.chronicle ? { chronicle: k.chronicle } : {}) };
+    const r = validateProposal(k.data, { ...world, state, destinyBand: c.destinyBand, ...(k.useTask ? { task: c.task } : {}), ...(k.requireTask ? { requireTask: true } : {}) });
     assert.deepEqual(codesOf(r.issues), k.expect.issues, k.note);
     assert.equal(r.duplicate, k.expect.duplicate);
     assert.deepEqual(r.items.map((i) => ({ verdict: i.verdict, codes: codesOf(i.issues) })), k.expect.items);
