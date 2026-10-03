@@ -16,8 +16,9 @@ import { createHochland } from '../fixtures/spielbrett/build.mjs';
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-audio';
-// Port assigned to the audio lane, clear of the operator's live servers.
-const PORT = 4425;
+// Port assigned to the audio lane, clear of the operator's live servers;
+// SPEC_PORT pins another one when a run is limited to assigned ports.
+const PORT = Number(process.env.SPEC_PORT) || 4425;
 const BASE = `http://localhost:${PORT}`;
 
 let root;
