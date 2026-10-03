@@ -80,16 +80,38 @@ function perturbHidden(state, pid) {
   return s;
 }
 
-// Open kernel findings, pinned as todo tests in fuzz-findings.test.js. The
-// sweep passes over them so that it keeps finding new ones; remove an entry
-// once its todo test passes.
-const knownFinding = (issue) => issue.code === 'labour' && /\/population\/assigned$/.test(issue.path);
-
 const STATES = [];
+// Campaign seeds follow FUZZ_SEED, so a long sweep over many seeds meets many
+// maps and starts; the long sweep also plays deeper into a campaign.
+const CAMPAIGN_SEEDS = /^\d+$/.test(SEED) ? [2 * Number(SEED) - 1, 2 * Number(SEED)] : [1, 2];
+const SEASONS = runs(1) > 1 ? [0, 3, 8, 20] : [0, 3, 8];
+
+/** Random drafts for some AI peoples beside the player's; the kernel substitutes the fallback for a broken one. */
+function aiDrafts(r, state) {
+  const out = {};
+  for (const pid of peopleIds(state)) {
+    if (pid !== state.campaign.player && r.chance(0.5)) out[pid] = randomDraft(r, state, env, pid);
+  }
+  return out;
+}
+
+// What every state after apply must keep: a valid campaign, integer and
+// non-negative stocks and clans, and a next season that opens.
+function checkNext(next, label) {
+  assert.deepEqual(validateCampaign(next).issues.filter((x) => x.severity === 'error'), [], label);
+  for (const [id, p] of Object.entries(next.peoples)) {
+    for (const [res, n] of Object.entries(p.resources)) assert.ok(Number.isInteger(n) && n >= 0, `${label}: ${id}.${res} = ${n}`);
+    assert.ok(Number.isInteger(p.population.core) && p.population.core >= 0, `${label}: ${id} core ${p.population.core}`);
+  }
+  if (next.status === 'ended') return next;
+  const opened = open(next, env);
+  assert.ok(opened.ok, `${label} cannot open the next season`);
+  return opened.state;
+}
 
 describe('fuzz: turn pipeline', () => {
   before(() => {
-    for (const seed of [1, 2]) for (const seasons of [0, 3, 8]) STATES.push({ label: `seed ${seed} after ${seasons} seasons`, state: campaignAt(seed, seasons) });
+    for (const seed of CAMPAIGN_SEEDS) for (const seasons of SEASONS) STATES.push({ label: `seed ${seed} after ${seasons} seasons`, state: campaignAt(seed, seasons) });
   });
 
   it('previews random drafts on the state and on the projection without a crash, the same each time', () => {
@@ -114,20 +136,20 @@ describe('fuzz: turn pipeline', () => {
     }
   });
 
-  it('applies random player drafts without a crash and leaves a valid, integer, deterministic state', () => {
+  it('applies random drafts without a crash and leaves a valid, integer, deterministic state', () => {
     const r = rand('apply');
     let applied = 0;
     for (let i = 0; i < runs(30); i++) {
       const { label, state } = r.pick(STATES);
       if (state.status === 'ended') continue;
       const pid = state.campaign.player;
-      const draft = withRolls(state, randomDraft(r, state, env, pid), () => r.int(1, 10));
+      const drafts = { ...(r.chance(0.4) ? aiDrafts(r, state) : {}), [pid]: withRolls(state, randomDraft(r, state, env, pid), () => r.int(1, 10)) };
       const before = stateHash(state);
       let res;
       try {
-        res = apply(state, env, { [pid]: draft });
+        res = apply(state, env, drafts);
       } catch (err) {
-        assert.fail(`${at('apply', i, ` ${label}`)} throws ${err.stack}\ndraft ${JSON.stringify(draft)}`);
+        assert.fail(`${at('apply', i, ` ${label}`)} throws ${err.stack}\ndrafts ${JSON.stringify(drafts)}`);
       }
       assert.equal(stateHash(state), before, at('apply', i, ' mutated its input'));
       if (!res.ok) {
@@ -135,17 +157,39 @@ describe('fuzz: turn pipeline', () => {
         continue;
       }
       applied++;
-      const next = res.state;
-      const v = validateCampaign(next).issues.filter((x) => x.severity === 'error' && !knownFinding(x));
-      assert.deepEqual(v, [], `${at('apply', i, ` ${label}`)}\ndraft ${JSON.stringify(draft)}`);
-      for (const [id, p] of Object.entries(next.peoples)) {
-        for (const [res2, n] of Object.entries(p.resources)) assert.ok(Number.isInteger(n) && n >= 0, `${at('apply', i)}: ${id}.${res2} = ${n}`);
-        assert.ok(Number.isInteger(p.population.core) && p.population.core >= 0, `${at('apply', i)}: ${id} core ${p.population.core}`);
-      }
-      assert.equal(stateHash(apply(state, env, { [pid]: structuredClone(draft) }).state), stateHash(next), at('apply', i, ' is not deterministic'));
-      if (next.status !== 'ended') assert.ok(open(next, env).ok, at('apply', i, ' cannot open the next season'));
+      checkNext(res.state, `${at('apply', i, ` ${label}`)}\ndrafts ${JSON.stringify(drafts)}`);
+      assert.equal(stateHash(apply(state, env, structuredClone(drafts)).state), stateHash(res.state), at('apply', i, ' is not deterministic'));
     }
     assert.ok(applied > 0, 'no random draft was applied');
+  });
+
+  it('plays random seasons in a row and keeps every state valid, deterministic and fogged', () => {
+    const r = rand('seasons');
+    for (let i = 0; i < runs(2); i++) {
+      const seed = r.pick(CAMPAIGN_SEEDS);
+      let state = r.pick(STATES.filter((s) => s.label.startsWith(`seed ${seed} `))).state;
+      for (let season = 0; season < 10 && state.status !== 'ended'; season++) {
+        const label = at('seasons', i, ` seed ${seed} turn ${state.turn}`);
+        const pid = state.campaign.player;
+        const own = r.chance(0.5) ? fallbackDraft(state, env, pid) : randomDraft(r, state, env, pid);
+        let drafts = { ...aiDrafts(r, state), [pid]: withRolls(state, own, () => r.int(1, 10)) };
+        let res;
+        try {
+          res = apply(state, env, drafts);
+          if (!res.ok) {
+            // A rejected random draft: the season goes on with the fallback.
+            drafts = { ...drafts, [pid]: withRolls(state, fallbackDraft(state, env, pid), () => r.int(1, 10)) };
+            res = apply(state, env, drafts);
+          }
+        } catch (err) {
+          assert.fail(`${label} throws ${err.stack}\ndrafts ${JSON.stringify(drafts)}`);
+        }
+        assert.ok(res.ok, `${label} rejects even the fallback: ${JSON.stringify(res.issues.slice(0, 3))}`);
+        assert.equal(stateHash(apply(state, env, structuredClone(drafts)).state), stateHash(res.state), `${label} is not deterministic`);
+        for (const p of peopleIds(res.state)) assert.deepEqual(fogLeaks(res.state, projectFor(res.state, env, p), p), [], `${label} as ${p}`);
+        state = checkNext(res.state, label);
+      }
+    }
   });
 
   it('shows no people what the fog hides, before and after random seasons', () => {

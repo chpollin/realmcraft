@@ -1003,6 +1003,10 @@ export function validateProposal(proposal, ctx = {}) {
   const items = p.items.map((item, index) => {
     const base = `/items/${index}`;
     const done = (issues, budget = null) => ({ index, verdict: hasErrors(issues) ? 'rejected' : 'accepted', issues, budget });
+    // The schema already flags a non-object item; every check below reads its fields.
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return done(hasErrors(itemIssues[index]) ? itemIssues[index] : [issue('format', base, 'an item must be an object')]);
+    }
     if (!allowed.has(item.type) || (taskItems && !taskItems.has(item.type))) {
       return done([issue('content.item_not_allowed', `${base}/type`, `agent "${p.agent}" may not send "${item.type}" items`, { severity: 'error' })]);
     }

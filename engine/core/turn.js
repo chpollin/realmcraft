@@ -24,7 +24,7 @@ import { kissue } from './codes.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
 import { calendarOf } from './calendar.js';
-import { createContext, finish, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
+import { createContext, finish, fitLabour, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
 import { clone, peopleIds, relKey, settlementsOf, KERN_SLICE, DEFAULT_SETTINGS } from './state.js';
 import { DIFFICULTIES, PATTERNS } from '../schemas/common.js';
 import { applyOnce, applyOnceList, standingOf, ofOp } from './effects.js';
@@ -96,7 +96,8 @@ export function orderTile(state, world, pid, order) {
 
 /**
  * Fields added in M1 that a campaign created before them lacks: the settings
- * and the location of every council member. Written with a log entry at the
+ * and the location of every council member; labour that a loss of clans left
+ * larger than the people is trimmed. Written with a log entry at the
  * first transition after the kernel update, so the state accounts for them.
  */
 export function migrate(tc) {
@@ -109,6 +110,8 @@ export function migrate(tc) {
     for (const m of tc.state.peoples[pid].council) {
       if (!Object.hasOwn(m, 'at')) setMember(tc, pid, m.id, 'at', null, `${m.name} is at home`, { kind: 'member.at' });
     }
+    // States saved before a loss of clans trimmed the labour may assign more clans than exist.
+    fitLabour(tc, pid);
   }
 }
 

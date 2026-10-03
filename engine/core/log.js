@@ -19,6 +19,7 @@
 import { clone, relKey } from './state.js';
 import { makeRng } from './rng.js';
 import { calendarOf } from './calendar.js';
+import { RULES } from './rules.js';
 
 const MAX_REASON = 200;
 const MAX_REFS = 8;
@@ -150,7 +151,31 @@ export function addPeople(tc, pid, field, delta, reason, { min = 0, max = 999, .
     record(tc, opts.kind ?? `people.${field.split('.')[0]}`, { kind: 'people', id: pid }, { field, delta: applied }, reason,
       { ...opts, people: [pid, ...[opts.people ?? []].flat()] });
   }
+  // Every loss of clans routes through here, so the standing labour never outlasts the people.
+  if (field === 'population.core' && applied < 0) fitLabour(tc, pid);
   return { applied, missing };
+}
+
+/**
+ * Takes clans off population.assigned until it fits population.core:
+ * activities first, then resources, food last, each group in id order.
+ */
+export function fitLabour(tc, pid) {
+  const pop = tc.state.peoples[pid].population;
+  const assigned = { ...(pop.assigned ?? {}) };
+  let excess = Object.values(assigned).reduce((a, b) => a + b, 0) - pop.core;
+  if (excess <= 0) return false;
+  const rank = (k) => (RULES.activities.includes(k) ? 0 : k === RULES.food ? 2 : 1);
+  const keys = Object.keys(assigned).sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0));
+  for (const k of keys) {
+    const take = Math.min(excess, assigned[k]);
+    if (take <= 0) continue;
+    excess -= take;
+    if (assigned[k] === take) delete assigned[k];
+    else assigned[k] -= take;
+    if (excess === 0) break;
+  }
+  return setPeople(tc, pid, 'population.assigned', assigned, `${pop.core} clan(s) left, labour shrinks to fit`, { kind: 'population.assign' });
 }
 
 /** Resource stock change; never below 0 or above 999. */
