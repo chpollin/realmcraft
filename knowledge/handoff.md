@@ -148,6 +148,14 @@ Polish:
 6. Replay of journals written by an older kernel is not covered by a test. Any behaviour change (including the labour trim of lane KB) changes replay hashes. Proposed: raise `JOURNAL_FORMAT` in `engine/cli.mjs` and write a base anchor at the next transition when the last entry has an older kernel format.
 7. An ingest fuzz test written by the helper of lane KB covers both ingest defects and stays red until they are fixed. It lies on the local branch `wip/fuzz-ingest` (`tests/unit/sim/fuzz-ingest.test.js`), not on `main`; bring it over with the fixes and add it to the file list of `tools/sim/fuzz.mjs`.
 
+### Overengineering review before further building
+
+- Received. 2026-10-03
+- Source. Owner and main session, honest assessment at the end of the M1 session.
+- Target. [architecture.md](architecture.md), [decisions.md](decisions.md), [plan-m1.md](plan-m1.md), the refactor workflow.
+- Context. The foundation carries the idea and stays: the deterministic kernel with the CLI as only writer, the power budget and validator, fog-safe projections, hooks that confine agents (agent output is untrusted input), tests and migrations. Two layers exceed what the problem needs. The integrity layer (journal hash chain, anchors, roll ledger with fingerprints, sealed draft hashes, tamper detection, roll-forward recovery in every step) is anti-cheat architecture for a single-player game; every behaviour change drags repin, migration and replay questions behind it. The process built faster than it learned: contracts, many parallel lanes and two merge waves came before anyone had played five turns in a row, and lanes fixed the same defects twice. Open measurement questions are the number of agent runs per turn (world, research per people, council, rivals, chronicler, two judges every turn) and the paths model, whose structure runs ahead of its content (Erkenntnis empty, Magie hard to open, no military candidate for the player).
+- Next action. Build no new feature before the game has been played over several turns in a row and the refactor workflow has run. In that workflow, take the integrity layer as first simplification candidate, aiming at a state hash plus replay for debugging, and measure whether research and rival runs can be batched and judges run every few turns. Record what is kept, simplified or removed as a decision.
+
 ### Housekeeping
 
 - Received. 2026-10-03
