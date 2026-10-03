@@ -1,7 +1,7 @@
 // js/format.js — reine, DOM-freie Formatierungs- und Text-Helfer.
 // Sammelt Helfer, die zuvor in mehreren Modulen Wort für Wort dupliziert waren
 // (initials, roman, Vorzeichen-Formatierung). Kein Vertrags-Export: ui.js bleibt
-// die feste Vertragsoberfläche (el, gauge, loyaltyMeter, toast);
+// die feste Vertragsoberfläche (el, gauge, loyaltyMeter, toast, bildLeiste);
 // dieses Modul ist ein internes, gemeinsam genutztes Hilfsmodul ohne DOM-Bezug.
 
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];

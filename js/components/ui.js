@@ -1,5 +1,4 @@
 // js/components/ui.js
-// =============================================================================
 // DOM-Helfer und kleine UI-Bausteine für das RealmCraft-Dashboard.
 // Verbindlicher Vertrag: docs/Frontend-Contract.md, Abschnitt "js/components/ui.js".
 //
@@ -10,14 +9,9 @@
 //   toast(message, { error })     -> void          Fehler bleiben bis zum Schließen stehen
 //   bildLeiste(typ, id, handlers) -> HTMLElement   Knopf "Bild fortschreiben" und Versionswahl
 //
-// Optik: Diese Bausteine erzeugen nur DOM mit den Klassennamen aus der gewählten
-// Richtung "War Table" (design/prototypes/war-table.html). Das Aussehen liefert
-// css/style.css (Eigentum scaffold); :root dort ist die einzige Token-Quelle.
-// Daher injiziert dieses Modul KEINE eigenen Styles und referenziert KEINE
-// Token-Variablen direkt; Cross-Modul-Kontrakt ist allein die Klassen-/DOM-Form.
-//
-// Reine ES-Module, keine externen Abhängigkeiten, Browser-DOM.
-// =============================================================================
+// Diese Bausteine erzeugen nur DOM mit Klassennamen. Das Aussehen liefert
+// css/style.css, dessen :root die einzige Token-Quelle ist. Darum injiziert
+// dieses Modul keine Styles und liest keine Token-Variablen.
 
 /**
  * Kleiner Hyperscript-Helfer.

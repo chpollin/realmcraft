@@ -1,5 +1,5 @@
 // Sicht "Lage": Grundgrößen, Lagewerte, offene Fäden.
-// (Realm-Identität und Ansehen rendert app.js in die persistente Hero-Leiste.)
+// (Realm-Identität und Ansehen rendert render/hero.js in die Kopfleiste.)
 // Vertrag: docs/Frontend-Contract.md, Abschnitt "Lage (data-view=lage)".
 import { el, gauge } from '../components/ui.js';
 import { signed, signedZeroPlus } from '../format.js';

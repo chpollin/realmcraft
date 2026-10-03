@@ -12,7 +12,7 @@ test.describe('Sichten und Navigation', () => {
     // Lage ist die Default-View.
     await expect(page.locator('[data-view="lage"]')).toBeVisible();
 
-    const tabs = ['berater', 'welt', 'karte', 'historie', 'lage'];
+    const tabs = ['lebenswelt', 'berater', 'armee', 'welt', 'karte', 'historie', 'recht', 'lage'];
     for (const view of tabs) {
       await page.locator(`[data-tab="${view}"]`).click();
       await expect(page.locator(`[data-view="${view}"]`)).toBeVisible();

@@ -57,10 +57,8 @@ test.describe('Laden des Speicherstands', () => {
       content: '{ das ist : kein gültiges JSON ,,, ',
     });
 
-    // Fehler als Toast oder inline; beides erfüllt "sichtbare Fehlermeldung".
-    const toast = page.getByTestId('toast');
-    const errorMsg = page.getByTestId('error-message');
-    await expect(toast.or(errorMsg)).toBeVisible();
+    // Ein Lesefehler ist ein Fehler-Toast, der bis zum Schließen stehen bleibt.
+    await expect(page.locator('[data-testid="toast"][role="alert"]')).toBeVisible();
 
     // Es wurde kein Stand übernommen: der Leerzustand bleibt, kein Realm-Name.
     await expect(page.getByTestId('realm-name')).toHaveCount(0);

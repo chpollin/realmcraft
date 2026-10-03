@@ -1,5 +1,5 @@
 // Bootstrap, hash routing, file loading, settings and the image flow.
-// Contract: docs/Frontend-Contract.md, section "js/app.js".
+// Contract: docs/Frontend-Contract.md, sections "Architektur" and "DOM-Vertrag".
 import { parseSavegame } from './parse.js';
 import { setState, getState, subscribe } from './state.js';
 import { el, toast } from './components/ui.js';
