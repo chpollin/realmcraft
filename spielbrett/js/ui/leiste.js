@@ -5,6 +5,7 @@ import { el, signed } from '../dom.js';
 import { icon } from '../icons.js';
 import { withTip } from './tip.js';
 import { t } from '../i18n/index.js';
+import { currentResearch } from '../data/pfade.js';
 
 const TREND = { 1: ['trendAuf', 'up', 'rising'], 0: ['trendGleich', '', 'steady'], [-1]: ['trendAb', 'down', 'falling'] };
 const BUDGET = { haupt: 1, neben: 2 };
@@ -15,8 +16,8 @@ export function renderTopbar(api) {
   document.getElementById('zeit').textContent = t.fmt('board.time', { season: model.zeit.saison, year: model.zeit.jahr });
   renderResources(api);
   renderDestinyChip(api);
-  // Views are named from the world's labels (view.<id>), the board labels cover a world without them.
-  const labels = { entwicklungen: [t('view.entwicklungen'), 'E'], rat: [t('view.rat'), 'R'], chronik: [t('view.chronik'), 'C'] };
+  // Views are named from the world's labels (view.<id>); the paths are a board concept and named by the board.
+  const labels = { entwicklungen: [t('board.paths.title'), 'E'], rat: [t('view.rat'), 'R'], chronik: [t('view.chronik'), 'C'] };
   for (const b of document.querySelectorAll('.kurz')) {
     const [label, key] = labels[b.dataset.dialog];
     b.classList.add('has-tip');
@@ -136,23 +137,37 @@ function slotGroup(api, art, used, max) {
     el('span', { class: 'slot-boxen' }, ...boxes));
 }
 
-/** Research of the season: its own budget beside the action slots, never one of them. */
+/**
+ * Research of the season: its own budget beside the action slots, never one
+ * of them. The research points of the season, the project that takes them
+ * and how far it gets, all from the kernel's rule (data/pfade.js).
+ */
 function researchBudget(api) {
   const { game, model } = api;
   if (!game) return null;
-  const chosen = game.draft.orders.find((o) => o.type === 'research.assign');
-  const running = game.view.peoples[game.pid].developments.research[0];
-  const ref = chosen?.params.development ?? running?.ref ?? null;
-  const name = ref ? game.env.entwicklung(ref)?.name ?? ref : t('board.research.open');
+  const now = currentResearch({ view: game.view, env: game.env, draft: game.draft, pv: game.base });
+  const name = now.ref ? game.env.entwicklung(now.ref)?.name ?? now.ref : t('board.research.open');
   const hint = model.slotHint?.art === 'forschung';
+  const pts = now.points;
+  const progress = now.ref ? t.fmt('board.paths.progress', { done: now.progress, total: now.cost }) : null;
+  const bar = now.ref ? el('span', { class: 'fb-balken', 'aria-hidden': 'true' },
+    el('span', { class: 'fb-stand', style: { inlineSize: `${(100 * now.progress) / now.cost}%` } }),
+    now.gain ? el('span', { class: 'fb-zuwachs', style: { inlineSize: `${(100 * now.gain) / now.cost}%` } }) : null) : null;
+  const label = [t.fmt(now.chosen ? 'board.research.label-chosen' : 'board.research.label', { name }), t.fmt('board.paths.points', { n: pts.total }), progress].filter(Boolean).join(', ');
   return withTip(el('button', {
-    class: `forschung-budget${chosen ? ' on' : ''}${hint ? ' is-ziel' : ''}`,
+    class: `forschung-budget${now.chosen ? ' on' : ''}${hint ? ' is-ziel' : ''}`,
     type: 'button',
     'data-forschung': '',
-    'aria-label': t.fmt(chosen ? 'board.research.label-chosen' : 'board.research.label', { name }),
+    'aria-label': label,
     onclick: () => api.openDialog('entwicklungen'),
-  }, icon('wissen', { size: 20 }), el('span', { class: 'fb-name', text: name })),
-  [el('strong', { text: t('board.slot.forschung') }), ` ${name}`], [el('span', { text: t(chosen ? 'board.research.tip-chosen' : 'board.research.tip') })], { up: true });
+  }, icon('wissen', { size: 20 }), el('span', { class: 'fb-punkte num', text: signed(pts.total) }),
+  el('span', { class: 'fb-projekt' }, el('span', { class: 'fb-name', text: name }), bar)),
+  [el('strong', { text: t('board.slot.forschung') }), ` ${name}`],
+  [
+    progress ? el('span', { class: 'tip-zeile' }, el('span', { text: t('board.paths.cost') }), el('span', { text: progress })) : null,
+    el('span', { class: 'tip-zeile' }, el('span', { text: t('board.paths.points.total') }), el('span', { class: 'up', text: signed(pts.total) })),
+    el('span', { text: t(now.chosen ? 'board.research.tip-chosen' : 'board.research.tip') }),
+  ].filter(Boolean), { up: true });
 }
 
 export function renderBudget(api) {
@@ -200,7 +215,8 @@ export function renderOrders(api, { freshId } = {}) {
       o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.stale ? 'veraltet' : o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.stale ? 'warnung' : o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
       o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.roll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
       o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.reroll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
-      o.issues?.length ? withTip(el('span', { class: 'befehl-problem', tabindex: '0', 'data-issue': o.issues[0].code, 'aria-label': o.issues.map((i) => i.text ?? i.message).join(', ') }, icon('warnung', { size: 14 })), [el('span', { text: o.issues.map((i) => i.text ?? i.message).join(', ') })], o.issues.map((i) => el('span', { text: i.message })), { up: true }) : null,
+      // Issue texts are labels from the issue code; the kernel's English message is for logs only.
+      o.issues?.length ? withTip(el('span', { class: 'befehl-problem', tabindex: '0', 'data-issue': o.issues[0].code, 'aria-label': [...new Set(o.issues.map((i) => i.text))].join(', ') }, icon('warnung', { size: 14 })), [el('span', { text: [...new Set(o.issues.map((i) => i.text))].join(', ') })], null, { up: true }) : null,
       o.kosten?.length ? el('span', { class: 'costs' }, ...o.kosten.map((k) => el('span', { class: 'cost', 'aria-label': `${k.menge} ${k.key}` }, icon(k.key, { size: 14 }), String(k.menge)))) : null,
       locked ? null : el('button', { class: 'icon-btn', type: 'button', 'aria-label': t.fmt('board.orders.withdraw', { title: o.titel }), onclick: () => api.removeOrder(o.id) }, icon('schliessen', { size: 16 })),
     )),

@@ -86,7 +86,7 @@ describe('a full slot offers the swap', () => {
     const mains = migrations.slice(0, 2);
     const draft = withOrder(draft0, mains[0]);
     const opt = previewOption(ctxOf(draft), mains[1]);
-    assert.equal(opt.grund, t('issue.slots'));
+    assert.equal(opt.grund, t.fmt('issue.slots.over-capacity', { used: 2, max: 1 }));
     assert.ok(opt.ersatz, 'swap offered');
     assert.equal(opt.ersatz.grund, null);
     assert.equal(opt.ersatz.ersetzt.id, draft.orders[0].id);

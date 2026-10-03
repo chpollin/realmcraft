@@ -272,7 +272,9 @@ describe('optionsFor on the camp tile', () => {
     const pv = previewDraft(view, env, withOrder(draft0, { type: 'found', params: { tile: camp.tile } }));
     const refusal = pv.issues.find((i) => i.severity === 'error' && i.path.startsWith('/orders/0'));
     assert.ok(refusal, 'the kernel refuses founding next to the camp');
-    assert.equal(o.grund, t(issueKey(refusal.code)));
+    // The reason key of the kernel picks the precise label, issue.<code>.<params.reason>.
+    assert.ok(refusal.params?.reason, 'the kernel names the reason');
+    assert.equal(o.grund, t(`${issueKey(refusal.code)}.${refusal.params.reason}`));
     assert.ok(!o.grund.includes(refusal.message), o.grund);
   });
 
