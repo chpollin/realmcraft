@@ -29,6 +29,7 @@ import { registry } from '../core/orders.js';
 import { MODULE_IDS } from '../modules/index.js';
 import { primitiveWeight, scoreBestimmung, scoreEntwicklung, scoreEreignis, sumWeights } from './budget.js';
 import { resolveRef, refOf } from './library.js';
+import { isOpen, pathTier, pathsOf, pfadOf } from '../core/pfade.js';
 
 // Per proposal, Agentenvertrag (item table): the world agent sends at most
 // two pool events and one map feature per turn.
@@ -276,7 +277,8 @@ function vocabularyIssues(refs, ctx) {
 // Duplicate fingerprints, cached per content object: exact ignores identity
 // and prose, near compares kind, tag set and the effect skeleton without
 // amounts (mechanics draft 5.2 rule 5).
-const IDENTITY = new Set(['id', 'rev', 'name', 'summary', 'appearance', 'origin']);
+// The path only files the content; the same mechanics on another path stay a duplicate.
+const IDENTITY = new Set(['id', 'rev', 'name', 'summary', 'appearance', 'origin', 'pfad']);
 const keyCache = new WeakMap();
 function fingerprints(ent) {
   let k = keyCache.get(ent);
@@ -366,6 +368,9 @@ function reachesId(library, start, target) {
 
 function referenceIssues(ent, ctx) {
   const out = vocabularyIssues(entwicklungRefs(ent), ctx);
+  if (ctx.regeln && ent.pfad !== undefined && !pathsOf(ctx).some((p) => p.id === ent.pfad)) {
+    out.push(issue('dangling_ref', '/pfad', `path "${ent.pfad}" is not a path of this world`, { params: { pfad: ent.pfad } }));
+  }
   const lib = ctx.library;
   if (!lib) return out;
   const prereqs = [
@@ -430,8 +435,23 @@ function tierIssues(ent, ctx) {
   if (ctx.people) {
     const open = openTier(ctx.people, ctx);
     if (ent.tier > open) out.push(issue('tier_gap', '/tier', `tier ${ent.tier} is above the open tier ${open} of "${ctx.people.id}"`));
+    out.push(...pathGateIssues(ent, ctx, open));
   }
   return out;
+}
+
+// Path gate of a candidate (engine/core/pfade.js), judged with the known
+// achievements the library resolves. Above the open tier, tier_gap has
+// already said it, so pfad_tier names only the path's own limit.
+function pathGateIssues(ent, ctx, open) {
+  if (!ctx.regeln?.pfade) return [];
+  const env = { regeln: ctx.regeln, entwicklung: (ref) => resolveRef(ctx.library, ref) };
+  const pfad = pfadOf(env, ent);
+  const who = ctx.people.id;
+  if (!isOpen(env, ctx.people, pfad)) return [issue('pfad_closed', '/pfad', `path ${pfad} is not open for "${who}"`, { params: { pfad } })];
+  const cap = Math.min(pathTier(env, ctx.people, pfad), open);
+  if (ent.tier <= open && ent.tier > cap) return [issue('pfad_tier', '/tier', `tier ${ent.tier} is above tier ${cap} of path ${pfad} for "${who}"`, { params: { pfad, tier: ent.tier, cap } })];
+  return [];
 }
 
 function driftIssues(ent, ctx) {
@@ -696,6 +716,25 @@ export function withCatalogue(ctx) {
   return { ...ctx, orders: ctx.orders ?? kernelCatalogue.orders, modules: ctx.modules ?? kernelCatalogue.modules };
 }
 
+// regeln.pfade beyond its schema: unique ids, tags from the vocabulary, a
+// fallback that names a path, unlock[0] = 0 and a world label per path.
+function pathBlockIssues(regeln, labels) {
+  const out = [];
+  const { paths, unlock, fallback } = regeln.pfade;
+  const base = '/regeln/pfade';
+  const ids = new Set();
+  paths.forEach((p, i) => {
+    if (ids.has(p.id)) out.push(issue('duplicate', `${base}/paths/${i}/id`, `path "${p.id}" appears twice`, { params: { pfad: p.id } }));
+    ids.add(p.id);
+    const tags = [...p.tags.map((t, j) => [t, `${base}/paths/${i}/tags/${j}`]), ...(p.opens?.practice ?? []).map((t, j) => [t, `${base}/paths/${i}/opens/practice/${j}`])];
+    for (const [t, path] of tags) if (!Object.hasOwn(regeln.vocabulary, t)) out.push(issue('unknown_tag', path, `tag "${t}" is not in the vocabulary`, { params: { tag: t } }));
+    if (labels && !Object.hasOwn(labels.labels, `pfad.${p.id}`)) out.push(issue('missing_label', `/labels/labels/pfad.${p.id}`, `label "pfad.${p.id}" is missing`, { params: { key: `pfad.${p.id}` } }));
+  });
+  if (!ids.has(fallback)) out.push(issue('dangling_ref', `${base}/fallback`, `fallback "${fallback}" is not a path`, { params: { pfad: fallback } }));
+  if (unlock[0] !== 0) out.push(issue('format', `${base}/unlock/0`, `unlock[0] must be 0, tier 1 of a path is always open, got ${unlock[0]}`, { params: { value: unlock[0] } }));
+  return out;
+}
+
 const PACK_FILES = ['regeln', 'labels', 'style', 'entwicklungen', 'ereignisse', 'bestimmungen'];
 const CONTENT_FILES = new Set(['entwicklungen', 'ereignisse', 'bestimmungen']);
 
@@ -765,6 +804,7 @@ export function validateWorldPackage(pack, opts = {}) {
     for (const [mod, roles] of Object.entries(regeln.moduleBindings)) {
       for (const [role, key] of Object.entries(roles)) if (!res.has(key)) issues.push(issue('unknown_resource', `/regeln/moduleBindings/${mod}/${role}`, `resource "${key}" is not in the world`));
     }
+    if (regeln.pfade) issues.push(...pathBlockIssues(regeln, valid.labels ? pack.labels : null));
   }
 
   if (valid.labels) {

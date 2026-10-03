@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { changesState, findingsOf, openTier, validateBestimmung, validateCampaign, validateEntwicklung, validateEreignis, validateProposal, validateTask, validateWorldPackage, withCatalogue } from '../../../engine/content/validate.js';
 import { libraryFrom } from '../../../engine/content/library.js';
 import { hashValue } from '../../../engine/core/hash.js';
+import { issue } from '../../../engine/core/issues.js';
 
 const DIR = fileURLToPath(new URL('../../fixtures/engine/', import.meta.url));
 const load = (f) => JSON.parse(readFileSync(join(DIR, f), 'utf8'));
@@ -229,4 +230,96 @@ test('impulse tokens ground orders, breakthroughs do not', () => {
   assert.deepEqual(at(validateEntwicklung(inst, ctx).issues), [['ungrounded', '/tags']], 'the feuer breakthrough does not ground an institution');
   const people = { ...corpus.people, tokens: [{ id: 'tok-t8-2', kind: 'impulse', tags: ['feuer'], turn: 8, source: 'T8:schar:o2' }] };
   assert.deepEqual(validateEntwicklung(inst, { ...ctx, people }).issues, []);
+});
+
+// Paths (regeln.pfade) over the corpus vocabulary; werk before krieg, so
+// wachfeuer (wache, bau) falls to werk on the tie.
+const PFADE = {
+  paths: [
+    { id: 'weide', tags: ['herde', 'weide', 'zug', 'winter', 'jagd', 'wege', 'weg'], opens: null },
+    { id: 'werk', tags: ['bau', 'erz', 'schmiede', 'holz', 'salz', 'handel'], opens: null },
+    { id: 'krieg', tags: ['krieg', 'gefecht', 'reiter', 'fuss', 'wache', 'befestigung', 'belagerung', 'pulver'], opens: null },
+    { id: 'magie', tags: ['magie', 'geist', 'furcht', 'opfer', 'feuer'], opens: { practice: ['magie', 'geist', 'feuer'], min: 1 } },
+  ],
+  unlock: [0, 2, 2, 2, 2],
+  fallback: 'weide',
+};
+const pathRegeln = () => ({ ...structuredClone(corpus.regeln), pfade: structuredClone(PFADE) });
+// issue() carries params once lane K2 lands the option; until then only code and path are compared.
+const PARAMS = 'params' in issue('target', '', 'probe', { params: { reason: 'x' } });
+const gate = (issues) => issues.filter((i) => i.code.startsWith('pfad_') || i.path === '/pfad').map((i) => (PARAMS ? [i.code, i.path, i.params] : [i.code, i.path]));
+const pfadIssue = (code, path, params) => (PARAMS ? [code, path, params] : [code, path]);
+
+function candidate(over) {
+  const base = structuredClone(corpus.library.find((e) => e.id === 'erzschmelze'));
+  return { ...base, id: 'erzguss', name: 'Erzguss', origin: { source: 'agent', practiceTags: [], token: null, request: null, proposal: null }, ...over };
+}
+
+test('a candidate above the tier of its path is refused with pfad_tier, within it passes the gate', () => {
+  const library = libraryFrom(corpus.library);
+  const ctx = { regeln: pathRegeln(), library, people: corpus.people, state: corpus.state };
+  assert.equal(openTier(corpus.people, ctx), 2);
+  // Only salzpfad (tier 1) lies on werk, unlock[1] asks for two.
+  assert.deepEqual(gate(validateEntwicklung(candidate({ tier: 2, tags: ['erz', 'salz'] }), ctx).issues), [pfadIssue('pfad_tier', '/tier', { pfad: 'werk', tier: 2, cap: 1 })]);
+  const people = structuredClone(corpus.people);
+  people.developments.known.push({ ref: 'wachfeuer@1', since: 0, effectiveFrom: 0, state: 'active', suspendedSince: null });
+  assert.deepEqual(gate(validateEntwicklung(candidate({ tier: 2, tags: ['erz', 'salz'] }), { ...ctx, people }).issues), []);
+  // Above the open tier, tier_gap speaks and pfad_tier stays silent.
+  const high = validateEntwicklung(candidate({ tier: 3, tags: ['erz', 'salz'] }), ctx).issues;
+  assert.ok(high.some((i) => i.code === 'tier_gap'));
+  assert.deepEqual(gate(high), []);
+});
+
+test('a candidate on a closed path is refused with pfad_closed until the path is open', () => {
+  const library = libraryFrom(corpus.library);
+  const ctx = { regeln: pathRegeln(), library, people: corpus.people, state: corpus.state };
+  const magic = candidate({ tier: 1, tags: ['magie', 'geist'] });
+  assert.deepEqual(gate(validateEntwicklung(magic, ctx).issues), [pfadIssue('pfad_closed', '/pfad', { pfad: 'magie' })]);
+  const opened = { ...corpus.people, pfade: { opened: { magie: 8 } } };
+  assert.deepEqual(gate(validateEntwicklung(magic, { ...ctx, people: opened }).issues), []);
+  // An explicit pfad files the same tags on another path, and the gate follows it.
+  assert.deepEqual(gate(validateEntwicklung({ ...magic, pfad: 'krieg' }, ctx).issues), []);
+  // Without a people (world content) there is no gate.
+  assert.deepEqual(gate(validateEntwicklung(magic, { regeln: pathRegeln(), library }).issues), []);
+});
+
+test('an unknown pfad is a dangling reference, also in a world without paths', () => {
+  const library = libraryFrom(corpus.library);
+  const ent = candidate({ tier: 1, tags: ['erz'], pfad: 'gibtsnicht' });
+  const codes = (regeln) => validateEntwicklung(ent, { regeln, library }).issues.filter((i) => i.path === '/pfad').map((i) => i.code);
+  assert.deepEqual(codes(pathRegeln()), ['dangling_ref']);
+  assert.deepEqual(codes(structuredClone(corpus.regeln)), ['dangling_ref']);
+  assert.deepEqual(validateEntwicklung({ ...ent, pfad: 'werk' }, { regeln: pathRegeln(), library }).issues.filter((i) => i.path === '/pfad'), []);
+});
+
+const PATH_LABELS = Object.fromEntries(PFADE.paths.map((p) => [`pfad.${p.id}`, p.id]));
+
+test('world package: a pfade block with labels for every path validates', () => {
+  const pack = minimalPack();
+  pack.regeln.pfade = structuredClone(PFADE);
+  Object.assign(pack.labels.labels, PATH_LABELS);
+  assert.deepEqual(validateWorldPackage(pack, { labelKeys: ['view.lage', 'view.rat'] }), []);
+});
+
+test('world package: duplicate path, unknown tags, dangling fallback, unlock[0] and a missing label', () => {
+  const pack = minimalPack();
+  pack.regeln.pfade = structuredClone(PFADE);
+  Object.assign(pack.labels.labels, PATH_LABELS);
+  pack.regeln.pfade.paths[2].id = 'werk';
+  pack.regeln.pfade.paths[0].tags.push('gibtsnicht');
+  pack.regeln.pfade.paths[3].opens.practice.push('zauber');
+  pack.regeln.pfade.fallback = 'wald';
+  pack.regeln.pfade.unlock[0] = 1;
+  assert.deepEqual(at(validateWorldPackage(pack)), [
+    ['unknown_tag', '/regeln/pfade/paths/0/tags/7'],
+    ['duplicate', '/regeln/pfade/paths/2/id'],
+    ['unknown_tag', '/regeln/pfade/paths/3/opens/practice/3'],
+    ['dangling_ref', '/regeln/pfade/fallback'],
+    ['format', '/regeln/pfade/unlock/0'],
+  ]);
+  const unlabelled = minimalPack();
+  unlabelled.regeln.pfade = structuredClone(PFADE);
+  Object.assign(unlabelled.labels.labels, PATH_LABELS);
+  delete unlabelled.labels.labels['pfad.krieg'];
+  assert.deepEqual(at(validateWorldPackage(unlabelled)), [['missing_label', '/labels/labels/pfad.krieg']]);
 });

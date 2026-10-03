@@ -8,12 +8,13 @@ import { forecast } from './economy.js';
 import { mapLayers } from './derive.js';
 import { kern, peopleIds, relation } from './state.js';
 import { projectFor } from './project.js';
+import { pathsView, pfadOf } from './pfade.js';
 
 const CORE_VIEWS = Object.freeze([
   { id: 'karte', order: 10, icon: 'welt', scope: 'map', sections: ['karte', 'layers'] },
   { id: 'lage', order: 20, icon: 'volk', scope: 'people', sections: ['resources', 'forecast', 'slots', 'catalogue', 'assigned'] },
   { id: 'rat', order: 30, icon: 'rat', scope: 'people', sections: ['council', 'seats'] },
-  { id: 'entwicklungen', order: 40, icon: 'entwicklungen', scope: 'people', sections: ['known', 'research', 'candidates', 'requests', 'tokens'] },
+  { id: 'entwicklungen', order: 40, icon: 'entwicklungen', scope: 'people', sections: ['known', 'research', 'candidates', 'requests', 'tokens', 'pfade'] },
   { id: 'bestimmung', order: 50, icon: 'bestimmung', scope: 'people', sections: ['destiny', 'milestones', 'history'] },
   { id: 'voelker', order: 70, icon: 'rivalen', scope: 'world', sections: ['peoples', 'relations'] },
   { id: 'chronik', order: 80, icon: 'chronik', scope: 'world', sections: ['entries'] },
@@ -118,12 +119,14 @@ function rat(p, env, pid) {
 
 function entwicklungen(p, env, pid) {
   const d = p.peoples[pid].developments;
+  const entry = (ref, extra) => withEntry(env, ref, { pfad: pfadOf(env, env.entwicklung(ref)), ...extra });
   return {
-    known: d.known.map((k) => withEntry(env, k.ref, { since: k.since, effectiveFrom: k.effectiveFrom, state: k.state, instituted: d.instituted.includes(k.ref) })),
-    research: d.research.map((r) => withEntry(env, r.ref, { progress: r.progress })),
-    candidates: d.candidates.map((c) => withEntry(env, c.ref, { offeredAt: c.offeredAt, expiresAt: c.expiresAt, origin: c.origin })),
+    known: d.known.map((k) => entry(k.ref, { since: k.since, effectiveFrom: k.effectiveFrom, state: k.state, instituted: d.instituted.includes(k.ref) })),
+    research: d.research.map((r) => entry(r.ref, { progress: r.progress })),
+    candidates: d.candidates.map((c) => entry(c.ref, { offeredAt: c.offeredAt, expiresAt: c.expiresAt, origin: c.origin })),
     requests: d.requests,
     tokens: p.peoples[pid].tokens,
+    pfade: pathsView(p, env, pid),
   };
 }
 

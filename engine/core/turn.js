@@ -176,6 +176,8 @@ export function createCampaign(env, { id, seed, player = null }) {
       shortfall: {},
       bestimmung: tpl.bestimmung ? bestimmung.initBestimmung(env, tpl.bestimmung, 0) : null,
       modules: { kern: KERN_SLICE() },
+      // Only with paths, so a world without them creates the state it created before M1 and old journals replay.
+      ...(regeln.pfade ? { pfade: { opened: {} } } : {}),
     };
     tc.state.peoples[tpl.id] = people;
     const settlement = {

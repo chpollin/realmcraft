@@ -7,7 +7,7 @@
     "world": {
       "id": "hochland",
       "version": "0.1.0",
-      "hash": "07ede21bb617af1b"
+      "hash": "be416e7a6b575c93"
     },
     "player": "bergnomaden"
   },
@@ -132,12 +132,6 @@
         "research": [],
         "candidates": [
           {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
             "ref": "saumpfad@1",
             "offeredAt": 0,
             "expiresAt": 4,
@@ -151,8 +145,8 @@
           },
           {
             "ref": "speertraeger@1",
-            "offeredAt": 1,
-            "expiresAt": 5,
+            "offeredAt": 0,
+            "expiresAt": 4,
             "origin": "pool"
           }
         ],
@@ -330,6 +324,9 @@
           "migratedAt": 0,
           "transition": null
         }
+      },
+      "pfade": {
+        "opened": {}
       }
     },
     "schaedelklan": {
@@ -468,12 +465,6 @@
         "before": [],
         "after": [
           {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
             "ref": "saumpfad@1",
             "offeredAt": 0,
             "expiresAt": 4,
@@ -484,14 +475,20 @@
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
+          },
+          {
+            "ref": "speertraeger@1",
+            "offeredAt": 0,
+            "expiresAt": 4,
+            "origin": "pool"
           }
         ]
       },
-      "reason": "pool offers rauchschau@1, saumpfad@1, sesshaft@1",
+      "reason": "pool offers saumpfad@1, sesshaft@1, speertraeger@1",
       "refs": [
-        "rauchschau@1",
         "saumpfad@1",
-        "sesshaft@1"
+        "sesshaft@1",
+        "speertraeger@1"
       ],
       "visibleTo": [
         "bergnomaden"
@@ -547,7 +544,7 @@
       "step": "seal"
     },
     {
-      "id": "T0-e14",
+      "id": "T0-e15",
       "turn": 0,
       "source": "kernel",
       "kind": "campaign.phase",
@@ -568,7 +565,7 @@
       "step": "seal"
     },
     {
-      "id": "T0-e26",
+      "id": "T0-e27",
       "turn": 0,
       "source": "kernel",
       "kind": "resource.change",
@@ -588,7 +585,7 @@
       "step": "modules"
     },
     {
-      "id": "T0-e27",
+      "id": "T0-e28",
       "turn": 0,
       "source": "kernel",
       "kind": "resource.change",
@@ -608,7 +605,7 @@
       "step": "modules"
     },
     {
-      "id": "T0-e31",
+      "id": "T0-e32",
       "turn": 0,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -630,7 +627,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e32",
+      "id": "T0-e33",
       "turn": 0,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -652,7 +649,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e33",
+      "id": "T0-e34",
       "turn": 0,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -672,7 +669,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e34",
+      "id": "T0-e35",
       "turn": 0,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -692,7 +689,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e35",
+      "id": "T0-e36",
       "turn": 0,
       "source": "kernel",
       "kind": "economy.consumption",
@@ -714,7 +711,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e36",
+      "id": "T0-e37",
       "turn": 0,
       "source": "kernel",
       "kind": "population.growth",
@@ -735,7 +732,7 @@
       "step": "economy"
     },
     {
-      "id": "T0-e60",
+      "id": "T0-e61",
       "turn": 0,
       "source": "kernel",
       "kind": "event.history",
@@ -744,13 +741,10 @@
         "id": "ev-ratsstreit"
       },
       "change": {
-        "field": "modules.kern.draws.ueberfall@1",
+        "field": "modules.kern.draws.ueberfall@1.last",
         "before": null,
         "after": {
-          "total": 1,
-          "last": {
-            "bergnomaden": 0
-          }
+          "bergnomaden": 0
         }
       },
       "reason": "Überfall auf die Herden drawn by bergnomaden",
@@ -763,7 +757,7 @@
       "step": "events"
     },
     {
-      "id": "T0-e61",
+      "id": "T0-e63",
       "turn": 0,
       "source": "kernel",
       "kind": "event.drawn",
@@ -782,7 +776,7 @@
       "step": "events"
     },
     {
-      "id": "T0-e62",
+      "id": "T0-e64",
       "turn": 0,
       "source": "kernel",
       "kind": "event.choice",
@@ -815,7 +809,7 @@
       "step": "events"
     },
     {
-      "id": "T0-e73",
+      "id": "T0-e77",
       "turn": 0,
       "source": "kernel",
       "kind": "campaign.turn",
@@ -839,73 +833,6 @@
       "id": "T1-e1",
       "turn": 1,
       "source": "kernel",
-      "kind": "research.offer",
-      "target": {
-        "kind": "people",
-        "id": "bergnomaden"
-      },
-      "change": {
-        "field": "developments.candidates",
-        "before": [
-          {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
-            "ref": "saumpfad@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
-            "ref": "sesshaft@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          }
-        ],
-        "after": [
-          {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
-            "ref": "saumpfad@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
-            "ref": "sesshaft@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
-            "ref": "speertraeger@1",
-            "offeredAt": 1,
-            "expiresAt": 5,
-            "origin": "pool"
-          }
-        ]
-      },
-      "reason": "pool offers speertraeger@1",
-      "refs": [
-        "speertraeger@1"
-      ],
-      "visibleTo": [
-        "bergnomaden"
-      ],
-      "step": "open"
-    },
-    {
-      "id": "T1-e3",
-      "turn": 1,
-      "source": "kernel",
       "kind": "campaign.phase",
       "target": {
         "kind": "campaign",
@@ -924,7 +851,7 @@
       "step": "open"
     },
     {
-      "id": "T1-e4",
+      "id": "T1-e2",
       "turn": 1,
       "source": "kernel",
       "kind": "event.draw",
@@ -951,7 +878,7 @@
       "step": "seal"
     },
     {
-      "id": "T1-e9",
+      "id": "T1-e8",
       "turn": 1,
       "source": "kernel",
       "kind": "campaign.phase",
@@ -972,7 +899,7 @@
       "step": "seal"
     },
     {
-      "id": "T1-e20",
+      "id": "T1-e19",
       "turn": 1,
       "source": "kernel",
       "kind": "resource.change",
@@ -992,7 +919,7 @@
       "step": "modules"
     },
     {
-      "id": "T1-e21",
+      "id": "T1-e20",
       "turn": 1,
       "source": "kernel",
       "kind": "resource.change",
@@ -1012,7 +939,7 @@
       "step": "modules"
     },
     {
-      "id": "T1-e26",
+      "id": "T1-e25",
       "turn": 1,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -1034,7 +961,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e27",
+      "id": "T1-e26",
       "turn": 1,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -1056,7 +983,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e28",
+      "id": "T1-e27",
       "turn": 1,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -1076,7 +1003,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e29",
+      "id": "T1-e28",
       "turn": 1,
       "source": "kernel",
       "kind": "economy.harvest",
@@ -1096,7 +1023,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e30",
+      "id": "T1-e29",
       "turn": 1,
       "source": "kernel",
       "kind": "economy.consumption",
@@ -1118,7 +1045,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e31",
+      "id": "T1-e30",
       "turn": 1,
       "source": "kernel",
       "kind": "population.growth",
@@ -1139,7 +1066,7 @@
       "step": "economy"
     },
     {
-      "id": "T1-e56",
+      "id": "T1-e52",
       "turn": 1,
       "source": "kernel",
       "kind": "event.choice",
@@ -1172,7 +1099,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e57",
+      "id": "T1-e53",
       "turn": 1,
       "source": "kernel",
       "kind": "resource.change",
@@ -1194,7 +1121,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e58",
+      "id": "T1-e54",
       "turn": 1,
       "source": "kernel",
       "kind": "relation.change",
@@ -1228,7 +1155,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e59",
+      "id": "T1-e55",
       "turn": 1,
       "source": "kernel",
       "kind": "people.standing",
@@ -1250,7 +1177,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e66",
+      "id": "T1-e62",
       "turn": 1,
       "source": "kernel",
       "kind": "event.history",
@@ -1259,13 +1186,10 @@
         "id": "ev-ratsstreit"
       },
       "change": {
-        "field": "modules.kern.draws.ratsstreit@1",
+        "field": "modules.kern.draws.ratsstreit@1.last",
         "before": null,
         "after": {
-          "total": 1,
-          "last": {
-            "bergnomaden": 1
-          }
+          "bergnomaden": 1
         }
       },
       "reason": "Streit im Rat drawn by bergnomaden",
@@ -1278,7 +1202,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e67",
+      "id": "T1-e64",
       "turn": 1,
       "source": "kernel",
       "kind": "event.drawn",
@@ -1297,7 +1221,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e68",
+      "id": "T1-e65",
       "turn": 1,
       "source": "kernel",
       "kind": "event.choice",
@@ -1331,7 +1255,7 @@
       "step": "events"
     },
     {
-      "id": "T1-e78",
+      "id": "T1-e75",
       "turn": 1,
       "source": "kernel",
       "kind": "campaign.turn",
@@ -1391,6 +1315,117 @@
         "opfer": 6
       },
       "popCap": 6,
+      "pfade": {
+        "points": {
+          "base": 2,
+          "labour": 0,
+          "knowledge": 2,
+          "total": 4
+        },
+        "paths": [
+          {
+            "id": "nahrung",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 2,
+            "next": {
+              "tier": 2,
+              "needed": 1
+            },
+            "known": [
+              "nomadisch@1",
+              "filzjurten@1"
+            ],
+            "research": [],
+            "candidates": [
+              "sesshaft@1"
+            ]
+          },
+          {
+            "id": "gemeinschaft",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 1,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [
+              "sippenrat@1"
+            ],
+            "research": [],
+            "candidates": []
+          },
+          {
+            "id": "militaer",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": [
+              "speertraeger@1"
+            ]
+          },
+          {
+            "id": "werk",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": [
+              "saumpfad@1"
+            ]
+          },
+          {
+            "id": "erkenntnis",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": []
+          },
+          {
+            "id": "magie",
+            "open": false,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": []
+          }
+        ]
+      },
       "forecast": {
         "income": {
           "nahrung": 3,

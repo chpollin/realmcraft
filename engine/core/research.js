@@ -7,22 +7,27 @@
 //   expire(tc)                   cleanup: candidates, tokens, requests that ran out
 //   offerPool(tc, pid)           open step: pool candidates, ranked by practice
 //   recordPractice(tc, pid, executed)    ring buffer of order tags
-//   openTier(state, env, pid)    highest tier whose people gate and world-age gate are open
+//   openTier(state, env, pid)    highest tier whose people gate and world-age gate are open (engine/core/pfade.js)
 //   practiceTop(people, n)       strongest practice tags
+//
+// With paths in the world (regeln.pfade) the pool offers only achievements on
+// an open path within its cap, research.direct may name a path, and the
+// research step latches the paths that open. Candidates and research listed
+// before a path gate existed stay valid.
 //
 // Whatever research completes acts from the next turn (effectiveFrom = turn + 1),
 // so the standing effects of the new development never reach the turn that
 // finished it.
 
-import { RULES, tune } from './rules.js';
+import { RULES } from './rules.js';
 import { idOfRef } from './env.js';
-import { calendarOf } from './calendar.js';
 import { issue } from './issues.js';
 import { evalCondition } from './conditions.js';
 import { applyOnceList, ofOp, standingOf } from './effects.js';
 import { addResource, noteChange, record, setPeople } from './log.js';
 import { SUCCESS } from './probes.js';
-import { maxKnownTier, peopleIds, settlementsOf } from './state.js';
+import { maxKnownTier, peopleIds } from './state.js';
+import { directTags, isOpen, latch, openTier, pathTier, pathsOf, pfadOf, pointsOf } from './pfade.js';
 import { activeModules } from '../modules/index.js';
 import { TIERS } from '../schemas/effects.js';
 
@@ -48,7 +53,10 @@ export const ORDERS = {
       const ref = o.params?.development;
       const dev = ox.people.developments;
       const listed = typeof ref === 'string' && (dev.candidates.some((c) => c.ref === ref) || dev.research.some((r) => r.ref === ref));
-      if (!listed || !ox.env.entwicklung(ref)) return [issue('target', `${ox.path}/params`, 'development must be an open candidate or already in research')];
+      if (!listed || !ox.env.entwicklung(ref)) {
+        const params = typeof ref === 'string' ? { reason: 'not-candidate', development: ref } : { reason: 'not-candidate' };
+        return [issue('target', `${ox.path}/params`, 'development must be an open candidate or already in research', { params })];
+      }
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
@@ -63,25 +71,38 @@ export const ORDERS = {
   'research.direct': {
     slot: 'free',
     unique: true,
-    tags: (ox, o) => (Array.isArray(o.params?.tags) ? o.params.tags.filter((t) => typeof t === 'string') : []),
+    tags: (ox, o) => requestTags(ox.env, o.params),
     check(ox, o) {
-      const { tags, note } = o.params ?? {};
-      const bad = (message) => [issue('target', `${ox.path}/params`, message)];
-      if (!Array.isArray(tags) || tags.length < 1 || tags.length > 3) return bad('tags must list one to three vocabulary tags');
-      if (new Set(tags).size !== tags.length) return bad('tags must be distinct');
-      const unknown = tags.find((t) => typeof t !== 'string' || !Object.hasOwn(ox.env.vocabulary, t));
-      if (unknown !== undefined) return bad(`tag ${JSON.stringify(unknown)} is not in the world's vocabulary`);
-      if (note !== undefined && (typeof note !== 'string' || note.length > 200)) return bad('note must be a text of at most 200 characters');
+      const { pfad, tags, note } = o.params ?? {};
+      const bad = (message, params) => [issue('target', `${ox.path}/params`, message, { params })];
+      if (pfad !== undefined) {
+        if (typeof pfad !== 'string' || !pathsOf(ox.env).some((p) => p.id === pfad)) return bad(`path ${JSON.stringify(pfad)} is not a path of this world`, { reason: 'unknown-pfad', pfad: String(pfad) });
+        if (!isOpen(ox.env, ox.people, pfad)) return bad(`path ${pfad} is not open`, { reason: 'pfad-closed', pfad });
+      }
+      if (tags !== undefined || pfad === undefined) {
+        if (!Array.isArray(tags) || tags.length < 1 || tags.length > 3) return bad('tags must list one to three vocabulary tags', { reason: 'tag-count' });
+        if (new Set(tags).size !== tags.length) return bad('tags must be distinct', { reason: 'tag-duplicate' });
+        const unknown = tags.find((t) => typeof t !== 'string' || !Object.hasOwn(ox.env.vocabulary, t));
+        if (unknown !== undefined) return bad(`tag ${JSON.stringify(unknown)} is not in the world's vocabulary`, { reason: 'unknown-tag', tag: String(unknown) });
+      }
+      if (note !== undefined && (typeof note !== 'string' || note.length > 200)) return bad('note must be a text of at most 200 characters', { reason: 'note-length' });
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
     resolve(tc, ox, o) {
-      const request = { turn: tc.turn, tags: [...o.params.tags], note: o.params.note ?? '' };
+      const { pfad, note } = o.params;
+      const request = { turn: tc.turn, tags: requestTags(ox.env, o.params), note: note ?? '', ...(pfad === undefined ? {} : { pfad }) };
       const list = [...tc.state.peoples[ox.pid].developments.requests, request].slice(-MAX_REQUESTS);
-      setPeople(tc, ox.pid, 'developments.requests', list, `order ${o.id}: research request ${request.tags.join(', ')}`, { kind: 'research.request' });
+      setPeople(tc, ox.pid, 'developments.requests', list, `order ${o.id}: research request ${request.tags.join(', ')}${pfad ? ` on path ${pfad}` : ''}`, { kind: 'research.request' });
     },
   },
 };
+
+// A request on a path alone takes the path's first three vocabulary tags.
+function requestTags(env, params) {
+  if (Array.isArray(params?.tags)) return params.tags.filter((t) => typeof t === 'string');
+  return typeof params?.pfad === 'string' ? directTags(env, params.pfad) : [];
+}
 
 // --- cost and tiers ---------------------------------------------------------------
 
@@ -106,26 +127,7 @@ export function practiceTop(people, n = 3) {
   return [...sums.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, n);
 }
 
-/**
- * Highest tier whose people gate and world-age gate are open; same rule as
- * engine/content/validate.js openTier, with known developments resolved through env.
- */
-export function openTier(state, env, pid) {
-  const people = state.peoples[pid];
-  const known = people.developments.known.filter((k) => k.state === 'active').map((k) => env.entwicklung(k.ref)).filter(Boolean);
-  const worldYear = calendarOf(env.regeln, state.turn).worldYear;
-  const settlements = settlementsOf(state, pid).length;
-  const maxTier = env.regeln.tuning?.maxTier ?? TIERS.length;
-  let open = 1;
-  for (const row of TIERS) {
-    if (row.tier <= 1) continue;
-    const g = row.gate;
-    const below = known.filter((e) => e.tier >= row.tier - 1).length;
-    if (below < g.prevTierKnown || people.population.core < g.groups || settlements < g.settlements || worldYear < g.worldYear) break;
-    open = row.tier;
-  }
-  return Math.min(open, maxTier);
-}
+export { openTier };
 
 // --- season step ----------------------------------------------------------------
 
@@ -156,20 +158,40 @@ export function resolveResearch(tc) {
     let progress = project.progress;
     // A project waiting for resources neither burns knowledge nor gathers points.
     if (progress < cost) {
-      const labour = (people.population.assigned?.research ?? 0) * RULES.researchPerGroup;
+      const { base, labour, knowledge: spend } = pointsOf(env, people);
       const mods = ofOp(standingOf(tc.s0, env, pid), 'research.mod')
         .filter((s) => s.effect.tags.some((t) => ent.tags.includes(t)))
         .reduce((n, s) => n + s.effect.amount, 0);
-      const spend = Math.min(people.resources[RULES.knowledge] ?? 0, tune(env, 'knowledgeSpend'));
       if (spend > 0) addResource(tc, pid, RULES.knowledge, -spend, `${spend} knowledge burned into research of ${name}`, { refs: [project.ref] });
-      const points = Math.max(0, RULES.researchBase + labour + mods + spend);
+      const points = Math.max(0, base + labour + mods + spend);
       progress = Math.min(cost, progress + points);
       const next = people.developments.research.map((r, i) => (i === 0 ? { ref: r.ref, progress } : r));
       setPeople(tc, pid, 'developments.research', next,
-        `${name}: ${points} research points (base ${RULES.researchBase}, labour ${labour}, mods ${mods}, knowledge ${spend}), progress ${progress} of ${cost}`,
+        `${name}: ${points} research points (base ${base}, labour ${labour}, mods ${mods}, knowledge ${spend}), progress ${progress} of ${cost}`,
         { kind: 'research.progress', refs: [project.ref] });
     }
     if (progress >= cost) complete(tc, pid, project.ref, ent, cost);
+  }
+  // After completion, so an achievement finished this season opens its path now.
+  for (const pid of peopleIds(tc.s0)) if (alive(tc.s0, pid)) openPaths(tc, pid);
+}
+
+/**
+ * Latches the paths that open this season. A people from before paths
+ * existed has no pfade record; the first research step stores the default
+ * as a hidden bookkeeping entry, so every changed field keeps its log entry.
+ */
+function openPaths(tc, pid) {
+  if (!pathsOf(tc.env).length) return;
+  const people = tc.state.peoples[pid];
+  if (!people.pfade) {
+    noteChange(tc, 'research.pfade', { kind: 'people', id: pid }, 'pfade', null, { opened: {} }, 'path record starts').visibleTo = [];
+    people.pfade = { opened: {} };
+  }
+  const next = latch(tc.env, people, tc.turn);
+  for (const p of pathsOf(tc.env)) {
+    if (Object.hasOwn(people.pfade.opened, p.id) || !Object.hasOwn(next.opened, p.id)) continue;
+    setPeople(tc, pid, `pfade.opened.${p.id}`, tc.turn, `path ${p.id} opens for ${people.name}`, { kind: 'pfad.opened' });
   }
 }
 
@@ -260,7 +282,8 @@ function latestWorldPool(env) {
 
 /**
  * The deterministic possibility space without agents: world developments the
- * people may research next, ranked by overlap with its three strongest
+ * people may research next (within the open tier and, with paths, on an open
+ * path within its tier), ranked by overlap with its three strongest
  * practice tags and then by id, within tuning.limits. Candidates agents offered
  * this turn use up the same limits.
  */
@@ -278,9 +301,14 @@ export function offerPool(tc, pid) {
     isModuleActive: (p, id) => activeModules(s0, env, p).some((m) => m.id === id),
   };
   const maxKnown = maxKnownTier(s0, env, pid);
+  // Path gate: an open path, and the achievement's tier within the path's tier.
+  const onPath = (e) => {
+    const p = pfadOf(env, e);
+    return p === null || (isOpen(env, people, p) && e.tier <= pathTier(env, people, p));
+  };
 
   const ranked = latestWorldPool(env)
-    .filter((e) => !known.has(e.id) && !taken.has(e.id) && e.tier <= open)
+    .filter((e) => !known.has(e.id) && !taken.has(e.id) && e.tier <= open && onPath(e))
     .filter((e) => e.prerequisites.all.every((id) => known.has(id)))
     .filter((e) => e.prerequisites.any.length === 0 || e.prerequisites.any.some((id) => known.has(id)))
     .filter((e) => !e.prerequisites.if || evalCondition(e.prerequisites.if, cx))

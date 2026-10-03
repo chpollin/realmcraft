@@ -7,7 +7,7 @@
     "world": {
       "id": "hochland",
       "version": "0.1.0",
-      "hash": "943b3a777d7f56ab"
+      "hash": "be416e7a6b575c93"
     },
     "player": "bergnomaden"
   },
@@ -132,12 +132,6 @@
         "research": [],
         "candidates": [
           {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
             "ref": "saumpfad@1",
             "offeredAt": 0,
             "expiresAt": 4,
@@ -145,6 +139,12 @@
           },
           {
             "ref": "sesshaft@1",
+            "offeredAt": 0,
+            "expiresAt": 4,
+            "origin": "pool"
+          },
+          {
+            "ref": "speertraeger@1",
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
@@ -324,6 +324,9 @@
           "migratedAt": 0,
           "transition": null
         }
+      },
+      "pfade": {
+        "opened": {}
       }
     },
     "schaedelklan": {
@@ -449,12 +452,6 @@
         "before": [],
         "after": [
           {
-            "ref": "rauchschau@1",
-            "offeredAt": 0,
-            "expiresAt": 4,
-            "origin": "pool"
-          },
-          {
             "ref": "saumpfad@1",
             "offeredAt": 0,
             "expiresAt": 4,
@@ -465,14 +462,20 @@
             "offeredAt": 0,
             "expiresAt": 4,
             "origin": "pool"
+          },
+          {
+            "ref": "speertraeger@1",
+            "offeredAt": 0,
+            "expiresAt": 4,
+            "origin": "pool"
           }
         ]
       },
-      "reason": "pool offers rauchschau@1, saumpfad@1, sesshaft@1",
+      "reason": "pool offers saumpfad@1, sesshaft@1, speertraeger@1",
       "refs": [
-        "rauchschau@1",
         "saumpfad@1",
-        "sesshaft@1"
+        "sesshaft@1",
+        "speertraeger@1"
       ],
       "visibleTo": [
         "bergnomaden"
@@ -519,6 +522,117 @@
         "opfer": 6
       },
       "popCap": 6,
+      "pfade": {
+        "points": {
+          "base": 2,
+          "labour": 0,
+          "knowledge": 2,
+          "total": 4
+        },
+        "paths": [
+          {
+            "id": "nahrung",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 2,
+            "next": {
+              "tier": 2,
+              "needed": 1
+            },
+            "known": [
+              "nomadisch@1",
+              "filzjurten@1"
+            ],
+            "research": [],
+            "candidates": [
+              "sesshaft@1"
+            ]
+          },
+          {
+            "id": "gemeinschaft",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 1,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [
+              "sippenrat@1"
+            ],
+            "research": [],
+            "candidates": []
+          },
+          {
+            "id": "militaer",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": [
+              "speertraeger@1"
+            ]
+          },
+          {
+            "id": "werk",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": [
+              "saumpfad@1"
+            ]
+          },
+          {
+            "id": "erkenntnis",
+            "open": true,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": []
+          },
+          {
+            "id": "magie",
+            "open": false,
+            "openedAt": null,
+            "tier": 1,
+            "cap": 1,
+            "done": 0,
+            "next": {
+              "tier": 2,
+              "needed": 2
+            },
+            "known": [],
+            "research": [],
+            "candidates": []
+          }
+        ]
+      },
       "forecast": {
         "income": {
           "nahrung": 7,

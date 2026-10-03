@@ -9,6 +9,7 @@ import { forecast, popCap, stockCaps } from './economy.js';
 import { specOf } from './military.js';
 import { knownRegions, roadLayer, threatLayer } from './map.js';
 import { catalogueFor, orderContext, slotCapacity } from './orders.js';
+import { pathsView } from './pfade.js';
 import { activeModules } from '../modules/index.js';
 
 /** Base value plus stat.mod effects, held to -2..3. */
@@ -48,6 +49,7 @@ export function computeDerived(state, env) {
     const people = state.peoples[pid];
     const standing = standingOf(state, env, pid);
     const entry = { stats: statsOf(state, env, pid, standing), caps: stockCaps(state, env, pid, standing), popCap: popCap(state, env, pid, standing) };
+    entry.pfade = pathsView(state, env, pid);
     if (people.population.core > 0 && settlementsOf(state, pid).length) {
       const f = forecast(state, env, pid);
       const ox = orderContext(state, env, pid);

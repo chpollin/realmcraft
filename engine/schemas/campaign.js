@@ -82,7 +82,8 @@ const people = obj({
       expiresAt: ref('turn'),
       origin: { enum: ['pool', 'agent', 'breakthrough'] },
     }), 6),
-    requests: arr(obj({ turn: ref('turn'), tags: arr(ref('tag'), 3, 1), note: text(200) }), 8),
+    // pfad: the path a research.direct named (default absent).
+    requests: arr(obj({ turn: ref('turn'), tags: arr(ref('tag'), 3, 1), note: text(200), pfad: ref('id') }, ['pfad']), 8),
     instituted: arr(ref('ref'), 20),
   }),
   units: arr(unit, 40),
@@ -116,7 +117,11 @@ const people = obj({
   bestimmung: nullable(ref('bestimmungState')),
   // Per-module slices; each module validates its own slice.
   modules: map(str(PATTERNS.id), { type: 'object' }),
-});
+  // Default { opened: {} }: turn in which each path with an opens condition
+  // opened (engine/core/pfade.js). Everything else about a path derives
+  // from the known achievements.
+  pfade: obj({ opened: map(ref('id'), ref('turn')) }),
+}, ['pfade']);
 
 const settlement = obj({
   id: ref('id'),

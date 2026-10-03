@@ -51,12 +51,6 @@
       "before": [],
       "after": [
         {
-          "ref": "rauchschau@1",
-          "offeredAt": 0,
-          "expiresAt": 4,
-          "origin": "pool"
-        },
-        {
           "ref": "saumpfad@1",
           "offeredAt": 0,
           "expiresAt": 4,
@@ -67,14 +61,20 @@
           "offeredAt": 0,
           "expiresAt": 4,
           "origin": "pool"
+        },
+        {
+          "ref": "speertraeger@1",
+          "offeredAt": 0,
+          "expiresAt": 4,
+          "origin": "pool"
         }
       ]
     },
-    "reason": "pool offers rauchschau@1, saumpfad@1, sesshaft@1",
+    "reason": "pool offers saumpfad@1, sesshaft@1, speertraeger@1",
     "refs": [
-      "rauchschau@1",
       "saumpfad@1",
-      "sesshaft@1"
+      "sesshaft@1",
+      "speertraeger@1"
     ],
     "visibleTo": [
       "bergnomaden"
@@ -130,7 +130,7 @@
     "step": "seal"
   },
   {
-    "id": "T0-e14",
+    "id": "T0-e15",
     "turn": 0,
     "source": "kernel",
     "kind": "campaign.phase",
@@ -151,7 +151,7 @@
     "step": "seal"
   },
   {
-    "id": "T0-e26",
+    "id": "T0-e27",
     "turn": 0,
     "source": "kernel",
     "kind": "resource.change",
@@ -171,7 +171,7 @@
     "step": "modules"
   },
   {
-    "id": "T0-e27",
+    "id": "T0-e28",
     "turn": 0,
     "source": "kernel",
     "kind": "resource.change",
@@ -191,7 +191,7 @@
     "step": "modules"
   },
   {
-    "id": "T0-e31",
+    "id": "T0-e32",
     "turn": 0,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -213,7 +213,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e32",
+    "id": "T0-e33",
     "turn": 0,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -235,7 +235,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e33",
+    "id": "T0-e34",
     "turn": 0,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -255,7 +255,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e34",
+    "id": "T0-e35",
     "turn": 0,
     "source": "kernel",
     "kind": "economy.harvest",
@@ -275,7 +275,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e35",
+    "id": "T0-e36",
     "turn": 0,
     "source": "kernel",
     "kind": "economy.consumption",
@@ -297,7 +297,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e36",
+    "id": "T0-e37",
     "turn": 0,
     "source": "kernel",
     "kind": "population.growth",
@@ -318,7 +318,7 @@
     "step": "economy"
   },
   {
-    "id": "T0-e60",
+    "id": "T0-e61",
     "turn": 0,
     "source": "kernel",
     "kind": "event.history",
@@ -327,13 +327,10 @@
       "id": "ev-ueberfall"
     },
     "change": {
-      "field": "modules.kern.draws.ueberfall@1",
+      "field": "modules.kern.draws.ueberfall@1.last",
       "before": null,
       "after": {
-        "total": 1,
-        "last": {
-          "bergnomaden": 0
-        }
+        "bergnomaden": 0
       }
     },
     "reason": "Überfall auf die Herden drawn by bergnomaden",
@@ -346,7 +343,7 @@
     "step": "events"
   },
   {
-    "id": "T0-e61",
+    "id": "T0-e63",
     "turn": 0,
     "source": "kernel",
     "kind": "event.drawn",
@@ -365,7 +362,7 @@
     "step": "events"
   },
   {
-    "id": "T0-e62",
+    "id": "T0-e64",
     "turn": 0,
     "source": "kernel",
     "kind": "event.choice",
@@ -398,7 +395,7 @@
     "step": "events"
   },
   {
-    "id": "T0-e73",
+    "id": "T0-e77",
     "turn": 0,
     "source": "kernel",
     "kind": "campaign.turn",
