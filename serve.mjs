@@ -41,6 +41,9 @@ function broadcast(event) {
 // Code-Reload bliebe ein offener Tab nach Code-Änderungen auf altem JS hängen
 // (z. B. ein neuer Reiter erscheint erst nach manuellem Refresh).
 const CODE_RE = /\.(?:js|mjs|css|html)$/i;
+// Playwright writes its reports (HTML plus JS) into the repo; without this
+// exclusion every test run would reload open dashboards.
+const IGNORED_DIRS = new Set(['node_modules', 'playwright-report', 'test-results', 'blob-report']);
 let liveDebounce = null;
 let reloadDebounce = null;
 try {
@@ -52,8 +55,8 @@ try {
       liveDebounce = setTimeout(() => broadcast('savegame'), 120);
       return;
     }
-    // Code-Dateien, aber nicht versteckte Ordner (.git) oder node_modules.
-    if (CODE_RE.test(name) && !name.split('/').some((s) => s.startsWith('.') || s === 'node_modules')) {
+    // Code-Dateien, aber nicht versteckte Ordner (.git) oder IGNORED_DIRS.
+    if (CODE_RE.test(name) && !name.split('/').some((s) => s.startsWith('.') || IGNORED_DIRS.has(s))) {
       if (reloadDebounce) clearTimeout(reloadDebounce);
       reloadDebounce = setTimeout(() => broadcast('reload'), 150);
     }
@@ -95,14 +98,42 @@ const MIME = {
   '.woff2': 'font/woff2',
 };
 
+// DNS rebinding: a foreign site whose name resolves to 127.0.0.1 is same-origin
+// with itself and could read /env.js and savegame.json. Only loopback Host
+// headers are accepted while bound to loopback; HOST=0.0.0.0 is a deliberate
+// LAN opt-in, where the Host is the unknown LAN address.
+const LOOPBACK_BIND = ['127.0.0.1', 'localhost', '::1'].includes(HOST);
+const ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'].map((h) => `${h}:${PORT}`));
+
+function forbidden(res) {
+  res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('403 Forbidden');
+}
+
 const server = createServer(async (req, res) => {
   try {
+    if (LOOPBACK_BIND && !ALLOWED_HOSTS.has(String(req.headers.host || '').toLowerCase())) {
+      forbidden(res);
+      return;
+    }
+
     const url = new URL(req.url, `http://localhost:${PORT}`);
     let pathname = decodeURIComponent(url.pathname);
 
     // Runtime config: expose the local Gemini key (from .env) to the browser.
     // Absent .env -> empty object, app falls back to the settings dialog.
+    // A classic script is includable cross-site (XSSI), so any page the operator
+    // visits could read the global. Browsers mark such loads with Sec-Fetch-Site;
+    // only same-origin and direct navigation (none) pass, an absent header (old
+    // browser, curl) still relies on the Host check. Deliberate shortcut: the
+    // real fix is a server-side /api/image proxy so the key never reaches the
+    // browser at all.
     if (pathname === '/env.js') {
+      const site = req.headers['sec-fetch-site'];
+      if (site && site !== 'same-origin' && site !== 'none') {
+        forbidden(res);
+        return;
+      }
       const env = await readEnvFile();
       const js = `window.__RC_ENV__ = ${JSON.stringify({ GEMINI_API_KEY: env.GEMINI_API_KEY || '' })};`;
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -123,11 +154,10 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // Punktdateien/-ordner (.env, .git, …) nie ausliefern. Auf der URL-Pfad-Ebene
-    // geprüft (immer Vorwärts-Slashes), unabhängig vom OS-Pfadtrenner. Der
-    // Gemini-Key in .env wird ausschliesslich kontrolliert über /env.js (oben)
-    // durchgereicht — /env.js erreicht diesen Block ohnehin nicht.
-    if (pathname.split('/').some((seg) => seg.startsWith('.'))) {
+    // Never serve dotfiles or dot-directories (.env, .git, …). Split on the
+    // backslash too: /%5C.env decodes to /\.env, which path.join on Windows turns
+    // back into ROOT\.env. The Gemini key in .env leaves only via /env.js above.
+    if (pathname.split(/[\\/]/).some((seg) => seg.startsWith('.'))) {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('404 Not Found');
       return;
@@ -137,8 +167,7 @@ const server = createServer(async (req, res) => {
 
     const filePath = normalize(join(ROOT, pathname));
     if (!filePath.startsWith(ROOT.endsWith(sep) ? ROOT : ROOT + sep)) {
-      res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('403 Forbidden');
+      forbidden(res);
       return;
     }
 

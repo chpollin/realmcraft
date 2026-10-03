@@ -34,14 +34,45 @@ function readAll() {
   }
 }
 
+function isQuotaError(err) {
+  return !!err && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED' || err.code === 22);
+}
+
+// Schreibt den Verlauf; ist das Kontingent erschoepft, fallen die aeltesten
+// Eintraege weg, bis der Rest passt. Ein still gescheiterter Schreibversuch
+// liess den Verlauf frueher einfrieren, und loadLast stellte dann einen
+// veralteten Stand wieder her.
+// @returns {Array|null} der tatsaechlich abgelegte Verlauf, null bei Fehlschlag.
 function writeAll(arr) {
+  let rest = arr.slice(-MAX);
   const s = ls();
-  if (!s) return;
-  try {
-    s.setItem(KEY, JSON.stringify(arr.slice(-MAX)));
-  } catch {
-    // Speicher voll oder gesperrt: still ignorieren, die App laeuft auch ohne Verlauf.
+  if (!s) return rest;
+  while (rest.length) {
+    try {
+      s.setItem(KEY, JSON.stringify(rest));
+      return rest;
+    } catch (err) {
+      if (!isQuotaError(err)) return null;
+      rest = rest.slice(1);
+    }
   }
+  return null;
+}
+
+// Bilder liegen im Bild-Cache (IndexedDB), nicht im Verlauf: ein Export-Bundle
+// mit eingebetteten dataUrls ist zig MB gross und sprengte das
+// localStorage-Kontingent. Ausgenommen ist referenz.dataUrl, das Referenzfoto
+// eines Beraters: es ist Eingabe, nicht Ergebnis, steckt im Portrait-Cache-
+// Schluessel und liegt in keinem Cache.
+function stripImages(value, parentKey) {
+  if (Array.isArray(value)) return value.map((v) => stripImages(v, parentKey));
+  if (!value || typeof value !== 'object') return value;
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (k === 'dataUrl' && parentKey !== 'referenz') continue;
+    out[k] = stripImages(v, k);
+  }
+  return out;
 }
 
 // Stabile Serialisierung nur fuer den Duplikat-Vergleich: Objekt-Schluessel werden
@@ -57,25 +88,28 @@ function stableStringify(value) {
 }
 
 /**
- * Legt den Stand als neuen Verlaufseintrag ab. Ist er mit dem letzten Eintrag
- * identisch (z.B. erneutes Laden derselben Datei), wird kein Duplikat erzeugt.
- * @returns {number} Index des aktuellen (ggf. bestehenden) Eintrags.
+ * Legt den Stand ohne eingebettete Bilder als neuen Verlaufseintrag ab. Ist er
+ * mit dem letzten Eintrag identisch (z.B. erneutes Laden derselben Datei), wird
+ * kein Duplikat erzeugt. Reicht der Speicher nicht, fallen aelteste Eintraege weg.
+ * @returns {number} Index des aktuellen (ggf. bestehenden) Eintrags; -1, wenn
+ *   kein Stand uebergeben wurde oder er nicht abgelegt werden konnte.
  */
 export function saveSnapshot(state) {
   if (!state) return -1;
-  const arr = readAll();
+  const snapshot = stripImages(state);
+  // Aeltere Eintraege koennen noch Bilder tragen; beim Neuschreiben mit entfernen.
+  const arr = readAll().map((e) => ({ ...e, state: stripImages(e.state) }));
   const last = arr[arr.length - 1];
   // Duplikat-Schutz gegen den unmittelbar letzten Eintrag (erneutes Laden
   // derselben Datei). Ein Partiewechsel hat immer einen anderen State und legt
   // damit von selbst einen neuen Eintrag an. Der spielname wird mitgefuehrt,
   // damit lastForParty und die Historie-Auswahl nach Partie filtern koennen.
-  if (last && stableStringify(last.state) === stableStringify(state)) {
+  if (last && stableStringify(last.state) === stableStringify(snapshot)) {
     return arr.length - 1;
   }
-  arr.push({ savedAt: Date.now(), spielname: gameKey(state), state });
-  const trimmed = arr.slice(-MAX);
-  writeAll(trimmed);
-  return trimmed.length - 1;
+  arr.push({ savedAt: Date.now(), spielname: gameKey(state), state: snapshot });
+  const written = writeAll(arr);
+  return written ? written.length - 1 : -1;
 }
 
 /**

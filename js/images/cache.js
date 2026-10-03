@@ -51,10 +51,18 @@ function openDb() {
 }
 
 // localStorage dient als durabler Spiegel: er ueberlebt eine reine
-// IndexedDB-Loeschung (wie im Reload-E2E) und macht den Cache robust, wenn
-// IndexedDB nicht verfuegbar ist. IndexedDB bleibt der primaere, kapazitaere
-// Speicher (grosse Bilder); der localStorage-Schreibversuch ist best effort.
+// IndexedDB-Loeschung (wie im Reload-E2E). IndexedDB bleibt der primaere,
+// kapazitaere Speicher. Der Spiegel teilt sich das Kontingent mit dem Verlauf
+// (rc.history, js/store.js); generierte Bilder sind MB-gross und zehrten es
+// frueher auf, worauf der Verlauf still nicht mehr wuchs. Darum spiegelt er nur
+// kleine Bilder und nur wenige, die aeltesten fallen zuerst. Eintraege, die der
+// Index nicht fuehrt (auch Altbestand aus der Zeit ohne Begrenzung), werden
+// entfernt.
 const LS_PREFIX = 'realmcraft.img.';
+const LS_INDEX = LS_PREFIX + 'index';
+const MIRROR_MAX_CHARS = 64 * 1024;
+const MIRROR_MAX_ENTRIES = 8;
+let mirrorPruned = false;
 
 function lsGet(key) {
   try {
@@ -65,9 +73,46 @@ function lsGet(key) {
   }
 }
 
+function lsOrder() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(LS_INDEX) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+// Entfernt jeden Spiegel-Eintrag ausser denen in keep. Erst sammeln, dann
+// loeschen: die Reihenfolge von localStorage.key(i) ist nach removeItem nicht
+// garantiert.
+function pruneMirror(keep) {
+  const keepSet = new Set(keep.map((k) => LS_PREFIX + k));
+  const drop = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(LS_PREFIX) && k !== LS_INDEX && !keepSet.has(k)) drop.push(k);
+  }
+  for (const k of drop) localStorage.removeItem(k);
+  mirrorPruned = true;
+}
+
+function lsPruneOnce() {
+  if (mirrorPruned) return;
+  try {
+    pruneMirror(lsOrder());
+  } catch {
+    /* localStorage gesperrt: Spiegel ist optional. */
+  }
+}
+
 function lsPut(key, dataUrl) {
   try {
-    localStorage.setItem(LS_PREFIX + key, dataUrl);
+    const order = lsOrder().filter((k) => k !== key);
+    if (String(dataUrl).length <= MIRROR_MAX_CHARS) order.push(key);
+    const keep = order.slice(-MIRROR_MAX_ENTRIES);
+    pruneMirror(keep);
+    localStorage.setItem(LS_INDEX, JSON.stringify(keep));
+    if (keep.includes(key)) localStorage.setItem(LS_PREFIX + key, dataUrl);
   } catch {
     /* Quota o. Ae.: localStorage-Spiegel ist optional. */
   }
@@ -76,6 +121,7 @@ function lsPut(key, dataUrl) {
 // Liest eine dataUrl aus dem Cache; null, wenn nicht vorhanden.
 // Zuerst IndexedDB, dann der localStorage-Spiegel.
 export async function cacheGet(key) {
+  lsPruneOnce();
   try {
     const db = await openDb();
     try {
@@ -114,6 +160,6 @@ export async function cachePut(key, dataUrl) {
       db.close();
     }
   } catch {
-    /* IndexedDB optional: der localStorage-Spiegel traegt den Stand. */
+    /* IndexedDB optional: kleine Bilder traegt der localStorage-Spiegel. */
   }
 }
