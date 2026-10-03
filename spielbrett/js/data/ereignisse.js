@@ -25,13 +25,6 @@ export const slotIcon = (art) => SLOT_ICON[art] ?? 'enthaltung';
 
 // --- consequences as chips -----------------------------------------------------------
 
-/** Chip of a store change of the kernel preview (previewDeltas keys are resource keys or "volk"). */
-export function deltaChips(deltas, t) {
-  return Object.entries(deltas ?? {}).filter(([, d]) => d).map(([k, d]) => (k === 'volk'
-    ? { icon: 'volk', wert: signed(d), text: t('population.core') }
-    : { icon: k, wert: signed(d), text: t(`resource.${k}`, k) }));
-}
-
 const memberName = (view, id) => view.peoples[view.people].council.find((m) => m.id === id)?.name ?? id;
 const peopleName = (view, id) => view.peoples[id]?.name ?? id;
 
@@ -49,15 +42,35 @@ function targetText(view, t, target) {
  */
 export function effectChip(e, { view, t }) {
   switch (e.op) {
-    case 'resource.delta': return { icon: e.res, wert: signed(e.amount), text: t(`resource.${e.res}`, e.res), store: true };
-    case 'population.delta': return { icon: 'volk', wert: signed(e.amount), text: t('population.core'), store: true };
-    case 'loyalty.delta': return { icon: 'rat', wert: signed(e.amount), text: `${t('ui.loyalitaet')}, ${targetText(view, t, e.target)}` };
+    case 'resource.delta': return { icon: e.res, wert: signed(e.amount), text: t(`resource.${e.res}`, e.res), store: true, kernel: true };
+    case 'population.delta': return { icon: 'volk', wert: signed(e.amount), text: t('population.core'), store: true, kernel: true };
+    case 'loyalty.delta': return { icon: 'rat', wert: signed(e.amount), text: `${t('ui.loyalitaet')}, ${targetText(view, t, e.target)}`, kernel: true };
     case 'relation.delta': return { icon: 'rivalen', wert: signed(e.amount), text: `${t('ui.beziehung')}, ${peopleName(view, e.people)}` };
-    case 'standing.delta': return { icon: 'schild', wert: signed(e.amount), text: t('ereignis.ansehen') };
-    case 'meter.delta': return { icon: 'zustimmung', wert: signed(e.amount), text: t(`meter.${e.meter}`, e.meter) };
+    case 'standing.delta': return { icon: 'schild', wert: signed(e.amount), text: t('ereignis.ansehen'), kernel: true };
+    case 'meter.delta': return { icon: 'zustimmung', wert: signed(e.amount), text: t(`meter.${e.meter}`, e.meter), kernel: true };
     case 'reveal': return { icon: 'sicht', wert: '', text: t('ereignis.aufgedeckt') };
     default: return null;
   }
+}
+
+/**
+ * Chips of the kernel's preview of one answer (preview().choices[].delta, the
+ * option's once effects run on a copy of the state): stores, clans, loyalty
+ * per member, meters, standing, and the tokens and statuses it adds. The
+ * declared effects the delta cannot carry (relations, reveals) stay with the
+ * card; effectChip marks the others as `kernel`.
+ */
+export function choiceDeltaChips(delta, { view, t }) {
+  if (!delta) return [];
+  const out = [];
+  for (const [k, n] of Object.entries(delta.resources ?? {})) out.push({ icon: k, wert: signed(n), text: t(`resource.${k}`, k) });
+  if (delta.population) out.push({ icon: 'volk', wert: signed(delta.population), text: t('population.core') });
+  for (const [id, n] of Object.entries(delta.loyalty ?? {})) out.push({ icon: 'rat', wert: signed(n), text: `${t('ui.loyalitaet')}, ${memberName(view, id)}` });
+  for (const [m, n] of Object.entries(delta.meters ?? {})) out.push({ icon: m === 'zustimmung' ? 'zustimmung' : 'praxis', wert: signed(n), text: t(`meter.${m}`, m) });
+  if (delta.standing) out.push({ icon: 'schild', wert: signed(delta.standing), text: t('ereignis.ansehen') });
+  for (const k of delta.tokens ?? []) out.push({ icon: k === 'crisis' ? 'warnung' : 'meilenstein', wert: '', text: t(`token.${k}`, k) });
+  for (const s of delta.statuses ?? []) out.push({ icon: 'dauer', wert: '', text: t(`status.${s}`, s) });
+  return out;
 }
 
 /** Chip of a logged change (resource, population, loyalty, relation, standing, unit strength); null for log noise. */

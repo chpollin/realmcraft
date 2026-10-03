@@ -10,6 +10,7 @@
 import { key, parseKey, neighbors, regionOf, regionInfo } from '../../../engine/world/index.js';
 import { bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, SUCCESS_BANDS } from './kernel.js';
 import { bandKey, fill, makeLabels } from './labels.js';
+import { tradeRoute } from '../../../engine/modules/handel.js';
 
 export const OWN = 'spieler';
 const ROAD_KIND = 'weg';
@@ -135,6 +136,7 @@ export function mapObjects(view, env, t) {
       units.push({
         id: u.id, name: devName(env, u.type), art: rel?.atWar ? 'raeuber' : 'krieger', volk: volkOf(view, ppid), q: pos.q, r: pos.r,
         objekt: 'unit', staerke: u.strength ?? 0, zustand: u.state ?? '',
+        typ: u.type, zustandId: u.state ?? null,
       });
     }
   }
@@ -177,10 +179,38 @@ export function layers(view, env, world) {
     for (const n of neighbors(a.q, a.r)) {
       const nk = key(n.q, n.r);
       if (!(level.has(nk) && nk > k) && !anchors.has(nk)) continue;
-      roads.push({ art: Math.max(lv, level.get(nk) ?? 1) >= 2 ? 'strasse' : 'pfad', path: [a, n] });
+      roads.push({ art: Math.max(lv, level.get(nk) ?? 1) >= 2 ? 'strasse' : 'pfad', level: Math.max(lv, level.get(nk) ?? 1), path: [a, n] });
     }
   }
-  return { owners, threat, roads, roadTiles: new Set(level.keys()), threatSources: L.threat?.sources ?? [] };
+  return { owners, threat, roads, roadTiles: new Set(level.keys()), roadLevels: level, threatSources: L.threat?.sources ?? [] };
+}
+
+/**
+ * Trade routes of the trade layer, one per people in contact (derived trade
+ * view): the way a trade order would take when the partner is reachable, the
+ * state contract (a running contract), open (reachable) or closed, and the
+ * kernel's reason for a closed one. The path is the kernel's tradeRoute on the
+ * projection, so it never reaches further than the order check does.
+ */
+export function tradeRoutes(view, env, world, t = null) {
+  const pid = view.people;
+  const rows = view.derived?.[pid]?.trade?.routes ?? [];
+  const running = (view.modules?.handel?.contracts ?? []).filter((c) => (c.a === pid || c.b === pid) && c.from <= view.turn && view.turn <= c.until);
+  return rows.map((row) => {
+    const path = row.reachable && world ? tradeRoute(view, world, pid, row.partner)?.path ?? [] : [];
+    const contract = running.some((c) => c.a === row.partner || c.b === row.partner);
+    return {
+      partner: row.partner,
+      volk: volkOf(view, row.partner),
+      name: view.peoples[row.partner]?.name ?? row.partner,
+      path: path.map(parseKey),
+      state: contract ? 'contract' : row.reachable ? 'open' : 'closed',
+      length: row.length,
+      roads: row.roads,
+      reason: row.reason,
+      label: t && row.reachable ? t.fmt('board.trade.chip', { name: view.peoples[row.partner]?.name ?? row.partner, n: row.length }) : view.peoples[row.partner]?.name ?? row.partner,
+    };
+  });
 }
 
 // --- peoples, council, destiny -------------------------------------------------
@@ -437,6 +467,29 @@ export function describeParams(view, env, t, order, world) {
   const p = order.params ?? {};
   const own = view.peoples[view.people];
   const member = (id) => own.council.find((m) => m.id === id)?.name ?? id;
+  const unitName = (owner, id) => {
+    const u = view.peoples[owner]?.units?.find((x) => x.id === id);
+    return u ? devName(env, u.type) : id;
+  };
+  if (order.type === 'discipline.use') {
+    const app = env.entwicklung(p.development)?.spec?.applications?.find((a) => a.id === p.application);
+    const raw = typeof p.target === 'string' ? p.target : null;
+    const [owner, uid] = raw?.includes(':') ? raw.split(':') : [null, null];
+    const aim = !raw ? null : uid ? `${unitName(owner, uid)}, ${view.peoples[owner]?.name ?? owner}`
+      : view.peoples[raw] ? view.peoples[raw].name
+        : own.council.some((m) => m.id === raw) ? member(raw)
+          : own.units.some((u) => u.id === raw) ? unitName(view.people, raw)
+            : describeParams(view, env, t, { type: 'explore', params: { tile: raw } }, world);
+    return [app?.name ?? p.application, aim].filter(Boolean).join(', ');
+  }
+  // An attack names what it attacks: the foreign unit on the tile and its people.
+  if (p.tile && (order.type === 'attack' || order.type === 'ausfall')) {
+    for (const [owner, people] of Object.entries(view.peoples)) {
+      if (owner === view.people) continue;
+      const u = (people.units ?? []).find((x) => x.tile === p.tile);
+      if (u) return `${devName(env, u.type)}, ${people.name}`;
+    }
+  }
   if (p.tile) {
     const s = view.map.settlements.find((x) => x.tile === p.tile);
     if (s) return s.name;
@@ -458,7 +511,8 @@ export function describeParams(view, env, t, order, world) {
   if (p.member) return `${member(p.member)}${p.mode ? `, ${t(`talk.${p.mode}`, p.mode)}` : ''}`;
   if (p.aim) return t(`aim.${p.aim}`, p.aim);
   if (p.tags) return p.tags.map((g) => t(`tag.${g}`, g)).join(', ');
-  if (p.unit) return p.unit;
+  if (p.unit) return unitName(view.people, p.unit);
+  if (p.region) return (world ? world.regions?.[p.region]?.name ?? regionInfo(world, p.region)?.name : null) ?? p.region;
   if (p.partner) return view.peoples[p.partner]?.name ?? p.partner;
   return '';
 }
@@ -493,6 +547,7 @@ export function orderRows(view, env, t, draft, pv, world) {
       wurf,
       issues: issues.map((i) => ({ ...i, text: issueText(i, t) })),
       venture: draft.venture?.[o.id] === true,
+      params: o.params,
     };
   });
 }
@@ -586,7 +641,8 @@ export function adaptView({ view, env, t, world, preview: pv, chronik }) {
     threat: L.threat,
     roads: L.roads,
     roadTiles: L.roadTiles,
-    tradeRoutes: [],
+    roadLevels: L.roadLevels,
+    tradeRoutes: tradeRoutes(view, env, world, t),
     rat: council(view, t),
     rivalen: rivals(view, env),
     bestimmung: destiny(view, env, t),

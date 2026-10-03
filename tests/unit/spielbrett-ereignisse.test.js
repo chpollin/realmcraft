@@ -12,7 +12,7 @@ import { makeLabels } from '../../spielbrett/js/data/labels.js';
 import { draftFor } from '../../spielbrett/js/data/draft.js';
 import { optionsFor } from '../../spielbrett/js/data/options.js';
 import { parseKey } from '../../engine/world/index.js';
-import { ackKey, buildCards, deltaChips, effectChip, iconForTags, pickReactions, slotIcon, unacknowledged } from '../../spielbrett/js/data/ereignisse.js';
+import { ackKey, buildCards, choiceDeltaChips, effectChip, iconForTags, pickReactions, slotIcon, unacknowledged } from '../../spielbrett/js/data/ereignisse.js';
 
 const root = (p) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 const json = (p) => JSON.parse(readFileSync(root(p), 'utf8'));
@@ -201,11 +201,26 @@ describe('quick reactions from kernel options', () => {
 });
 
 describe('chips and acknowledgement', () => {
-  test('kernel store deltas become icon chips with the label of the world', () => {
-    assert.deepEqual(deltaChips({ nahrung: -2, volk: 1, salz: 0 }, t), [
-      { icon: 'nahrung', wert: '−2', text: t('resource.nahrung') },
-      { icon: 'volk', wert: '+1', text: t('population.core', 'Sippen') },
-    ]);
+  test('the kernel preview of an answer becomes chips: stores, loyalty per member, standing', () => {
+    const pc = viewUeberfall.pendingChoices[0];
+    const lib = env.ereignis(pc.event);
+    let shown = 0;
+    for (const o of lib.options) {
+      const draft = { ...draftFor(viewUeberfall, null), choices: { [pc.id]: o.id } };
+      const { delta } = previewDraft(viewUeberfall, env, draft).choices.find((c) => c.id === pc.id);
+      const chips = choiceDeltaChips(delta, { view: viewUeberfall, t });
+      shown += chips.length;
+      for (const [k, n] of Object.entries(delta.resources ?? {})) assert.ok(chips.some((c) => c.icon === k && c.wert === signed(n) && c.text === t(`resource.${k}`)), `${o.id} ${k}`);
+      for (const [id, n] of Object.entries(delta.loyalty ?? {})) {
+        const name = viewUeberfall.peoples[viewUeberfall.people].council.find((m) => m.id === id).name;
+        assert.ok(chips.some((c) => c.icon === 'rat' && c.wert === signed(n) && c.text.endsWith(name)), `${o.id} ${id}`);
+      }
+      if (delta.standing) assert.ok(chips.some((c) => c.icon === 'schild' && c.wert === signed(delta.standing)));
+      // Every declared resource effect of the option is in the kernel's delta, so the card drops its own chip for it.
+      for (const e of o.effects.filter((x) => x.op === 'resource.delta')) assert.equal(effectChip(e, { view: viewUeberfall, t }).kernel, true);
+    }
+    assert.ok(shown > 0, 'the answers of the raid change something the board shows');
+    assert.deepEqual(choiceDeltaChips(null, { view: viewUeberfall, t }), []);
   });
 
   test('effects without a number to show give no chip', () => {

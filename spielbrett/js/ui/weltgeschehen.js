@@ -41,6 +41,7 @@ export function renderWeltgeschehen(api) {
       closeButton(() => api.setPanel(null), t('board.world.close'))),
     el('p', { class: `phase ${phaseA ? 'a' : 'b'}`, role: 'status' },
       icon(phaseA ? 'schloss' : 'ja', { size: 16 }), zz.phaseTitel),
+    pipeline(rows),
     el('div', { class: 'panel-body' },
       kern ? kernGroup(api, zz, kern) : null,
       others.length ? el('section', { 'aria-labelledby': 'wg-agenten' },
@@ -49,6 +50,52 @@ export function renderWeltgeschehen(api) {
   const body = panel.querySelector('.panel-body');
   body.scrollTop = scroll;
   if (focusKey) body.parentElement.querySelector(`[data-fk="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: true });
+}
+
+/**
+ * The turn at a glance: one seal per step in the order the turn runs them,
+ * kernel first and judges last, each showing waiting, running, done or failed.
+ * A seal jumps to its row below.
+ */
+function pipeline(rows) {
+  if (rows.length < 2) return null;
+  return el('ol', { class: 'wg-ablauf plain', 'aria-label': t('board.world.pipeline') }, ...rows.map((a) => {
+    const key = a.step ?? a.id;
+    const state = STATE_CLASS[a.status] ?? 'waiting';
+    return el('li', { class: `ablauf-schritt is-${state} is-${a.role}`, style: { '--origin': `var(--origin-${a.origin ?? a.id})` } },
+      withTip(el('button', {
+        class: 'ablauf-siegel',
+        type: 'button',
+        'data-fk': `ablauf:${key}`,
+        'aria-label': `${a.role === 'kernel' ? t('board.world.kernel-results') : a.name}, ${t(`board.agent.${a.status}`, a.status)}`,
+        onclick: () => {
+          const row = document.querySelector(`#weltgeschehen [data-agent="${CSS.escape(key)}"]`);
+          row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          (row?.querySelector('summary, button') ?? row)?.focus({ preventScroll: true });
+        },
+      }, icon(a.role === 'judge' ? 'schild' : a.id, { size: 16 }),
+      a.status === 'fertig' || a.status === 'gescheitert' ? el('span', { class: 'ablauf-mark', 'aria-hidden': 'true' }, icon(a.status === 'fertig' ? 'ja' : 'nein', { size: 10 })) : null),
+      [el('strong', { text: a.role === 'kernel' ? t('board.world.kernel-results') : a.name }), ` ${t(`board.agent.${a.status}`, a.status)}`], null, { up: false }));
+  }));
+}
+
+/**
+ * Findings a judge recorded under its step in status.json (id, judge,
+ * severity, text, refs), shaped as result rows. They replace the finding rows
+ * the board otherwise rebuilds from the event log.
+ */
+function findingRows(api, a) {
+  const step = (api.game?.status?.steps ?? []).find((x) => x.id === a.step);
+  const list = step?.findings ?? [];
+  return list.map((f) => ({
+    cls: 'info',
+    icon: f.severity === 'info' ? 'ja' : 'warnung',
+    titel: f.text,
+    proposalId: f.id,
+    severity: f.severity,
+    severityText: t(`severity.${f.severity}`, f.severity),
+    info: null,
+  }));
 }
 
 /** Agent rows: a real campaign brings them from status.json and the round report, the prototype from its timeline. */
@@ -109,6 +156,12 @@ const retryHint = () => el('span', { class: 'agent-hinweis' }, icon('pfeil', { s
 
 function agentItem(api, a) {
   const failed = a.status === 'gescheitert';
+  const recorded = a.role === 'judge' ? findingRows(api, a) : [];
+  // Severe findings first, so the reader meets what most needs attention.
+  const order = { severe: 0, warn: 1, info: 2 };
+  const results = recorded.length
+    ? [...a.results.filter((r) => r.kind !== 'finding'), ...recorded.sort((x, y) => (order[x.severity] ?? 3) - (order[y.severity] ?? 3))]
+    : a.results;
   return el('li', {
     class: `agent is-${STATE_CLASS[a.status] ?? 'waiting'} is-${a.role}`,
     style: { '--origin': `var(--origin-${a.origin ?? a.id})` },
@@ -120,7 +173,7 @@ function agentItem(api, a) {
   a.role === 'rival' && (a.status === 'arbeitet' || a.status === 'fertig') ? el('span', { class: 'agent-plant', text: t('board.world.plans') }) : null,
   a.role !== 'rival' && (a.status === 'arbeitet' || failed) && a.taetigkeit ? el('span', { class: 'agent-taetigkeit', text: a.taetigkeit }) : null,
   failed ? retryHint() : null,
-  a.role !== 'rival' && a.results.length ? el('ul', { class: 'ergebnisse plain' }, ...a.results.map((r) => resultRow(api, r, a))) : null);
+  a.role !== 'rival' && results.length ? el('ul', { class: 'ergebnisse plain' }, ...results.map((r) => resultRow(api, r, a))) : null);
 }
 
 /** One result: icon, title and a compact badge; a rejection's reason stays visible, a place on the map is one click away. */

@@ -176,6 +176,14 @@
   .ebene[aria-checked="true"] { background: var(--night-3); color: var(--ink); }
   .ebene[aria-checked="true"] .icon { color: var(--ember); }
 
+  /* Module views of the people (trade, military, magic, way of life). */
+  .module { inset-block-start: var(--space-4); inset-inline-end: var(--space-4); }
+  .module[hidden] { display: none; }
+  .brett.has-panel .module { inset-inline-end: calc(var(--panel-w) + var(--space-4) * 2); }
+  .modul-btn { display: inline-grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 999px; color: var(--ink-dim); transition: background var(--dur-1), color var(--dur-1); }
+  .modul-btn:hover { color: var(--ink); background: var(--hover-wash); }
+  .modul-btn[aria-pressed="true"] { background: var(--night-3); color: var(--ember); }
+
   .zoom { inset-block-end: var(--space-4); inset-inline-end: var(--space-4); flex-direction: column; border-radius: 999px; }
   .brett.has-panel .zoom { inset-inline-end: calc(var(--panel-w) + var(--space-4) * 2); }
   .zoom .icon-btn { inline-size: 2.25rem; block-size: 2.25rem; }
@@ -407,6 +415,8 @@
   .ebene-label { display: none; }
   .ebene { padding-inline: 0.6rem; }
   .ebenen { inset-block-start: var(--space-2); inset-inline-start: var(--space-2); }
+  /* The panel is a bottom sheet here, so the module bar keeps its corner. */
+  .module, .brett.has-panel .module { inset-block-start: var(--space-2); inset-inline-end: var(--space-2); }
   .minimap { inline-size: 7.5rem; block-size: 5.5rem; inset-block-end: var(--space-2); inset-inline-start: var(--space-2); }
   .zoom { inset-block-end: var(--space-2); inset-inline-end: var(--space-2); }
   .brett.has-panel .zoom, .brett.has-panel .minimap { display: none; }

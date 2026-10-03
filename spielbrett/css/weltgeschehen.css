@@ -16,6 +16,58 @@
   .phase.b { color: var(--up); }
   .phase + .panel-body { padding-block-start: var(--space-4); }
 
+  /* The turn at a glance: seals in running order joined by a line. */
+  .wg-ablauf {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-1);
+    margin: var(--space-3) var(--space-5) 0;
+    padding-block-end: var(--space-3);
+  }
+  .wg-ablauf + .panel-body { padding-block-start: var(--space-3); }
+  .ablauf-schritt { display: inline-flex; align-items: center; gap: var(--space-1); }
+  .ablauf-schritt:not(:last-child)::after { content: ""; inline-size: 0.6rem; block-size: 1.5px; background: var(--night-4); }
+  .ablauf-schritt.is-done:not(:last-child)::after { background: var(--accepted); }
+  .ablauf-siegel {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+    border-radius: 50%;
+    background: var(--night-2);
+    color: var(--origin, var(--ink));
+    box-shadow: inset 0 0 0 1.5px var(--origin, var(--ink-faint));
+  }
+  .is-judge .ablauf-siegel { border-radius: var(--radius-s); }
+  .ablauf-schritt.is-waiting .ablauf-siegel { opacity: 0.45; box-shadow: inset 0 0 0 1.5px var(--ink-faint); }
+  .ablauf-schritt.is-working .ablauf-siegel::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 2px solid var(--origin);
+    animation: wg-puls 1.4s ease-in-out infinite;
+  }
+  .ablauf-mark {
+    position: absolute;
+    inset-block-end: -3px;
+    inset-inline-end: -3px;
+    display: grid;
+    place-items: center;
+    inline-size: 0.9rem;
+    block-size: 0.9rem;
+    border-radius: 50%;
+    background: var(--accepted);
+    color: var(--night-0);
+  }
+  .ablauf-schritt.is-failed .ablauf-mark { background: var(--rejected); }
+  .ablauf-schritt.is-failed .ablauf-siegel { box-shadow: inset 0 0 0 2px var(--rejected); }
+  @media (prefers-reduced-motion: reduce) {
+    .ablauf-schritt.is-working .ablauf-siegel::after { animation: none; }
+  }
+
   .agenten { display: grid; gap: var(--space-4); }
   .agent { display: grid; grid-template-columns: 2.25rem 1fr; gap: 0 var(--space-3); }
   .agent > :not(.agent-siegel) { grid-column: 2; }

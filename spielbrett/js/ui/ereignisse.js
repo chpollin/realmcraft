@@ -10,10 +10,14 @@
 import { el, signed } from '../dom.js';
 import { icon } from '../icons.js';
 import { server, turnStem } from '../data/server.js';
-import { ackKey, buildCards, deltaChips, pickReactions, slotIcon, unacknowledged } from '../data/ereignisse.js';
+import { ackKey, buildCards, choiceDeltaChips, pickReactions, slotIcon, unacknowledged } from '../data/ereignisse.js';
 import { dialogHead } from './dialoge.js';
 import { withTip } from './tip.js';
+import { getAudio } from '../audio/index.js';
 import { t } from '../i18n/index.js';
+
+// Seal of a card by its kind: an open decision, a decision the kernel closed, a notice or a world event.
+const KIND_ICON = { entscheidung: 'angebot', entschieden: 'ja', notiz: 'chronist', ereignis: 'welt' };
 
 const RETRY_MS = 700;
 const memory = new Map();
@@ -125,15 +129,25 @@ export function initEreignisse(api) {
       index += 1;
       render();
       dlg.querySelector('h2')?.focus();
+      // The first card sounds when the dialog opens; each further one gets its own stinger.
+      getAudio()?.play('event');
     } else {
       dlg.close();
     }
   }
 
-  const kernelDeltas = (choiceId, optionId) => game.deltasWith((d) => ({ ...d, choices: { ...(d.choices ?? {}), [choiceId]: optionId } }));
+  const withAnswer = (choiceId, optionId) => (d) => ({ ...d, choices: { ...(d.choices ?? {}), [choiceId]: optionId } });
+  /** The kernel's preview of one answer: its once effects and the change of the stores at season end. */
+  function answerPreview(choiceId, optionId) {
+    const pv = game.previewWith(withAnswer(choiceId, optionId));
+    return {
+      delta: pv.choices?.find((c) => c.id === choiceId && c.option === optionId)?.delta ?? null,
+      deltas: game.deltasWith(withAnswer(choiceId, optionId)),
+    };
+  }
 
   function imageSlot(card) {
-    const slot = el('figure', { class: 'ereignis-bild' }, icon(card.icon, { size: 64 }));
+    const slot = el('figure', { class: `ereignis-bild${card.image ? '' : ' ohne-bild'}` }, icon(card.icon, { size: card.image ? 64 : 40 }));
     if (card.image) {
       const img = el('img', { src: card.image, alt: '', loading: 'lazy' });
       // A broken URL leaves the framed placeholder in place.
@@ -149,27 +163,32 @@ export function initEreignisse(api) {
     const locked = api.model.phase === 'A';
     return el('section', { class: 'ereignis-wahl', 'aria-label': t('ereignis.entscheidung') },
       el('p', { class: 'ereignis-frist' }, icon('dauer', { size: 16 }), `${t('ereignis.frist')} ${choice.frist.saison}`),
-      el('div', { class: 'ereignis-optionen' }, ...choice.optionen.map((o, i) => {
-        const chosen = choice.gewaehlt === o.id;
-        const deltas = kernelDeltas(choice.choiceId, o.id);
-        const kernel = deltaChips(deltas, t);
-        const folgen = [...kernel, ...o.folgen.filter((f) => !(f.store && kernel.length))];
+      el('div', { class: 'ereignis-optionen', role: 'group', 'aria-label': t('ereignis.entscheidung') }, ...choice.optionen.map((o, i) => {
+        // The answer lives in the draft; the card was built before the player chose.
+        const chosen = game.draft.choices?.[choice.choiceId] === o.id;
+        const { delta, deltas } = answerPreview(choice.choiceId, o.id);
+        // The kernel's own preview of the answer comes first; declared effects it cannot carry (relations, reveals) complete it.
+        const kernel = choiceDeltaChips(delta, { view: game.view, t });
+        const folgen = delta ? [...kernel, ...o.folgen.filter((f) => !f.kernel)] : o.folgen;
         const hasPreview = Object.keys(deltas).length > 0;
         const show = () => { if (hasPreview && !locked) api.setPreview({ deltas, tiles: [] }); };
-        return el('div', { class: 'entscheid' },
-          el('button', {
-            class: `btn ereignis-option ${chosen ? 'btn-primary' : ''}`,
-            type: 'button',
-            'aria-pressed': String(chosen),
-            disabled: locked,
-            'data-fokus': `wahl-${i}`,
-            onclick: () => game.setChoice(choice.choiceId, chosen ? null : o.id),
-            onpointerenter: show,
-            onpointerleave: () => api.setPreview(null),
-            onfocus: show,
-            onblur: () => api.setPreview(null),
-          }, icon(chosen ? 'ja' : 'pfeil', { size: 18 }), el('span', { text: o.text })),
-          folgen.length ? chipList(folgen) : null);
+        return el('button', {
+          class: `ereignis-option${chosen ? ' is-gewaehlt' : ''}`,
+          type: 'button',
+          'aria-pressed': String(chosen),
+          'aria-disabled': locked ? 'true' : 'false',
+          'aria-label': [o.text, ...folgen.map((f) => `${f.text} ${f.wert}`.trim())].join(', '),
+          'data-option': o.id,
+          'data-fokus': `wahl-${i}`,
+          onclick: () => { if (!locked) game.setChoice(choice.choiceId, chosen ? null : o.id); },
+          onpointerenter: show,
+          onpointerleave: () => api.setPreview(null),
+          onfocus: show,
+          onblur: () => api.setPreview(null),
+        },
+        el('span', { class: 'option-marke', 'aria-hidden': 'true' }, icon(chosen ? 'ja' : 'pfeil', { size: 18 })),
+        el('span', { class: 'option-text', text: o.text }),
+        folgen.length ? el('span', { class: 'option-folgen', 'aria-hidden': 'true' }, ...folgen.map((f) => el('span', { class: 'folge-chip', title: f.text }, icon(f.icon, { size: 14 }), f.wert))) : null);
       })));
   }
 
@@ -184,6 +203,7 @@ export function initEreignisse(api) {
     if (!picked.length) return null;
     const locked = api.model.phase === 'A';
     return el('div', { class: 'ereignis-reaktionen', role: 'group', 'aria-label': t('ereignis.reaktion') },
+      withTip(el('span', { class: 'reaktion-marke', tabindex: '0', 'aria-label': t('ereignis.reaktion') }, icon('praxis', { size: 16 })), [el('span', { text: t('ereignis.reaktion') })], null, { up: true }),
       ...picked.map((o, i) => {
         const taken = Boolean(o.queued);
         const btn = el('button', {
@@ -221,7 +241,7 @@ export function initEreignisse(api) {
     dlg.setAttribute('aria-describedby', 'dlg-ereignis-text');
     dlg.dataset.art = card.kind;
     dlg.replaceChildren(
-      dialogHead(dlg, card.title, 'welt'),
+      dialogHead(dlg, card.title, KIND_ICON[card.kind] ?? 'welt'),
       el('div', { class: 'overlay-body ereignis-body' },
         imageSlot(card),
         card.status ? el('p', { class: 'ereignis-status' }, icon(card.status.icon, { size: 16 }), card.status.text) : null,
@@ -230,8 +250,16 @@ export function initEreignisse(api) {
         card.choice ? choiceBlock(card) : null,
         reactionBlock(card)),
       el('footer', { class: 'ereignis-fuss' },
+        pager(),
         el('button', { class: 'btn btn-primary btn-gross', type: 'button', 'data-fokus': 'weiter', onclick: next }, t('ereignis.weiter'), icon('pfeil', { size: 18 }))));
     if (focused) dlg.querySelector(`[data-fokus="${focused}"]`)?.focus();
+  }
+
+  /** Where the card stands in the queue of the season, as marks; only a queue of more than one card has one. */
+  function pager() {
+    if (queue.length < 2) return el('span', { class: 'ereignis-seiten' });
+    return el('span', { class: 'ereignis-seiten', role: 'img', 'aria-label': t.fmt('board.event.position', { n: index + 1, total: queue.length }) },
+      ...queue.map((c, i) => el('span', { class: `seite${i === index ? ' is-aktiv' : i < index ? ' is-gelesen' : ''}` })));
   }
 
   // Enter reads on from anywhere on the card except where it activates a control of its own.
