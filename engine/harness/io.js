@@ -135,16 +135,30 @@ function pidAlive(pid) {
   }
 }
 
+// The owner writes its lock record right after creating the file, so an
+// empty or unparseable lock is only legitimate for a moment. One that stays
+// so longer than this was left by a crash between create and write (or by a
+// foreign writer) and would otherwise block every writer forever.
+const UNREADABLE_LOCK_STALE_MS = 2000;
+
 function lockIsStale(path, staleMs) {
-  let info;
+  let text;
+  let age;
   try {
-    info = JSON.parse(readFileSync(path, 'utf8'));
+    text = readFileSync(path, 'utf8');
+    age = Date.now() - statSync(path).mtimeMs;
   } catch {
-    // Unreadable: either just released (ENOENT) or caught between create and
-    // write by its owner; neither is stale.
+    // Just released (ENOENT): not stale, the next open attempt takes it.
     return false;
   }
-  return !Number.isInteger(info.pid) || !pidAlive(info.pid) || Date.now() - info.at > staleMs;
+  let info;
+  try {
+    info = JSON.parse(text);
+  } catch {
+    return age > Math.min(UNREADABLE_LOCK_STALE_MS, staleMs);
+  }
+  if (!info || typeof info !== 'object') return age > Math.min(UNREADABLE_LOCK_STALE_MS, staleMs);
+  return !Number.isInteger(info.pid) || !pidAlive(info.pid) || !Number.isFinite(info.at) || Date.now() - info.at > staleMs;
 }
 
 /**

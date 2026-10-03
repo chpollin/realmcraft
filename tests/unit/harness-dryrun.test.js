@@ -61,9 +61,9 @@ describe('harness dry run', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is
     }
   });
 
-  it('marks a rejected proposal and a missing proposal as failed steps', () => {
+  it('a rejected proposal is a delivered one (done), only a missing proposal fails its step', () => {
     const research = step(first, 'research-bergnomaden');
-    assert.equal(research.state, 'failed');
+    assert.equal(research.state, 'done');
     assert.equal(research.verdict, 'rejected');
     assert.ok(existsSync(join(root, 'campaigns', 'probe-1', 'agents', 'rejected', 'research.bergnomaden.T0.json')));
     assert.equal(step(first, 'research-talbund').state, 'failed', 'no template means no proposal');
@@ -85,6 +85,10 @@ describe('harness dry run', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is
     const chron = status.steps.find((s) => s.id === 'chronicler-all');
     assert.equal(chron.state, 'done');
     assert.deepEqual(chron.proposals.map((p) => [p.proposalId, p.kind, p.verdict]), [['chronicler.T1', 'narrative', 'accepted']]);
+  });
+
+  it('status.json follows the kernel phase after open', () => {
+    assert.equal(read(root, 'probe-1', 'status.json').phase, 'planning');
   });
 
   it('leaves the run marker inactive', () => {
@@ -119,5 +123,51 @@ describe('harness dry run', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is
     // Proposal hashes cover the campaign id, so only their keys are compared.
     const strip = (s) => JSON.stringify({ ...s, ingested: Object.keys(s.ingested).sort() }).replaceAll('probe-2', 'probe-1');
     assert.equal(strip(read(root, 'probe-2', 'state.json')), strip(read(root, 'probe-1', 'state.json')));
+  });
+});
+
+// The live finding behind this block: phase B agents run in parallel, Claude
+// Code's SubagentStart carries no task description, and steps ended failed or
+// waiting although every agent delivered, with the status phase stuck in
+// agents. Here the real hooks write the status from Claude Code's payloads.
+describe('harness dry run through the hooks', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is missing (lane K1)' }, () => {
+  let root;
+  let first;
+  let second;
+  const status = () => read(root, 'probe-h', 'status.json');
+  const states = () => Object.fromEntries(status().steps.map((s) => [s.id, s.state]));
+
+  before(() => {
+    root = mkdtempSync(join(tmpdir(), 'rc-harness-hooks-dryrun-'));
+    newCampaign(root, 'probe-h');
+    first = dryrun(root, 'probe-h', '--judges', '--hooks');
+  });
+  after(() => rmSync(root, { recursive: true, force: true }));
+
+  it('every delivered proposal ends done, every missing one failed, and the phase is planning', () => {
+    assert.equal(first.ok, true);
+    assert.equal(status().phase, 'planning');
+    assert.deepEqual(states(), {
+      'chronicler-all': 'done',
+      'council-bergnomaden': 'done',
+      'research-bergnomaden': 'done',
+      'research-schaedelklan': 'failed',
+      'research-talbund': 'failed',
+      'rival-schaedelklan': 'done',
+      'rival-talbund': 'done',
+      'judge-coherence-all': 'done',
+      'judge-balance-all': 'failed',
+      'judge-narrative-all': 'failed',
+    });
+    assert.equal(status().steps.find((s) => s.id === 'research-bergnomaden').summary, 'Vorschlag abgewiesen');
+  });
+
+  it('a full turn through the hooks ends in planning of turn 1 with the same rule', () => {
+    second = dryrun(root, 'probe-h', '--hooks');
+    assert.deepEqual([second.to.phase, second.to.turn], ['planning', 1]);
+    assert.equal(status().phase, 'planning');
+    const s = states();
+    for (const id of ['chronicler-all', 'council-bergnomaden', 'rival-schaedelklan', 'rival-talbund']) assert.equal(s[id], 'done', id);
+    for (const id of ['research-bergnomaden', 'research-schaedelklan', 'research-talbund']) assert.equal(s[id], 'failed', id);
   });
 });

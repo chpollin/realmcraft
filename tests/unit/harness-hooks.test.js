@@ -4,7 +4,7 @@
 
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -35,7 +35,7 @@ const shell = (command, tool_name = 'Bash') => ({ hook_event_name: 'PreToolUse',
 const denied = (r) => r.code === 0 && JSON.parse(r.stdout).hookSpecificOutput.permissionDecision === 'deny';
 const silent = (r) => r.code === 0 && r.stdout === '' && r.stderr === '';
 
-const task = (agent, people = null) => {
+const task = (agent, people = null, read = ['state.json']) => {
   const proposalId = people ? `${agent}.${people}.T${TURN}` : `${agent}.T${TURN}`;
   return {
     format: 'realmcraft-task',
@@ -46,7 +46,7 @@ const task = (agent, people = null) => {
     agent,
     people,
     respondAs: { proposalId, path: `agents/proposals/${proposalId}.json` },
-    read: ['state.json'],
+    read,
     context: {},
     limits: { items: { chronicler: ['narrative'], world: ['event', 'feature'] }[agent] ?? ['orders', 'stance'], candidates: 0, aboveTier: 0, openPool: 0, moduleActivations: 0, allowedPrimitives: [], tags: [], budget: [] },
   };
@@ -80,7 +80,10 @@ before(() => {
   for (const sub of ['agents/proposals', `agents/tasks/T00${TURN}`, 'log']) mkdirSync(join(dir, sub), { recursive: true });
   cpSync(join(REPO, 'tests', 'fixtures', 'engine', 'campaign-midgame.json'), join(dir, 'state.json'));
   writeFileSync(join(dir, `agents/tasks/T00${TURN}/chronicler-all.json`), JSON.stringify(task('chronicler')));
-  writeFileSync(join(dir, `agents/tasks/T00${TURN}/rival-bergnomaden.json`), JSON.stringify(task('rival', 'bergnomaden')));
+  const views = (pid) => [`view/${pid}.json`, `view/${pid}/events/T00${TURN - 1}.json`, 'library.json'];
+  writeFileSync(join(dir, `agents/tasks/T00${TURN}/rival-bergnomaden.json`), JSON.stringify(task('rival', 'bergnomaden', views('bergnomaden'))));
+  writeFileSync(join(dir, `agents/tasks/T00${TURN}/rival-talbund.json`), JSON.stringify(task('rival', 'talbund', views('talbund'))));
+  writeFileSync(join(dir, `agents/tasks/T00${TURN}/judge-balance-all.json`), JSON.stringify(task('judge-balance', null, ['state.json', `log/T00${TURN - 1}.json`, 'library.json'])));
   writeFileSync(join(dir, `agents/tasks/T00${TURN}/world-all.json`), JSON.stringify(task('world')));
 });
 after(() => rmSync(root, { recursive: true, force: true }));
@@ -162,6 +165,228 @@ describe('guard-state', () => {
   });
 });
 
+// A subagent's launch record as Claude Code keeps it next to the session
+// transcript (tools/harness/lib.mjs subagentLaunch).
+function launchRecord(agentId, agentType, prompt, description = `${agentType} launch`) {
+  const session = join(root, 'transcripts', 'session-1');
+  mkdirSync(join(session, 'subagents'), { recursive: true });
+  writeFileSync(join(session, 'subagents', `agent-${agentId}.meta.json`), JSON.stringify({ agentType, description }));
+  writeFileSync(join(session, 'subagents', `agent-${agentId}.jsonl`), `${JSON.stringify({ type: 'user', agentId, message: { role: 'user', content: prompt } })}\n`);
+  return { agent_id: agentId, transcript_path: `${session}.jsonl` };
+}
+const zugPrompt = (stepId) => `Kampagnenordner: ${dir}. Auftrag: ${dir}/agents/tasks/T00${TURN}/${stepId}.json. Schreibe deinen Vorschlag nach ${dir}/agents/proposals/<id>.json.`;
+
+// Windows short (8.3) name of an existing path, or null where the volume keeps none.
+function shortPath(p) {
+  if (process.platform !== 'win32') return null;
+  const r = spawnSync('cmd.exe', ['/d', '/s', '/c', `"for %I in ("${p}") do @echo %~sI"`], { encoding: 'utf8', windowsVerbatimArguments: true });
+  const s = r.stdout.trim();
+  return s && s.toLowerCase() !== p.toLowerCase() && s.includes('~') ? s : null;
+}
+
+describe('guard-state against the review cases', () => {
+  let rival;
+  let rivalOther;
+  before(() => {
+    rival = launchRecord('rv1', 'rc-rival', zugPrompt('rival-bergnomaden'), `rc-rival rival.bergnomaden.T${TURN}`);
+    rivalOther = launchRecord('rv2', 'rc-rival', zugPrompt('rival-talbund'), `rc-rival rival.talbund.T${TURN}`);
+  });
+  const C = () => join(root, 'campaigns');
+  const own = () => join(dir, 'agents', 'proposals', `rival.bergnomaden.T${TURN}.json`);
+  const sh = (command, tool = 'Bash', extra = {}) => ({ ...shell(command, tool), ...extra });
+
+  it('denies main-session writes under every spelling of a campaign path', () => {
+    const forms = [
+      join(dir, 'state.json'),
+      join(C(), CID.toUpperCase(), 'state.json'),
+      `${C()}/${CID}./state.json`,
+      `${C()}/${CID} /state.json`,
+      `${root}/js/../campaigns/${CID}/state.json`,
+      `campaigns/${CID}/log/journal.json`,
+      `${dir}/agents/proposals/../../drafts/bergnomaden.json`,
+      `${C()}/index.json`,
+    ];
+    if (process.platform === 'win32') {
+      const win = join(dir, 'state.json').replace(/\//g, '\\');
+      forms.push(`\\\\?\\${win}`, `\\\\localhost\\${win[0]}$${win.slice(2)}`, `\\\\127.0.0.1\\${win[0]}$${win.slice(2)}`);
+    }
+    for (const f of forms) assert.ok(denied(run('guard-state', write(f))), f);
+  });
+
+  it('resolves 8.3 short names before matching (Windows volumes that keep them)', (t) => {
+    const short = shortPath(join(dir, 'state.json'));
+    if (!short) return t.skip('no 8.3 names on this volume');
+    assert.ok(denied(run('guard-state', write(short))), short);
+  });
+
+  it('holds a bound rival to the proposal of its own people', () => {
+    assert.ok(silent(run('guard-state', write(own(), { ...rival, agent_type: 'rc-rival' }))), 'own proposal');
+    assert.ok(silent(run('guard-state', write(own(), rival))), 'own proposal, agent_type taken from the launch record');
+    assert.ok(silent(run('guard-state', { ...write(own(), rival), tool_name: 'Edit', tool_input: { file_path: own(), old_string: 'a', new_string: 'b' } })));
+    const other = join(dir, 'agents', 'proposals', `rival.talbund.T${TURN}.json`);
+    assert.ok(denied(run('guard-state', write(other, { ...rival, agent_type: 'rc-rival' }))), 'H8: the proposal of another people');
+    assert.ok(silent(run('guard-state', write(other, { ...rivalOther, agent_type: 'rc-rival' }))), 'that people\'s own rival');
+  });
+
+  it('denies a rival every other target', () => {
+    const rc = { ...rival, agent_type: 'rc-rival' };
+    const targets = [
+      join(dir, 'agents', 'proposals', `world.T${TURN}.json`),
+      join(C(), 'zz-other', 'agents', 'proposals', `rival.x.T${TURN}.json`),
+      join(tmpdir(), 'campaigns', 'aa', 'agents', 'proposals', `rival.T${TURN}.json`),
+      join(root, 'engine', 'cli.mjs'),
+      join(root, 'tools', 'hooks', 'guard-state.mjs'),
+      join(root, '.claude', 'settings.json'),
+      join(dir, 'state.json'),
+    ];
+    for (const f of targets) assert.ok(denied(run('guard-state', write(f, rc))), f);
+    assert.ok(denied(run('guard-state', write(join(root, 'engine', 'cli.mjs'), { agent_type: 'myplugin:rc-rival', agent_id: 'p1' }))), 'plugin prefix');
+    assert.ok(denied(run('guard-state', { hook_event_name: 'PreToolUse', tool_name: 'NotebookEdit', tool_input: { notebook_path: join(root, 'x.ipynb') }, cwd: root, ...rc })));
+    assert.ok(denied(run('guard-state', { hook_event_name: 'PreToolUse', tool_name: 'Edit', tool_input: { path: join(dir, 'state.json') }, cwd: root, ...rc })));
+    assert.ok(denied(run('guard-state', { hook_event_name: 'PreToolUse', tool_name: 'Write', cwd: root, ...rc })), 'no tool_input');
+  });
+
+  it('without a launch record, a rival writes only proposals some task of its role names', () => {
+    const rc = { agent_type: 'rc-rival', agent_id: 'u1' };
+    assert.ok(silent(run('guard-state', write(own(), rc))));
+    assert.ok(denied(run('guard-state', write(join(dir, 'agents', 'proposals', `rival.nobody.T${TURN}.json`), rc))));
+    assert.ok(denied(run('guard-state', write(join(dir, 'agents', 'proposals', `rival.bergnomaden.T${TURN + 1}.json`), rc))));
+  });
+
+  it('recognises a RealmCraft agent without agent_type from its launch record or the run marker, else fails open', () => {
+    const engine = join(root, 'engine', 'cli.mjs');
+    assert.ok(silent(run('guard-state', write(engine, { agent_id: 'unknown' }))), 'documented fail-open');
+    assert.ok(denied(run('guard-state', write(engine, rival))), 'launch record names rc-rival');
+    const runPath = join(dir, 'run.json');
+    const had = existsSync(runPath) ? readFileSync(runPath, 'utf8') : null;
+    writeFileSync(runPath, JSON.stringify({ format: 'realmcraft-run', version: 1, campaign: CID, turn: TURN, active: true, agents: { m1: 'judge-balance-all' }, bound: {} }));
+    try {
+      assert.ok(denied(run('guard-state', write(engine, { agent_id: 'm1' }))), 'run marker names judge-balance');
+    } finally {
+      if (had === null) rmSync(runPath, { force: true });
+      else writeFileSync(runPath, had);
+    }
+    assert.ok(silent(run('guard-state', write(engine, launchRecord('ex1', 'Explore', 'search')))), 'other subagent types keep their rights');
+  });
+
+  it('denies every shell call of a RealmCraft agent', () => {
+    const rc = { ...rival, agent_type: 'rc-rival' };
+    for (const c of [
+      `node engine/cli.mjs roll p1 1 --campaign ${CID}`,
+      `node engine/cli.mjs ingest campaigns/${CID}/state.json --campaign ${CID}`,
+      `node engine/cli.mjs preview --draft x.json --campaign ${CID}`,
+      "echo 'process.exit(0)' > tools/hooks/guard-state.mjs",
+      'ls',
+    ]) assert.ok(denied(run('guard-state', sh(c, 'Bash', rc))), c);
+    assert.ok(denied(run('guard-state', sh('Get-ChildItem', 'PowerShell', rc))));
+  });
+
+  it('denies main-session shell writes the old segment filter let through', () => {
+    const p = `campaigns/${CID}/state.json`;
+    const bash = [
+      `cp x.json ${p}`,
+      `cd campaigns && echo {} > ${CID}/state.json`,
+      `p=${p}; echo {} > "$p"`,
+      `echo $(cp x.json ${p})`,
+      `echo a & cp x.json ${p}`,
+      `node -e "require('fs').writeFileSync(['campaigns','${CID}','state.json'].join('/'),'{}')"`,
+      `node --eval="require('fs').writeFileSync('${p}','{}')//engine/cli.mjs"`,
+      `curl -s -o ${p} http://x`,
+      `tar -xf a.tar -C campaigns/${CID}`,
+      `bash -c "cp x.json ${p}"`,
+      `git checkout -- campaigns/${CID}`,
+    ];
+    for (const c of bash) assert.ok(denied(run('guard-state', sh(c))), c);
+    const ps = [
+      `$p='campaigns\\${CID}\\state.json'; Set-Content $p '{}'`,
+      `[IO.File]::WriteAllText('campaigns\\${CID}\\state.json','{}')`,
+      `Set-Content campaigns\\${CID}\\state.json '{}'`,
+      `robocopy x campaigns\\${CID} state.json`,
+      'powershell -NoProfile -enc ZQBjAGgAbwAgAGgAaQA=',
+    ];
+    for (const c of ps) assert.ok(denied(run('guard-state', sh(c, 'PowerShell'))), c);
+  });
+
+  it('keeps the main session\'s kernel calls and reads allowed', () => {
+    for (const c of [
+      `node engine/cli.mjs ingest ${dir}/agents/proposals/rival.bergnomaden.T${TURN}.json --campaign ${CID} --json`,
+      `node engine/cli.mjs status --campaign ${CID} --json 2>&1 | head -5`,
+      `cat campaigns/${CID}/state.json > ${join(tmpdir(), 'copy.json')}`,
+      `ls campaigns/${CID}/agents/proposals`,
+      'powershell -ExecutionPolicy Bypass -File x.ps1',
+      `cp examples/campaigns/${CID}/state.json examples/campaigns/${CID}/b.json`,
+    ]) assert.ok(silent(run('guard-state', sh(c))), c);
+  });
+
+  it('acts only inside the project root', () => {
+    const elsewhere = mkdtempSync(join(tmpdir(), 'rc-elsewhere-'));
+    try {
+      assert.ok(silent(run('guard-state', write(join(elsewhere, 'campaigns', CID, 'state.json')))));
+    } finally {
+      rmSync(elsewhere, { recursive: true, force: true });
+    }
+  });
+
+  it('stays silent for malformed input and main-session reads', () => {
+    assert.ok(silent(run('guard-state', '{"tool_name":"Write", oops')));
+    assert.ok(silent(run('guard-state', '')));
+    assert.ok(silent(run('guard-state', { hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { file_path: join(dir, 'state.json') }, cwd: root })));
+  });
+});
+
+describe('guard-state read isolation of RealmCraft agents', () => {
+  const read = (file_path, who) => ({ hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { file_path }, cwd: root, ...who });
+  const glob = (path, pattern, who) => ({ hook_event_name: 'PreToolUse', tool_name: 'Glob', tool_input: { path, pattern }, cwd: root, ...who });
+  const grep = (path, who) => ({ hook_event_name: 'PreToolUse', tool_name: 'Grep', tool_input: { path, pattern: 'x' }, cwd: root, ...who });
+  let rival;
+  let judge;
+  before(() => {
+    rival = { ...launchRecord('rr1', 'rc-rival', zugPrompt('rival-bergnomaden')), agent_type: 'rc-rival' };
+    judge = { ...launchRecord('jb1', 'rc-judge-balance', zugPrompt('judge-balance-all')), agent_type: 'rc-judge-balance' };
+  });
+
+  it('a rival reads its task, its view, the library, welten/ and engine/schemas/', () => {
+    for (const f of [
+      join(dir, 'agents', 'tasks', `T00${TURN}`, 'rival-bergnomaden.json'),
+      join(dir, 'view', 'bergnomaden.json'),
+      join(dir, 'view', 'bergnomaden', 'events', `T00${TURN - 1}.json`),
+      join(dir, 'library.json'),
+      join(dir, 'agents', 'proposals', `rival.bergnomaden.T${TURN}.json`),
+      join(root, 'welten', 'hochland', 'welt.json'),
+      join(root, 'engine', 'schemas', 'draft.js'),
+    ]) assert.ok(silent(run('guard-state', read(f, rival))), f);
+  });
+
+  it('a rival does not read the full state, drafts, the journal, other views or other tasks', () => {
+    for (const f of [
+      join(dir, 'state.json'),
+      join(dir, 'drafts', 'talbund.json'),
+      join(dir, 'log', 'journal.json'),
+      join(dir, 'log', `T00${TURN - 1}.json`),
+      join(dir, 'view', 'talbund.json'),
+      join(dir, 'view', 'TALBUND.json'),
+      join(dir, 'agents', 'tasks', `T00${TURN}`, 'rival-talbund.json'),
+      join(root, 'engine', 'cli.mjs'),
+      join(REPO, 'welten', 'hochland', 'welt.json'),
+    ]) assert.ok(denied(run('guard-state', read(f, rival))), f);
+    assert.ok(denied(run('guard-state', glob(root, `campaigns/${CID}/**/*.json`, rival))));
+    assert.ok(denied(run('guard-state', glob(join(root, 'welten'), '../campaigns/**', rival))));
+  });
+
+  it('a judge reads its task files and its folders, but not the journal or drafts', () => {
+    for (const f of [join(dir, 'state.json'), join(dir, 'log', 'T0005.json'), join(dir, 'view', 'talbund.json'), join(dir, 'agents', 'verdicts', 'x.json')]) {
+      assert.ok(silent(run('guard-state', read(f, judge))), f);
+    }
+    for (const f of [join(dir, 'log', 'journal.json'), join(dir, 'drafts', 'talbund.json'), join(dir, 'narrative', 'chronik', 'T0011.md')]) {
+      assert.ok(denied(run('guard-state', read(f, judge))), f);
+    }
+    assert.ok(silent(run('guard-state', glob(join(dir, 'log'), '*.json', judge))));
+    assert.ok(silent(run('guard-state', grep(join(root, 'welten', 'hochland'), judge))));
+    assert.ok(denied(run('guard-state', grep(join(dir, 'narrative'), judge))));
+    assert.ok(denied(run('guard-state', { ...glob(undefined, '**/state.json', judge), tool_input: { pattern: '**/state.json' } })), 'no path searches the whole root');
+  });
+});
+
 describe('proposal-check', () => {
   it('stays silent for files outside agents/proposals', () => {
     assert.ok(silent(run('proposal-check', post(join(REPO, 'js', 'app.js')))));
@@ -173,6 +398,7 @@ describe('proposal-check', () => {
     const file = putProposal(narrative());
     const r = run('proposal-check', post(file, { agent_type: 'rc-chronicler', agent_id: 'c1' }));
     assert.equal(r.code, 0, r.stderr);
+    assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /passed the pre-check/);
     const step = status().steps.find((s) => s.id === 'chronicler-all');
     assert.ok(step, 'status step chronicler exists');
     assert.deepEqual(step.proposals.map((p) => [p.proposalId, p.kind, p.verdict]), [[`chronicler.T${TURN}`, 'narrative', 'pending']]);
@@ -211,6 +437,7 @@ describe('proposal-check', () => {
     const world = (data) => ({ format: 'realmcraft-proposal', version: 1, proposalId: `world.T${TURN}`, agent: 'world', campaign: CID, turn: TURN, basedOnRev: 37, people: null, items: [{ type: 'event', data }] });
     let r = run('proposal-check', post(putProposal(world(card))));
     assert.equal(r.code, 0, r.stderr);
+    assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /item 0 event: effect -?\d+, price -?\d+, net -?\d+, band \d+/, 'budget per item replaces the shell call to validate');
     const bad = { ...card, effects: [{ op: 'resource.delta', res: 'goldstaub', amount: -2 }, ...card.effects.slice(1)] };
     r = run('proposal-check', post(putProposal(world(bad))));
     assert.equal(r.code, 2);
@@ -228,7 +455,15 @@ describe('subagent-status', () => {
   before(() => {
     writeFileSync(join(dir, 'run.json'), JSON.stringify({ format: 'realmcraft-run', version: 1, campaign: CID, turn: TURN, active: true, startedAt: new Date().toISOString(), endedAt: null, agents: {} }));
     rmSync(join(dir, 'agents', 'proposals', `chronicler.T${TURN}.json`), { force: true });
+    // Phase B agents run while the kernel is in phase agents.
+    setPhase('agents');
   });
+  const setPhase = (phase) => {
+    const s = JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8'));
+    writeFileSync(join(dir, 'state.json'), JSON.stringify({ ...s, phase }));
+  };
+  const stepOf = (id) => status().steps.find((s) => s.id === id);
+  const proposalFile = (pid) => join(dir, 'agents', 'proposals', `${pid}.json`);
 
   it('ignores subagents that are not RealmCraft roles', () => {
     const before = existsSync(join(dir, 'status.json')) ? readFileSync(join(dir, 'status.json'), 'utf8') : null;
@@ -259,6 +494,52 @@ describe('subagent-status', () => {
     assert.equal(step.state, 'failed');
     assert.equal(step.summary, 'kein Vorschlag geschrieben');
   });
+
+  it('a proposal written after a failed stop turns the step done', () => {
+    const r = run('proposal-check', post(putProposal(narrative()), { agent_type: 'rc-chronicler', agent_id: 'c2' }));
+    assert.equal(r.code, 0, r.stderr);
+    assert.equal(stepOf('chronicler-all').state, 'done');
+  });
+
+  it('parallel starts without a task description take distinct tasks, a launch record binds exactly', async () => {
+    rmSync(proposalFile(`rival.talbund.T${TURN}`), { force: true });
+    rmSync(proposalFile(`rival.bergnomaden.T${TURN}`), { force: true });
+    const hookAsync = (payload) => new Promise((done) => {
+      const p = spawn(process.execPath, [HOOK('subagent-status')], { env: { ...process.env, REALMCRAFT_ROOT: root, CLAUDE_PROJECT_DIR: root } });
+      p.stdout.resume();
+      p.stderr.resume();
+      p.on('exit', done);
+      p.stdin.end(JSON.stringify(payload));
+    });
+    writeFileSync(join(dir, 'run.json'), JSON.stringify({ format: 'realmcraft-run', version: 1, campaign: CID, turn: TURN, active: true, startedAt: new Date().toISOString(), endedAt: null, agents: {}, bound: {} }));
+    await Promise.all(['p1', 'p2'].map((agent_id) => hookAsync({ hook_event_name: 'SubagentStart', agent_type: 'rc-rival', agent_id, cwd: root })));
+    let marker = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
+    assert.deepEqual(Object.values(marker.agents).sort(), ['rival-bergnomaden', 'rival-talbund']);
+    assert.deepEqual(marker.bound, {}, 'a guess binds nothing');
+
+    const launched = launchRecord('p3', 'rc-rival', zugPrompt('rival-talbund'), `rc-rival rival.talbund.T${TURN}`);
+    run('subagent-status', { hook_event_name: 'SubagentStart', agent_type: 'rc-rival', cwd: root, ...launched });
+    marker = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8'));
+    assert.equal(marker.bound.p3, `rival.talbund.T${TURN}`);
+    assert.equal(marker.agents.p3, 'rival-talbund');
+  });
+
+  it('a guessed stop without a proposal leaves the step; after open the reconcile fails it', () => {
+    // p1 holds a guessed step; its stop names nothing.
+    run('subagent-status', { hook_event_name: 'SubagentStop', agent_type: 'rc-rival', agent_id: 'p1', last_assistant_message: '', cwd: root });
+    const guessed = JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')).agents.p1;
+    assert.equal(stepOf(guessed).state, 'running');
+    setPhase('planning');
+    try {
+      const r = spawnSync(process.execPath, [join(REPO, 'tools', 'harness', 'status-note.mjs'), 'sync', '--campaign', CID, '--root', root], { encoding: 'utf8', env: { ...process.env, REALMCRAFT_ROOT: root } });
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(status().phase, 'planning');
+      assert.equal(stepOf(guessed).state, 'failed');
+      assert.equal(stepOf('chronicler-all').state, 'done', 'a delivered proposal stays done');
+    } finally {
+      setPhase('agents');
+    }
+  });
 });
 
 describe('subagent definitions', () => {
@@ -281,6 +562,7 @@ describe('subagent definitions', () => {
       const tools = fm.tools.split(',').map((t) => t.trim());
       assert.ok(tools.includes('Write') && tools.includes('Read'), name);
       assert.ok(!tools.includes('Agent') && !tools.includes('Edit'), name);
+      assert.ok(!tools.includes('Bash') && !tools.includes('PowerShell'), `${name} has no shell (K1)`);
     }
   });
 });

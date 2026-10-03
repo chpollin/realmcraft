@@ -6,13 +6,18 @@
 //   node tools/harness/status-note.mjs init [--campaign <cid>]
 //   node tools/harness/status-note.mjs plan [--campaign <cid>]
 //   node tools/harness/status-note.mjs step <stepId> <waiting|running|done|failed> [--agent <id>] [--summary <text>]
+//   node tools/harness/status-note.mjs sync [--campaign <cid>]
 //
 // init starts the status of the current turn (kept when it exists). plan adds
 // a waiting step for every task of the current or previous turn whose
-// proposal has not been written yet. Prints the resulting status as JSON.
+// proposal has not been written yet. sync lets the status follow the files
+// (tools/harness/reconcile.mjs): phase from state.json, done where a proposal
+// exists, failed where the phase has moved past a task without one; /zug runs
+// it after open. Prints the resulting status as JSON.
 
 import { activeCampaign, normPath, parseArgs, proposalLocation, readJsonFile, rootDir, stepIdOf, listTasks } from './lib.mjs';
 import { initTurnStatus, updateStep } from '../../engine/harness/status.js';
+import { reconcileStatus } from './reconcile.mjs';
 
 const { pos, opt } = parseArgs(process.argv.slice(2));
 const root = opt.root ? normPath(opt.root) : rootDir();
@@ -69,8 +74,16 @@ switch (pos[0]) {
     out = check(updateStep(dir, { id, agent, state: st, summary: typeof opt.summary === 'string' ? opt.summary : undefined }));
     break;
   }
+  case 'sync': {
+    out = await reconcileStatus(dir);
+    if (!out) {
+      process.stderr.write(`status-note: status of ${cid} could not be reconciled\n`);
+      process.exit(2);
+    }
+    break;
+  }
   default:
-    process.stderr.write('usage: status-note.mjs init|plan|step ... [--campaign <cid>]\n');
+    process.stderr.write('usage: status-note.mjs init|plan|step|sync ... [--campaign <cid>]\n');
     process.exit(2);
 }
 process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);

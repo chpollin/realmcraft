@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -121,6 +121,19 @@ test('withLock releases on error and an old lock of a live process is broken aft
   assert.equal(existsSync(join(dir, '.x.lock')), false);
   writeFileSync(join(dir, '.x.lock'), JSON.stringify({ pid: process.pid, at: Date.now() - 60000, token: 'old' }));
   assert.equal(withLock(dir, 'x', () => 'ran', { staleMs: 30000 }), 'ran');
+});
+
+test('an empty or unparseable lock blocks only briefly, an old one is broken', (t) => {
+  const dir = tempCampaign(t);
+  const path = join(dir, '.x.lock');
+  const old = new Date(Date.now() - 10_000);
+  for (const content of ['', '{"pid":', 'null']) {
+    writeFileSync(path, content);
+    assert.throws(() => withLock(dir, 'x', () => 'ran', { timeoutMs: 50 }), LockError, `a fresh lock ${JSON.stringify(content)} may belong to a writer between create and write`);
+    utimesSync(path, old, old);
+    assert.equal(withLock(dir, 'x', () => 'ran', { timeoutMs: 50 }), 'ran', `an old lock ${JSON.stringify(content)} is stale`);
+    assert.equal(existsSync(path), false);
+  }
 });
 
 test('readJson: fallback for missing files, readable errors otherwise', (t) => {
