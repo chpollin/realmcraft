@@ -76,7 +76,7 @@ export function readJson(path, { fallback, maxBytes = Infinity } = {}) {
 // server's watcher reading it) fails briefly with EPERM, EBUSY or EACCES.
 const RENAME_RETRY = new Set(['EPERM', 'EBUSY', 'EACCES']);
 
-function renameWithRetry(from, to) {
+export function renameWithRetry(from, to) {
   for (let attempt = 0; ; attempt++) {
     try {
       renameSync(from, to);

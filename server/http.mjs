@@ -48,21 +48,21 @@ export async function sendFile(res, path) {
   }
 }
 
-function readBody(req, res) {
+function readBody(req, res, max) {
   return new Promise((done) => {
     const declared = Number(req.headers['content-length']);
     const tooLarge = () => {
-      refuse(res, 413, 'server.too_large', 'body too large', { max: MAX_BODY }, { Connection: 'close' });
+      refuse(res, 413, 'server.too_large', 'body too large', { max }, { Connection: 'close' });
       req.resume();
       done(null);
     };
-    if (declared > MAX_BODY) return tooLarge();
+    if (declared > max) return tooLarge();
     const chunks = [];
     let size = 0;
     req.on('data', (c) => {
       if (res.writableEnded) return;
       size += c.length;
-      if (size > MAX_BODY) return tooLarge();
+      if (size > max) return tooLarge();
       chunks.push(c);
     });
     req.on('end', () => {
@@ -76,8 +76,9 @@ function readBody(req, res) {
  * The JSON object body of a POST from the operator's own browser, or null
  * once an error response went out. Order of the checks: method, loopback
  * peer, fetch metadata, origin, content type, body size, JSON, object.
+ * `maxBody` lowers the size limit for endpoints with small bodies.
  */
-export async function readPostJson(req, res) {
+export async function readPostJson(req, res, { maxBody = MAX_BODY } = {}) {
   const no = (status, code, message, params, extra) => {
     refuse(res, status, code, message, params, extra);
     return null;
@@ -91,7 +92,7 @@ export async function readPostJson(req, res) {
   if (!String(req.headers['content-type'] || '').toLowerCase().startsWith('application/json')) {
     return no(415, 'server.media_type', 'application/json required');
   }
-  const raw = await readBody(req, res);
+  const raw = await readBody(req, res, Math.min(maxBody, MAX_BODY));
   if (raw === null) return null;
   let body;
   try {

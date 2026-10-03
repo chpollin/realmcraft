@@ -12,6 +12,7 @@
 //   validate <path> [--campaign <cid> | --world <id>]       budget <file>
 //   replay [--to <turn>]              schema <name>
 //   repin                             pin the campaign to the current world package
+//   save --name <label>               saves                 load --slot <slot>
 //
 // Exit codes: 0 ok, 1 internal error (an exception the kernel did not turn
 // into an issue; the output carries its stack as cli.error), 2 rejected or
@@ -42,8 +43,17 @@
 // Rolls live in the append-only ledger rolls.json. A draft's rolls are
 // derived from it: a probe keeps the first value rolled for its fingerprint,
 // and a roll whose probe left the draft or changed is listed as withdrawn.
+//
+// A save copies the campaign folder (without saves/, lock files and the run
+// marker) to saves/<slot>/campaign/ next to saves/<slot>/manifest.json. load
+// checks the copy like a campaign, saves the current files as
+// autosave-<rev>, stages the copy in .restore/new and swaps it in: the
+// current entries move to .restore/old, the staged ones into the campaign.
+// .restore/step.json marks the swap as begun; a load interrupted before it is
+// dropped, one interrupted after it is completed by the next command.
 
-import { copyFileSync, existsSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync, mkdirSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SCHEMAS } from './schemas/index.js';
@@ -65,7 +75,7 @@ import {
 } from './content/validate.js';
 import { scoreEntwicklungStandalone, scoreEreignis } from './content/budget.js';
 import {
-  LAYOUT, campaignDir, ensureLayout, readJson, turnStem, withLock, writeJsonAtomic, writeState,
+  LAYOUT, LockError, campaignDir, ensureLayout, readJson, renameWithRetry, turnStem, withLock, writeJsonAtomic, writeState,
 } from './harness/io.js';
 import { followState, initTurnStatus, recordFinding, recordVerdict } from './harness/status.js';
 import { buildJudgeTask, buildTasks } from './harness/tasks.js';
@@ -204,10 +214,11 @@ function buildEnv(pack, holder) {
   });
 }
 
-function loadCampaign(root, cid) {
+// `at` other than the campaign folder: a save being checked before a load.
+function loadCampaign(root, cid, at = null) {
   if (!cid) return { error: fail(3, [cliIssue('cli.missing_input', '/campaign', 'a command needs --campaign <cid>', { flag: 'campaign' })]) };
   if (!CID.test(cid)) return { error: fail(2, [cliIssue('format', '/campaign', `campaign id "${cid}" must match ${CID.source}`, { reason: 'campaign-id', campaign: cid, pattern: CID.source })]) };
-  const dir = campaignDir(root, cid);
+  const dir = at ?? campaignDir(root, cid);
   if (!existsSync(join(dir, LAYOUT.state))) return { error: fail(3, [cliIssue('cli.no_campaign', '/campaign', `no campaign "${cid}" under ${join(root, 'campaigns')}`, { campaign: cid })]) };
   const state = readJson(join(dir, LAYOUT.state));
   const library = readJson(join(dir, LAYOUT.library), { fallback: createLibrary() });
@@ -603,19 +614,28 @@ function guard(cc, { allowDrift = false } = {}) {
   return [];
 }
 
+const lockHeld = (cid) => cliIssue('cli.locked', '/campaign', `another command holds the lock of campaign ${cid}; try again when it has finished`, { reason: 'lock-held', campaign: cid });
+
 /** Runs fn on a freshly loaded campaign under the campaign lock. */
 function locked(c, fn, { verify = true, allowDrift = false } = {}) {
-  return withLock(c.dir, 'campaign', () => {
-    const fresh = loadCampaign(c.root, c.cid);
-    if (fresh.error) return fresh.error;
-    const cc = fresh.c;
-    if (verify) {
-      const t = guard(cc, { allowDrift });
-      if (t.length) return fail(exitFor(t), t);
-    }
-    const r = fn(cc);
-    return { ...r, issues: [...cc.warnings.filter((w) => bareCode(w) !== 'cli.world_drift'), ...(r.issues ?? [])] };
-  });
+  try {
+    return withLock(c.dir, 'campaign', () => {
+      const settled = settledIssues(settleRestore(c.dir));
+      const fresh = loadCampaign(c.root, c.cid);
+      if (fresh.error) return fresh.error;
+      const cc = fresh.c;
+      if (verify) {
+        const t = guard(cc, { allowDrift });
+        if (t.length) return fail(exitFor(t), [...settled, ...t]);
+      }
+      if (settled.length) refreshAfterLoad(cc, settled);
+      const r = fn(cc);
+      return { ...r, issues: [...settled, ...cc.warnings.filter((w) => bareCode(w) !== 'cli.world_drift'), ...(r.issues ?? [])] };
+    });
+  } catch (err) {
+    if (err instanceof LockError) return fail(4, [lockHeld(c.cid)]);
+    throw err;
+  }
 }
 
 const outcome = (res, extra = {}) => ({ code: res.code, issues: res.issues, data: res.data ?? {}, text: res.text ?? '', ...extra });
@@ -1181,9 +1201,270 @@ function cmdReplay(c, a) {
   return ok({ steps: steps.length, turn: state.turn, rev: state.rev, hash: stateHash(state) }, `replayed ${steps.length} transitions to turn ${state.turn}, rev ${state.rev}`);
 }
 
+// --- saves -------------------------------------------------------------------
+
+const SAVES = 'saves';
+const RESTORE = '.restore';
+const SAVE_FORMAT = 'realmcraft-save';
+const LABEL_MAX = 80;
+// Control and bidirectional override characters: a label is shown to the
+// player as it was typed and must not reorder or hide the text around it.
+const LABEL_BAD = /[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/;
+// Neither saved nor replaced by a load: the saves themselves, the staging
+// folder and lock files (dot names) and the run marker of /zug.
+const keptInPlace = (name) => name === SAVES || name.startsWith('.') || name === 'run.json';
+
+// Test seam: REALMCRAFT_CRASH_AT=<point> ends the process at that point the
+// way a crash would, lock file and half-moved folders included.
+function crashPoint(point) {
+  if (process.env.REALMCRAFT_CRASH_AT === point) process.exit(70);
+}
+
+/** The campaign files without what keptInPlace names and without temp files of atomic writes in flight. */
+function copySnapshot(from, to) {
+  mkdirSync(to, { recursive: true });
+  for (const name of readdirSync(from)) {
+    if (!keptInPlace(name)) cpSync(join(from, name), join(to, name), { recursive: true, filter: (src) => !src.endsWith('.tmp') });
+  }
+}
+
+/** `stem`, or `stem-2`, `stem-3` ... when taken, so no save is ever overwritten. */
+function freeSlot(dir, stem) {
+  const taken = (s) => existsSync(join(dir, SAVES, s));
+  if (!taken(stem)) return stem;
+  for (let n = 2; ; n++) if (!taken(`${stem}-${n}`)) return `${stem}-${n}`;
+}
+
+function manifestOf(cc, slot, label, auto) {
+  const { state } = cc;
+  const cal = calendarOf(cc.env.regeln, state.turn);
+  return {
+    format: SAVE_FORMAT,
+    version: 1,
+    slot,
+    label,
+    auto,
+    campaign: cc.cid,
+    turn: state.turn,
+    season: cal.season,
+    year: cal.year,
+    phase: state.phase,
+    status: state.status,
+    rev: state.rev,
+    created: new Date().toISOString(),
+    stateHash: stateHash(state),
+    journalHead: entryHash(readJournal(cc.dir).at(-1)),
+    world: { id: state.campaign.world.id, hash: cc.lock?.hash ?? state.campaign.world.hash },
+  };
+}
+
+/** Copies the campaign into a hidden folder under saves/ and renames it to the slot when complete. */
+function writeSave(cc, slot, manifest) {
+  const base = join(cc.dir, SAVES);
+  mkdirSync(base, { recursive: true });
+  // Hidden folders are saves a crash interrupted; the campaign lock is held, so none is in progress.
+  for (const n of readdirSync(base)) if (n.startsWith('.')) rmSync(join(base, n), { recursive: true, force: true });
+  const tmp = join(base, `.${slot}.${randomBytes(4).toString('hex')}`);
+  copySnapshot(cc.dir, join(tmp, 'campaign'));
+  writeJsonAtomic(join(tmp, 'manifest.json'), manifest);
+  renameWithRetry(tmp, join(base, slot));
+}
+
+function listSaves(dir) {
+  let names = [];
+  try {
+    names = readdirSync(join(dir, SAVES));
+  } catch {
+    return [];
+  }
+  const out = [];
+  for (const n of names) {
+    if (!CID.test(n)) continue;
+    const m = tryJson(join(dir, SAVES, n, 'manifest.json')).value;
+    if (m?.format === SAVE_FORMAT && m.slot === n) out.push(m);
+  }
+  return out.sort((a, b) => String(b.created).localeCompare(String(a.created)) || (a.slot < b.slot ? 1 : -1));
+}
+
+/** Why a save or load cannot run now, or null. Load also takes an ended campaign, so a lost game can go back. */
+function saveGateIssue(cc, op) {
+  if (tryJson(join(cc.dir, 'run.json')).value?.active === true) {
+    return cliIssue('cli.turn_running', '/run', `${op} waits until the running turn ends (run.json is active; tools/harness/run-marker.mjs end closes a run that crashed)`, { reason: 'run-active', op });
+  }
+  const { phase, status } = cc.state;
+  if (op === 'save' && (phase !== 'planning' || status !== 'playing')) {
+    return cliIssue('phase', '/phase', `save needs a playing campaign in planning, the campaign is ${status} in ${phase}`, { reason: 'save-needs-planning', phase });
+  }
+  if (op === 'load' && phase !== 'planning' && status !== 'ended') {
+    return cliIssue('phase', '/phase', `load needs planning or an ended campaign, the campaign is in ${phase}`, { reason: 'load-needs-planning', phase });
+  }
+  return null;
+}
+
+function moveSetAside(from, oldDir, name) {
+  mkdirSync(oldDir, { recursive: true });
+  renameWithRetry(from, join(oldDir, `${name}.${randomBytes(4).toString('hex')}`));
+}
+
+/**
+ * Completes or drops a load in .restore/. Without step.json the staging was
+ * not finished and the campaign files are untouched, so it is dropped. With
+ * step "staged" the current entries still move to .restore/old, with
+ * "swapped" only the staged entries move in. Each rename is atomic, so an
+ * entry is either moved or not, and a repeat continues where a crash
+ * stopped. Returns the marker of a completed load, { dropped: true }, or null.
+ */
+function settleRestore(dir) {
+  const stage = join(dir, RESTORE);
+  if (!existsSync(stage)) return null;
+  const marker = tryJson(join(stage, 'step.json')).value;
+  if (!marker?.step) {
+    rmSync(stage, { recursive: true, force: true, maxRetries: 5 });
+    return { dropped: true };
+  }
+  const oldDir = join(stage, 'old');
+  if (marker.step === 'staged') {
+    mkdirSync(oldDir, { recursive: true });
+    for (const n of readdirSync(dir)) {
+      if (keptInPlace(n)) continue;
+      if (existsSync(join(oldDir, n))) moveSetAside(join(dir, n), oldDir, n);
+      else renameWithRetry(join(dir, n), join(oldDir, n));
+      crashPoint('load:old');
+    }
+    writeJsonAtomic(join(stage, 'step.json'), { ...marker, step: 'swapped' });
+  }
+  const fresh = join(stage, 'new');
+  for (const n of existsSync(fresh) ? readdirSync(fresh) : []) {
+    // A file another writer created after the current entries moved out (status.json, a proposal) gives way.
+    if (existsSync(join(dir, n))) moveSetAside(join(dir, n), oldDir, n);
+    renameWithRetry(join(fresh, n), join(dir, n));
+    crashPoint('load:new');
+  }
+  rmSync(stage, { recursive: true, force: true, maxRetries: 5 });
+  return marker;
+}
+
+function settledIssues(marker) {
+  if (!marker) return [];
+  if (marker.dropped) return [cliIssue('cli.recovered', '/restore', 'an interrupted load was dropped before it changed the campaign', { reason: 'load-dropped' }, 'warning')];
+  return [cliIssue('cli.recovered', '/restore', `the interrupted load of ${marker.slot} was completed, the previous files are in ${marker.autosave}`, { reason: 'load-completed', slot: marker.slot, autosave: marker.autosave }, 'warning')];
+}
+
+/** Views, index row and agent status follow a restored state; the board learns of the load through the view. */
+function refreshAfterLoad(cc, issues) {
+  soft(issues, 'views', () => writeViews(cc, cc.state));
+  soft(issues, 'campaign index', () => upsertIndex(cc, cc.state));
+  soft(issues, 'status', () => followState(cc.dir, cc.state));
+}
+
+/** Integrity of a saved copy: the campaign checks of a transition plus the manifest's hashes. */
+function verifySave(cc, dir, manifest) {
+  const loaded = loadCampaign(cc.root, cc.cid, dir);
+  if (loaded.error) return loaded.error.issues;
+  const sc = loaded.c;
+  const t = guard(sc, { allowDrift: true });
+  if (t.length) return t;
+  const head = entryHash(readJournal(dir).at(-1));
+  if (manifest.campaign !== cc.cid || sc.state.campaign.id !== cc.cid) {
+    return [kissue('tamper', '/slot', `the save belongs to campaign ${manifest.campaign}`, { params: { reason: 'save-campaign', campaign: String(manifest.campaign) } })];
+  }
+  if (manifest.stateHash !== stateHash(sc.state) || manifest.journalHead !== head) {
+    return [kissue('tamper', '/slot', 'the save differs from its manifest', { params: { reason: 'save-edited', slot: manifest.slot } })];
+  }
+  return [];
+}
+
+function labelIssue(label) {
+  if (label === undefined) return { code: 3, issue: cliIssue('cli.missing_input', '/name', 'save needs --name <label>', { reason: 'usage' }) };
+  const text = String(label).trim();
+  const length = [...text].length;
+  if (!length || length > LABEL_MAX || LABEL_BAD.test(text)) {
+    return { code: 2, issue: cliIssue('format', '/name', `a save label has 1 to ${LABEL_MAX} characters without control characters`, { reason: 'label', max: LABEL_MAX }) };
+  }
+  return null;
+}
+
+function cmdSave(c, a) {
+  const bad = labelIssue(flag(a, 'name'));
+  if (bad) return fail(bad.code, [bad.issue]);
+  const label = String(flag(a, 'name')).trim();
+  return locked(c, (cc) => {
+    const gate = saveGateIssue(cc, 'save');
+    if (gate) return fail(4, [gate]);
+    const slot = freeSlot(cc.dir, `save-${cc.state.rev}`);
+    const manifest = manifestOf(cc, slot, label, null);
+    writeSave(cc, slot, manifest);
+    return ok({ save: manifest }, `saved ${cc.cid} turn ${cc.state.turn} as ${slot}`);
+  }, { allowDrift: true });
+}
+
+function cmdSaves(c) {
+  const saves = listSaves(c.dir);
+  return ok({ saves }, saves.map((m) => `${m.slot}  turn ${m.turn} (${m.season} ${m.year})  ${m.label ?? `autosave before ${m.auto?.slot}`}`).join('\n') || 'no saves');
+}
+
+function cmdLoad(c, a) {
+  const slot = flag(a, 'slot');
+  if (slot === undefined) return fail(3, [cliIssue('cli.missing_input', '/slot', 'load needs --slot <slot>', { reason: 'usage' })]);
+  if (!CID.test(slot)) return fail(2, [cliIssue('format', '/slot', `slot id "${slot}" must match ${CID.source}`, { reason: 'slot-id', pattern: CID.source })]);
+  // Loading a save as a new campaign would need a new journal and anchor under another id; not offered.
+  if (flag(a, 'as') !== undefined) return fail(2, [cliIssue('format', '/as', 'load restores a save into its own campaign only', { reason: 'fork-unsupported' })]);
+  return locked(c, (cc) => {
+    const gate = saveGateIssue(cc, 'load');
+    if (gate) return fail(4, [gate]);
+    const src = join(cc.dir, SAVES, slot);
+    const manifest = tryJson(join(src, 'manifest.json')).value;
+    if (manifest?.format !== SAVE_FORMAT || manifest.slot !== slot || !existsSync(join(src, 'campaign', LAYOUT.state))) {
+      return fail(3, [cliIssue('cli.no_save', '/slot', `campaign ${cc.cid} has no save "${slot}"`, { slot })]);
+    }
+    const stage = join(cc.dir, RESTORE);
+    rmSync(stage, { recursive: true, force: true, maxRetries: 5 });
+    copySnapshot(join(src, 'campaign'), join(stage, 'new'));
+    const bad = verifySave(cc, join(stage, 'new'), manifest);
+    if (bad.length) {
+      rmSync(stage, { recursive: true, force: true, maxRetries: 5 });
+      return fail(exitFor(bad) || 2, bad);
+    }
+    const autosave = freeSlot(cc.dir, `autosave-${cc.state.rev}`);
+    writeSave(cc, autosave, manifestOf(cc, autosave, null, { reason: 'load', slot }));
+    crashPoint('load:staged');
+    writeJsonAtomic(join(stage, 'step.json'), { step: 'staged', slot, autosave });
+    settleRestore(cc.dir);
+
+    const after = loadCampaign(cc.root, cc.cid);
+    if (after.error) return after.error;
+    const lc = after.c;
+    const t = guard(lc, { allowDrift: true });
+    const kept = cliIssue('cli.recovered', '/slot', `the files before the load are in ${autosave}`, { reason: 'load-autosave', autosave }, 'warning');
+    if (t.length) return fail(exitFor(t), [...t, kept]);
+    const issues = [];
+    refreshAfterLoad(lc, issues);
+    if (lc.drift) issues.push(cliIssue('cli.world_drift', '/world', 'the save was made under another world package; transitions wait for repin', { reason: 'save-world', world: lc.state.campaign.world.id }, 'warning'));
+    const { state } = lc;
+    const data = { slot, autosave, turn: state.turn, phase: state.phase, status: state.status, rev: state.rev, stateHash: stateHash(state), drift: lc.drift };
+    return { ...ok(data, `loaded ${slot} into ${cc.cid}: turn ${state.turn}, rev ${state.rev}; previous files in ${autosave}`), issues };
+  }, { allowDrift: true });
+}
+
 // --- main --------------------------------------------------------------------
 
-const NEEDS_CAMPAIGN = new Set(['status', 'preview', 'roll', 'seal', 'apply', 'open', 'tasks', 'ingest', 'replay', 'repin']);
+const NEEDS_CAMPAIGN = new Set(['status', 'preview', 'roll', 'seal', 'apply', 'open', 'tasks', 'ingest', 'replay', 'repin', 'save', 'saves', 'load']);
+
+/** An interrupted load is settled before any command reads the campaign, also one that takes no lock. */
+function settleFirst(root, cid) {
+  if (typeof cid !== 'string' || !CID.test(cid) || !existsSync(join(campaignDir(root, cid), RESTORE))) return { issues: [] };
+  try {
+    return withLock(campaignDir(root, cid), 'campaign', () => {
+      const issues = settledIssues(settleRestore(campaignDir(root, cid)));
+      const restored = issues.some((i) => i.params?.reason === 'load-completed') ? loadCampaign(root, cid) : null;
+      if (restored?.c) refreshAfterLoad(restored.c, issues);
+      return { issues };
+    });
+  } catch (err) {
+    if (err instanceof LockError) return { error: fail(4, [lockHeld(cid)]) };
+    throw err;
+  }
+}
 
 function run(argv) {
   const a = parseArgs(argv);
@@ -1196,9 +1477,15 @@ function run(argv) {
     default:
   }
   if (!NEEDS_CAMPAIGN.has(cmd)) return fail(2, [cliIssue('cli.unknown_command', '', `unknown command "${cmd ?? ''}"`, { command: cmd ?? '' })]);
+  const settled = settleFirst(rootOf(), flag(a, 'campaign'));
+  if (settled.error) return settled.error;
   const loaded = loadCampaign(rootOf(), flag(a, 'campaign'));
   if (loaded.error) return loaded.error;
-  const c = loaded.c;
+  const r = dispatch(cmd, loaded.c, a);
+  return settled.issues.length ? { ...r, issues: [...settled.issues, ...(r.issues ?? [])] } : r;
+}
+
+function dispatch(cmd, c, a) {
   switch (cmd) {
     case 'status': return cmdStatus(c, a);
     case 'preview': return cmdPreview(c, a);
@@ -1209,6 +1496,9 @@ function run(argv) {
     case 'tasks': return cmdTasks(c, a);
     case 'ingest': return cmdIngest(c, a);
     case 'repin': return cmdRepin(c);
+    case 'save': return cmdSave(c, a);
+    case 'saves': return cmdSaves(c);
+    case 'load': return cmdLoad(c, a);
     default: return cmdReplay(c, a);
   }
 }

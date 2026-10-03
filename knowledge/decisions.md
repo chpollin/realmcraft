@@ -207,3 +207,11 @@ The owner settled the open questions for M1 as follows. Each can be revised by t
 - Date 2026-10-03, revises E1.
 - Decision. `knowledge/` holds the specification and architecture of the project as a Promptotyping knowledge base in English. The memory of the former game-master campaigns is removed from `main` and stays in the branch `archiv/vor-neuaufbau`. `docs/` is dissolved into `knowledge/` except for legacy documents that legacy code still references.
 - Reason. The owner wants one place that holds the whole specification, and the old campaigns are no longer played.
+
+### D24 Named saves inside the campaign
+
+- Date 2026-10-03, extends D8 and D18.
+- Decision. A save is a full copy of the campaign folder under `campaigns/<cid>/saves/<slot>/` with a manifest, written and restored only by the kernel CLI (`save`, `saves`, `load`) under the campaign lock. Saving needs a playing campaign in planning. Loading needs planning or an ended campaign, restores in place and first keeps the replaced files as the save `autosave-<rev>`. A load is staged, checked like a transition and swapped in with a step marker, so a crash is either dropped or completed by the next command. Neither runs while a `/zug` run marker is active. Loading a save as a new campaign id is not offered.
+- Reason. The owner asked for a main menu with continue, load, options and quit and for saving a game. A copy of the whole folder keeps journal, roll ledger and library together, so the existing integrity checks and `replay` prove a restored campaign without a second format. Allowing load after the end lets a lost game return to an earlier season.
+- Consequence. Agents never read `saves/` or the staging folder `.restore/` (guard hook). A save made under another world package restores into the drift state and waits for `repin`. A fork under a new id would need a new journal anchored on the saved state and the save's agent content in the library, which is more than the request carried.
+- Revisit when saves should leave the campaign folder, be exported, or when their disk use matters.
