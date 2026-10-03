@@ -104,6 +104,13 @@ export function threatLayer(state, world, pid, unitMobility) {
   const mark = (k, level) => {
     if (Object.hasOwn(known, k) && (tiles[k] ?? 0) < level) tiles[k] = level;
   };
+  // Reach is computed over the roads the people knows, so a road on an unseen
+  // tile cannot show through a longer or shorter reach.
+  let seen = null;
+  const seenState = () => seen ??= {
+    ...state,
+    map: { ...state.map, features: Object.fromEntries(Object.entries(state.map.features).filter(([k]) => Object.hasOwn(known, k))) },
+  };
   for (const other of peopleIds(state)) {
     if (other === pid) continue;
     for (const u of state.peoples[other]?.units ?? []) {
@@ -112,7 +119,7 @@ export function threatLayer(state, world, pid, unitMobility) {
       sources.push({ kind: 'unit', people: other, unit: u.id, tile: u.tile, hostile });
       mark(u.tile, 2);
       const mob = unitMobility ? unitMobility(other, u) : 1;
-      for (const k of Object.keys(reach(state, world, u.tile, moveBudget(mob)))) mark(k, 1);
+      for (const k of Object.keys(reach(seenState(), world, u.tile, moveBudget(mob)))) mark(k, 1);
     }
   }
   for (const [k, f] of Object.entries(state.map.features)) {

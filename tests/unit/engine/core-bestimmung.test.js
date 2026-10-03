@@ -4,6 +4,8 @@ import * as bestimmung from '../../../engine/core/bestimmung.js';
 import { orderContext } from '../../../engine/core/orders.js';
 import { regionTerrain, relKey } from '../../../engine/core/state.js';
 import { validateCampaign } from '../../../engine/content/validate.js';
+import { scoreBestimmung } from '../../../engine/content/budget.js';
+import { statsOf } from '../../../engine/core/stats.js';
 import { assertCovered, envWith, fresh, knownEntry, context, logKinds, trivialDestiny } from '../../fixtures/engine/k1/research.js';
 
 const H = 'hochweide';
@@ -305,9 +307,20 @@ test('destiny.adopt is a unique main order with the council tag', () => {
   assert.equal(adoptDef.unique, true);
 });
 
+// Four turns of practice outside the old destiny (its tags are weide, winter, wege) and the given offers, as the open step leaves them.
+function readyToSwitch(state, pid, ...refs) {
+  const t = state.turn;
+  state.peoples[pid].practice.ledger = [t - 4, t - 3, t - 2, t - 1].map((turn) => ({ turn, tags: { handel: 2 } }));
+  state.peoples[pid].bestimmung.offers = refs.map((ref) => ({ ref, offeredAt: t, origin: 'pool' }));
+  return state;
+}
+
+// Updated for M3: a switch now needs the practice condition and an offer, so the tests that adopted from a bare state prepare both.
 test('destiny.adopt takes a known destiny other than the current one', () => {
   const env = envWith({ bestimmungen: [holdsDestiny] });
   const s = fresh(env);
+  s.turn = 6;
+  readyToSwitch(s, H, 'ausharren@1');
   const ox = oxFor(s, env);
   assert.deepEqual(adoptDef.check(ox, adoptOrder('ausharren@1')), []);
   assert.equal(adoptDef.check(ox, adoptOrder('ueberdauern@1'))[0].code, 'target');
@@ -318,7 +331,8 @@ test('destiny.adopt takes a known destiny other than the current one', () => {
 test('destiny.adopt moves the old destiny into the history and charges standing and loyalty', () => {
   const env = envWith({ bestimmungen: [holdsDestiny] });
   const s = fresh(env);
-  s.turn = 2;
+  s.turn = 6;
+  readyToSwitch(s, H, 'ausharren@1');
   s.peoples[H].standing = 2;
   const loyalty = (state) => Object.fromEntries(state.peoples[H].council.map((m) => [m.id, m.loyalty]));
   const before = loyalty(s);
@@ -326,9 +340,10 @@ test('destiny.adopt moves the old destiny into the history and charges standing 
   adoptDef.resolve(tc, oxFor(s, env), adoptOrder('ausharren@1'), { costs: {}, probe: null });
   const p = tc.state.peoples[H];
   assert.equal(p.bestimmung.ref, 'ausharren@1');
-  assert.equal(p.bestimmung.adoptedAt, 2);
+  assert.equal(p.bestimmung.adoptedAt, 6);
+  assert.equal(p.bestimmung.offers, undefined, 'the offers are used up');
   assert.ok(p.bestimmung.milestones.every((m) => !m.reached && m.progress === 0 && m.reachedAt === null));
-  assert.deepEqual(p.bestimmung.history, [{ ref: 'ueberdauern@1', adoptedAt: 0, endedAt: 2, outcome: 'switched' }]);
+  assert.deepEqual(p.bestimmung.history, [{ ref: 'ueberdauern@1', adoptedAt: 0, endedAt: 6, outcome: 'switched' }]);
   assert.equal(p.standing, 1);
   const after = loyalty(tc.state);
   // The old destiny names weide, winter and wege; ulrun favors weide, garmund favors wege, torhild neither.
@@ -342,7 +357,8 @@ test('destiny.adopt moves the old destiny into the history and charges standing 
 test('the history of a people keeps its last twenty destinies', () => {
   const env = envWith({ bestimmungen: [holdsDestiny] });
   const s = fresh(env);
-  s.turn = 2;
+  s.turn = 6;
+  readyToSwitch(s, H, 'ausharren@1');
   s.peoples[H].bestimmung.history = Array.from({ length: 20 }, (_, i) => ({ ref: `alt-${i}@1`, adoptedAt: 0, endedAt: 0, outcome: 'switched' }));
   const tc = context(s, env, 'orders');
   adoptDef.resolve(tc, oxFor(s, env), adoptOrder('ausharren@1'), { costs: {}, probe: null });
@@ -355,17 +371,21 @@ test('the history of a people keeps its last twenty destinies', () => {
 test('destiny.adopt is possible once per calendar year', () => {
   const env = envWith({ bestimmungen: [holdsDestiny, trivialDestiny('leicht')] });
   const s = fresh(env);
-  s.turn = 1;
+  s.turn = 5;
+  readyToSwitch(s, H, 'ausharren@1');
   const tc = context(s, env, 'orders');
   adoptDef.resolve(tc, oxFor(s, env), adoptOrder('ausharren@1'), { costs: {}, probe: null });
   const adopted = tc.state;
-  for (const [turn, allowed] of [[2, false], [3, false], [4, true]]) {
+  for (const [turn, allowed] of [[6, false], [7, false], [8, true]]) {
     const state = { ...structuredClone(adopted), turn };
+    // The new destiny's tags are winter and wege; the practice stays outside them.
+    readyToSwitch(state, H, 'leicht@1');
     const issues = adoptDef.check(oxFor(state, env), adoptOrder('leicht@1'));
     assert.equal(issues.length === 0, allowed, `turn ${turn}`);
   }
   // The destiny a people starts with does not use up the year.
-  assert.deepEqual(adoptDef.check(oxFor({ ...structuredClone(fresh(env)), turn: 2 }, env), adoptOrder('ausharren@1')), []);
+  const start = readyToSwitch({ ...structuredClone(fresh(env)), turn: 6 }, H, 'ausharren@1');
+  assert.deepEqual(adoptDef.check(oxFor(start, env), adoptOrder('ausharren@1')), []);
 });
 
 test('a people without a destiny can adopt one, and a second adoption in the same year is refused', () => {
@@ -380,4 +400,276 @@ test('a people without a destiny can adopt one, and a second adoption in the sam
   assert.equal(esk.standing, 0);
   const again = { ...structuredClone(tc.state), turn: 6 };
   assert.equal(adoptDef.check(oxFor(again, env, 'esk'), adoptOrder('leicht@1')).length, 1);
+});
+
+// --- M3: switching needs practice and an offer ---------------------------------------------------------
+
+const withTags = (id, tags, rev = 1) => ({ ...trivialDestiny(id, tags), rev });
+const ledgerOf = (turns, tags = { handel: 2 }) => turns.map((turn) => ({ turn, tags }));
+
+test('canSwitchDestiny needs the four turns before the current one, each without a tag of the destiny', () => {
+  const env = envWith();
+  const s = fresh(env);
+  s.turn = 6;
+  const can = () => bestimmung.canSwitchDestiny(s, env, H);
+  assert.equal(can(), false, 'no practice history at all');
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  assert.equal(can(), true);
+  s.peoples[H].practice.ledger = [...ledgerOf([2, 3, 4]), { turn: 5, tags: { handel: 1, weide: 1 } }];
+  assert.equal(can(), false, 'one tag of the destiny in the last turn');
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 5]);
+  assert.equal(can(), false, 'a turn without a ledger row is no divergence');
+  s.peoples[H].practice.ledger = ledgerOf([1, 2, 3, 4]);
+  assert.equal(can(), false, 'the rows are not the four turns immediately before');
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  const projection = { ...structuredClone(s), peoples: { [H]: structuredClone(s.peoples[H]) } };
+  assert.equal(bestimmung.canSwitchDestiny(projection, env, H), true, 'a projection carries the own people only');
+  assert.equal(bestimmung.canSwitchDestiny(s, env, 'esk'), true, 'a people without a destiny has nothing to diverge from');
+  assert.equal(bestimmung.canSwitchDestiny(s, env, 'unbekannt'), false);
+});
+
+test('M3.1 a fresh campaign cannot adopt any destiny at turn 0, neither without practice nor without an offer', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny] });
+  const s = fresh(env);
+  assert.equal(s.turn, 0);
+  assert.equal(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1'))[0].code, 'target');
+  s.turn = 6;
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  assert.match(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1'))[0].message, /not offered/);
+  s.peoples[H].bestimmung.offers = [{ ref: 'ausharren@1', offeredAt: 6, origin: 'pool' }];
+  assert.deepEqual(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1')), []);
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5], { weide: 1 });
+  assert.match(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1'))[0].message, /practice/);
+});
+
+test('an offer is a destiny offered to this people and runs out after the candidate life', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny, withTags('leicht', ['handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  readyToSwitch(s, H, 'ausharren@1');
+  assert.equal(adoptDef.check(oxFor(s, env), adoptOrder('leicht@1')).length, 1, 'only an offered destiny can be adopted');
+  s.turn = 9;
+  readyToSwitch(s, H);
+  s.peoples[H].bestimmung.offers = [{ ref: 'ausharren@1', offeredAt: 6, origin: 'pool' }];
+  assert.deepEqual(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1')), [], 'three turns old, still open');
+  s.turn = 10;
+  readyToSwitch(s, H);
+  s.peoples[H].bestimmung.offers = [{ ref: 'ausharren@1', offeredAt: 6, origin: 'pool' }];
+  assert.equal(adoptDef.check(oxFor(s, env), adoptOrder('ausharren@1')).length, 1, 'four turns old, run out');
+});
+
+test('M3.1 the kernel re-checks the order against the opening state and blocks it with a notice', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny] });
+  const s = fresh(env);
+  s.turn = 6;
+  const tc = context(s, env, 'orders');
+  adoptDef.resolve(tc, oxFor(s, env), adoptOrder('ausharren@1'), { costs: {}, probe: null });
+  assert.equal(tc.state.peoples[H].bestimmung.ref, 'ueberdauern@1');
+  const note = tc.log.find((e) => e.kind === 'order.blocked');
+  assert.ok(note);
+  assert.deepEqual(note.visibleTo, [H]);
+  assert.equal(tc.state.peoples[H].standing, s.peoples[H].standing);
+});
+
+test('M3.2 offerDestiny appends a visible-to-owner offer and refuses every unfit case', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny, withTags('leicht', ['handel']), withTags('dritte', ['handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  const early = context(s, env, 'agents');
+  assert.equal(bestimmung.offerDestiny(early, H, 'ausharren@1', 'agent', { path: '/p' })[0].path, '/p', 'no practice yet');
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  const tc = context(s, env, 'agents');
+  const offer = (ref, origin = 'agent') => bestimmung.offerDestiny(tc, H, ref, origin);
+  assert.deepEqual(offer('ausharren@1'), []);
+  const entry = tc.log.find((e) => e.kind === 'bestimmung.offer');
+  assert.deepEqual(entry.visibleTo, [H]);
+  assert.deepEqual(tc.state.peoples[H].bestimmung.offers, [{ ref: 'ausharren@1', offeredAt: 6, origin: 'agent' }]);
+  assert.equal(offer('ausharren@1').length, 1, 'already offered');
+  assert.equal(offer('ueberdauern@1').length, 1, 'already the own destiny');
+  assert.equal(offer('gibtsnicht@1').length, 1, 'unknown');
+  assert.equal(offer('leicht@1', 'wuerfel').length, 1, 'origin');
+  assert.deepEqual(offer('leicht@1', 'pool'), []);
+  assert.equal(offer('dritte@1').length, 1, 'two offers are open');
+  assert.equal(bestimmung.offerDestiny(tc, 'esk', 'leicht@1', 'pool').length, 1, 'a people without a destiny state holds no offer');
+  assert.deepEqual(validateCampaign(withoutDerived(tc.state)).issues, []);
+});
+
+test('M3.2 offerDestinyPool offers up to two destinies that meet the practice, strongest overlap first, never the own', () => {
+  const env = envWith({ bestimmungen: [withTags('a-ziel', ['handel']), withTags('b-ziel', ['handel', 'markt']), withTags('c-ziel', ['handel']), withTags('d-ziel', ['krieg']), withTags('e-ziel', ['weide', 'handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5], { handel: 2, markt: 1 });
+  const tc = context(s, env, 'open');
+  bestimmung.offerDestinyPool(tc, H);
+  assert.deepEqual(tc.state.peoples[H].bestimmung.offers.map((o) => o.ref), ['b-ziel@1', 'a-ziel@1']);
+  assert.ok(tc.state.peoples[H].bestimmung.offers.every((o) => o.origin === 'pool' && o.offeredAt === 6));
+  const again = context(tc.state, env, 'open');
+  bestimmung.offerDestinyPool(again, H);
+  assert.deepEqual(again.log, [], 'two offers are open, nothing new');
+  // The practice turns back to the destiny: the offers lapse.
+  const back = structuredClone(tc.state);
+  back.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5], { weide: 1 });
+  const lapse = context(back, env, 'open');
+  bestimmung.offerDestinyPool(lapse, H);
+  assert.equal(lapse.state.peoples[H].bestimmung.offers, undefined);
+  // A people that still practises its destiny gets no offer, and neither does one without a destiny state.
+  const quiet = fresh(env);
+  quiet.turn = 6;
+  const q = context(quiet, env, 'open');
+  bestimmung.offerDestinyPool(q, H);
+  bestimmung.offerDestinyPool(q, 'esk');
+  assert.deepEqual(q.log, []);
+});
+
+test('M3.2 the pool run is deterministic and a pool offer can be adopted at once', () => {
+  const env = envWith({ bestimmungen: [withTags('a-ziel', ['handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  const run = () => { const tc = context(structuredClone(s), env, 'open'); bestimmung.offerDestinyPool(tc, H); return tc; };
+  assert.deepEqual(run().state, run().state);
+  const tc = run();
+  assert.deepEqual(adoptDef.check(oxFor(tc.state, env), adoptOrder('a-ziel@1')), []);
+});
+
+test('a destiny another people holds is neither offered by the pool nor adoptable, whatever its revision', () => {
+  const env = envWith({ bestimmungen: [withTags('rivalenziel', ['handel']), withTags('rivalenziel', ['handel'], 2), withTags('freies-ziel', ['handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  s.peoples.esk.bestimmung = bestimmung.initBestimmung(env, 'rivalenziel@1', 0);
+  const tc = context(s, env, 'open');
+  bestimmung.offerDestinyPool(tc, H);
+  assert.deepEqual(tc.state.peoples[H].bestimmung.offers.map((o) => o.ref), ['freies-ziel@1']);
+  for (const ref of ['rivalenziel@1', 'rivalenziel@2']) {
+    assert.match(bestimmung.offerDestiny(tc, H, ref, 'agent')[0].message, /another people/);
+    const forced = structuredClone(tc.state);
+    forced.peoples[H].bestimmung.offers = [{ ref, offeredAt: 6, origin: 'agent' }];
+    assert.match(adoptDef.check(oxFor(forced, env), adoptOrder(ref))[0].message, /another people/);
+  }
+  // A projection hides the rival's destiny; the kernel stops the order at resolution on the full state.
+  const forced = structuredClone(s);
+  forced.peoples[H].bestimmung.offers = [{ ref: 'rivalenziel@2', offeredAt: 6, origin: 'agent' }];
+  const projection = structuredClone(forced);
+  projection.peoples.esk.bestimmung = null;
+  assert.deepEqual(adoptDef.check(oxFor(projection, env), adoptOrder('rivalenziel@2')), []);
+  const resolving = context(forced, env, 'orders');
+  adoptDef.resolve(resolving, oxFor(projection, env), adoptOrder('rivalenziel@2'), { costs: {}, probe: null });
+  assert.equal(resolving.state.peoples[H].bestimmung.ref, 'ueberdauern@1');
+  assert.ok(logKinds(resolving).includes('order.blocked'));
+});
+
+// --- M3.3 milestones of a new destiny count from the next season ---------------------------------------
+
+test('M3.3 milestones of a destiny adopted this turn are not checked until the next season', () => {
+  const env = envWith({ bestimmungen: [trivialDestiny('leicht', ['handel'])] });
+  const s = fresh(env);
+  s.turn = 6;
+  readyToSwitch(s, H, 'leicht@1');
+  const tc = context(s, env, 'orders');
+  adoptDef.resolve(tc, oxFor(s, env), adoptOrder('leicht@1'), { costs: {}, probe: null });
+  bestimmung.resolveBestimmung(tc);
+  assert.equal(tc.state.status, 'playing');
+  assert.ok(tc.state.peoples[H].bestimmung.milestones.every((m) => !m.reached));
+  const { next } = season({ ...tc.state, turn: 7 }, env);
+  assert.equal(next.result.winner, H);
+});
+
+test('the starting destiny is checked in the very first season', () => {
+  const env = envWith({ bestimmungen: [trivialDestiny('leicht')] });
+  const s = adopt(fresh(env), env, H, 'leicht@1');
+  assert.equal(s.turn, 0);
+  const { next } = season(s, env);
+  assert.equal(next.result.winner, H);
+  assert.ok(next.peoples[H].bestimmung.milestones.every((m) => m.reached && m.reachedAt === 0));
+});
+
+// --- M3.4 ties and difficulty ---------------------------------------------------------------------------
+
+test('M3.4 a shared victory goes to the higher difficulty, then to the smaller id', () => {
+  const env = envWith({ bestimmungen: [trivialDestiny('leicht')] });
+  const make = (difficulties) => {
+    const s = fresh(env);
+    s.turn = 6;
+    for (const [pid, d] of Object.entries(difficulties)) {
+      adopt(s, env, pid, 'leicht@1');
+      s.peoples[pid].bestimmung.difficulty = d;
+    }
+    return season(s, env).next.result.winner;
+  };
+  assert.equal(make({ esk: 5, glutreiter: 20 }), 'glutreiter');
+  assert.equal(make({ esk: 5, glutreiter: 20, [H]: 20 }), 'glutreiter', 'equal difficulty falls back to the smaller id');
+  assert.equal(make({ esk: 20, glutreiter: 5 }), 'esk');
+  // Without a stored difficulty (campaigns from before M3) the kernel measures the definitions.
+  const hard = { id: 'schwer', rev: 1, name: 'Schwer', summary: 'Mehr verlangt.', tags: ['weide'], milestones: [
+    { id: 'a', text: 'Drei Sippen', predicate: { pred: 'population.atLeast', value: 3 } },
+    { id: 'b', text: 'Wissen', predicate: { pred: 'development.known', count: 1 } },
+    { id: 'c', text: 'Siedlung', predicate: { pred: 'settlement', kind: 'lager', count: 1 } },
+  ] };
+  const envHard = envWith({ bestimmungen: [trivialDestiny('leicht'), hard] });
+  const s = fresh(envHard);
+  s.turn = 6;
+  adopt(s, envHard, 'esk', 'leicht@1');
+  adopt(s, envHard, 'glutreiter', 'schwer@1');
+  assert.equal(season(s, envHard).next.result.winner, 'glutreiter');
+});
+
+test('M3.4 destinyDifficulty equals the validator score of the budget module', () => {
+  const everything = { id: 'alles', rev: 1, name: 'Alles', summary: 'Jede Art Meilenstein.', tags: ['weide'], milestones: [
+    { id: 'm1', text: 't', predicate: { pred: 'controls', count: 3 } },
+    { id: 'm2', text: 't', predicate: { pred: 'controls', count: 2, terrain: 'alm' } },
+    { id: 'm3', text: 't', predicate: { pred: 'stat.atLeast', key: 'verteidigung', value: 2 } },
+    { id: 'm4', text: 't', predicate: { pred: 'resource.atLeast', key: 'nahrung', value: 20 } },
+    { id: 'm5', text: 't', predicate: { pred: 'population.atLeast', value: 6 } },
+    { id: 'm6', text: 't', predicate: { pred: 'relation', people: '$any', cmp: 'gte', value: 2 } },
+    { id: 'm7', text: 't', predicate: { pred: 'relation', people: 'esk', cmp: 'lt', value: 0 } },
+    { id: 'm8', text: 't', predicate: { pred: 'development.known', count: 3, tier: 1, tags: ['wege'] } },
+    { id: 'm9', text: 't', predicate: { pred: 'subjugated', people: 'esk' } },
+    { id: 'm10', text: 't', predicate: { pred: 'settlement', kind: 'dorf', count: 2 } },
+    { id: 'm11', text: 't', predicate: { pred: 'holds', predicate: { pred: 'population.atLeast', value: 5 }, seasons: 4 } },
+  ] };
+  const env = envWith({ bestimmungen: [everything, holdsDestiny] });
+  const regeln = env.regeln;
+  for (const def of env.content.bestimmungen) {
+    assert.equal(bestimmung.destinyDifficulty(env, def), scoreBestimmung(def, { regeln }).difficulty, def.id);
+  }
+  const s = fresh(env);
+  s.relations[relKey(H, 'esk')].value = 1;
+  const without = { ...everything, milestones: everything.milestones.filter((m) => m.id !== 'm2') };
+  const ctx = { regeln, people: s.peoples[H], state: s, stats: statsOf(s, env, H), resolve: (ref) => env.entwicklung(ref) };
+  assert.equal(bestimmung.destinyDifficulty(env, without, { state: s, pid: H }), scoreBestimmung(without, ctx).difficulty);
+  // A terrain-bound count starts from the regions of that terrain the people really controls.
+  const own = Object.keys(s.map.control).find((r) => s.map.control[r] === H);
+  const terrain = regionTerrain(env.world(s.map.seed), own);
+  const bound = { ...everything, milestones: [{ id: 'm', text: 't', predicate: { pred: 'controls', count: 1, terrain } }] };
+  assert.equal(bestimmung.destinyDifficulty(env, bound, { state: s, pid: H }), 0);
+  assert.equal(bestimmung.destinyDifficulty(env, bound), 3);
+});
+
+test('M3.4 adopting stores the difficulty measured against the opening state', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny] });
+  const s = fresh(env);
+  s.turn = 6;
+  readyToSwitch(s, H, 'ausharren@1');
+  const tc = context(s, env, 'orders');
+  adoptDef.resolve(tc, oxFor(s, env), adoptOrder('ausharren@1'), { costs: {}, probe: null });
+  const stored = tc.state.peoples[H].bestimmung.difficulty;
+  assert.equal(stored, bestimmung.destinyDifficulty(env, env.bestimmung('ausharren@1'), { state: s, pid: H }));
+  assert.ok(Number.isInteger(stored));
+  assert.deepEqual(validateCampaign(withoutDerived(tc.state)).issues, []);
+  assert.equal(bestimmung.initBestimmung(env, 'ausharren@1', 0).difficulty, undefined, 'campaign creation stores none');
+});
+
+// --- M3.5 tuning.collapseCore -------------------------------------------------------------------------------
+
+test('M3.5 a people collapses below tuning.collapseCore, and by default only at core 0', () => {
+  const low = (env) => { const s = fresh(env); s.peoples.esk.population.core = 1; return season(s, env); };
+  const dflt = low(envWith());
+  assert.equal(logKinds(dflt.tc).includes('people.collapsed'), false);
+  const strict = low(envWith({ tuning: { collapseCore: 2 } }));
+  assert.ok(logKinds(strict.tc).includes('people.collapsed'));
+  assert.match(strict.tc.log.find((e) => e.kind === 'people.collapsed').reason, /too few clans/);
+  assert.equal(strict.next.status, 'playing', 'an AI people going under does not end the campaign');
+  const env4 = envWith({ tuning: { collapseCore: 4 } });
+  assert.equal(season(fresh(env4), env4).next.result.kind, 'collapse');
 });

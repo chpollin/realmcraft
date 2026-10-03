@@ -4,7 +4,10 @@
 import { idOfRef } from './env.js';
 import { regionInfo } from '../world/index.js';
 
+export { RESERVED_KEYS, reservedKeyPaths } from './canon.js';
+
 export const clone = (v) => structuredClone(v);
+
 
 export function peopleIds(state) {
   return Object.keys(state.peoples).sort();

@@ -124,3 +124,14 @@ test('mapLayers: threat from a foreign unit on a visible tile, and an empty trad
   assert.deepEqual(layers.trade, []);
   assert.deepEqual(mapLayers(setup().state, env, PID).threat.sources, []);
 });
+
+test('fog: threat reach uses the unit type of a foreign unit, not the hidden modifiers of its owner', () => {
+  const { env, state } = setup();
+  state.map.known[PID]['1,1'] = 'visible';
+  state.peoples.esk.units = [{ ...unit('u-1', 'reiterschar@1'), tile: '1,1' }];
+  const plain = mapLayers(state, env, PID).threat;
+  assert.ok(Object.keys(plain.tiles).length > 1, 'the unit reaches known tiles beyond its own');
+  hw(state).statuses.push(status('t-slow', { op: 'unit.mod', unitTags: ['reiter'], stat: 'mobility', amount: -2 }));
+  state.peoples.esk.statuses.push(status('t-slow', { op: 'unit.mod', unitTags: ['reiter'], stat: 'mobility', amount: -2 }));
+  assert.deepEqual(mapLayers(state, env, PID).threat, plain);
+});

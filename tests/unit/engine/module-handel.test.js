@@ -13,6 +13,7 @@ import { RULES } from '../../../engine/core/rules.js';
 import { route, regionAt } from '../../../engine/core/map.js';
 import { distance, key, parseKey } from '../../../engine/world/index.js';
 import { homeSettlement, relKey } from '../../../engine/core/state.js';
+import { projectEvents } from '../../../engine/core/project.js';
 
 const env = testEnv();
 const world = env.world(7);
@@ -426,4 +427,42 @@ test('on a projection the offer check reads partner activity and home from the p
   const notTrading = withRelation(asTrader(start, PLAYER), PLAYER, PARTNER, { contact: true });
   assert.equal(run(proj(notTrading, true)).length, 1, 'a partner outside the traders list does not trade');
   assert.equal(tradeRoute(proj(traders, true), world, PLAYER, PARTNER).cost, tradeRoute(traders, world, PLAYER, PARTNER).cost);
+});
+
+test('fog: trade bookkeeping reaches no projection and a trade only the peoples party to it', () => {
+  const { tc } = resolveOrder(traders, env, PLAYER, handel.orders['trade.offer'], offerOrder()[0].params);
+  const seq = tc.log.filter((e) => e.kind === 'trade.seq');
+  assert.ok(seq.length > 0);
+  assert.ok(seq.every((e) => e.visibleTo.length === 0), 'the sequence counter is visible to nobody');
+  assert.deepEqual(tc.log.find((e) => e.kind === 'trade.slice')?.visibleTo ?? [], [], 'ledger creation is visible to nobody');
+  for (const pid of [RIVAL, PARTNER, PLAYER]) {
+    const kinds = projectEvents(tc.log, pid).map((e) => e.kind);
+    assert.equal(kinds.includes('trade.seq'), false, `${pid} sees no sequence entry`);
+  }
+  assert.deepEqual(projectEvents(tc.log, RIVAL).filter((e) => e.kind.startsWith('trade.')), [], 'a third people sees no trade at all');
+  assert.equal(projectEvents(tc.log, PARTNER).filter((e) => e.kind === 'trade.offer').length, 1, 'the partner sees the offer');
+});
+
+test('fog: accepting an offer and a lapsing contract stay with their parties, the market price entry names no volume', () => {
+  const { tc } = resolveOrder(offered, env, PARTNER, handel.orders['trade.accept'], { offer: 'of-0-1' });
+  assert.deepEqual(projectEvents(tc.log, RIVAL).filter((e) => e.kind.startsWith('trade.')), []);
+  const over = contextOf(running({ from: 0, until: 1 }), env);
+  runGlobal(over);
+  assert.deepEqual(projectEvents(over.log, RIVAL).filter((e) => e.kind.startsWith('trade.')), []);
+  const priced = contextOf(market, env);
+  priced.scratch.market = { erz: 5 };
+  runGlobal(priced);
+  const price = priced.log.find((e) => e.kind === 'market.price');
+  assert.deepEqual(price.visibleTo, ['all']);
+  assert.doesNotMatch(price.reason, /\d/, 'the aggregate trade volume of all peoples is not in the reason');
+});
+
+test('fog: the projection carries no sequence counter and no offer or contract of another pair', () => {
+  const s = withSlice(atTurn(traders, 2), {
+    offers: [offer({ id: 'of-1-2', from: PARTNER, to: RIVAL })], contracts: [contract({ id: 'ct-0-2', a: PARTNER, b: RIVAL })], seq: 7,
+  });
+  const p = handel.hooks.project(s, env, PLAYER, {});
+  assert.equal(JSON.stringify(p).includes('seq'), false);
+  assert.equal(JSON.stringify(p).includes('of-1-2'), false);
+  assert.equal(JSON.stringify(p).includes('ct-0-2'), false);
 });

@@ -99,8 +99,16 @@ function recordDraw(tc, pid, ref, card) {
   const prev = draws[ref];
   const next = { total: (prev?.total ?? 0) + 1, last: { ...(prev?.last ?? {}), [pid]: tc.turn } };
   draws[ref] = next;
-  noteChange(tc, 'event.history', { kind: 'campaign', id: tc.state.campaign.id }, `modules.kern.draws.${ref}`, prev ?? null, next,
+  const campaign = { kind: 'campaign', id: tc.state.campaign.id };
+  // The stored record holds when every people drew the card and how often the
+  // world did, so the entry a people sees carries only its own turn. The total
+  // is accounted for in an entry that reaches no projection. The field stops at
+  // `last` because the schema bounds its length and ids may be long.
+  const own = (turn) => (turn === undefined ? null : { [pid]: turn });
+  noteChange(tc, 'event.history', campaign, `modules.kern.draws.${ref}.last`, own(prev?.last?.[pid]), own(tc.turn),
     `${card.name} drawn by ${pid}`, { people: pid, refs: [ref] });
+  noteChange(tc, 'event.history-total', campaign, `modules.kern.draws.${ref}.total`, prev?.total ?? null, next.total,
+    `${card.name} drawn by ${pid}`, { refs: [ref] }).visibleTo = [];
 }
 
 function worldEvents(tc) {

@@ -4,6 +4,7 @@ import { ORDERS, eventProbeSpec, resolveEvents } from '../../../engine/core/even
 import { apply, emptyDraft, stateHash } from '../../../engine/core/turn.js';
 import { checkDraft } from '../../../engine/core/orders.js';
 import { fireHook } from '../../../engine/core/log.js';
+import { projectEvents } from '../../../engine/core/project.js';
 import { validate } from '../../../engine/content/schema.js';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { RULES } from '../../../engine/core/rules.js';
@@ -450,4 +451,24 @@ test('a winter turn applies, stays schema valid and is deterministic', () => {
   assert.equal(stateHash(a.state), stateHash(run().state));
   assert.ok(a.report.events.some((e) => e.kind === 'event.drawn' || e.kind === 'event.none'), 'every people had its world event');
   assert.ok(a.state.peoples[PLAYER].council.every((m) => m.age > 40), 'winter aged the council');
+});
+
+test('fog: the visible history entry of a draw carries only the drawing people, the totals reach no projection', () => {
+  const { env, state } = world((s) => {
+    s.eventDraws = { [PLAYER]: draw(2, 'kaelteeinbruch@1') };
+    s.modules.kern = { ...(s.modules.kern ?? {}), draws: { 'kaelteeinbruch@1': { total: 3, last: { esk: 5, glutreiter: 4, [PLAYER]: -2 } } } };
+  });
+  const tc = context(state, env);
+  resolveEvents(tc);
+  assert.deepEqual(tc.state.modules.kern.draws['kaelteeinbruch@1'], { total: 4, last: { esk: 5, glutreiter: 4, [PLAYER]: 0 } }, 'the stored record stays whole');
+  const [history] = entries(tc, 'event.history');
+  assert.deepEqual(history.visibleTo, [PLAYER]);
+  assert.deepEqual(history.change, { field: 'modules.kern.draws.kaelteeinbruch@1.last', before: { [PLAYER]: -2 }, after: { [PLAYER]: 0 } });
+  const [total] = entries(tc, 'event.history-total');
+  assert.deepEqual(total.visibleTo, []);
+  for (const pid of ['esk', 'glutreiter', PLAYER]) {
+    const shown = JSON.stringify(projectEvents(tc.log, pid).filter((e) => e.kind.startsWith('event.history')));
+    for (const other of ['esk', 'glutreiter']) if (other !== pid) assert.equal(shown.includes(other), false, `${pid} sees nothing of ${other}`);
+    assert.equal(shown.includes('"total"') || shown.includes('.total'), false);
+  }
 });

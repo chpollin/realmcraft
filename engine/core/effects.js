@@ -215,7 +215,7 @@ export function applyOnce(tc, pid, e, ctx = {}) {
       return setKern(tc, pid, `flags.${e.flag.replace('.', '~')}`, e.value, reason, { ...opts, kind: 'flag.set' });
     case 'meter.delta': {
       const [min, max] = meterBounds(standingOf(tc.s0, tc.env, pid), e.meter);
-      if (people.meters[e.meter] === undefined) people.meters[e.meter] = clamp(0, min, max);
+      if (!Object.hasOwn(people.meters, e.meter)) people.meters[e.meter] = clamp(0, min, max);
       return addPeople(tc, pid, `meters.${e.meter}`, e.amount, reason, { ...opts, min, max, kind: 'meter.change' }).applied !== 0;
     }
     case 'reveal':

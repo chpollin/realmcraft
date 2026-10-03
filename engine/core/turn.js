@@ -17,6 +17,7 @@
 
 import { RULES, RULES_VERSION, tune } from './rules.js';
 import { issue, hasErrors } from './issues.js';
+import { kissue } from './codes.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
 import { calendarOf } from './calendar.js';
@@ -35,6 +36,7 @@ import * as events from './events.js';
 import * as council from './council.js';
 import * as bestimmung from './bestimmung.js';
 import { computeDerived } from './derive.js';
+import { projectFor } from './project.js';
 import { fallbackDraft } from '../ai/fallback.js';
 
 const LIMITS = { chronicleTurns: RULES.chronicleTurns, chronicleMax: RULES.chronicleMax };
@@ -59,6 +61,12 @@ export function defaultAssign(env, core) {
   if (material) out[RULES.material] = material;
   return out;
 }
+
+// The seal hashes say nothing a people may learn about another's draft.
+const hideEntry = (entry) => {
+  entry.visibleTo = [];
+  return entry;
+};
 
 const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
@@ -227,8 +235,16 @@ export function preview(state, env, draft, { as } = {}) {
     unresolved: chk.unresolved,
     forecast: null,
     catalogue: null,
+    council: null,
   };
   if (state.peoples[pid]?.developments) {
+    // Loyalty and approval changes the board shows before the player decides (D15).
+    result.council = council.forecastCouncil(orderContext(state, env, pid), chk.entries);
+    const byOrder = new Map(result.council.orders.map((o) => [o.order, o]));
+    for (const o of result.orders) {
+      const f = byOrder.get(o.id);
+      o.council = f ? { loyalty: f.loyalty, meters: f.meters, depends: f.depends } : null;
+    }
     result.forecast = economy.forecast(state, env, pid, { spend: chk.costs, assign: chk.assign });
     for (const [res, n] of Object.entries(result.forecast.shortfall ?? {})) {
       if (n > 0) result.issues.push(issue('shortfall', `/forecast/${res}`, `${res}: ${n} missing at season end`));
@@ -253,15 +269,19 @@ function gatherDrafts(state, env, drafts) {
   for (const pid of peopleIds(state)) {
     if (!alive(state, pid)) continue;
     const player = state.campaign.player === pid;
+    // Every draft is checked on its people's projection, as the preview does:
+    // a check against the full state would reject (and so reveal) what the
+    // people cannot see. Hidden conflicts are decided when the order resolves.
+    const view = projectFor(state, env, pid);
     let d = drafts[pid] ?? (player ? emptyDraft(state, pid) : null);
-    let chk = d ? checkDraft(state, env, d, { as: pid, mode: 'apply' }) : null;
+    let chk = d ? checkDraft(view, env, d, { as: pid, mode: 'apply' }) : null;
     if (!player && (!d || hasErrors(chk.issues))) {
       substitutions.push({ people: pid, reason: d ? 'draft had errors' : 'no draft' });
       d = fallbackDraft(state, env, pid);
-      chk = checkDraft(state, env, d, { as: pid, mode: 'apply' });
+      chk = checkDraft(view, env, d, { as: pid, mode: 'apply' });
       if (hasErrors(chk.issues)) {
         d = emptyDraft(state, pid);
-        chk = checkDraft(state, env, d, { as: pid, mode: 'apply' });
+        chk = checkDraft(view, env, d, { as: pid, mode: 'apply' });
       }
     }
     if (hasErrors(chk.issues)) issues.push(...chk.issues.map((i) => ({ ...i, path: `/drafts/${pid}${i.path}` })));
@@ -303,12 +323,15 @@ export function seal(state, env, drafts = {}) {
   }
   for (const s of g.substitutions) notice(tc, 'draft.fallback', { kind: 'people', id: s.people }, `fallback policy orders (${s.reason})`, { people: s.people });
   tc.state.eventDraws = draws;
+  const sealed = Object.fromEntries(Object.entries(g.used).map(([pid, u]) => [pid, u.draft]));
+  const lock = Object.fromEntries(Object.keys(sealed).sort().map((pid) => [pid, hashValue(sealed[pid])]));
+  hideEntry(noteChange(tc, 'campaign.sealed', { kind: 'campaign', id: state.campaign.id }, 'sealed', state.sealed ?? null, lock, 'drafts of the season sealed'));
+  tc.state.sealed = lock;
   noteChange(tc, 'campaign.phase', { kind: 'campaign', id: state.campaign.id }, 'phase', 'planning', 'resolving', 'orders sealed');
   tc.state.phase = 'resolving';
   tc.state.rev += 1;
   const next = finish(tc, LIMITS);
   next.derived = computeDerived(next, env);
-  const sealed = Object.fromEntries(Object.entries(g.used).map(([pid, u]) => [pid, u.draft]));
   return { ok: true, issues: [], state: next, drafts: sealed, substitutions: g.substitutions, events: tc.log };
 }
 
@@ -334,6 +357,17 @@ export function apply(state, env, drafts = {}) {
   if (s0.status === 'ended') issues.push(issue('finished', '', 'the campaign has ended'));
   if (s0.phase !== 'resolving') issues.push(issue('phase', '/phase', `apply needs resolving, state is ${s0.phase}`));
   if (hasErrors(issues)) return { ok: false, issues, state };
+  // The seal lock: apply resolves exactly the drafts whose hashes the seal
+  // recorded. States sealed before the lock existed carry no hashes.
+  if (s0.sealed) {
+    for (const pid of Object.keys(s0.sealed).sort()) {
+      if (!drafts[pid] || hashValue(drafts[pid]) !== s0.sealed[pid]) {
+        issues.push(kissue('tamper', `/drafts/${pid}`, `the draft of ${pid} differs from the one sealed for turn ${s0.turn}`));
+      }
+    }
+    if (hasErrors(issues)) return { ok: false, issues, state };
+    drafts = Object.fromEntries(Object.keys(s0.sealed).map((pid) => [pid, drafts[pid]]));
+  }
   const g = gatherDrafts(s0, env, drafts);
   if (hasErrors(g.issues)) return { ok: false, issues: g.issues, state };
   const used = g.used;
@@ -399,7 +433,10 @@ export function apply(state, env, drafts = {}) {
   for (const pid of Object.keys(used).sort()) {
     for (const e of used[pid].chk.entries) if (e.order.type === 'machtprobe' && !hasErrors(e.errors)) execute(pid, e, outcomeOf(e));
   }
-  // 2. Council booking, costs against the opening stock, then all other orders.
+  // 2. Council booking, then the costs of every people against the opening
+  // stock, then all other orders. Paying all costs before any order runs keeps
+  // a raid from taking stock another people has already committed to costs.
+  const runs = {};
   for (const pid of Object.keys(used).sort()) {
     const entries = used[pid].chk.entries
       .filter((e) => e.order.type !== 'machtprobe' && !hasErrors(e.errors))
@@ -417,10 +454,17 @@ export function apply(state, env, drafts = {}) {
       }
       run.push(e);
     }
-    for (const e of run) {
-      for (const [res, n] of Object.entries(e.plan.costs ?? {})) if (n > 0) payCost(tc, pid, res, n, e.order);
-    }
-    for (const e of run) {
+    runs[pid] = run;
+  }
+  for (const pid of Object.keys(runs).sort()) {
+    runs[pid] = runs[pid].filter((e) => {
+      if (payCosts(tc, pid, e)) return true;
+      orderReport.push({ people: pid, id: e.order.id, type: e.order.type, status: 'unpaid', band: null, venture: e.venture });
+      return false;
+    });
+  }
+  for (const pid of Object.keys(runs).sort()) {
+    for (const e of runs[pid]) {
       execute(pid, e, outcomeOf(e));
       if (e.vote?.required) council.afterCouncilOrder(tc, contexts[pid], e);
     }
@@ -489,12 +533,27 @@ export function apply(state, env, drafts = {}) {
   return { ok: true, issues: [], state: next, report, events: report.events };
 }
 
-function payCost(tc, pid, res, n, order) {
-  const before = tc.state.peoples[pid].resources[res] ?? 0;
-  const after = Math.max(0, before - n);
-  tc.state.peoples[pid].resources[res] = after;
-  record(tc, 'order.cost', { kind: 'people', id: pid }, { field: `resources.${res}`, delta: after - before },
-    `order ${order.id} (${order.type}) costs ${n} ${res}`, { people: pid });
+/**
+ * Pays all costs of one order or none. The draft check summed the costs
+ * against the opening stock, so a gap here comes from an earlier step of the
+ * season (a Machtprobe); the order then does not run, with a notice, instead
+ * of a silently clamped payment.
+ */
+function payCosts(tc, pid, e) {
+  const stock = tc.state.peoples[pid].resources;
+  const costs = Object.entries(e.plan.costs ?? {}).filter(([, n]) => n > 0);
+  const gap = costs.filter(([res, n]) => (Object.hasOwn(stock, res) ? stock[res] : 0) < n);
+  if (gap.length) {
+    notice(tc, 'order.unpaid', { kind: 'people', id: pid },
+      `order ${e.order.id} (${e.order.type}) does not run: ${gap.map(([res, n]) => `${n} ${res} needed, ${Object.hasOwn(stock, res) ? stock[res] : 0} held`).join(', ')}`, { people: pid });
+    return false;
+  }
+  for (const [res, n] of costs) {
+    stock[res] -= n;
+    record(tc, 'order.cost', { kind: 'people', id: pid }, { field: `resources.${res}`, delta: -n },
+      `order ${e.order.id} (${e.order.type}) costs ${n} ${res}`, { people: pid });
+  }
+  return true;
 }
 
 /**
@@ -579,6 +638,10 @@ function finalize(tc, env) {
   }
   noteChange(tc, 'campaign.turn', { kind: 'campaign', id: tc.state.campaign.id }, 'turn', tc.turn, nextTurn, 'season ends');
   tc.state.eventDraws = {};
+  if (tc.state.sealed) {
+    hideEntry(noteChange(tc, 'campaign.sealed', { kind: 'campaign', id: tc.state.campaign.id }, 'sealed', tc.state.sealed, null, 'season resolved, the seal is lifted'));
+    delete tc.state.sealed;
+  }
   tc.state.turn = nextTurn;
   tc.state.rev += 1;
   tc.state.phase = 'agents';
@@ -593,7 +656,9 @@ export function open(state, env) {
   const tc = createContext(state, env);
   tc.step = 'open';
   for (const pid of peopleIds(state)) {
-    if (alive(state, pid)) research.offerPool(tc, pid);
+    if (!alive(state, pid)) continue;
+    research.offerPool(tc, pid);
+    bestimmung.offerDestinyPool(tc, pid);
   }
   noteChange(tc, 'campaign.phase', { kind: 'campaign', id: state.campaign.id }, 'phase', 'agents', 'planning', 'planning opens');
   tc.state.phase = 'planning';

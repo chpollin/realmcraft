@@ -240,6 +240,9 @@ export const CAMPAIGN_DEFS = Object.freeze({
     ingested: map(ref('proposalId'), ref('hash')),
     // Default {}: draws of the current resolution, keyed by people.
     eventDraws: map(peopleKey, ref('eventDraw')),
+    // Default {}: hash of every draft sealed for the current resolution, keyed
+    // by people; apply resolves only drafts with exactly these hashes.
+    sealed: map(peopleKey, ref('hash')),
     // Default [].
     pendingChoices: arr(ref('pendingChoice'), 24),
     chronicle: arr(ref('logEntry'), 2000),
@@ -247,7 +250,7 @@ export const CAMPAIGN_DEFS = Object.freeze({
     // Default null.
     result: nullable(ref('result')),
     derived: ref('derived'),
-  }, ['derived', 'eventDraws', 'pendingChoices', 'result']),
+  }, ['derived', 'eventDraws', 'pendingChoices', 'result', 'sealed']),
 });
 
 export const campaign = bundle('campaign/1', CAMPAIGN_DEFS.campaign, COMMON_DEFS, EFFECT_DEFS, BESTIMMUNG_DEFS, EVENT_DEFS, CAMPAIGN_DEFS);

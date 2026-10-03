@@ -100,6 +100,69 @@ export function afterCouncilOrder(tc, ox, entry) {
   }
 }
 
+/**
+ * Council consequences of checked draft entries that are certain before any
+ * roll, for the preview: per order the loyalty change of each member and the
+ * change of meters (approval), and the season total under the per-turn cap
+ * and the -5..5 range. Orders whose effect hangs on a probe (Machtprobe) or
+ * on a pending override are listed with `depends` and not counted.
+ * Mirrors bookDecree, afterCouncilOrder, the talk order and destiny.adopt.
+ */
+export function forecastCouncil(ox, entries) {
+  const { people, env } = ox;
+  const approval = RULES.approval;
+  const orders = [];
+  const loyalty = {};
+  const meters = {};
+  const add = (map, key, n) => {
+    if (n) map[key] = (map[key] ?? 0) + n;
+  };
+  for (const e of entries) {
+    if (!e.def || e.errors.some((x) => x.severity === 'error')) continue;
+    const lo = {};
+    const me = {};
+    let depends = null;
+    const vote = e.vote;
+    const type = e.order.type;
+    if (type === 'machtprobe') depends = 'probe';
+    else if (vote?.required && !vote.passed && vote.override) depends = 'machtprobe';
+    else {
+      if (vote?.required && !vote.passed && vote.decree) {
+        for (const v of vote.votes) if (v.vote === 'no') add(lo, v.member, -1);
+        add(me, approval, -1);
+      }
+      if (vote?.required) {
+        for (const m of people.council) {
+          if (m.goal.oppose.some((t) => e.tags.includes(t))) add(lo, m.id, -1);
+          else if (m.goal.favor.some((t) => e.tags.includes(t))) add(lo, m.id, 1);
+        }
+      }
+      const p = e.order.params ?? {};
+      if (type === 'talk' && p.mode === 'honor') add(lo, p.member, 1);
+      if (type === 'talk' && p.mode === 'honor-dead') for (const m of people.council) add(lo, m.id, 1);
+      if (type === 'destiny.adopt') {
+        const oldTags = people.bestimmung ? env.bestimmung(people.bestimmung.ref)?.tags ?? [] : [];
+        for (const m of people.council) if (m.goal.favor.some((t) => oldTags.includes(t))) add(lo, m.id, -2);
+      }
+    }
+    orders.push({ order: e.order.id, loyalty: lo, meters: me, depends });
+    for (const [k, n] of Object.entries(lo)) add(loyalty, k, n);
+    for (const [k, n] of Object.entries(me)) add(meters, k, n);
+  }
+  const cap = RULES.loyaltyPerTurnCap;
+  for (const [id, n] of Object.entries(loyalty)) {
+    const m = findMember(people, id);
+    const capped = Math.max(-cap, Math.min(cap, n));
+    loyalty[id] = m ? Math.max(-5, Math.min(5, m.loyalty + capped)) - m.loyalty : capped;
+  }
+  if (Object.hasOwn(meters, approval)) {
+    const bounds = tune(env, 'approval');
+    const now = Object.hasOwn(people.meters ?? {}, approval) ? people.meters[approval] : 0;
+    meters[approval] = Math.max(bounds.min, Math.min(bounds.max, now + meters[approval])) - now;
+  }
+  return { orders, loyalty, meters };
+}
+
 // --- Machtprobe -----------------------------------------------------------------
 
 const machtError = (ox, msg) => issue('target', `${ox.path}/params`, msg);

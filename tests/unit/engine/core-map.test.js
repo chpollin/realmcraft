@@ -292,3 +292,14 @@ test('roadLayer lists known road tiles with their level, sorted by key; other fe
   assert.deepEqual(roadLayer(state, P), [{ tile: '0,2', level: 1 }, { tile: '1,1', level: 2 }]);
   assert.deepEqual(roadLayer(state, 'niemand'), []);
 });
+
+test('threatLayer: a road on an unseen tile does not change the reach shown', () => {
+  const { state, world } = setup();
+  const at = visibleTile(state);
+  state.peoples.esk.units.push({ id: 'u-1', type: 'speerwall@1', strength: 3, tile: at, state: 'ready', since: 0 });
+  const before = threatLayer(state, world, P, () => 2);
+  const unknownRoads = Object.keys(reach(state, world, at, moveBudget(2))).filter((k) => !Object.hasOwn(state.map.known[P], k));
+  assert.ok(unknownRoads.length > 0, 'the unit could reach tiles the people does not know');
+  for (const k of unknownRoads) state.map.features[k] = roadFeature(`weg-${k}`.replace(/[^a-z0-9-]/g, 'x'), 3);
+  assert.deepEqual(threatLayer(state, world, P, () => 2), before);
+});

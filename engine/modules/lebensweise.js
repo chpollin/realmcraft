@@ -59,6 +59,13 @@ const ORDERS = {
       const pid = ox.pid;
       const camp = tc.state.map.settlements.find((s) => s.id === campOf(ox.state, pid)?.id);
       if (!camp) return;
+      // The check saw the people's projection and the drafts of other peoples
+      // run in the same season, so the target is decided on the current state.
+      const owner = tc.state.map.control[regionAt(tc.world, o.params.tile)];
+      if ((owner && owner !== pid) || tc.state.map.settlements.some((s) => s.tile === o.params.tile && s.id !== camp.id)) {
+        notice(tc, 'order.blocked', { kind: 'settlement', id: camp.id }, `order ${o.id}: the camp cannot move to ${o.params.tile}, the tile or its region is taken`, { people: pid });
+        return;
+      }
       const reason = `order ${o.id}: the camp moves (${out.band})`;
       const loss = out.band === 'failure' ? 1 : out.band === 'setback' || out.band === 'crit_fail' ? 2 : 0;
       const herd = ox.bind('lebensweise')?.herd;
