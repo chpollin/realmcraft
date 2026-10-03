@@ -12,7 +12,7 @@ import {
 } from '../core/military.js';
 
 const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
-const target = (ox, msg) => [issue('target', `${ox.path}/params`, msg)];
+const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 const unitIdsOf = (v) => (Array.isArray(v) && v.length >= 1 && v.length <= 40 && v.every((x) => typeof x === 'string') ? v : null);
 const ownUnit = (ox, id) => ox.people.units.find((u) => u.id === id) ?? null;
 
@@ -33,14 +33,14 @@ function recruitCheck(ox, o) {
   const ent = ox.env.entwicklung(p.type);
   const known = knownEntry(ox.people, p.type);
   if (!ent || !known || ent.kind !== 'einheit' || known.state !== 'active' || known.effectiveFrom > ox.turn) {
-    return target(ox, 'type must be a known, active unit development');
+    return target(ox, 'not-unit-type', 'type must be a known, active unit development');
   }
-  if (!settlementsOf(ox.state, ox.pid).some((s) => s.id === p.settlement)) return target(ox, 'settlement must be an own settlement');
+  if (!settlementsOf(ox.state, ox.pid).some((s) => s.id === p.settlement)) return target(ox, 'not-own-settlement', 'settlement must be an own settlement');
   const pending = pendingOf(ox);
   const held = ox.people.units.reduce((n, u) => n + u.strength, 0) + pending.strength;
   const cap = ox.people.population.core * RULES.strengthPerClan;
-  if (held + ent.spec.strength > cap) return target(ox, `the units would hold ${held + ent.spec.strength} strength, the people carries ${cap}`);
-  if (ox.people.units.length + pending.count >= 40) return target(ox, 'a people keeps at most 40 units');
+  if (held + ent.spec.strength > cap) return target(ox, 'strength-cap', `the units would hold ${held + ent.spec.strength} strength, the people carries ${cap}`, { strength: held + ent.spec.strength, cap });
+  if (ox.people.units.length + pending.count >= 40) return target(ox, 'unit-limit', 'a people keeps at most 40 units', { max: 40 });
   pending.strength += ent.spec.strength;
   pending.count += 1;
   return [];
@@ -49,13 +49,13 @@ function recruitCheck(ox, o) {
 function moveCheck(ox, o) {
   const p = o.params ?? {};
   const u = ownUnit(ox, p.unit);
-  if (!u) return target(ox, 'unit must be an own unit');
-  if (u.state !== 'ready') return target(ox, `unit is ${u.state} and cannot move`);
-  if (!isTile(p.tile)) return target(ox, 'tile must be a tile key');
-  if (p.tile === u.tile) return target(ox, 'unit already stands on that tile');
+  if (!u) return target(ox, 'not-own-unit', 'unit must be an own unit');
+  if (u.state !== 'ready') return target(ox, 'unit-not-ready', `unit is ${u.state} and cannot move`, { state: u.state });
+  if (!isTile(p.tile)) return target(ox, 'not-tile', 'tile must be a tile key');
+  if (p.tile === u.tile) return target(ox, 'unit-on-tile', 'unit already stands on that tile');
   const budget = moveBudget(unitStats(ox.state, ox.env, ox.pid, u, ox.standing).mobility);
-  if (!Object.hasOwn(reach(ox.state, ox.world, u.tile, budget), p.tile)) return target(ox, 'tile is out of reach this season');
-  if (tileHolder(ox.state, ox.pid, p.tile)) return target(ox, 'a foreign unit or settlement holds that tile');
+  if (!Object.hasOwn(reach(ox.state, ox.world, u.tile, budget), p.tile)) return target(ox, 'out-of-reach', 'tile is out of reach this season');
+  if (tileHolder(ox.state, ox.pid, p.tile)) return target(ox, 'tile-held', 'a foreign unit or settlement holds that tile');
   return [];
 }
 
@@ -82,9 +82,12 @@ function retreatTile(ox, u) {
   return best;
 }
 
-function attackIssues(ox, spec) {
-  const out = spec.invalid.map((i) => issue('target', `${ox.path}/params`, `unit ${i.id} ${i.why}`));
-  if (spec.error && !spec.invalid.length) out.push(issue('target', `${ox.path}/params`, spec.error));
+// where names the tile or region the order aims at, { tile } or { region }.
+function attackIssues(ox, spec, where) {
+  const out = spec.invalid.map((i) => issue('target', `${ox.path}/params`, `unit ${i.id} ${i.why}`, {
+    params: { reason: i.reason, unit: i.id, ...(i.state ? { state: i.state } : {}), ...where },
+  }));
+  if (spec.error && !spec.invalid.length) out.push(issue('target', `${ox.path}/params`, spec.error, { params: { reason: spec.errorReason, ...where } }));
   return out;
 }
 
@@ -99,19 +102,19 @@ function sortieSource(ox, o) {
 
 function ausfallCheck(ox, o) {
   const s = sortieSource(ox, o);
-  if (!s) return target(ox, 'settlement must be an own settlement that does not move');
-  if (!isTile(o.params.tile)) return target(ox, 'tile must be a tile key');
+  if (!s) return target(ox, 'not-fixed-settlement', 'settlement must be an own settlement that does not move');
+  if (!isTile(o.params.tile)) return target(ox, 'not-tile', 'tile must be a tile key');
   const spec = battleSpec(ox, [], o.params.tile, { from: s });
-  if (spec.error) return target(ox, spec.error);
-  if (!spec.defenders.length) return target(ox, 'a sortie needs foreign units on the tile');
+  if (spec.error) return target(ox, spec.errorReason, spec.error, { tile: o.params.tile });
+  if (!spec.defenders.length) return target(ox, 'no-foreign-units', 'a sortie needs foreign units on the tile', { tile: o.params.tile });
   return [];
 }
 
 function raubzugCheck(ox, o) {
   const ids = unitIdsOf(o.params?.units);
-  if (!ids) return target(ox, 'units must list one to forty unit ids');
-  if (typeof o.params.region !== 'string') return target(ox, 'region must be a region id');
-  return attackIssues(ox, raidSpec(ox, ids, o.params.region));
+  if (!ids) return target(ox, 'bad-units', 'units must list one to forty unit ids');
+  if (typeof o.params.region !== 'string') return target(ox, 'not-region', 'region must be a region id');
+  return attackIssues(ox, raidSpec(ox, ids, o.params.region), { region: o.params.region });
 }
 
 const ORDERS = {
@@ -154,9 +157,9 @@ const ORDERS = {
     tags: ['krieg', 'angriff'],
     check(ox, o) {
       const ids = unitIdsOf(o.params?.units);
-      if (!ids) return target(ox, 'units must list one to forty unit ids');
-      if (!isTile(o.params.tile)) return target(ox, 'tile must be a tile key');
-      return attackIssues(ox, battleSpec(ox, ids, o.params.tile));
+      if (!ids) return target(ox, 'bad-units', 'units must list one to forty unit ids');
+      if (!isTile(o.params.tile)) return target(ox, 'not-tile', 'tile must be a tile key');
+      return attackIssues(ox, battleSpec(ox, ids, o.params.tile), { tile: o.params.tile });
     },
     available: (ox) => ox.people.units.length > 0,
     plan: (ox, o) => ({ costs: {}, probe: attackProbe(battleSpec(ox, o.params.units, o.params.tile)) }),
@@ -168,8 +171,8 @@ const ORDERS = {
     available: (ox) => ox.people.units.length > 0,
     check(ox, o) {
       const u = ownUnit(ox, o.params?.unit);
-      if (!u) return target(ox, 'unit must be an own unit');
-      if (!retreatTile(ox, u)) return target(ox, 'the unit cannot get closer to its home settlement');
+      if (!u) return target(ox, 'not-own-unit', 'unit must be an own unit');
+      if (!retreatTile(ox, u)) return target(ox, 'no-retreat', 'the unit cannot get closer to its home settlement');
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),

@@ -25,7 +25,7 @@ const campOf = (state, pid) => {
   return id ? settlementsOf(state, pid).find((s) => s.id === id) ?? null : null;
 };
 const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
-const target = (ox, msg) => [issue('target', `${ox.path}/params`, msg)];
+const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 
 function adoptable(ox) {
   return ox.people.developments.known.filter((k) => {
@@ -43,15 +43,15 @@ const ORDERS = {
     check(ox, o) {
       const camp = campOf(ox.state, ox.pid);
       const tile = o.params?.tile;
-      if (!camp) return target(ox, 'the people has no camp');
-      if (!isTile(tile)) return target(ox, 'tile must be a tile key');
-      if (tile === camp.tile) return target(ox, 'the camp already stands on that tile');
-      if (!ox.env.terrain(tileOf(ox.world, tile).terrain)?.buildable) return target(ox, 'tile is not buildable');
+      if (!camp) return target(ox, 'no-camp', 'the people has no camp');
+      if (!isTile(tile)) return target(ox, 'not-tile', 'tile must be a tile key');
+      if (tile === camp.tile) return target(ox, 'camp-on-tile', 'the camp already stands on that tile');
+      if (!ox.env.terrain(tileOf(ox.world, tile).terrain)?.buildable) return target(ox, 'not-buildable', 'tile is not buildable');
       // Passable terrain is implied by reach(); the half-step budget makes roads extend the range.
-      if (!Object.hasOwn(reach(ox.state, ox.world, camp.tile, RULES.migrateRange * 2), tile)) return target(ox, `tile is out of reach of the camp (${RULES.migrateRange} steps)`);
+      if (!Object.hasOwn(reach(ox.state, ox.world, camp.tile, RULES.migrateRange * 2), tile)) return target(ox, 'out-of-reach', `tile is out of reach of the camp (${RULES.migrateRange} steps)`, { range: RULES.migrateRange });
       const owner = ox.state.map.control[regionAt(ox.world, tile)];
-      if (owner && owner !== ox.pid) return target(ox, `region is controlled by ${owner}`);
-      if (ox.state.map.settlements.some((s) => s.tile === tile)) return target(ox, 'a settlement already stands on that tile');
+      if (owner && owner !== ox.pid) return target(ox, 'region-controlled', `region is controlled by ${owner}`, { people: owner });
+      if (ox.state.map.settlements.some((s) => s.tile === tile)) return target(ox, 'settlement-on-tile', 'a settlement already stands on that tile');
       return [];
     },
     plan: (ox) => ({ costs: {}, probe: { kind: 'migrate', target: ox.cal.winter ? RULES.migrateWinterTarget : RULES.migrateTarget, tags: ['zug'] } }),
@@ -95,8 +95,8 @@ const ORDERS = {
     available: (ox) => !sliceOf(ox.people).transition && adoptable(ox).length > 0,
     check(ox, o) {
       const ref = o.params?.lebensweise;
-      if (sliceOf(ox.people).transition) return target(ox, 'a change of way of life is already running');
-      if (!adoptable(ox).some((k) => k.ref === ref)) return target(ox, 'lebensweise must be another known, active way of life');
+      if (sliceOf(ox.people).transition) return target(ox, 'transition-running', 'a change of way of life is already running');
+      if (!adoptable(ox).some((k) => k.ref === ref)) return target(ox, 'not-adoptable', 'lebensweise must be another known, active way of life');
       return [];
     },
     plan: () => ({ costs: {}, probe: { kind: 'adopt', target: RULES.adoptTarget, tags: ['wandel'] } }),

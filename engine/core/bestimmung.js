@@ -244,17 +244,18 @@ function liveOffers(state, env, pid) {
  * resolution, because a projection hides the destinies of the other peoples.
  */
 function adoptBlock(state, env, pid, ref) {
+  const blocked = (code, reason, message) => ({ code, message, params: { reason } });
   const cur = state.peoples[pid].bestimmung;
-  if (cur?.ref === ref) return { code: 'target', message: 'this destiny is already the people\'s own' };
+  if (cur?.ref === ref) return blocked('target', 'own-destiny', 'this destiny is already the people\'s own');
   // The destiny a people starts with carries no year of its own; only a switch (history) or a later adoption starts the yearly limit.
   if (cur && (cur.adoptedAt > 0 || cur.history.length > 0) && yearOf(env, cur.adoptedAt) === yearOf(env, state.turn)) {
-    return { code: 'duplicate', message: 'the destiny was changed this year already' };
+    return blocked('duplicate', 'changed-this-year', 'the destiny was changed this year already');
   }
-  if (heldByRival(state, pid, ref)) return { code: 'target', message: 'another people holds this destiny' };
+  if (heldByRival(state, pid, ref)) return blocked('target', 'held-by-rival', 'another people holds this destiny');
   // A people without a destiny chooses its first one freely; the practice and offer rules apply to a switch.
   if (cur) {
-    if (!canSwitchDestiny(state, env, pid)) return { code: 'target', message: 'the practice of the last four turns still touches the destiny, no switch yet' };
-    if (!liveOffers(state, env, pid).some((o) => o.ref === ref)) return { code: 'target', message: 'this destiny was not offered to the people' };
+    if (!canSwitchDestiny(state, env, pid)) return blocked('target', 'practice-touches-destiny', 'the practice of the last four turns still touches the destiny, no switch yet');
+    if (!liveOffers(state, env, pid).some((o) => o.ref === ref)) return blocked('target', 'not-offered', 'this destiny was not offered to the people');
   }
   return null;
 }
@@ -267,18 +268,18 @@ function adoptBlock(state, env, pid, ref) {
  */
 export function offerDestiny(tc, pid, ref, origin, opts = {}) {
   const path = opts.path ?? '/bestimmung';
-  const bad = (message) => [issue('target', path, message)];
+  const bad = (reason, message) => [issue('target', path, message, { params: { reason } })];
   const state = tc.state;
   const cur = state.peoples[pid]?.bestimmung;
-  if (!cur) return bad('the people has no destiny state to hold an offer');
-  if (origin !== 'agent' && origin !== 'pool') return bad('origin must be agent or pool');
-  if (typeof ref !== 'string' || !tc.env.bestimmung(ref)) return bad('bestimmung must be a destiny of this world');
-  if (!canSwitchDestiny(state, tc.env, pid)) return bad('the practice of the last four turns still touches the destiny, no offer yet');
-  if (idOfRef(ref) === idOfRef(cur.ref)) return bad('this destiny is already the people\'s own');
-  if (heldByRival(state, pid, ref)) return bad('another people holds this destiny');
+  if (!cur) return bad('no-destiny-state', 'the people has no destiny state to hold an offer');
+  if (origin !== 'agent' && origin !== 'pool') return bad('origin', 'origin must be agent or pool');
+  if (typeof ref !== 'string' || !tc.env.bestimmung(ref)) return bad('unknown-destiny', 'bestimmung must be a destiny of this world');
+  if (!canSwitchDestiny(state, tc.env, pid)) return bad('practice-touches-destiny', 'the practice of the last four turns still touches the destiny, no offer yet');
+  if (idOfRef(ref) === idOfRef(cur.ref)) return bad('own-destiny', 'this destiny is already the people\'s own');
+  if (heldByRival(state, pid, ref)) return bad('held-by-rival', 'another people holds this destiny');
   const live = liveOffers(state, tc.env, pid);
-  if (live.some((o) => idOfRef(o.ref) === idOfRef(ref))) return bad('this destiny is offered already');
-  if (live.length >= MAX_OFFERS) return bad('two offers are open already');
+  if (live.some((o) => idOfRef(o.ref) === idOfRef(ref))) return bad('offered-already', 'this destiny is offered already');
+  if (live.length >= MAX_OFFERS) return bad('offers-full', 'two offers are open already');
   const next = [...live, { ref, offeredAt: tc.turn, origin }];
   setPeople(tc, pid, 'bestimmung.offers', next, `${origin} offers the destiny ${tc.env.bestimmung(ref).name}`, { kind: 'bestimmung.offer', refs: [ref] });
   return [];
@@ -325,9 +326,9 @@ export const ORDERS = {
     unique: true,
     check(ox, o) {
       const ref = o.params?.bestimmung;
-      if (typeof ref !== 'string' || !ox.env.bestimmung(ref)) return [issue('target', `${ox.path}/params`, 'bestimmung must be a destiny of this world')];
+      if (typeof ref !== 'string' || !ox.env.bestimmung(ref)) return [issue('target', `${ox.path}/params`, 'bestimmung must be a destiny of this world', { params: { reason: 'unknown-destiny' } })];
       const block = adoptBlock(ox.state, ox.env, ox.pid, ref);
-      return block ? [issue(block.code, `${ox.path}/params`, block.message)] : [];
+      return block ? [issue(block.code, `${ox.path}/params`, block.message, { params: block.params })] : [];
     },
     plan: () => ({ costs: {}, probe: null }),
     resolve(tc, ox, o) {

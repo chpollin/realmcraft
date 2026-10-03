@@ -254,8 +254,10 @@ export function writeState(dir, state, { expectRev, validate: check = true, onBe
     if (expectRev !== undefined) {
       const cur = readJson(path, { fallback: null });
       const at = cur ? cur.rev : null;
-      if (at !== expectRev) return { ok: false, rev: at, issues: [issue('stale', '/rev', `state is at revision ${at}, expected ${expectRev}`)] };
-      if (state.rev !== expectRev + 1) return { ok: false, rev: at, issues: [issue('stale', '/rev', `new state must carry revision ${expectRev + 1}, has ${state.rev}`)] };
+      // A missing state has no revision to report as a param.
+      const moved = { reason: 'rev-moved', expected: expectRev, ...(at === null ? {} : { rev: at }) };
+      if (at !== expectRev) return { ok: false, rev: at, issues: [issue('stale', '/rev', `state is at revision ${at}, expected ${expectRev}`, { params: moved })] };
+      if (state.rev !== expectRev + 1) return { ok: false, rev: at, issues: [issue('stale', '/rev', `new state must carry revision ${expectRev + 1}, has ${state.rev}`, { params: { reason: 'rev-not-next', rev: state.rev, expected: expectRev + 1 } })] };
     }
     writeJsonAtomic(path, state, { onBeforeRename });
     return { ok: true, rev: state.rev, issues: [] };

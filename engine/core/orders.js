@@ -69,7 +69,7 @@ export function orderContext(state, env, pid, extra = {}) {
 function costIssue(ox, costs) {
   const out = [];
   for (const [res, n] of Object.entries(costs ?? {})) {
-    if (!Number.isInteger(n) || n < 0) out.push(issue('cost', ox.path, `cost of ${res} must be a non-negative integer`));
+    if (!Number.isInteger(n) || n < 0) out.push(issue('cost', ox.path, `cost of ${res} must be a non-negative integer`, { params: { reason: 'invalid-amount', res } }));
   }
   return out;
 }
@@ -79,7 +79,7 @@ const slotOf = (def, ox, order, k) => (typeof def.slot === 'function' ? def.slot
 
 // --- core orders -----------------------------------------------------------
 
-const target = (ox, msg) => [issue('target', `${ox.path}/params`, msg)];
+const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 
 function ownSettlement(ox, id) {
@@ -106,13 +106,14 @@ const CORE_ORDERS = {
     available: (ox) => ox.people.developments.known.some((k) => bauwerkOf(ox, k.ref)),
     check(ox, o) {
       const ent = bauwerkOf(ox, o.params?.development);
-      if (!ent) return target(ox, 'development must be a known, active bauwerk');
+      if (!ent) return target(ox, 'not-bauwerk', 'development must be a known, active bauwerk', { development: o.params?.development });
       const s = ownSettlement(ox, o.params?.settlement);
-      if (!s) return target(ox, 'settlement must be an own settlement');
-      if (!ent.spec.terrains.includes(tileOf(ox.world, s.tile).terrain)) return target(ox, `${ent.name} cannot stand on this terrain`);
+      if (!s) return target(ox, 'not-own-settlement', 'settlement must be an own settlement', { settlement: o.params?.settlement });
+      const terrain = tileOf(ox.world, s.tile).terrain;
+      if (!ent.spec.terrains.includes(terrain)) return target(ox, 'terrain', `${ent.name} cannot stand on this terrain`, { development: o.params.development, name: ent.name, terrain });
       const inRegion = settlementsOf(ox.state, ox.pid).filter((x) => x.regionId === s.regionId)
         .reduce((n, x) => n + x.buildings.filter((b) => b.ref === o.params.development).length, 0);
-      if (inRegion >= ent.spec.perRegion) return target(ox, `${ent.name} already stands ${inRegion} times in this region`);
+      if (inRegion >= ent.spec.perRegion) return target(ox, 'region-full', `${ent.name} already stands ${inRegion} times in this region`, { development: o.params.development, name: ent.name, count: inRegion });
       return [];
     },
     plan: (ox, o) => ({ costs: { ...ox.env.entwicklung(o.params.development).spec.buildCost }, probe: { kind: 'build', target: 5, tags: ['bau'] } }),
@@ -129,15 +130,15 @@ const CORE_ORDERS = {
     tags: ['siedlung', 'bau'],
     check(ox, o) {
       const tile = o.params?.tile;
-      if (!isTile(tile)) return target(ox, 'tile must be a tile key');
+      if (!isTile(tile)) return target(ox, 'not-tile', 'tile must be a tile key', { tile });
       const t = tileOf(ox.world, tile);
-      if (!ox.env.terrain(t.terrain)?.buildable) return target(ox, 'tile is not buildable');
-      if (!nearOwn(ox, tile, RULES.foundRange)) return target(ox, `tile must lie within ${RULES.foundRange} of an own settlement or unit`);
+      if (!ox.env.terrain(t.terrain)?.buildable) return target(ox, 'not-buildable', 'tile is not buildable', { tile, terrain: t.terrain });
+      if (!nearOwn(ox, tile, RULES.foundRange)) return target(ox, 'out-of-range', `tile must lie within ${RULES.foundRange} of an own settlement or unit`, { tile, range: RULES.foundRange });
       const region = regionAt(ox.world, tile);
       const owner = ox.state.map.control[region];
-      if (owner && owner !== ox.pid) return target(ox, `region is controlled by ${owner}`);
-      if (ox.state.map.settlements.some((s) => s.regionId === region)) return target(ox, 'region already has a settlement');
-      if (ox.people.population.core < 2) return target(ox, 'founding needs a second clan');
+      if (owner && owner !== ox.pid) return target(ox, 'foreign-region', `region is controlled by ${owner}`, { tile, region, owner });
+      if (ox.state.map.settlements.some((s) => s.regionId === region)) return target(ox, 'region-settled', 'region already has a settlement', { tile, region });
+      if (ox.people.population.core < 2) return target(ox, 'needs-second-clan', 'founding needs a second clan', { core: ox.people.population.core });
       return [];
     },
     plan: () => ({ costs: { ...RULES.foundCost }, probe: null }),
@@ -173,9 +174,9 @@ const CORE_ORDERS = {
       const ref = o.params?.development;
       const k = knownEntry(ox.people, ref);
       const ent = ox.env.entwicklung(ref);
-      if (!k || !ent || ent.kind !== 'institution' || k.state !== 'active' || k.effectiveFrom > ox.turn) return target(ox, 'development must be a known, active institution');
-      if (ox.people.developments.instituted.includes(ref)) return target(ox, 'institution is already in force');
-      if (ox.people.developments.instituted.length >= 20) return target(ox, 'too many institutions');
+      if (!k || !ent || ent.kind !== 'institution' || k.state !== 'active' || k.effectiveFrom > ox.turn) return target(ox, 'not-institution', 'development must be a known, active institution', { development: ref });
+      if (ox.people.developments.instituted.includes(ref)) return target(ox, 'already-instituted', 'institution is already in force', { development: ref });
+      if (ox.people.developments.instituted.length >= 20) return target(ox, 'too-many-institutions', 'too many institutions', { max: 20 });
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
@@ -195,8 +196,8 @@ const CORE_ORDERS = {
     tags: ['erkundung'],
     check(ox, o) {
       const tile = o.params?.tile;
-      if (!isTile(tile)) return target(ox, 'tile must be a tile key');
-      if (!nearOwn(ox, tile, RULES.exploreRange)) return target(ox, `tile must lie within ${RULES.exploreRange} of an own settlement or unit`);
+      if (!isTile(tile)) return target(ox, 'not-tile', 'tile must be a tile key', { tile });
+      if (!nearOwn(ox, tile, RULES.exploreRange)) return target(ox, 'out-of-range', `tile must lie within ${RULES.exploreRange} of an own settlement or unit`, { tile, range: RULES.exploreRange });
       return [];
     },
     plan: () => ({ costs: {}, probe: { kind: 'explore', target: 5, tags: ['erkundung'] } }),
@@ -241,11 +242,13 @@ function levelOf(f) {
 
 function roadCheck(ox, o, mode) {
   const tile = o.params?.tile;
-  if (!isTile(tile)) return target(ox, 'tile must be a tile key');
+  if (!isTile(tile)) return target(ox, 'not-tile', 'tile must be a tile key', { tile });
   const home = homeSettlement(ox.state, ox.pid);
-  if (!home) return target(ox, 'no settlement to start the road from');
-  if (!route(ox.state, ox.world, home.tile, tile, { maxRadius: 24 })) return target(ox, 'no passable way to that tile');
-  if (!roadTiles(ox, tile, mode).length) return target(ox, mode === 'pave' ? 'no road tile on that way can be raised' : 'the way is already a road');
+  if (!home) return target(ox, 'no-home', 'no settlement to start the road from');
+  if (!route(ox.state, ox.world, home.tile, tile, { maxRadius: 24 })) return target(ox, 'no-way', 'no passable way to that tile', { tile });
+  if (!roadTiles(ox, tile, mode).length) {
+    return mode === 'pave' ? target(ox, 'nothing-to-pave', 'no road tile on that way can be raised', { tile }) : target(ox, 'already-road', 'the way is already a road', { tile });
+  }
   return [];
 }
 
@@ -295,9 +298,11 @@ export function registry() {
 }
 
 /**
- * Catalogue of a people: [{ type, origin, slot, available, reason, limit }]
- * sorted by type. available false carries the reason (module inactive,
- * locked, nothing to act on, forbidden).
+ * Catalogue of a people: [{ type, origin, slot, available, reason, limit,
+ * code, params }] sorted by type. available false carries the reason (module
+ * inactive, locked, nothing to act on, forbidden) as English text and as the
+ * issue a draft with this order gets (code locked_order or restricted, params
+ * with the reason key), so the board labels it without the text.
  */
 export function catalogueFor(state, env, pid, ox = orderContext(state, env, pid)) {
   const reg = registry();
@@ -310,15 +315,26 @@ export function catalogueFor(state, env, pid, ox = orderContext(state, env, pid)
   return Object.keys(reg).sort().map((type) => {
     const { def, origin } = reg[type];
     let reason = null;
-    if (origin !== 'core' && !ox.modules.some((m) => m.id === origin)) reason = `module ${origin} is not active`;
-    else if (def.locked && !Object.hasOwn(unlocks, type)) reason = 'not unlocked';
-    else if (def.available && !def.available(ox)) reason = 'nothing to act on';
-    else {
+    let code = null;
+    let params = null;
+    if (origin !== 'core' && !ox.modules.some((m) => m.id === origin)) {
+      reason = `module ${origin} is not active`;
+      [code, params] = ['locked_order', { reason: 'module-inactive', type, module: origin }];
+    } else if (def.locked && !Object.hasOwn(unlocks, type)) {
+      reason = 'not unlocked';
+      [code, params] = ['locked_order', { reason: 'not-unlocked', type }];
+    } else if (def.available && !def.available(ox)) {
+      reason = 'nothing to act on';
+      [code, params] = ['locked_order', { reason: 'nothing-to-act-on', type }];
+    } else {
       const forbid = restrictionsFor(ox, type, tagsOf(def, ox, { params: {} })).find((r) => r.mode === 'forbid');
-      if (forbid) reason = `forbidden by ${forbid.label}`;
+      if (forbid) {
+        reason = `forbidden by ${forbid.label}`;
+        [code, params] = ['restricted', { reason: 'forbidden', type, by: forbid.label }];
+      }
     }
     const slot = typeof def.slot === 'string' ? def.slot : 'varies';
-    return { type, origin, slot, available: reason === null, reason, limit: unlocks[type] ?? null };
+    return { type, origin, slot, available: reason === null, reason, limit: unlocks[type] ?? null, code, params };
   });
 }
 
@@ -347,8 +363,10 @@ export function slotCapacity(ox) {
 
 /** Exact shape check of a draft; returns format issues (empty when well formed). */
 export function assertDraft(draft) {
-  if (!draft || typeof draft !== 'object' || Array.isArray(draft)) return [issue('format', '', 'draft must be an object')];
-  return validateSchema(DRAFT_SCHEMA, draft).map((i) => issue('format', i.path, `${i.code}: ${i.message}`));
+  if (!draft || typeof draft !== 'object' || Array.isArray(draft)) return [issue('format', '', 'draft must be an object', { params: { reason: 'not-object' } })];
+  // The reason names the failed schema keyword: "schema.min_items" gives "min-items".
+  return validateSchema(DRAFT_SCHEMA, draft).map((i) => issue('format', i.path, `${i.code}: ${i.message}`,
+    { params: { reason: i.code.replace(/^schema\./, '').replaceAll('_', '-') } }));
 }
 
 /** Labour of a turn: the draft's assign, else the assignment of the previous turn. */
@@ -362,23 +380,24 @@ function checkLabour(state, env, draft, pid, issues) {
   let total = 0;
   for (const [k, n] of Object.entries(draft.assign)) {
     if (!env.resourceIds.includes(k) && !RULES.activities.includes(k)) {
-      issues.push(issue('target', `/assign/${k}`, `${k} is neither a resource nor an activity`));
+      issues.push(issue('target', `/assign/${k}`, `${k} is neither a resource nor an activity`, { params: { reason: 'not-activity', key: k } }));
     }
     total += n;
   }
-  if (total > core) issues.push(kissue('labour', '/assign', `${total} clans assigned, the people has ${core}`));
-  else if (total < core) issues.push(kissue('idle_labour', '/assign', `${core - total} clan(s) without work`));
+  if (total > core) issues.push(kissue('labour', '/assign', `${total} clans assigned, the people has ${core}`, { params: { assigned: total, core } }));
+  else if (total < core) issues.push(kissue('idle_labour', '/assign', `${core - total} clan(s) without work`, { params: { idle: core - total } }));
 }
 
 function checkChoices(state, draft, pid, issues) {
   for (const [id, option] of Object.entries(draft.choices ?? {})) {
     const pc = (state.pendingChoices ?? []).find((c) => c.id === id && c.people === pid);
-    if (!pc) issues.push(issue('target', `/choices/${id}`, `no open decision ${id}`));
-    else if (!pc.options.includes(option)) issues.push(issue('target', `/choices/${id}`, `${option} is not an option of ${id}`));
+    if (!pc) issues.push(issue('target', `/choices/${id}`, `no open decision ${id}`, { params: { reason: 'no-decision', decision: id } }));
+    else if (!pc.options.includes(option)) issues.push(issue('target', `/choices/${id}`, `${option} is not an option of ${id}`, { params: { reason: 'not-option', decision: id, option } }));
   }
 }
 
-function leadMods(people, memberId) {
+/** Probe modifiers a council member brings who leads an order, or null for no such member. */
+export function leadMods(people, memberId) {
   const m = people.council.find((x) => x.id === memberId);
   if (!m) return null;
   const out = [];
@@ -402,19 +421,19 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   const out = { issues, entries: [], probes: [], eventProbe: null, costs: {}, slots: null, assign: {}, unresolved: [] };
   issues.push(...assertDraft(draft));
   if (hasErrors(issues)) return out;
-  for (const path of reservedKeyPaths(draft)) issues.push(issue('format', path, 'a reserved name cannot serve as an id or key'));
+  for (const path of reservedKeyPaths(draft)) issues.push(issue('format', path, 'a reserved name cannot serve as an id or key', { params: { reason: 'reserved-name' } }));
   if (hasErrors(issues)) return out;
   const pid = as ?? draft.people;
   if (draft.people !== pid || !state.peoples[pid] || !state.peoples[pid].developments) {
-    issues.push(issue('format', '/people', `draft is for ${draft.people}, not ${pid}`));
+    issues.push(issue('format', '/people', `draft is for ${draft.people}, not ${pid}`, { params: { reason: 'wrong-people', people: draft.people, as: pid } }));
     return out;
   }
   if (state.status === 'ended') issues.push(issue('finished', '', 'the campaign has ended'));
   const phases = mode === 'apply' ? ['planning', 'resolving'] : ['planning', 'agents'];
-  if (!phases.includes(state.phase)) issues.push(issue('phase', '/phase', `phase ${state.phase} does not allow ${mode}`));
+  if (!phases.includes(state.phase)) issues.push(issue('phase', '/phase', `phase ${state.phase} does not allow ${mode}`, { params: { reason: 'draft-closed', phase: state.phase, mode } }));
   // baseRev is informational: an ingest between preview and apply raises rev,
   // and fingerprints already guard every roll against changed probes.
-  if (draft.turn !== state.turn) issues.push(issue('stale', '/turn', `draft for turn ${draft.turn}, state is turn ${state.turn}`));
+  if (draft.turn !== state.turn) issues.push(issue('stale', '/turn', `draft for turn ${draft.turn}, state is turn ${state.turn}`, { params: { reason: 'draft-turn', draftTurn: draft.turn, turn: state.turn } }));
   if (hasErrors(issues)) return out;
 
   const people = state.peoples[pid];
@@ -430,7 +449,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   const rejectedByCouncil = [];
   const ids = new Set(draft.orders.map((o) => o.id));
   for (const k of [...Object.keys(draft.venture ?? {}), ...Object.keys(draft.lead ?? {}), ...Object.keys(draft.mandate)]) {
-    if (!ids.has(k)) issues.push(issue('target', '/orders', `${k} names no order of this draft`));
+    if (!ids.has(k)) issues.push(issue('target', '/orders', `${k} names no order of this draft`, { params: { reason: 'no-such-order', order: k } }));
   }
 
   const seenIds = new Set();
@@ -440,11 +459,11 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
     const errors = [];
     const entry = { index, order, def: null, origin: null, slot: null, tags: [], plan: null, vote: null, probe: null, venture: false, errors };
     out.entries.push(entry);
-    if (seenIds.has(order.id) || reservedOrderId(order.id)) errors.push(issue('duplicate', `${path}/id`, `order id ${order.id} is used twice or reserved`));
+    if (seenIds.has(order.id) || reservedOrderId(order.id)) errors.push(issue('duplicate', `${path}/id`, `order id ${order.id} is used twice or reserved`, { params: { reason: 'order-id', order: order.id } }));
     seenIds.add(order.id);
     const reg1 = reg[order.type];
     if (!reg1) {
-      errors.push(issue('unknown_order', `${path}/type`, `unknown order type ${order.type}`));
+      errors.push(issue('unknown_order', `${path}/type`, `unknown order type ${order.type}`, { params: { type: order.type } }));
       issues.push(...errors);
       return;
     }
@@ -453,27 +472,31 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
     entry.origin = origin;
     const cat = catalogue[order.type];
     if (!cat.available) {
-      const code = cat.reason.startsWith('forbidden') ? 'restricted' : 'locked_order';
-      errors.push(kissue(code, `${path}/type`, `${order.type}: ${cat.reason}`));
+      errors.push(kissue(cat.code, `${path}/type`, `${order.type}: ${cat.reason}`, { params: cat.params }));
       issues.push(...errors);
       return;
     }
     const k = typeCount[order.type] ?? 0;
     typeCount[order.type] = k + 1;
-    if (def.unique && k > 0) errors.push(issue('duplicate', `${path}/type`, `${order.type} is allowed once per season`));
-    if (cat.limit !== null && k >= cat.limit) errors.push(kissue('restricted', `${path}/type`, `${order.type} at most ${cat.limit} times per season`));
+    if (def.unique && k > 0) errors.push(issue('duplicate', `${path}/type`, `${order.type} is allowed once per season`, { params: { reason: 'once-per-season', type: order.type } }));
+    if (cat.limit !== null && k >= cat.limit) {
+      errors.push(kissue('restricted', `${path}/type`, `${order.type} at most ${cat.limit} times per season`, { params: { reason: 'unlock-limit', type: order.type, limit: cat.limit } }));
+    }
     const slot = slotOf(def, ox, order, k);
     entry.slot = slot;
     let tags = [...new Set([...tagsOf(def, ox, order), ...(slot === 'main' ? [RULES.mainTag] : [])])];
     entry.tags = tags;
     for (const r of restrictionsFor(ox, order.type, tags)) {
-      if (r.mode === 'forbid') errors.push(kissue('restricted', `${path}/type`, `${order.type} is forbidden by ${r.label}`));
-      if (r.mode === 'limit' && k >= r.limit) errors.push(kissue('restricted', `${path}/type`, `${order.type} limited to ${r.limit} per ${r.per} by ${r.label}`));
+      if (r.mode === 'forbid') errors.push(kissue('restricted', `${path}/type`, `${order.type} is forbidden by ${r.label}`, { params: { reason: 'forbidden', type: order.type, by: r.label } }));
+      if (r.mode === 'limit' && k >= r.limit) {
+        errors.push(kissue('restricted', `${path}/type`, `${order.type} limited to ${r.limit} per ${r.per} by ${r.label}`,
+          { params: { reason: 'limited', type: order.type, limit: r.limit, per: r.per, by: r.label } }));
+      }
     }
-    if (slot === 'none') errors.push(issue('slots', `${path}/type`, `${order.type}: no further order of this type this season`));
+    if (slot === 'none') errors.push(issue('slots', `${path}/type`, `${order.type}: no further order of this type this season`, { params: { reason: 'type-exhausted', type: order.type } }));
     else if (slot === 'main' || slot === 'minor') used[slot]++;
     entry.venture = draft.venture?.[order.id] === true;
-    if (entry.venture && slot !== 'main') errors.push(issue('target', path, 'only a main order can be a venture'));
+    if (entry.venture && slot !== 'main') errors.push(issue('target', path, 'only a main order can be a venture', { params: { reason: 'venture-not-main', order: order.id } }));
     errors.push(...def.check(ox, order));
     if (!hasErrors(errors)) {
       const plan = def.plan(ox, order);
@@ -486,7 +509,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
         const ptags = [...new Set([...tags, ...pspec.tags])];
         const lead = draft.lead?.[order.id];
         const lm = lead ? leadMods(people, lead) : [];
-        if (lm === null) errors.push(issue('target', `/lead/${order.id}`, `${lead} is no council member`));
+        if (lm === null) errors.push(issue('target', `/lead/${order.id}`, `${lead} is no council member`, { params: { reason: 'lead-not-member', member: lead, order: order.id } }));
         const mods = [...gatherModifiers(people, ptags, ox.standing, ox.cx), ...(pspec.extraMods ?? []), ...(lm ?? [])];
         entry.probe = buildProbe({
           id: probeId(state.turn, pid, pspec.suffix ?? order.id), people: pid, order: order.id, kind: pspec.kind,
@@ -494,7 +517,9 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
           params: { order: order.params, venture: entry.venture, lead: lead ?? null },
         });
         out.probes.push(entry.probe);
-        issues.push(...softcapIssues(entry.probe));
+        // softcapIssues lives in probes.js; the params of its issue are added here.
+        const struck = entry.probe.struck ?? [];
+        issues.push(...softcapIssues(entry.probe).map((i) => ({ ...i, params: { probe: entry.probe.id, struck: struck.map((x) => x.label) } })));
       }
       const vote = councilVote(ox, tags, order.type);
       if (vote.required) {
@@ -517,7 +542,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
       out.unresolved.push({ order: e.order.id, reason: 'council majority depends on the Machtprobe' });
     } else {
       const msg = `council rejects ${e.order.type} (${e.vote.yes} yes, ${e.vote.no} no, rule ${e.vote.rule})`;
-      const iss = issue('council_rejected', `/orders/${e.index}`, msg);
+      const iss = issue('council_rejected', `/orders/${e.index}`, msg, { params: { type: e.order.type, order: e.order.id, yes: e.vote.yes, no: e.vote.no, rule: e.vote.rule } });
       e.errors.push(iss);
       issues.push(iss);
     }
@@ -526,8 +551,8 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   const cap = slotCapacity(ox0);
   out.slots = { main: { used: used.main, max: cap.main }, minor: { used: used.minor, max: cap.minor } };
   for (const sl of ['main', 'minor']) {
-    if (used[sl] > cap[sl]) issues.push(issue('slots', '/orders', `${used[sl]} ${sl} orders, ${cap[sl]} available`));
-    else if (used[sl] < cap[sl]) issues.push(issue('free_slots', '/orders', `${cap[sl] - used[sl]} ${sl} slot(s) unused`));
+    if (used[sl] > cap[sl]) issues.push(issue('slots', '/orders', `${used[sl]} ${sl} orders, ${cap[sl]} available`, { params: { reason: 'over-capacity', slot: sl, used: used[sl], max: cap[sl] } }));
+    else if (used[sl] < cap[sl]) issues.push(issue('free_slots', '/orders', `${cap[sl] - used[sl]} ${sl} slot(s) unused`, { params: { slot: sl, free: cap[sl] - used[sl] } }));
   }
 
   // Costs of all orders against the opening stock.
@@ -538,7 +563,8 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
       if (n <= 0) continue;
       running[res] = (running[res] ?? 0) + n;
       if (running[res] > (people.resources[res] ?? 0)) {
-        const iss = issue('cost', `/orders/${e.index}`, `${res}: orders need ${running[res]}, the opening stock holds ${people.resources[res] ?? 0}`);
+        const iss = issue('cost', `/orders/${e.index}`, `${res}: orders need ${running[res]}, the opening stock holds ${people.resources[res] ?? 0}`,
+          { params: { reason: 'stock', res, need: running[res], have: people.resources[res] ?? 0 } });
         e.errors.push(iss);
         issues.push(iss);
       }
@@ -557,13 +583,13 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   const byId = new Map(out.probes.map((p) => [p.id, p]));
   for (const [id, r] of Object.entries(draft.rolls)) {
     const p = byId.get(id);
-    if (!p) issues.push(issue('roll_stale', `/rolls/${id}`, `roll for ${id} has no matching probe any more`));
-    else if (p.fingerprint !== r.fingerprint) issues.push(issue('roll_stale', `/rolls/${id}`, `probe ${id} changed after the roll`));
+    if (!p) issues.push(issue('roll_stale', `/rolls/${id}`, `roll for ${id} has no matching probe any more`, { params: { reason: 'no-probe', probe: id } }));
+    else if (p.fingerprint !== r.fingerprint) issues.push(issue('roll_stale', `/rolls/${id}`, `probe ${id} changed after the roll`, { params: { reason: 'probe-changed', probe: id } }));
   }
   if (roller === 'player') {
     for (const p of out.probes) {
       if (draft.rolls[p.id]) continue;
-      if (mode === 'apply') issues.push(issue('roll_missing', `/rolls/${p.id}`, `probe ${p.id} needs the player's roll`));
+      if (mode === 'apply') issues.push(issue('roll_missing', `/rolls/${p.id}`, `probe ${p.id} needs the player's roll`, { params: { probe: p.id } }));
       else out.unresolved.push({ probe: p.id, reason: 'roll missing' });
     }
   }

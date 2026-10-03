@@ -20,7 +20,7 @@ const MAX_WITHDRAWAL = 3;
 const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 const isRegion = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*):(0|-?[1-9][0-9]*):(0|[1-9][0-9]*)$/.test(v);
 const sliceOf = (people) => people.modules?.magie ?? { withdrawal: {}, uses: {} };
-const targetIssue = (ox, msg) => [issue('target', `${ox.path}/params`, msg)];
+const targetIssue = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 
 const disciplines = (state, env, pid) => activeDevelopments(state, env, pid).filter((d) => d.ent.kind === 'disziplin');
 
@@ -30,7 +30,7 @@ function applicationOf(ox, params) {
   return app ? { ref: d.ref, ent: d.ent, app } : null;
 }
 
-/** Resolved target of an application: { value } or { problem }. Reads the opening state. */
+/** Resolved target of an application: { value } or { problem, reason, params? }. Reads the opening state. */
 function resolveTarget(ox, kind, raw) {
   const { state, pid, world } = ox;
   const known = state.map.known[pid] ?? {};
@@ -38,27 +38,27 @@ function resolveTarget(ox, kind, raw) {
     case 'none':
       return { value: {} };
     case 'tile':
-      if (!isTile(raw) || !Object.hasOwn(known, raw)) return { problem: 'target must be a tile the people knows' };
+      if (!isTile(raw) || !Object.hasOwn(known, raw)) return { problem: 'target must be a tile the people knows', reason: 'unknown-tile' };
       return { value: { tile: raw, region: regionAt(world, raw) } };
     case 'region':
       if (isTile(raw) && Object.hasOwn(known, raw)) return { value: { region: regionAt(world, raw) } };
       if (isRegion(raw) && regionInfo(world, raw) && knownRegions(state, world, pid).includes(raw)) return { value: { region: raw } };
-      return { problem: 'target must be a region id or a tile of a region the people knows' };
+      return { problem: 'target must be a region id or a tile of a region the people knows', reason: 'unknown-region' };
     case 'people':
-      if (typeof raw !== 'string' || raw === pid || !state.peoples[raw]) return { problem: 'target must be another people' };
+      if (typeof raw !== 'string' || raw === pid || !state.peoples[raw]) return { problem: 'target must be another people', reason: 'not-other-people' };
       return { value: { people: raw } };
     case 'member':
-      if (!ox.people.council.some((m) => m.id === raw)) return { problem: 'target must be a member of the own council' };
+      if (!ox.people.council.some((m) => m.id === raw)) return { problem: 'target must be a member of the own council', reason: 'not-own-member' };
       return { value: { member: raw } };
     case 'unit': {
       const [owner, id] = typeof raw === 'string' && raw.includes(':') ? raw.split(':') : [pid, raw];
       const unit = state.peoples[owner]?.units.find((u) => u.id === id);
-      if (!unit) return { problem: 'target must be a unit, written <people>:<unit> for a foreign one' };
-      if (owner !== pid && known[unit.tile] !== 'visible') return { problem: 'the unit must stand on a tile the people sees' };
+      if (!unit) return { problem: 'target must be a unit, written <people>:<unit> for a foreign one', reason: 'not-unit' };
+      if (owner !== pid && known[unit.tile] !== 'visible') return { problem: 'the unit must stand on a tile the people sees', reason: 'unit-not-visible' };
       return { value: { unit: { people: owner, id }, tile: unit.tile, people: owner } };
     }
     default:
-      return { problem: `unknown target kind ${kind}` };
+      return { problem: `unknown target kind ${kind}`, reason: 'unknown-target-kind', params: { kind } };
   }
 }
 
@@ -69,9 +69,9 @@ const ORDERS = {
     available: (ox) => disciplines(ox.state, ox.env, ox.pid).length > 0,
     check(ox, o) {
       const found = applicationOf(ox, o.params);
-      if (!found) return targetIssue(ox, 'development must be a known, active disziplin and application one of its applications');
+      if (!found) return targetIssue(ox, 'not-application', 'development must be a known, active disziplin and application one of its applications');
       const t = resolveTarget(ox, found.app.targetKind, o.params.target);
-      return t.problem ? targetIssue(ox, t.problem) : [];
+      return t.problem ? targetIssue(ox, t.reason, t.problem, t.params) : [];
     },
     plan(ox, o) {
       const { ent, app } = applicationOf(ox, o.params);

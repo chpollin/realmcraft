@@ -24,6 +24,7 @@ import { applyOnceList, changeUnitStrength, ofOp, standingOf } from './effects.j
 import { addPeople, addResource, changeLoyalty, fireHook, noteChange, setPeople } from './log.js';
 import { clamp, controlledRegions, peopleIds, regionTerrain, settlementsOf } from './state.js';
 import { unitStats } from './military.js';
+import { bagParam } from './issues.js';
 import { regionAt } from './map.js';
 import { key as tileKey, neighbors, parseKey, regionOf, spiral, tileAt } from '../world/index.js';
 
@@ -219,16 +220,17 @@ function gainsOf(state, env, pid, standing, season, now, cx) {
 }
 
 const EMPTY = () => ({
-  ops: [], shortfall: {}, income: {}, consumption: {}, upkeep: {}, risk: [], harvest: [], famine: null, growth: null, approval: 0,
+  ops: [], shortfall: {}, income: {}, consumption: {}, upkeep: {}, risk: [], risks: [], harvest: [], famine: null, growth: null, approval: 0,
 });
 
 /**
  * Dry run of one people's season. now = { stock, core, growth, assign } is the
  * working position (the stock after the season's order costs); state supplies
  * structure and standing. Returns { ops, shortfall, income, consumption,
- * upkeep, risk, harvest, famine, growth, approval }; income, consumption and
- * upkeep are what is actually gained and paid, so income - consumption -
- * upkeep is the change of the stock before caps.
+ * upkeep, risk, risks, harvest, famine, growth, approval }; income,
+ * consumption and upkeep are what is actually gained and paid, so income -
+ * consumption - upkeep is the change of the stock before caps. risk holds the
+ * English lines, risks the same as { message, params } for issues.
  */
 export function planEconomy(state, env, pid, now) {
   const people = state.peoples[pid];
@@ -256,6 +258,10 @@ export function planEconomy(state, env, pid, now) {
   };
   const payable = (bag) => Object.entries(bag).every(([res, n]) => get(res) >= n);
   const payBag = (bag, reason, refs) => { for (const [res, n] of Object.entries(bag)) pay(res, n, 'upkeep', reason, refs); };
+  const risk = (message, params) => {
+    plan.risk.push(message);
+    plan.risks.push({ message, params });
+  };
 
   // (a) gains
   const { gains, harvest } = gainsOf(state, env, pid, standing, season, now, cx);
@@ -292,7 +298,7 @@ export function planEconomy(state, env, pid, now) {
       if (k.state === 'suspended') ops.push({ t: 'resume', ref: k.ref, reason: `upkeep of ${ent.name} is paid again` });
     } else if (k.state === 'active') {
       ops.push({ t: 'suspend', ref: k.ref, reason: `upkeep of ${ent.name} (${bagText(need)}) is not covered` });
-      plan.risk.push(`${ent.name} is suspended: upkeep ${bagText(need)} is not covered`);
+      risk(`${ent.name} is suspended: upkeep ${bagText(need)} is not covered`, { reason: 'development-suspended', development: k.ref, name: ent.name, need: bagParam(need) });
     }
   }
   if (lw) {
@@ -314,7 +320,8 @@ export function planEconomy(state, env, pid, now) {
         if (b.state === 'suspended') ops.push({ t: 'building', ...at, state: 'active', reason: `upkeep of ${ent.name} is paid again` });
       } else if (b.state === 'active') {
         ops.push({ t: 'building', ...at, state: 'suspended', reason: `upkeep of ${ent.name} (${bagText(bag)}) is not covered` });
-        plan.risk.push(`${ent.name} in ${s.name} stands idle: upkeep ${bagText(bag)} is not covered`);
+        risk(`${ent.name} in ${s.name} stands idle: upkeep ${bagText(bag)} is not covered`,
+          { reason: 'building-idle', development: b.ref, name: ent.name, settlement: s.id, settlementName: s.name, need: bagParam(bag) });
       }
     });
   }
@@ -323,7 +330,7 @@ export function planEconomy(state, env, pid, now) {
     if (payable(bag)) payBag(bag, `upkeep of unit ${u.id}`, [u.type]);
     else {
       ops.push({ t: 'unit', unit: u.id, reason: `upkeep of unit ${u.id} (${bagText(bag)}) is not covered` });
-      plan.risk.push(`unit ${u.id} loses strength: upkeep ${bagText(bag)} is not covered`);
+      risk(`unit ${u.id} loses strength: upkeep ${bagText(bag)} is not covered`, { reason: 'unit-weakens', unit: u.id, type: u.type, need: bagParam(bag) });
     }
   }
   for (const s of ofOp(standing, 'dependency')) {
@@ -333,7 +340,7 @@ export function planEconomy(state, env, pid, now) {
     if (paid < amount) {
       miss(res, amount - paid);
       ops.push({ t: 'penalty', res, penalty, reason: `${s.source.label}: ${amount} ${res} not delivered` });
-      plan.risk.push(`${s.source.label} demands ${amount} ${res}, which is not covered`);
+      risk(`${s.source.label} demands ${amount} ${res}, which is not covered`, { reason: 'dependency-unpaid', source: s.source.label, res, amount });
     }
   }
 
@@ -364,7 +371,7 @@ export function planEconomy(state, env, pid, now) {
   return plan;
 }
 
-const EMPTY_FORECAST = (caps, cap) => ({ income: {}, consumption: {}, upkeep: {}, net: {}, caps, popCap: cap, shortfall: {}, upkeepRisk: [], harvest: [] });
+const EMPTY_FORECAST = (caps, cap) => ({ income: {}, consumption: {}, upkeep: {}, net: {}, caps, popCap: cap, shortfall: {}, upkeepRisk: [], upkeepRisks: [], harvest: [] });
 
 /**
  * Preview of the coming season's economy for one people. spend is the cost of
@@ -395,6 +402,7 @@ export function forecast(state, env, pid, { spend = {}, assign } = {}) {
     popCap: cap,
     shortfall: plan.shortfall,
     upkeepRisk: plan.risk,
+    upkeepRisks: plan.risks,
     harvest: plan.harvest,
     famine: plan.famine,
     growth: plan.growth,

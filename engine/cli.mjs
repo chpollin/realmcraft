@@ -4,6 +4,7 @@
 //   node engine/cli.mjs <command> [args] [--campaign <cid>] [--json]
 //
 //   new <worldId> --seed <n> --as <template> --id <cid> [--from-state <file>]
+//       [--rivals <template,template>] [--difficulty easy|normal|hard] [--lang <xx>]
 //   status [--as <people>]            preview --as <people> [--draft <file>]
 //   roll <probeId> <1-10>             seal            apply [--expect-rev <n>]
 //   open                              tasks [--agent <name>]
@@ -53,11 +54,11 @@ import { hashValue } from './core/hash.js';
 import { reservedKeyPaths } from './core/canon.js';
 import { makeEnv } from './core/env.js';
 import { calendarOf } from './core/calendar.js';
-import { peopleIds } from './core/state.js';
+import { DEFAULT_SETTINGS, peopleIds, settingsOf } from './core/state.js';
 import { checkDraft } from './core/orders.js';
 import { resolveProbe, calculation } from './core/probes.js';
 import { projectFor, projectEvents } from './core/project.js';
-import { apply, createCampaign, emptyDraft, open, preview, repin, seal, stateHash } from './core/turn.js';
+import { apply, createCampaign, creationProblem, emptyDraft, open, preview, repin, seal, stateHash } from './core/turn.js';
 import { appendToLibrary, createLibrary, resolveRef } from './content/library.js';
 import {
   validateBestimmung, validateCampaign, validateDraft, validateEntwicklung, validateEreignis, validateProposal, validateWorldPackage,
@@ -66,7 +67,7 @@ import { scoreEntwicklungStandalone, scoreEreignis } from './content/budget.js';
 import {
   LAYOUT, campaignDir, ensureLayout, readJson, turnStem, withLock, writeJsonAtomic, writeState,
 } from './harness/io.js';
-import { followState, initTurnStatus, recordVerdict } from './harness/status.js';
+import { followState, initTurnStatus, recordFinding, recordVerdict } from './harness/status.js';
 import { buildJudgeTask, buildTasks } from './harness/tasks.js';
 import { changesState, ingestProposal } from './harness/ingest.js';
 
@@ -79,6 +80,7 @@ const CONTENT = ['entwicklungen', 'ereignisse', 'bestimmungen'];
 const CID = /^[a-z][a-z0-9-]{1,40}$/;
 const JOURNAL_FORMAT = 2;
 const ROLLS = 'rolls.json';
+const NEW_USAGE = 'new <worldId> --seed <n> --as <template> --id <cid> [--rivals a,b] [--difficulty easy|normal|hard] [--lang de]';
 
 // --- small helpers -----------------------------------------------------------
 
@@ -99,10 +101,13 @@ function parseArgs(argv) {
 const flag = (a, name) => a.flags[name]?.at(-1);
 const parseSeed = (s) => (/^-?\d+$/.test(String(s)) ? Number(s) : String(s));
 
-const norm = (i) => ({ code: bareCode(i), severity: i.severity ?? 'error', path: i.path ?? '', message: i.message ?? '', ...(i.refs ? { refs: i.refs } : {}) });
+const norm = (i) => ({
+  code: bareCode(i), severity: i.severity ?? 'error', path: i.path ?? '', message: i.message ?? '', ...(i.params ? { params: i.params } : {}), ...(i.refs ? { refs: i.refs } : {}),
+});
 const fail = (code, issues, extra = {}) => ({ code, issues, ...extra });
 const ok = (data = {}, text = '') => ({ code: 0, issues: [], data, text });
-const cliIssue = (code, path, message, severity = 'error') => issue(code, path, message, { severity });
+// params: the values the message interpolates and, for a generic code, the reason key.
+const cliIssue = (code, path, message, params = null, severity = 'error') => issue(code, path, message, { severity, params });
 const errorsOf = (issues) => issues.filter((i) => i.severity === 'error');
 
 // Exit code of kernel issues: phase, revision, world and tamper conflicts are
@@ -151,7 +156,7 @@ function soft(issues, what, fn) {
   try {
     fn();
   } catch (err) {
-    issues.push(cliIssue('cli.downstream', '', `${what} not written: ${err.message}`, 'warning'));
+    issues.push(cliIssue('cli.downstream', '', `${what} not written: ${err.message}`, { what, error: err.message }, 'warning'));
   }
 }
 
@@ -173,7 +178,7 @@ function loadPack(dir) {
   const problems = [];
   const read = (key, file) => {
     const r = tryJson(join(dir, file));
-    if (r.error) problems.push(issue('schema.required', `/${key}`, r.missing ? `${file} is missing` : r.error));
+    if (r.error) problems.push(issue('schema.required', `/${key}`, r.missing ? `${file} is missing` : r.error, { params: { file, missing: Boolean(r.missing) } }));
     else pack[key] = r.value;
   };
   for (const k of PACK_FILES) read(k, `${k}.json`);
@@ -200,24 +205,24 @@ function buildEnv(pack, holder) {
 }
 
 function loadCampaign(root, cid) {
-  if (!cid) return { error: fail(3, [cliIssue('cli.missing_input', '/campaign', 'a command needs --campaign <cid>')]) };
-  if (!CID.test(cid)) return { error: fail(2, [cliIssue('format', '/campaign', `campaign id "${cid}" must match ${CID.source}`)]) };
+  if (!cid) return { error: fail(3, [cliIssue('cli.missing_input', '/campaign', 'a command needs --campaign <cid>', { flag: 'campaign' })]) };
+  if (!CID.test(cid)) return { error: fail(2, [cliIssue('format', '/campaign', `campaign id "${cid}" must match ${CID.source}`, { reason: 'campaign-id', campaign: cid, pattern: CID.source })]) };
   const dir = campaignDir(root, cid);
-  if (!existsSync(join(dir, LAYOUT.state))) return { error: fail(3, [cliIssue('cli.no_campaign', '/campaign', `no campaign "${cid}" under ${join(root, 'campaigns')}`)]) };
+  if (!existsSync(join(dir, LAYOUT.state))) return { error: fail(3, [cliIssue('cli.no_campaign', '/campaign', `no campaign "${cid}" under ${join(root, 'campaigns')}`, { campaign: cid })]) };
   const state = readJson(join(dir, LAYOUT.state));
   const library = readJson(join(dir, LAYOUT.library), { fallback: createLibrary() });
   const lock = readJson(join(dir, LAYOUT.worldLock), { fallback: null });
   const worldId = lock?.id ?? state.campaign.world.id;
   const lockedDir = lock?.worldDir ? (isAbsolute(lock.worldDir) ? lock.worldDir : join(root, lock.worldDir)) : null;
   const worldDir = lockedDir && existsSync(join(lockedDir, 'welt.json')) ? lockedDir : worldDirFor(root, worldId);
-  if (!worldDir) return { error: fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`)]) };
+  if (!worldDir) return { error: fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`, { world: worldId })]) };
   const { pack, problems } = loadPack(worldDir);
   if (problems.length) return { error: fail(2, problems) };
   const holder = { library };
   const env = buildEnv(pack, holder);
   const warnings = [];
   const drift = (lock?.hash ?? state.campaign.world.hash) !== env.hash;
-  if (drift) warnings.push(cliIssue('cli.world_drift', '/world', `world package "${worldId}" differs from the one the campaign was created with`, 'warning'));
+  if (drift) warnings.push(cliIssue('cli.world_drift', '/world', `world package "${worldId}" differs from the one the campaign was created with`, { world: worldId }, 'warning'));
   return { c: { root, cid, dir, state, library, lock, pack, env, holder, worldDir, warnings, drift } };
 }
 
@@ -247,7 +252,7 @@ function chainEntry(journal, c, fields, { library, drafts }) {
 
 /** Problems of the chain itself: an edited entry, a broken link, a revision that does not rise. */
 function chainIssues(journal) {
-  const bad = (i, why) => [kissue('tamper', `/journal/${i}`, `log/journal.json entry ${i} ${why}`)];
+  const bad = (i, why) => [kissue('tamper', `/journal/${i}`, `log/journal.json entry ${i} ${why}`, { params: { reason: 'journal-chain', entry: i } })];
   for (let i = 0; i < journal.length; i++) {
     const e = journal[i];
     if (i > 0 && Number.isInteger(journal[i - 1].revAfter) && !(e.revAfter > journal[i - 1].revAfter)) return bad(i, 'does not raise the revision');
@@ -515,15 +520,15 @@ function rollForward(cc, journal) {
   try {
     step = runStep(cc.state, cc.env, last, library, cc.holder);
   } catch (err) {
-    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} could not be repeated: ${err.message}`)];
+    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} could not be repeated: ${err.message}`, { reason: 'repeat-failed', op: last.op, error: err.message })];
   }
   if (stateHash(step.state) !== last.hashAfter) {
-    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} does not reproduce its journal entry`)];
+    return [cliIssue('cli.interrupted', '/journal', `the interrupted ${last.op} does not reproduce its journal entry`, { reason: 'not-reproduced', op: last.op })];
   }
   if (step.library !== library) writeJsonAtomic(join(cc.dir, LAYOUT.library), step.library);
   const w = writeState(cc.dir, step.state, { expectRev: cc.state.rev, validate: false });
   if (!w.ok) return w.issues;
-  const issues = [cliIssue('cli.recovered', '/journal', `the interrupted ${last.op} of turn ${last.turn} was completed`, 'warning')];
+  const issues = [cliIssue('cli.recovered', '/journal', `the interrupted ${last.op} of turn ${last.turn} was completed`, { op: last.op, turn: last.turn }, 'warning')];
   const cc2 = { ...cc, state: step.state, library: step.library };
   soft(issues, `${last.op} files`, () => POST[last.op](cc2, step.res, last));
   downstream(cc2, step.state, step.res.events, issues, { op: last.op });
@@ -537,13 +542,13 @@ function rollForward(cc, journal) {
 /** The campaign files match the journal; an interrupted commit is completed first. */
 function guard(cc, { allowDrift = false } = {}) {
   const journal = readJournal(cc.dir);
-  if (!journal?.length) return [kissue('tamper', '/state', 'the campaign has no journal, its state cannot be verified')];
+  if (!journal?.length) return [kissue('tamper', '/state', 'the campaign has no journal, its state cannot be verified', { params: { reason: 'no-journal' } })];
   const chain = chainIssues(journal);
   if (chain.length) return chain;
   let last = journal.at(-1);
   if (stateHash(cc.state) !== last.hashAfter) {
     const rolled = rollForward(cc, journal);
-    if (rolled === null) return [kissue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)')];
+    if (rolled === null) return [kissue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)', { params: { reason: 'state-edited' } })];
     if (rolled.length) return rolled;
     last = journal.at(-1);
   }
@@ -551,16 +556,16 @@ function guard(cc, { allowDrift = false } = {}) {
     // An interrupted ingest may leave library entries no state refers to yet.
     if (cc.library.entries.length > last.libraryCount) cc.library = { ...cc.library, entries: cc.library.entries.slice(0, last.libraryCount) };
     if (cc.library.entries.length !== last.libraryCount || libraryAnchor(cc.library) !== last.libraryHash) {
-      return [kissue('tamper', '/library', 'library.json was changed outside the kernel')];
+      return [kissue('tamper', '/library', 'library.json was changed outside the kernel', { params: { reason: 'library-edited' } })];
     }
     cc.holder.library = cc.library;
     const held = readJson(rollsPath(cc.dir), { fallback: null })?.entries ?? [];
     if (held.length < last.rolls.count || hashValue(held.slice(0, last.rolls.count)) !== last.rolls.hash) {
-      return [kissue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`)];
+      return [kissue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`, { params: { reason: 'rolls-edited', file: ROLLS } })];
     }
-    if (!allowDrift && last.worldHash !== cc.env.hash) return [cliIssue('cli.world_drift', '/world', 'the world package changed since the last transition; restore it or run repin')];
+    if (!allowDrift && last.worldHash !== cc.env.hash) return [cliIssue('cli.world_drift', '/world', 'the world package changed since the last transition; restore it or run repin', { reason: 'since-transition' })];
   }
-  if (!allowDrift && cc.drift) return [cliIssue('cli.world_drift', '/world', 'the world package differs from the one the campaign is pinned to; restore it or run repin')];
+  if (!allowDrift && cc.drift) return [cliIssue('cli.world_drift', '/world', 'the world package differs from the one the campaign is pinned to; restore it or run repin', { reason: 'since-pin' })];
   return [];
 }
 
@@ -587,10 +592,10 @@ function cmdNew(a) {
   const root = rootOf();
   const [worldId] = a.positional;
   const cid = flag(a, 'id');
-  if (!worldId || !cid) return fail(3, [cliIssue('cli.missing_input', '', 'usage: new <worldId> --seed <n> --as <template> --id <cid>')]);
-  if (!CID.test(cid)) return fail(2, [cliIssue('format', '/id', `campaign id "${cid}" must match ${CID.source}`)]);
+  if (!worldId || !cid) return fail(3, [cliIssue('cli.missing_input', '', `usage: ${NEW_USAGE}`, { reason: 'usage' })]);
+  if (!CID.test(cid)) return fail(2, [cliIssue('format', '/id', `campaign id "${cid}" must match ${CID.source}`, { reason: 'campaign-id', campaign: cid, pattern: CID.source })]);
   const worldDir = worldDirFor(root, worldId);
-  if (!worldDir) return fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`)]);
+  if (!worldDir) return fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`, { world: worldId })]);
   const { pack, problems } = loadPack(worldDir);
   const checked = [...problems, ...validateWorldPackage(pack)];
   if (hasErrors(checked)) return fail(2, checked);
@@ -599,36 +604,52 @@ function cmdNew(a) {
   // Windows folds case and trailing dots, so another spelling of an existing id is the same folder.
   const taken = existsSync(join(root, 'campaigns'))
     && readdirSync(join(root, 'campaigns')).some((n) => n.toLowerCase().replace(/[. ]+$/, '') === cid);
-  if (existsSync(join(dir, LAYOUT.state)) || taken) return fail(2, [cliIssue('duplicate', '/id', `campaign "${cid}" already exists`)]);
+  if (existsSync(join(dir, LAYOUT.state)) || taken) return fail(2, [cliIssue('duplicate', '/id', `campaign "${cid}" already exists`, { reason: 'campaign-exists', campaign: cid })]);
   const holder = { library: packLibrary(pack) };
   let env;
   try {
     env = buildEnv(pack, holder);
   } catch (err) {
-    return fail(2, [cliIssue('format', '/world', err.message)]);
+    return fail(2, [cliIssue('format', '/world', err.message, { reason: 'world-package', world: worldId })]);
   }
   const seedArg = flag(a, 'seed');
   const fromState = flag(a, 'from-state');
+  // Creation options are checked here, at the boundary, so a wrong flag is an issue and not an exception.
+  const rivalsArg = flag(a, 'rivals');
+  const options = {
+    player: flag(a, 'as') ?? null,
+    rivals: rivalsArg === undefined ? null : String(rivalsArg).split(',').map((s) => s.trim()).filter(Boolean),
+    difficulty: flag(a, 'difficulty') ?? DEFAULT_SETTINGS.difficulty,
+    language: flag(a, 'lang') ?? DEFAULT_SETTINGS.language,
+  };
+  if (fromState && (rivalsArg !== undefined || flag(a, 'difficulty') !== undefined || flag(a, 'lang') !== undefined)) {
+    return fail(2, [cliIssue('format', '/from-state', '--rivals, --difficulty and --lang do not apply to --from-state', { reason: 'options-with-state' })]);
+  }
+  const problem = fromState ? null : creationProblem(env, options);
+  if (problem) {
+    const { message, ...params } = problem;
+    const at = { 'unknown-template': options.rivals?.includes(problem.template) ? '/rivals' : '/as', 'rival-is-player': '/rivals', 'rival-twice': '/rivals', rivals: '/rivals', difficulty: '/difficulty', language: '/lang' }[problem.reason];
+    return fail(2, [cliIssue('target', at, message, params)]);
+  }
 
   let state;
   let seed;
   let player;
   if (fromState) {
     const r = tryJson(resolve(fromState));
-    if (r.error) return fail(3, [cliIssue('cli.missing_input', '/from-state', r.error)]);
+    if (r.error) return fail(3, [cliIssue('cli.missing_input', '/from-state', r.error, { reason: r.missing ? 'file-missing' : 'file-unreadable', file: fromState })]);
     state = { ...r.value, campaign: { ...r.value.campaign, id: cid } };
-    const bad = [...schemaIssues(SCHEMAS.campaign, state), ...reservedKeyPaths(state).map((p) => cliIssue('format', p, 'a reserved name cannot serve as an id or key'))];
+    const bad = [...schemaIssues(SCHEMAS.campaign, state), ...reservedKeyPaths(state).map((p) => cliIssue('format', p, 'a reserved name cannot serve as an id or key', { reason: 'reserved-name' }))];
     if (bad.length) return fail(2, bad);
     seed = state.map.seed;
     player = state.campaign.player;
   } else {
-    if (seedArg === undefined) return fail(3, [cliIssue('cli.missing_input', '/seed', 'new needs --seed <n>')]);
+    if (seedArg === undefined) return fail(3, [cliIssue('cli.missing_input', '/seed', 'new needs --seed <n>', { reason: 'seed' })]);
     seed = parseSeed(seedArg);
-    player = flag(a, 'as') ?? null;
     try {
-      state = createCampaign(env, { id: cid, seed, player }).state;
+      state = createCampaign(env, { id: cid, seed, ...options }).state;
     } catch (err) {
-      return fail(2, [cliIssue('format', '/as', err.message)]);
+      return fail(2, [cliIssue('format', '/as', err.message, { reason: 'creation-failed' })]);
     }
     player = state.campaign.player;
   }
@@ -653,7 +674,9 @@ function cmdNew(a) {
   soft(issues, 'campaign index', () => upsertIndex(c, state));
   soft(issues, 'tasks', () => writeTasks(c, state));
   soft(issues, 'status', () => initTurnStatus(dir, state.turn));
-  return { ...ok({ campaign: cid, world: worldId, player, turn: state.turn, phase: state.phase, rev: state.rev, dir }, `campaign ${cid} created at turn ${state.turn}, phase ${state.phase}`), issues };
+  const rivals = peopleIds(state).filter((p) => p !== player);
+  const data = { campaign: cid, world: worldId, player, rivals, settings: settingsOf(state), turn: state.turn, phase: state.phase, rev: state.rev, dir };
+  return { ...ok(data, `campaign ${cid} created at turn ${state.turn}, phase ${state.phase}`), issues };
 }
 
 // --- reading commands --------------------------------------------------------
@@ -678,7 +701,7 @@ function openProbes(c, pid) {
 function cmdStatus(c, a) {
   const { state } = c;
   const pid = playerOf(c, a);
-  if (!Object.hasOwn(state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
+  if (!Object.hasOwn(state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`, { reason: 'no-people', people: pid })]);
   const view = projectFor(state, c.env, pid);
   const p = view.peoples[pid];
   const cal = calendarOf(c.env.regeln, state.turn);
@@ -715,20 +738,20 @@ function previewResult(c, pid, draft) {
 }
 
 const draftPhaseIssue = (state) => (!['planning', 'agents'].includes(state.phase) || state.status === 'ended'
-  ? cliIssue('phase', '/phase', `drafts and rolls are accepted in planning or agents, the campaign is in ${state.phase}`)
+  ? cliIssue('phase', '/phase', `drafts and rolls are accepted in planning or agents, the campaign is in ${state.phase}`, { reason: 'draft-closed', phase: state.phase })
   : null);
 
 function cmdPreview(c, a) {
   const pid = flag(a, 'as') ?? c.state.campaign.player;
-  if (!Object.hasOwn(c.state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`)]);
+  if (!Object.hasOwn(c.state.peoples, pid)) return fail(2, [cliIssue('target', '/as', `no people "${pid}"`, { reason: 'no-people', people: pid })]);
   const file = flag(a, 'draft');
   if (!file) {
     const res = previewResult(c, pid, storedDraft(c, pid));
     return outcome(res, { text: `preview for ${pid}: ${res.data.probes.length} probes, ${errorsOf(res.issues).length} errors` });
   }
   const r = tryJson(resolve(file));
-  if (r.error) return fail(3, [cliIssue('cli.missing_input', '/draft', r.error)]);
-  if (pid !== c.state.campaign.player) return fail(2, [cliIssue('target', '/as', 'only the player people stores a draft')]);
+  if (r.error) return fail(3, [cliIssue('cli.missing_input', '/draft', r.error, { reason: r.missing ? 'file-missing' : 'file-unreadable', file })]);
+  if (pid !== c.state.campaign.player) return fail(2, [cliIssue('target', '/as', 'only the player people stores a draft', { reason: 'not-player', people: pid })]);
   return locked(c, (cc) => {
     const phase = draftPhaseIssue(cc.state);
     if (phase) return fail(4, [phase]);
@@ -742,7 +765,8 @@ function cmdPreview(c, a) {
     if (rec.added.length || !existsSync(rollsPath(cc.dir))) writeRolls(cc.dir, [...ledger, ...rec.added]);
     writeJsonAtomic(draftPath(cc, pid), rec.draft);
     const res = previewResult(cc, pid, rec.draft);
-    const kept = rec.kept.map((id) => cliIssue('duplicate', `/rolls/${id}`, `probe ${id} keeps its first roll ${rec.draft.rolls[id].value}`, 'warning'));
+    const kept = rec.kept.map((id) => cliIssue('duplicate', `/rolls/${id}`, `probe ${id} keeps its first roll ${rec.draft.rolls[id].value}`,
+      { reason: 'roll-kept', probe: id, value: rec.draft.rolls[id].value }, 'warning'));
     res.issues = [...kept, ...res.issues];
     res.data.stored = true;
     res.data.draft = rec.draft;
@@ -753,8 +777,8 @@ function cmdPreview(c, a) {
 function cmdRoll(c, a) {
   const [probeId, raw] = a.positional;
   const value = Number(raw);
-  if (!probeId || raw === undefined) return fail(3, [cliIssue('cli.missing_input', '', 'usage: roll <probeId> <1-10>')]);
-  if (!isRollValue(value)) return fail(2, [cliIssue('format', '/value', 'a roll is an integer from 1 to 10')]);
+  if (!probeId || raw === undefined) return fail(3, [cliIssue('cli.missing_input', '', 'usage: roll <probeId> <1-10>', { reason: 'usage' })]);
+  if (!isRollValue(value)) return fail(2, [cliIssue('format', '/value', 'a roll is an integer from 1 to 10', { reason: 'roll-value', min: 1, max: 10 })]);
   return locked(c, (cc) => {
     const phase = draftPhaseIssue(cc.state);
     if (phase) return fail(4, [phase]);
@@ -764,9 +788,9 @@ function cmdRoll(c, a) {
     const rec = reconcileRolls(view, cc.env, storedDraft(cc, pid), pid, ledger);
     const chk = checkDraft(view, cc.env, rec.draft, { as: pid, mode: 'preview' });
     const probe = chk.probes.find((p) => p.id === probeId && p.roller === 'player');
-    if (!probe) return fail(2, [cliIssue('target', '/probe', `no probe "${probeId}" the player rolls in the current draft`)]);
+    if (!probe) return fail(2, [cliIssue('target', '/probe', `no probe "${probeId}" the player rolls in the current draft`, { reason: 'no-probe', probe: probeId })]);
     const held = rec.draft.rolls[probeId];
-    if (held) return fail(2, [cliIssue('duplicate', '/probe', `probe ${probeId} was already rolled (${held.value})`)]);
+    if (held) return fail(2, [cliIssue('duplicate', '/probe', `probe ${probeId} was already rolled (${held.value})`, { reason: 'already-rolled', probe: probeId, value: held.value })]);
     const entry = { turn: cc.state.turn, people: pid, probe: probeId, fingerprint: probe.fingerprint, value };
     writeRolls(cc.dir, [...ledger, entry]);
     writeJsonAtomic(draftPath(cc, pid), { ...rec.draft, sealed: false, rolls: { ...rec.draft.rolls, [probeId]: { value, fingerprint: probe.fingerprint } } });
@@ -788,7 +812,7 @@ function cmdSeal(c) {
       const stored = drafts[pid].rolls ?? {};
       const edited = Object.keys({ ...stored, ...rec.draft.rolls })
         .filter((id) => stored[id]?.value !== rec.draft.rolls[id]?.value || stored[id]?.fingerprint !== rec.draft.rolls[id]?.fingerprint);
-      if (edited.length) return fail(4, [kissue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`)]);
+      if (edited.length) return fail(4, [kissue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`, { params: { reason: 'rolls-differ', people: pid, probes: edited } })]);
       drafts[pid] = rec.draft;
     }
     const res = seal(cc.state, cc.env, drafts);
@@ -803,10 +827,10 @@ function cmdApply(c, a) {
   return locked(c, (cc) => {
     const expect = flag(a, 'expect-rev');
     if (expect !== undefined && Number(expect) !== cc.state.rev) {
-      return fail(4, [cliIssue('cli.stale_rev', '/rev', `state is at revision ${cc.state.rev}, expected ${expect}`)]);
+      return fail(4, [cliIssue('cli.stale_rev', '/rev', `state is at revision ${cc.state.rev}, expected ${expect}`, { rev: cc.state.rev, expected: String(expect) })]);
     }
     if (cc.state.status === 'ended') return fail(4, [cliIssue('finished', '', 'the campaign has ended')]);
-    if (cc.state.phase !== 'resolving') return fail(4, [cliIssue('phase', '/phase', `apply needs resolving, the campaign is in ${cc.state.phase}`)]);
+    if (cc.state.phase !== 'resolving') return fail(4, [cliIssue('phase', '/phase', `apply needs resolving, the campaign is in ${cc.state.phase}`, { reason: 'apply-needs-resolving', phase: cc.state.phase })]);
     const drafts = draftsOf(cc);
     const res = apply(cc.state, cc.env, drafts);
     if (!res.ok) return fail(exitFor(res.issues), res.issues);
@@ -902,10 +926,10 @@ function proposalFiles(cc, a) {
 // by the proposal id, and the id starts with the agent.
 function envelopeIssues(id, proposal) {
   const out = [];
-  if (!proposal || typeof proposal !== 'object' || Array.isArray(proposal)) return [cliIssue('format', '', 'a proposal must be an object')];
-  if (proposal.proposalId !== id) out.push(cliIssue('format', '/proposalId', `the file ${id}.json carries proposal "${proposal.proposalId}"`));
+  if (!proposal || typeof proposal !== 'object' || Array.isArray(proposal)) return [cliIssue('format', '', 'a proposal must be an object', { reason: 'not-object' })];
+  if (proposal.proposalId !== id) out.push(cliIssue('format', '/proposalId', `the file ${id}.json carries proposal "${proposal.proposalId}"`, { reason: 'proposal-id', file: id, proposal: proposal.proposalId }));
   if (typeof proposal.proposalId === 'string' && proposal.proposalId.split('.')[0] !== proposal.agent) {
-    out.push(cliIssue('format', '/agent', `proposal "${proposal.proposalId}" names agent "${proposal.agent}"`));
+    out.push(cliIssue('format', '/agent', `proposal "${proposal.proposalId}" names agent "${proposal.agent}"`, { reason: 'proposal-agent', proposal: proposal.proposalId, agent: proposal.agent }));
   }
   return out;
 }
@@ -915,14 +939,15 @@ function cmdIngest(c, a) {
     const consent = (a.flags.consent ?? []).flatMap((s) => String(s).split(','));
     const { files, refused } = proposalFiles(cc, a);
     const reports = [];
-    const issues = refused.map((f) => cliIssue('target', '/file', `${f} is not a proposal file in ${LAYOUT.proposals}/`));
+    const issues = refused.map((f) => cliIssue('target', '/file', `${f} is not a proposal file in ${LAYOUT.proposals}/`, { reason: 'not-proposal-file', file: f, folder: LAYOUT.proposals }));
     for (const f of refused) reports.push({ proposalId: f, verdict: 'refused', issues: [] });
     for (const file of files) {
       const id = file.split(/[\\/]/).pop().replace(/\.json$/, '');
       const read = tryJson(file);
       if (read.error) {
-        issues.push(cliIssue('cli.missing_input', `/${id}`, read.error));
-        reports.push({ proposalId: id, verdict: read.missing ? 'missing' : 'rejected', issues: [cliIssue('format', '', read.error)].map(norm) });
+        const why = { reason: read.missing ? 'file-missing' : 'file-unreadable', file: id };
+        issues.push(cliIssue('cli.missing_input', `/${id}`, read.error, why));
+        reports.push({ proposalId: id, verdict: read.missing ? 'missing' : 'rejected', issues: [cliIssue('format', '', read.error, why)].map(norm) });
         if (!read.missing) moveFile(file, join(cc.dir, 'agents', 'rejected', `${id}.json`));
         continue;
       }
@@ -932,7 +957,8 @@ function cmdIngest(c, a) {
       let res;
       const envelope = envelopeIssues(id, proposal);
       if (!envelope.length && !task && changesState(proposal)) {
-        envelope.push(cliIssue('target', '/proposalId', `no task of turn ${proposal.turn} for ${proposal.agent}${proposal.people ? ` ${proposal.people}` : ''}; items that change state need one`));
+        envelope.push(cliIssue('target', '/proposalId', `no task of turn ${proposal.turn} for ${proposal.agent}${proposal.people ? ` ${proposal.people}` : ''}; items that change state need one`,
+          { reason: 'no-task', turn: proposal.turn, agent: proposal.agent, people: proposal.people }));
       }
       if (envelope.length) res = { verdict: 'rejected', issues: envelope, items: [] };
       else {
@@ -973,6 +999,14 @@ function cmdIngest(c, a) {
               budget: it.budget, reason: it.issues.find((i) => i.severity === 'error')?.message ?? null,
             });
           }
+          // A judge's finding reaches the board only when ingest showed it to the player (all cited entries visible).
+          const player = cc.state.campaign.player;
+          for (const it of res.items) {
+            const item = proposal.items?.[it.index];
+            if (it.verdict !== 'accepted' || item?.type !== 'finding') continue;
+            const shown = (res.events ?? []).some((e) => e.kind === 'ingest.finding' && e.refs?.[0] === item.id && e.visibleTo.includes(player));
+            if (shown) recordFinding(cc.dir, step, { id: item.id, judge: proposal.agent, severity: item.severity, text: item.text, refs: item.refs });
+          }
         });
       }
       if (res.verdict === 'rejected') issues.push(...res.issues);
@@ -1006,16 +1040,16 @@ function contextFor(a) {
 
 function cmdValidate(a) {
   const target = a.positional[0];
-  if (!target) return fail(3, [cliIssue('cli.missing_input', '', 'usage: validate <path>')]);
+  if (!target) return fail(3, [cliIssue('cli.missing_input', '', 'usage: validate <path>', { reason: 'usage' })]);
   const path = resolve(target);
-  if (!existsSync(path)) return fail(3, [cliIssue('cli.missing_input', '/path', `${target} not found`)]);
+  if (!existsSync(path)) return fail(3, [cliIssue('cli.missing_input', '/path', `${target} not found`, { reason: 'file-missing', file: target })]);
   if (statSync(path).isDirectory()) {
     const { pack, problems } = loadPack(path);
     const issues = [...problems, ...validateWorldPackage(pack)];
     return { code: hasErrors(issues) ? 2 : 0, issues, data: { kind: 'world', path }, text: `world package ${target}` };
   }
   const r = tryJson(path);
-  if (r.error) return fail(2, [cliIssue('format', '', r.error)]);
+  if (r.error) return fail(2, [cliIssue('format', '', r.error, { reason: 'file-unreadable', file: target })]);
   const doc = r.value;
   const ctx = contextFor(a);
   let kind;
@@ -1026,7 +1060,7 @@ function cmdValidate(a) {
   else if (doc?.format === 'realmcraft-campaign') [kind, res] = ['campaign', validateCampaign(doc)];
   else if (Array.isArray(doc?.milestones)) [kind, res] = ['bestimmung', validateBestimmung(doc, ctx)];
   else if (Number.isInteger(doc?.band)) [kind, res] = ['ereignis', validateEreignis(doc, ctx)];
-  else return fail(2, [cliIssue('format', '', 'unknown document: no known format, band or milestones')]);
+  else return fail(2, [cliIssue('format', '', 'unknown document: no known format, band or milestones', { reason: 'unknown-document' })]);
   const issues = res.issues ?? [];
   const items = res.items?.flatMap((i) => i.issues) ?? [];
   const all = [...issues, ...items];
@@ -1035,23 +1069,23 @@ function cmdValidate(a) {
 
 function cmdBudget(a) {
   const target = a.positional[0];
-  if (!target) return fail(3, [cliIssue('cli.missing_input', '', 'usage: budget <file>')]);
+  if (!target) return fail(3, [cliIssue('cli.missing_input', '', 'usage: budget <file>', { reason: 'usage' })]);
   const r = tryJson(resolve(target));
-  if (r.error) return fail(r.missing ? 3 : 2, [cliIssue('cli.missing_input', '/file', r.error)]);
+  if (r.error) return fail(r.missing ? 3 : 2, [cliIssue('cli.missing_input', '/file', r.error, { reason: r.missing ? 'file-missing' : 'file-unreadable', file: target })]);
   const ctx = contextFor(a);
   const doc = r.value;
   if (Number.isInteger(doc?.band) && !doc.format) {
     const score = scoreEreignis(doc, ctx);
     return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, N: score.net, issues: undefined }, text: `event card ${doc.id}: net ${score.net}` };
   }
-  if (doc?.format !== 'realmcraft-entwicklung') return fail(2, [cliIssue('format', '', 'budget needs an Entwicklung or an event card')]);
+  if (doc?.format !== 'realmcraft-entwicklung') return fail(2, [cliIssue('format', '', 'budget needs an Entwicklung or an event card', { reason: 'not-priceable' })]);
   const score = scoreEntwicklungStandalone(doc, ctx.regeln);
   return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, N: score.net, issues: undefined }, text: `${doc.id}: effect ${score.effect}, price ${score.price}, net ${score.net}` };
 }
 
 function cmdSchema(a) {
   const name = a.positional[0];
-  if (!name || !SCHEMAS[name]) return fail(2, [cliIssue('target', '/name', `schema name one of ${Object.keys(SCHEMAS).join(', ')}`)]);
+  if (!name || !SCHEMAS[name]) return fail(2, [cliIssue('target', '/name', `schema name one of ${Object.keys(SCHEMAS).join(', ')}`, { reason: 'schema-name', names: Object.keys(SCHEMAS) })]);
   return ok({ name, schema: SCHEMAS[name] }, JSON.stringify(SCHEMAS[name], null, 2));
 }
 
@@ -1059,17 +1093,17 @@ function cmdSchema(a) {
 
 function cmdReplay(c, a) {
   const journal = readJournal(c.dir);
-  if (!journal?.length) return fail(5, [cliIssue('replay.mismatch', '/journal', 'the campaign has no journal')]);
+  if (!journal?.length) return fail(5, [cliIssue('replay.mismatch', '/journal', 'the campaign has no journal', { reason: 'no-journal' })]);
   const chain = chainIssues(journal);
-  if (chain.length) return fail(5, chain.map((i) => cliIssue('replay.mismatch', i.path, i.message)));
+  if (chain.length) return fail(5, chain.map((i) => cliIssue('replay.mismatch', i.path, i.message, i.params)));
   const to = flag(a, 'to') === undefined ? undefined : Number(flag(a, 'to'));
   const lock = c.lock;
-  if (!lock) return fail(5, [cliIssue('replay.mismatch', '/world.lock', 'world.lock.json is missing')]);
+  if (!lock) return fail(5, [cliIssue('replay.mismatch', '/world.lock', 'world.lock.json is missing', { reason: 'no-world-lock' })]);
   let library = packLibrary(c.pack);
   c.holder.library = library;
   let state = null;
   const steps = [];
-  const mismatch = (i, e, why) => fail(5, [cliIssue('replay.mismatch', `/journal/${i}`, `${e.op} at turn ${e.turn}: ${why}`)], { data: { steps } });
+  const mismatch = (i, e, reason, why) => fail(5, [cliIssue('replay.mismatch', `/journal/${i}`, `${e.op} at turn ${e.turn}: ${why}`, { reason, entry: i, op: e.op, turn: e.turn })], { data: { steps } });
   // Steps before the last repin ran on another world package, steps before a
   // base anchor on an older kernel; replay starts at the latest such anchor,
   // which the hash chain ties to the journal.
@@ -1087,7 +1121,7 @@ function cmdReplay(c, a) {
         c.holder.library = library;
       } else if (i === from && e.base) {
         state = readJson(join(c.dir, e.base.anchor));
-        if (stateHash(state) !== journal[i - 1].hashAfter) return mismatch(i, e, 'the base anchor differs from the entry before it');
+        if (stateHash(state) !== journal[i - 1].hashAfter) return mismatch(i, e, 'base-anchor', 'the base anchor differs from the entry before it');
         library = { ...c.library, entries: c.library.entries.slice(0, e.base.libraryCount) };
         c.holder.library = library;
         const step = runStep(state, c.env, e, library, c.holder);
@@ -1101,14 +1135,14 @@ function cmdReplay(c, a) {
         library = step.library;
       }
     } catch (err) {
-      return mismatch(i, e, `kernel error ${err.message}`);
+      return mismatch(i, e, 'kernel-error', `kernel error ${err.message}`);
     }
     const h = stateHash(state);
     steps.push({ op: e.op, turn: e.turn, rev: state.rev, hash: h });
-    if (h !== e.hashAfter) return mismatch(i, e, `hash ${h} differs from the journal ${e.hashAfter}`);
-    if (e.kernel !== undefined && libraryAnchor(library) !== e.libraryHash) return mismatch(i, e, 'the replayed library differs from the journal');
+    if (h !== e.hashAfter) return mismatch(i, e, 'state-hash', `hash ${h} differs from the journal ${e.hashAfter}`);
+    if (e.kernel !== undefined && libraryAnchor(library) !== e.libraryHash) return mismatch(i, e, 'library', 'the replayed library differs from the journal');
   }
-  if (to === undefined && stateHash(state) !== stateHash(c.state)) return mismatch(journal.length - 1, journal.at(-1), 'the replayed state differs from state.json');
+  if (to === undefined && stateHash(state) !== stateHash(c.state)) return mismatch(journal.length - 1, journal.at(-1), 'state-file', 'the replayed state differs from state.json');
   return ok({ steps: steps.length, turn: state.turn, rev: state.rev, hash: stateHash(state) }, `replayed ${steps.length} transitions to turn ${state.turn}, rev ${state.rev}`);
 }
 
@@ -1126,7 +1160,7 @@ function run(argv) {
     case 'schema': return cmdSchema(a);
     default:
   }
-  if (!NEEDS_CAMPAIGN.has(cmd)) return fail(2, [cliIssue('cli.unknown_command', '', `unknown command "${cmd ?? ''}"`)]);
+  if (!NEEDS_CAMPAIGN.has(cmd)) return fail(2, [cliIssue('cli.unknown_command', '', `unknown command "${cmd ?? ''}"`, { command: cmd ?? '' })]);
   const loaded = loadCampaign(rootOf(), flag(a, 'campaign'));
   if (loaded.error) return loaded.error;
   const c = loaded.c;
@@ -1151,7 +1185,7 @@ function main() {
   try {
     r = run(argv);
   } catch (err) {
-    r = fail(1, [cliIssue('cli.error', '', err.stack ?? String(err))]);
+    r = fail(1, [cliIssue('cli.error', '', err.stack ?? String(err), { error: String(err?.message ?? err) })]);
   }
   const issues = (r.issues ?? []).map(norm);
   const code = r.code ?? 0;

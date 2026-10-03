@@ -466,3 +466,33 @@ test('fog: the projection carries no sequence counter and no offer or contract o
   assert.equal(JSON.stringify(p).includes('of-1-2'), false);
   assert.equal(JSON.stringify(p).includes('ct-0-2'), false);
 });
+
+test('refusals are machine-readable: code, reason and the interpolated params', () => {
+  const first = (s, pid, type, params) => errors(checkOrders(s, env, pid, [{ id: 'x1', type, params }]).issues)[0];
+  const shape = (i) => [i.code, i.params];
+  const offerBy = (s, patch) => first(s, PLAYER, 'trade.offer', offerOrder(patch)[0].params);
+  assert.deepEqual(shape(offerBy(traders, { partner: PLAYER })), ['target', { reason: 'not-other-people' }]);
+  assert.deepEqual(shape(offerBy(withRelation(traders, PLAYER, PARTNER, { contact: false }), {})), ['target', { reason: 'no-contact', partner: PARTNER }]);
+  assert.deepEqual(shape(offerBy(withRelation(traders, PLAYER, PARTNER, { atWar: true }), {})), ['handel.at_war', { partner: PARTNER }]);
+  assert.deepEqual(shape(offerBy(withRelation(asTrader(start, PLAYER), PLAYER, PARTNER, { contact: true }), {})), ['handel.not_trading', { partner: PARTNER }]);
+  assert.deepEqual(shape(offerBy(traders, { give: {} })), ['target', { reason: 'bag-empty', what: 'give' }]);
+  assert.deepEqual(shape(offerBy(traders, { give: 'x' })), ['target', { reason: 'bag-not-object', what: 'give' }]);
+  assert.deepEqual(shape(offerBy(traders, { give: { gold: 1 } })), ['target', { reason: 'bag-not-resource', what: 'give', res: 'gold' }]);
+  assert.deepEqual(shape(offerBy(traders, { get: { nahrung: 13 } })), ['target', { reason: 'bag-bad-amount', what: 'get', res: 'nahrung', max: 12 }]);
+  assert.deepEqual(shape(offerBy(traders, { seasons: 9 })), ['target', { reason: 'bad-seasons', max: 8 }]);
+  assert.deepEqual(shape(offerBy(traders, { give: { herden: 5 } })), ['target', { reason: 'cannot-give' }]);
+  const far = edited(traders, (x) => { x.map.settlements.find((y) => y.id === 's-esk').tile = '90,90'; });
+  assert.deepEqual(shape(offerBy(far, {})), ['handel.no_route', { partner: PARTNER }]);
+  assert.equal(offerBy(withRelation(traders, PLAYER, PARTNER, { atWar: true }), {}).severity, 'error');
+
+  const accept = (s, pid, params) => first(s, pid, 'trade.accept', params);
+  assert.deepEqual(shape(accept(offered, PARTNER, { offer: 'of-9-9' })), ['target', { reason: 'not-open-offer' }]);
+  assert.deepEqual(shape(accept(withResources(offered, PARTNER, { nahrung: 1 }), PARTNER, { offer: 'of-0-1' })), ['target', { reason: 'cannot-pay' }]);
+  assert.deepEqual(shape(accept(withRelation(offered, PLAYER, PARTNER, { atWar: true }), PARTNER, { offer: 'of-0-1' })), ['handel.no_route', { partner: PLAYER, offer: 'of-0-1' }]);
+  assert.deepEqual(shape(first(running(), PLAYER, 'trade.cancel', { contract: 'ct-9-9' })), ['target', { reason: 'not-running-contract' }]);
+
+  const trade = (params) => first(market, PLAYER, 'trade.market', params);
+  assert.deepEqual(shape(trade({ mode: 'swap', res: 'erz', amount: 1 })), ['target', { reason: 'bad-mode' }]);
+  assert.deepEqual(shape(trade(buy(1, 'salz'))), ['target', { reason: 'bad-res', currency: 'salz' }]);
+  assert.deepEqual(shape(trade(buy(13))), ['target', { reason: 'bad-amount', max: 12 }]);
+});

@@ -11,7 +11,7 @@
 
 import { MODULES } from '../modules/index.js';
 import { knownRegions } from './map.js';
-import { kern, peopleIds } from './state.js';
+import { kern, peopleIds, settingsOf } from './state.js';
 
 const clone = (v) => structuredClone(v);
 
@@ -80,6 +80,7 @@ export function projectFor(state, env, pid) {
     eventDraws: state.eventDraws?.[pid] ? { [pid]: clone(state.eventDraws[pid]) } : {},
     pendingChoices: (state.pendingChoices ?? []).filter((c) => c.people === pid).map(clone),
     chronicle: projectEvents(state.chronicle ?? [], pid),
+    settings: settingsOf(state),
     derived: state.derived?.[pid] ? { [pid]: clone(state.derived[pid]) } : {},
   };
   // Module hooks see the projection built so far, never the full state's other peoples.

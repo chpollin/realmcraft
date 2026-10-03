@@ -229,3 +229,84 @@ describe('ingestProposal, council and judges', () => {
     assert.ok(sources.has('player') && sources.has('agent:judge-balance'));
   });
 });
+
+describe('ingestProposal, machine-readable refusals', () => {
+  const issuesOf = (r) => [...r.issues, ...r.items.flatMap((i) => i.issues)];
+  const find = (r, reason) => issuesOf(r).find((i) => i.params?.reason === reason);
+
+  it('names a reserved name in the proposal', () => {
+    const r = ingest(state, proposalFor(chronicler, [{ type: 'narrative', refs: [], text: 'constructor' }]), chronicler);
+    assert.equal(r.verdict, 'rejected');
+    const i = find(r, 'reserved-name');
+    assert.equal(i.code, 'format');
+    assert.equal(i.path, '/items/0/text');
+    assert.deepEqual(i.params, { reason: 'reserved-name' });
+  });
+
+  it('names phase, item type and agent of a barred item', () => {
+    const planning = open(state, env).state;
+    const r = ingest(planning, entwicklungProposal(), research);
+    assert.deepEqual(find(r, 'item-barred').params, { reason: 'item-barred', phase: 'planning', type: 'entwicklung', agent: 'research' });
+    assert.equal(find(r, 'item-barred').code, 'phase');
+  });
+
+  it('names the ref and the people of a candidate that is offered already', () => {
+    const offered = structuredClone(state);
+    offered.peoples[player].developments.candidates = [{ ref: 'karawanenpfad@1', offeredAt: 0, expiresAt: 4, origin: 'pool' }];
+    const i = find(ingest(offered, entwicklungProposal(), research), 'already-known');
+    assert.equal(i.code, 'duplicate');
+    assert.deepEqual(i.params, { reason: 'already-known', ref: 'karawanenpfad@1', people: player });
+  });
+
+  it('names a library conflict of a second card with the same id', () => {
+    const card = structuredClone(env.content.ereignisse[0]);
+    card.id = 'doppelkarte';
+    card.if = null;
+    const resolving = { ...structuredClone(state), phase: 'resolving' };
+    const world = taskOf(buildTasks(resolving, env, { library }), 'world');
+    const r = ingest(resolving, proposalFor(world, [{ type: 'event', data: card }, { type: 'event', data: { ...structuredClone(card), name: 'Anders' } }]), world);
+    assert.equal(r.verdict, 'partial');
+    const i = find(r, 'library-duplicate');
+    assert.equal(i.code, 'duplicate');
+    assert.deepEqual(i.params, { reason: 'library-duplicate' });
+  });
+
+  it('names the tile of a second feature', () => {
+    const world = taskOf(buildTasks(state, env, { library, phase: 'resolving' }), 'world');
+    const raw = fixture('proposal-world-feature.json');
+    const first = ingest(state, proposalFor(world, raw.items), world);
+    const next = { ...world, turn: 0, respondAs: { proposalId: 'world.T0', path: 'agents/proposals/world.T0.json' } };
+    const i = find(ingest({ ...first.state, ingested: {} }, proposalFor(next, raw.items), next), 'tile-has-feature');
+    assert.equal(i.code, 'duplicate');
+    assert.deepEqual(i.params, { reason: 'tile-has-feature', tile: '-9,-7' });
+  });
+
+  it('names the people and the seat of a person without an open seat', () => {
+    const council = taskOf(buildTasks(state, env, { library }), 'council', player);
+    const goal = { text: 'Das Volk soll den Winter überstehen.', favor: ['winter'], oppose: [] };
+    const person = { id: 'neue-seherin', name: 'Neue Seherin', role: 'schamane', goal, age: 30, lifeStage: 'ruestig', appearance: 'Grau gekleidet' };
+    const i = find(ingest(state, proposalFor(council, [{ type: 'person', seat: 'schamane', data: person }]), council), 'no-open-seat');
+    assert.equal(i.code, 'target');
+    assert.deepEqual(i.params, { reason: 'no-open-seat', people: player, seat: 'schamane' });
+  });
+
+  it('names the finding of a correction that waits for consent', () => {
+    const judge = buildJudgeTask(state, env, 'judge-balance').task;
+    const p = proposalFor(judge, [
+      { type: 'finding', id: 'nahrung-zu-hoch', severity: 'warn', for: ['research'], refs: ['T0-e1'], text: 'Die Nahrung steigt zu schnell.' },
+      { type: 'correction', finding: 'nahrung-zu-hoch', needsConsent: true, people: player, item: { type: 'effects', effects: [{ op: 'resource.delta', res: 'nahrung', amount: -1 }] } },
+    ]);
+    const i = issuesOf(ingest(state, p, judge)).find((x) => x.code === 'consent.required');
+    assert.deepEqual(i.params, { finding: 'nahrung-zu-hoch' });
+  });
+
+  it('names the refusal of orders for a people that is not an AI people', () => {
+    // A task would reject the foreign people first, so the kernel rule shows in a replay without one.
+    const rival = taskOf(tasks, 'rival', ai);
+    const r = ingest(state, proposalFor(rival, [{ type: 'orders', data: emptyDraft(state, player) }], { people: player }), null, { fog: false });
+    assert.equal(r.verdict, 'rejected');
+    const i = find(r, 'orders-ai-only');
+    assert.equal(i.code, 'target');
+    assert.equal(i.path, '/items/0');
+  });
+});

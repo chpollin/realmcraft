@@ -56,8 +56,10 @@ export const FILE_DEFS = Object.freeze({
     eventDraws: map(str(PATTERNS.id), ref('eventDraw')),
     pendingChoices: arr(ref('pendingChoice'), 24),
     chronicle: arr(ref('logEntry'), 2000),
+    // Default absent in views written before M1; the campaign's settings.
+    settings: ref('settings'),
     derived: ref('derived'),
-  }),
+  }, ['settings']),
   // One row per campaign folder; status playing marks an active campaign.
   campaignIndex: obj({
     format: { const: 'realmcraft-campaigns' },

@@ -673,3 +673,53 @@ test('M3.5 a people collapses below tuning.collapseCore, and by default only at 
   const env4 = envWith({ tuning: { collapseCore: 4 } });
   assert.equal(season(fresh(env4), env4).next.result.kind, 'collapse');
 });
+
+// --- machine-readable refusals ------------------------------------------------------------------------
+
+test('adoption and offer refusals name their reason in params', () => {
+  const env = envWith({ bestimmungen: [holdsDestiny, withTags('leicht', ['handel']), withTags('dritte', ['handel']), withTags('vierte', ['handel']), withTags('rivalenziel', ['handel'])] });
+  const adoptReason = (state, ref) => {
+    const issues = adoptDef.check(oxFor(state, env), adoptOrder(ref));
+    assert.equal(issues.length, 1, ref);
+    assert.equal(issues[0].path, '/orders/0/params');
+    return `${issues[0].code}:${issues[0].params.reason}`;
+  };
+  const s = fresh(env);
+  s.turn = 6;
+  assert.equal(adoptReason(s, 'gibtsnicht@1'), 'target:unknown-destiny');
+  assert.equal(adoptReason(s, 'ueberdauern@1'), 'target:own-destiny');
+  assert.equal(adoptReason(s, 'leicht@1'), 'target:practice-touches-destiny', 'no practice rows yet');
+  s.peoples[H].practice.ledger = ledgerOf([2, 3, 4, 5]);
+  assert.equal(adoptReason(s, 'leicht@1'), 'target:not-offered');
+  const rival = structuredClone(s);
+  rival.peoples.esk.bestimmung = bestimmung.initBestimmung(env, 'rivalenziel@1', 0);
+  assert.equal(adoptReason(rival, 'rivalenziel@1'), 'target:held-by-rival');
+  const changed = structuredClone(s);
+  changed.peoples[H].bestimmung.adoptedAt = 5;
+  assert.equal(adoptReason(changed, 'leicht@1'), 'duplicate:changed-this-year');
+
+  // The blocked notice at resolution keeps the English message of the block.
+  const tc = context(rival, env, 'orders');
+  adoptDef.resolve(tc, oxFor(rival, env), adoptOrder('rivalenziel@1'), { costs: {}, probe: null });
+  assert.match(tc.log.find((e) => e.kind === 'order.blocked').reason, /another people holds this destiny/);
+
+  const early = context(structuredClone(s), env, 'agents');
+  early.state.peoples[H].practice.ledger = [];
+  const offerReason = (tc2, pid, ref, origin = 'agent') => {
+    const issues = bestimmung.offerDestiny(tc2, pid, ref, origin);
+    assert.equal(issues.length, 1, `${pid} ${ref} ${origin}`);
+    assert.equal(issues[0].code, 'target');
+    return issues[0].params.reason;
+  };
+  assert.equal(offerReason(early, H, 'leicht@1'), 'practice-touches-destiny');
+  const tc2 = context(rival, env, 'agents');
+  assert.equal(offerReason(context(structuredClone(s), env, 'agents'), 'esk', 'leicht@1', 'pool'), 'no-destiny-state');
+  assert.equal(offerReason(tc2, H, 'leicht@1', 'wuerfel'), 'origin');
+  assert.equal(offerReason(tc2, H, 'gibtsnicht@1'), 'unknown-destiny');
+  assert.equal(offerReason(tc2, H, 'ueberdauern@1'), 'own-destiny');
+  assert.equal(offerReason(tc2, H, 'rivalenziel@1'), 'held-by-rival');
+  assert.deepEqual(bestimmung.offerDestiny(tc2, H, 'leicht@1', 'pool'), []);
+  assert.equal(offerReason(tc2, H, 'leicht@1'), 'offered-already');
+  assert.deepEqual(bestimmung.offerDestiny(tc2, H, 'dritte@1', 'pool'), []);
+  assert.equal(offerReason(tc2, H, 'vierte@1'), 'offers-full');
+});

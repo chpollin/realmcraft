@@ -105,46 +105,55 @@ function defenceOf(state, env, attacker, tile, standingFor) {
   return { defender, units: foreign.filter((f) => f.people === defender), settlement };
 }
 
+// Records the first refusal of a spec: the English text for logs and a kebab-case
+// key the board labels from (plan-m1, machine-readable issues).
+function fail(spec, reason, text) {
+  spec.error ??= text;
+  spec.errorReason ??= reason;
+}
+
 /**
  * The calculation of an attack read from the opening state ox.state.
  * unitIds: the units sent; from: an own settlement for a sortie (its ready
  * units on the settlement tile attack and RULES.garrison of its kind adds to
- * A). Returns { error, invalid: [{ id, why }], target, extraMods, step, A, D,
- * defender, defenders: [{ people, unitId }], settlement, garrison,
- * attackers: [{ unit, strength }], terrain }. error is null for a valid attack.
+ * A). Returns { error, errorReason, invalid: [{ id, why, reason, state? }],
+ * target, extraMods, step, A, D, defender, defenders: [{ people, unitId }],
+ * settlement, garrison, attackers: [{ unit, strength }], terrain }. error is
+ * null for a valid attack; errorReason and an invalid entry's reason are the
+ * machine keys beside the text.
  */
 export function battleSpec(ox, unitIds, tile, { from = null } = {}) {
   const { state, env, pid, world } = ox;
   const spec = {
-    error: null, invalid: [], target: null, extraMods: [], step: 0, A: 0, D: 0, defender: null, defenders: [],
+    error: null, errorReason: null, invalid: [], target: null, extraMods: [], step: 0, A: 0, D: 0, defender: null, defenders: [],
     settlement: null, garrison: 0, attackers: [], terrain: null, sortie: from !== null,
   };
   if (state.map.known?.[pid]?.[tile] !== 'visible') {
-    spec.error = 'the tile is not in sight';
+    fail(spec, 'not-in-sight', 'the tile is not in sight');
     return spec;
   }
   const own = state.peoples[pid].units;
   let attackStrength = 0;
   if (from) {
-    if (distance(parseKey(from.tile), parseKey(tile)) !== 1) spec.error = 'the settlement does not border the tile';
+    if (distance(parseKey(from.tile), parseKey(tile)) !== 1) fail(spec, 'not-adjacent', 'the settlement does not border the tile');
     for (const u of own) if (u.tile === from.tile && u.state === 'ready') spec.attackers.push({ unit: u, strength: unitStats(state, env, pid, u, ox.standing).strength });
     attackStrength += RULES.garrison[from.kind] ?? 0;
   } else {
     for (const id of new Set(unitIds)) {
       const u = own.find((x) => x.id === id);
-      if (!u) spec.invalid.push({ id, why: 'is no unit of this people' });
-      else if (u.state !== 'ready') spec.invalid.push({ id, why: `is ${u.state} and cannot attack` });
-      else if (distance(parseKey(u.tile), parseKey(tile)) !== 1) spec.invalid.push({ id, why: 'does not border the tile' });
+      if (!u) spec.invalid.push({ id, why: 'is no unit of this people', reason: 'not-own-unit' });
+      else if (u.state !== 'ready') spec.invalid.push({ id, why: `is ${u.state} and cannot attack`, reason: 'unit-not-ready', state: u.state });
+      else if (distance(parseKey(u.tile), parseKey(tile)) !== 1) spec.invalid.push({ id, why: 'does not border the tile', reason: 'not-adjacent' });
       else spec.attackers.push({ unit: u, strength: unitStats(state, env, pid, u, ox.standing).strength });
     }
-    if (!spec.attackers.length && !spec.invalid.length) spec.error = 'no unit named';
+    if (!spec.attackers.length && !spec.invalid.length) fail(spec, 'no-unit-named', 'no unit named');
   }
   spec.A = attackStrength + spec.attackers.reduce((n, a) => n + a.strength, 0);
 
   const standingFor = standingCache(state, env, pid, ox.standing);
   const def = defenceOf(state, env, pid, tile, standingFor);
   if (!def) {
-    spec.error ??= 'no foreign unit or settlement stands on the tile';
+    fail(spec, 'no-foreign-target', 'no foreign unit or settlement stands on the tile');
     return spec;
   }
   spec.defender = def.defender;
@@ -153,7 +162,7 @@ export function battleSpec(ox, unitIds, tile, { from = null } = {}) {
   spec.garrison = def.settlement ? RULES.garrison[def.settlement.kind] ?? 0 : 0;
   spec.D = def.units.reduce((n, f) => n + f.strength, 0) + spec.garrison;
   spec.terrain = tileOf(world, tile).terrain;
-  if (spec.A === 0) spec.error ??= 'the attack has no strength';
+  if (spec.A === 0) fail(spec, 'no-strength', 'the attack has no strength');
   spec.step = ratioStep(spec.A, spec.D);
   spec.target = 5 + spec.step + tune(env, 'terrainDefense', spec.terrain);
 
@@ -306,31 +315,31 @@ const regionTouched = (world, tile, region) => {
 
 /**
  * The calculation of a raid on a region held by another people:
- * { error, invalid, victim, units: [{ unit, strength }], A, D, step, target }.
+ * { error, errorReason, invalid, victim, units: [{ unit, strength }], A, D, step, target }.
  * D counts the victim's units in the region and may be 0.
  */
 export function raidSpec(ox, unitIds, region) {
   const { state, env, pid, world } = ox;
-  const spec = { error: null, invalid: [], victim: null, units: [], A: 0, D: 0, step: 0, target: null };
+  const spec = { error: null, errorReason: null, invalid: [], victim: null, units: [], A: 0, D: 0, step: 0, target: null };
   const victim = state.map.control[region] ?? null;
   if (!victim) {
-    spec.error = 'no people controls that region';
+    fail(spec, 'region-uncontrolled', 'no people controls that region');
     return spec;
   }
   if (victim === pid) {
-    spec.error = 'the region is controlled by the raider';
+    fail(spec, 'own-region', 'the region is controlled by the raider');
     return spec;
   }
   spec.victim = victim;
   const own = state.peoples[pid].units;
   for (const id of new Set(unitIds)) {
     const u = own.find((x) => x.id === id);
-    if (!u) spec.invalid.push({ id, why: 'is no unit of this people' });
-    else if (u.state !== 'ready') spec.invalid.push({ id, why: `is ${u.state} and cannot raid` });
-    else if (!regionTouched(world, u.tile, region)) spec.invalid.push({ id, why: 'is neither in nor next to the region' });
+    if (!u) spec.invalid.push({ id, why: 'is no unit of this people', reason: 'not-own-unit' });
+    else if (u.state !== 'ready') spec.invalid.push({ id, why: `is ${u.state} and cannot raid`, reason: 'unit-not-ready', state: u.state });
+    else if (!regionTouched(world, u.tile, region)) spec.invalid.push({ id, why: 'is neither in nor next to the region', reason: 'not-near-region' });
     else spec.units.push({ unit: u, strength: unitStats(state, env, pid, u, ox.standing).strength });
   }
-  if (!spec.units.length && !spec.invalid.length) spec.error = 'no unit named';
+  if (!spec.units.length && !spec.invalid.length) fail(spec, 'no-unit-named', 'no unit named');
   spec.A = spec.units.reduce((n, a) => n + a.strength, 0);
   const vs = standingOf(state, env, victim);
   spec.D = state.peoples[victim].units.filter((u) => regionAt(world, u.tile) === region)

@@ -305,3 +305,56 @@ test('raubzug failure: the raiders are routed for the next season', () => {
   assert.equal(u.state, 'routed');
   assert.ok(u.strength < 9);
 });
+
+test('refusals are machine-readable: code, reason and the interpolated params', () => {
+  const { env, state } = scenario();
+  const shape = (orders) => errorsOf(state, env, orders).map((e) => [e.code, e.params]);
+  const only = (orders) => {
+    const got = shape(orders);
+    assert.equal(got.length, 1);
+    return got[0];
+  };
+  state.peoples.hochweide.units = [spear('u-1', '0,1'), spear('u-2', '0,1', { state: 'routed' }), spear('u-3', '-1,2')];
+  state.peoples.esk.units = [spear('e-1', '0,0')];
+  state.peoples.hochweide.resources.material = 20;
+  state.peoples.hochweide.resources.nahrung = 20;
+
+  assert.deepEqual(only([recruit('o1', 'wachfeuer@1')]), ['target', { reason: 'not-unit-type' }]);
+  assert.deepEqual(only([{ id: 'o1', type: 'recruit', params: { type: 'speerwall@1', settlement: 's-esk' } }]), ['target', { reason: 'not-own-settlement' }]);
+  state.peoples.hochweide.units[0].strength = 9;
+  assert.deepEqual(only([recruit()]), ['target', { reason: 'strength-cap', strength: 9 + 3 + 3 + 3, cap: 3 * RULES.strengthPerClan }]);
+  state.peoples.hochweide.units[0].strength = 3;
+
+  assert.deepEqual(only([move('o1', 'u-9', '0,2')]), ['target', { reason: 'not-own-unit' }]);
+  assert.deepEqual(only([move('o1', 'u-2', '0,2')]), ['target', { reason: 'unit-not-ready', state: 'routed' }]);
+  assert.deepEqual(only([move('o1', 'u-1', 'x')]), ['target', { reason: 'not-tile' }]);
+  assert.deepEqual(only([move('o1', 'u-1', '0,1')]), ['target', { reason: 'unit-on-tile' }]);
+  assert.deepEqual(only([move('o1', 'u-1', '0,4')]), ['target', { reason: 'out-of-reach' }]);
+  state.peoples.esk.units.push(spear('e-2', '0,2'));
+  assert.deepEqual(only([move('o1', 'u-1', '0,2')]), ['target', { reason: 'tile-held' }]);
+  state.peoples.esk.units.pop();
+
+  assert.deepEqual(only([attack('o1', [], '0,0')]), ['target', { reason: 'bad-units' }]);
+  assert.deepEqual(only([attack('o1', ['u-1'], 'x')]), ['target', { reason: 'not-tile' }]);
+  assert.deepEqual(only([attack('o1', ['u-2'], '0,0')]), ['target', { reason: 'unit-not-ready', unit: 'u-2', state: 'routed', tile: '0,0' }]);
+  assert.deepEqual(only([attack('o1', ['u-3'], '0,0')]), ['target', { reason: 'not-adjacent', unit: 'u-3', tile: '0,0' }]);
+  assert.deepEqual(only([attack('o1', ['u-9'], '0,0')]), ['target', { reason: 'not-own-unit', unit: 'u-9', tile: '0,0' }]);
+  assert.deepEqual(only([attack('o1', ['u-1'], '0,2')]), ['target', { reason: 'no-foreign-target', tile: '0,2' }]);
+
+  assert.deepEqual(only([{ id: 'o1', type: 'retreat', params: { unit: 'u-9' } }]), ['target', { reason: 'not-own-unit' }]);
+  assert.deepEqual(only([{ id: 'o1', type: 'retreat', params: { unit: 'u-1' } }]), ['target', { reason: 'no-retreat' }]);
+
+  addStatus(state, 'hochweide', 'unlock', [{ op: 'order.unlock', order: 'ausfall' }, { op: 'order.unlock', order: 'raubzug' }]);
+  const sortie = (settlement, tile) => [{ id: 'o1', type: 'ausfall', params: { settlement, tile } }];
+  state.map.settlements.push({ id: 'x-village', name: 'Hochdorf', people: 'hochweide', kind: 'dorf', tile: '0,2', regionId: '-1:0:0', mobile: false, buildings: [] });
+  assert.deepEqual(only(sortie('s-hochweide', '0,2')), ['target', { reason: 'not-fixed-settlement' }]);
+  assert.deepEqual(only(sortie('x-village', 'x')), ['target', { reason: 'not-tile' }]);
+  assert.deepEqual(only(sortie('x-village', '0,3')), ['target', { reason: 'no-foreign-target', tile: '0,3' }]);
+
+  const raid = (units, region) => [{ id: 'o1', type: 'raubzug', params: { units, region } }];
+  assert.deepEqual(only(raid([], '0:-1:1')), ['target', { reason: 'bad-units' }]);
+  assert.deepEqual(only(raid(['u-1'], 5)), ['target', { reason: 'not-region' }]);
+  assert.deepEqual(only(raid(['u-1'], '-1:0:0')), ['target', { reason: 'own-region', region: '-1:0:0' }]);
+  assert.deepEqual(only(raid(['u-2'], '0:-1:1')), ['target', { reason: 'unit-not-ready', unit: 'u-2', state: 'routed', region: '0:-1:1' }]);
+  assert.deepEqual(only(raid(['u-9'], '0:-1:1')), ['target', { reason: 'not-own-unit', unit: 'u-9', region: '0:-1:1' }]);
+});

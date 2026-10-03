@@ -20,6 +20,7 @@ import { evalCondition } from '../core/conditions.js';
 import { checkDraft, orderContext } from '../core/orders.js';
 import { computeDerived } from '../core/derive.js';
 import { projectFor } from '../core/project.js';
+import { migrate } from '../core/turn.js';
 import { reservedKeyPaths } from '../core/canon.js';
 import { appendToLibrary, createLibrary, refOf } from '../content/library.js';
 import { validateProposal } from '../content/validate.js';
@@ -79,7 +80,7 @@ function pruneIngested(ingested, turn) {
 export function ingestProposal(state, env, proposal, { task = null, library = createLibrary(), consent = [], fog = true, holder = null } = {}) {
   const reserved = reservedKeyPaths(proposal);
   if (reserved.length) {
-    return failed(state, library, 'rejected', null, reserved.map((path) => issue('format', path, 'a reserved name cannot serve as an id or key')));
+    return failed(state, library, 'rejected', null, reserved.map((path) => issue('format', path, 'a reserved name cannot serve as an id or key', { params: { reason: 'reserved-name' } })));
   }
   // requireTask: the validator refuses state-changing items without the task
   // whose limits they answer to; journal entries before that rule replay without it.
@@ -89,13 +90,16 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
 
   const barred = proposal.items.filter((i) => !phaseAllows(state.phase, proposal.agent, i.type));
   if (barred.length) {
-    const issues = barred.map((i) => issue('phase', '/phase', `phase ${state.phase} does not admit "${i.type}" items of agent "${proposal.agent}"`));
+    const issues = barred.map((i) => issue('phase', '/phase', `phase ${state.phase} does not admit "${i.type}" items of agent "${proposal.agent}"`, {
+      params: { reason: 'item-barred', phase: state.phase, type: i.type, agent: proposal.agent },
+    }));
     return failed(state, library, 'deferred', v.hash, issues);
   }
 
   const source = `agent:${proposal.agent}`;
   const tc = createContext(state, env, { source });
   tc.step = 'ingest';
+  migrate(tc);
   const run = { lib: library, drafts: {}, texts: new Map() };
   const meta = { refs: [proposal.proposalId] };
   const addText = (path, part) => run.texts.set(path, [...(run.texts.get(path) ?? []), part]);
@@ -110,20 +114,21 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       if (holder) holder.library = run.lib;
       return { ref: r.ref, added: r.added };
     } catch (err) {
-      return { error: issue('duplicate', '/data', err.message) };
+      return { error: issue('duplicate', '/data', err.message, { params: { reason: 'library-duplicate' } }) };
     }
   };
 
   function applyItem(item, pid, base) {
-    const bad = (code, path, msg) => [issue(code, `${base}${path}`, msg, { severity: 'error' })];
+    const bad = (code, path, msg, params) => [issue(code, `${base}${path}`, msg, { severity: 'error', params })];
+    const named = String(pid ?? '');
     switch (item.type) {
       case 'entwicklung': {
         const p = people(pid);
-        if (!p) return bad('target', '', `an Entwicklung needs a people, the proposal names ${JSON.stringify(pid)}`);
+        if (!p) return bad('target', '', `an Entwicklung needs a people, the proposal names ${JSON.stringify(pid)}`, { reason: 'entwicklung-needs-people', people: named });
         const ref = refOf(item.data);
         const dev = p.developments;
-        if (dev.known.some((k) => k.ref === ref) || dev.candidates.some((c) => c.ref === ref)) return bad('duplicate', '/data', `${ref} is already known or offered to ${pid}`);
-        if (dev.candidates.length >= MAX_CANDIDATES) return bad('limit', '', `${pid} already has ${MAX_CANDIDATES} candidates`);
+        if (dev.known.some((k) => k.ref === ref) || dev.candidates.some((c) => c.ref === ref)) return bad('duplicate', '/data', `${ref} is already known or offered to ${pid}`, { reason: 'already-known', ref, people: named });
+        if (dev.candidates.length >= MAX_CANDIDATES) return bad('limit', '', `${pid} already has ${MAX_CANDIDATES} candidates`, { reason: 'candidates-full', people: named, max: MAX_CANDIDATES });
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
         const token = item.data.origin.token;
@@ -136,14 +141,14 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       }
       case 'bestimmung': {
         // A destiny becomes adoptable only as an offer to its people (Regelkern section 13).
-        if (!people(pid)) return bad('target', '', `a destiny is offered to a people, the proposal names ${JSON.stringify(pid)}`);
+        if (!people(pid)) return bad('target', '', `a destiny is offered to a people, the proposal names ${JSON.stringify(pid)}`, { reason: 'bestimmung-needs-people', people: named });
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
         const refused = offerDestiny(tc, pid, stored.ref, 'agent', { path: `${base}/data`, refs: meta.refs });
         return refused;
       }
       case 'event': {
-        if (tc.state.eventPool.length >= MAX_POOL) return bad('limit', '', `the event pool holds ${MAX_POOL} cards`);
+        if (tc.state.eventPool.length >= MAX_POOL) return bad('limit', '', `the event pool holds ${MAX_POOL} cards`, { reason: 'pool-full', max: MAX_POOL });
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
         if (!tc.state.eventPool.includes(stored.ref)) {
@@ -156,7 +161,7 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       }
       case 'feature': {
         const tile = item.tile;
-        if (tc.state.map.features[tile]) return bad('duplicate', '/tile', `tile ${tile} already holds a feature`);
+        if (tc.state.map.features[tile]) return bad('duplicate', '/tile', `tile ${tile} already holds a feature`, { reason: 'tile-has-feature', tile: String(tile) });
         const feature = { ...item.data, since: tc.turn, source };
         tc.state.map.features[tile] = feature;
         const seers = peopleIds(tc.state).filter((id) => Object.hasOwn(tc.state.map.known[id] ?? {}, tile));
@@ -165,12 +170,12 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       }
       case 'person': {
         const p = people(pid);
-        if (!p) return bad('target', '', 'a person needs a people');
+        if (!p) return bad('target', '', 'a person needs a people', { reason: 'person-needs-people' });
         const seats = kern(p).seats;
         const at = seats.findIndex((s) => s.role === item.seat) >= 0 ? seats.findIndex((s) => s.role === item.seat) : seats.findIndex((s) => s.role === item.data.role);
-        if (at < 0) return bad('target', '/seat', `${pid} has no open seat "${item.seat}"`);
-        if (p.council.some((m) => m.id === item.data.id)) return bad('duplicate', '/data/id', `council member ${item.data.id} exists`);
-        const member = { ...item.data, loyalty: env.regeln.tuning?.newMemberLoyalty ?? 0, hollow: false, leader: false };
+        if (at < 0) return bad('target', '/seat', `${pid} has no open seat "${item.seat}"`, { reason: 'no-open-seat', people: named, seat: String(item.seat ?? '') });
+        if (p.council.some((m) => m.id === item.data.id)) return bad('duplicate', '/data/id', `council member ${item.data.id} exists`, { reason: 'member-exists', member: String(item.data.id) });
+        const member = { ...item.data, loyalty: env.regeln.tuning?.newMemberLoyalty ?? 0, hollow: false, leader: false, at: null };
         p.council.push(member);
         noteChange(tc, 'ingest.person', { kind: 'member', id: member.id }, 'council', null, member, `${member.name} takes the open seat ${seats[at].role}`, { ...meta, people: pid });
         setKern(tc, pid, 'seats', seats.filter((_, i) => i !== at), `seat ${seats[at].role} filled`, meta);
@@ -178,13 +183,13 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       }
       case 'goal': {
         const p = people(pid);
-        if (!p || !findMember(p, item.member)) return bad('dangling_ref', '/member', `${item.member} is no council member`);
+        if (!p || !findMember(p, item.member)) return bad('dangling_ref', '/member', `${item.member} is no council member`, { reason: 'not-member', member: String(item.member) });
         setMember(tc, pid, item.member, 'goal', item.goal, `goal revised by ${source}`, { kind: 'ingest.goal', ...meta });
         return [];
       }
       case 'orders': {
         const p = people(pid);
-        if (!p || p.controller !== 'ai') return bad('target', '', 'orders are accepted for AI peoples only');
+        if (!p || p.controller !== 'ai') return bad('target', '', 'orders are accepted for AI peoples only', { reason: 'orders-ai-only' });
         const draft = { ...clone(item.data), sealed: true };
         const chk = checkDraft(fog ? projectFor(state, env, pid) : state, env, draft, { as: pid, mode: 'preview' });
         if (hasErrors(chk.issues)) return chk.issues.filter((i) => i.severity === 'error').map((i) => ({ ...i, path: `${base}/data${i.path}` }));
@@ -217,13 +222,13 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         return [];
       }
       case 'correction': {
-        if (item.needsConsent && !consent.includes(proposal.proposalId)) return bad('consent.required', '', `the correction of finding ${item.finding} waits for the player's consent`);
+        if (item.needsConsent && !consent.includes(proposal.proposalId)) return bad('consent.required', '', `the correction of finding ${item.finding} waits for the player's consent`, { finding: String(item.finding) });
         // The validator checked the corrected item against item.people alone.
         const target = item.people ?? null;
         const reason = `correction of finding ${item.finding}`;
         let found;
         if (item.item.type === 'effects') {
-          if (!people(target)) return bad('target', '/people', 'effects need a people');
+          if (!people(target)) return bad('target', '/people', 'effects need a people', { reason: 'effects-need-people' });
           applyOnceList(tc, target, item.item.effects, { reason, source, refs: [proposal.proposalId] });
           found = [];
         } else {
@@ -238,7 +243,7 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         return [];
       }
       default:
-        return bad('item_not_allowed', '/type', `no ingest rule for "${item.type}"`);
+        return bad('format', '/type', `no ingest rule for "${item.type}"`, { reason: 'item-not-allowed', type: String(item.type) });
     }
   }
 

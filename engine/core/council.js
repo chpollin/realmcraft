@@ -165,7 +165,7 @@ export function forecastCouncil(ox, entries) {
 
 // --- Machtprobe -----------------------------------------------------------------
 
-const machtError = (ox, msg) => issue('target', `${ox.path}/params`, msg);
+const machtError = (ox, reason, msg, params = {}) => issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } });
 
 function needShown(ox) {
   const { people, state, pid, world } = ox;
@@ -224,14 +224,14 @@ const ORDER_MACHTPROBE = {
   tags: (ox, o) => ['machtprobe', 'macht', o.params?.approach].filter(Boolean),
   check(ox, o) {
     const p = o.params ?? {};
-    if (!AIMS.includes(p.aim)) return [machtError(ox, `aim must be one of ${AIMS.join(', ')}`)];
+    if (!AIMS.includes(p.aim)) return [machtError(ox, 'aim', `aim must be one of ${AIMS.join(', ')}`, { aims: AIMS })];
     const out = [];
-    if (p.approach !== undefined && !(typeof p.approach === 'string' && tagPattern.test(p.approach))) out.push(machtError(ox, 'approach must be a tag'));
-    if (p.cause !== undefined && p.cause !== 'need') out.push(machtError(ox, 'cause must be need'));
-    if (p.against !== undefined && !findMember(ox.people, p.against)) out.push(machtError(ox, `against names no council member: ${p.against}`));
-    if (p.aim === 'override' && typeof p.order !== 'string') out.push(machtError(ox, 'override needs params.order'));
-    if (p.aim === 'reconcile' && !findMember(ox.people, p.member)) out.push(machtError(ox, 'reconcile needs params.member of the council'));
-    if (p.aim === 'quell' && !ox.people.tokens.some((t) => t.kind === 'grievance')) out.push(machtError(ox, 'quell needs an open grievance token'));
+    if (p.approach !== undefined && !(typeof p.approach === 'string' && tagPattern.test(p.approach))) out.push(machtError(ox, 'approach-not-tag', 'approach must be a tag'));
+    if (p.cause !== undefined && p.cause !== 'need') out.push(machtError(ox, 'cause', 'cause must be need'));
+    if (p.against !== undefined && !findMember(ox.people, p.against)) out.push(machtError(ox, 'against-not-member', `against names no council member: ${p.against}`, { member: String(p.against) }));
+    if (p.aim === 'override' && typeof p.order !== 'string') out.push(machtError(ox, 'override-needs-order', 'override needs params.order'));
+    if (p.aim === 'reconcile' && !findMember(ox.people, p.member)) out.push(machtError(ox, 'reconcile-needs-member', 'reconcile needs params.member of the council'));
+    if (p.aim === 'quell' && !ox.people.tokens.some((t) => t.kind === 'grievance')) out.push(machtError(ox, 'quell-needs-grievance', 'quell needs an open grievance token'));
     return out;
   },
   plan: (ox, o) => ({
@@ -283,15 +283,15 @@ const ORDER_TALK = {
   tags: ['rat'],
   check(ox, o) {
     const p = o.params ?? {};
-    const bad = (msg) => [machtError(ox, msg)];
-    if (!TALK_MODES.includes(p.mode)) return bad(`mode must be one of ${TALK_MODES.join(', ')}`);
-    if (p.mode === 'honor-dead') return deathsToHonor(ox.state, ox.people).length ? [] : bad('no death of the last season left to honour');
+    const bad = (reason, msg, params) => [machtError(ox, reason, msg, params)];
+    if (!TALK_MODES.includes(p.mode)) return bad('mode', `mode must be one of ${TALK_MODES.join(', ')}`, { modes: TALK_MODES });
+    if (p.mode === 'honor-dead') return deathsToHonor(ox.state, ox.people).length ? [] : bad('no-death-to-honor', 'no death of the last season left to honour');
     const m = findMember(ox.people, p.member);
-    if (!m) return bad('member must be a council member');
+    if (!m) return bad('not-member', 'member must be a council member');
     if (p.mode === 'honor') {
-      if (m.loyalty >= 0) return bad(`${m.name} has no grievance to honour`);
-      if (m.hollow) return bad(`${m.name} is bound hollow`);
-      if (slice(ox.people).honored[m.id] === ox.cal.year) return bad(`${m.name} was honoured this year`);
+      if (m.loyalty >= 0) return bad('no-grievance', `${m.name} has no grievance to honour`, { name: m.name });
+      if (m.hollow) return bad('member-hollow', `${m.name} is bound hollow`, { name: m.name });
+      if (slice(ox.people).honored[m.id] === ox.cal.year) return bad('honored-this-year', `${m.name} was honoured this year`, { name: m.name });
     }
     return [];
   },

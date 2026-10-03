@@ -63,9 +63,13 @@ test('expectRev guards against a stale writer', (t) => {
   writeState(dir, state0);
   const wrongBase = writeState(dir, { ...next(state0), rev: 3 }, { expectRev: 2 });
   assert.deepEqual([wrongBase.ok, wrongBase.rev, wrongBase.issues.map((i) => i.code)], [false, 1, ['stale']]);
+  assert.deepEqual(wrongBase.issues[0].params, { reason: 'rev-moved', rev: 1, expected: 2 });
   const noBump = writeState(dir, state0, { expectRev: 1 });
   assert.deepEqual([noBump.ok, noBump.issues.map((i) => i.code)], [false, ['stale']]);
+  assert.deepEqual(noBump.issues[0].params, { reason: 'rev-not-next', rev: 1, expected: 2 });
   assert.equal(readJson(join(dir, LAYOUT.state)).rev, 1);
+  const empty = writeState(tempCampaign(t), state0, { expectRev: 1 });
+  assert.deepEqual(empty.issues[0].params, { reason: 'rev-moved', expected: 1 }, 'a missing state reports no revision');
   assert.deepEqual(writeState(dir, next(state0), { expectRev: 1 }), { ok: true, rev: 2, issues: [] });
 });
 

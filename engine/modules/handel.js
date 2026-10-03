@@ -22,8 +22,8 @@ const SEASONS_MAX = 8;
 const AMOUNT_MAX = 12;
 const EMPTY = Object.freeze({ offers: [], contracts: [], prices: {}, seq: 0 });
 const sliceOf = (state) => state.modules?.handel ?? EMPTY;
-const target = (ox, msg) => [issue('target', `${ox.path}/params`, msg)];
-const noRoute = (ox) => [issue('handel.no_route', `${ox.path}/params`, 'no trade route to the partner within range', { severity: 'error' })];
+const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
+const noRoute = (ox, params) => [issue('handel.no_route', `${ox.path}/params`, 'no trade route to the partner within range', { severity: 'error', params })];
 const bind = (ox) => ox.bind('handel') ?? {};
 
 // Home tile of a people. In a projection a foreign settlement is only present
@@ -53,13 +53,14 @@ export function tradeRoute(state, world, a, b) {
   return r && r.cost <= RULES.tradeRadius * 2 ? r : null;
 }
 
+// First problem of a resource bag as [reason, message, params], or null.
 function bagProblem(ox, bag, what) {
-  if (!bag || typeof bag !== 'object' || Array.isArray(bag)) return `${what} must be an object of resource amounts`;
+  if (!bag || typeof bag !== 'object' || Array.isArray(bag)) return ['bag-not-object', `${what} must be an object of resource amounts`, { what }];
   const keys = Object.keys(bag);
-  if (keys.length === 0) return `${what} must name at least one resource`;
+  if (keys.length === 0) return ['bag-empty', `${what} must name at least one resource`, { what }];
   for (const k of keys) {
-    if (!ox.env.resourceIds.includes(k)) return `${what}: ${k} is not a resource of this world`;
-    if (!Number.isInteger(bag[k]) || bag[k] < 1 || bag[k] > AMOUNT_MAX) return `${what}: ${k} must be 1 to ${AMOUNT_MAX}`;
+    if (!ox.env.resourceIds.includes(k)) return ['bag-not-resource', `${what}: ${k} is not a resource of this world`, { what, res: k }];
+    if (!Number.isInteger(bag[k]) || bag[k] < 1 || bag[k] > AMOUNT_MAX) return ['bag-bad-amount', `${what}: ${k} must be 1 to ${AMOUNT_MAX}`, { what, res: k, max: AMOUNT_MAX }];
   }
   return null;
 }
@@ -104,16 +105,16 @@ const ORDERS = {
     check(ox, o) {
       const { partner, give, get, seasons } = o.params ?? {};
       const other = ox.state.peoples[partner];
-      if (typeof partner !== 'string' || !other || partner === ox.pid) return target(ox, 'partner must be another people');
+      if (typeof partner !== 'string' || !other || partner === ox.pid) return target(ox, 'not-other-people', 'partner must be another people');
       const rel = relation(ox.state, ox.pid, partner);
-      if (!rel || rel.contact !== true) return target(ox, `no contact with ${partner} yet`);
-      if (rel.atWar) return target(ox, `at war with ${partner}`);
-      if (!trades(ox, partner)) return target(ox, `${partner} does not trade`);
+      if (!rel || rel.contact !== true) return target(ox, 'no-contact', `no contact with ${partner} yet`, { partner });
+      if (rel.atWar) return [issue('handel.at_war', `${ox.path}/params`, `at war with ${partner}`, { severity: 'error', params: { partner } })];
+      if (!trades(ox, partner)) return [issue('handel.not_trading', `${ox.path}/params`, `${partner} does not trade`, { severity: 'error', params: { partner } })];
       const problem = bagProblem(ox, give, 'give') ?? bagProblem(ox, get, 'get');
-      if (problem) return target(ox, problem);
-      if (!Number.isInteger(seasons) || seasons < 1 || seasons > SEASONS_MAX) return target(ox, `seasons must be 1 to ${SEASONS_MAX}`);
-      if (!holds(ox.people, give)) return target(ox, 'the people does not hold what it offers');
-      if (!tradeRoute(ox.state, ox.world, ox.pid, partner)) return noRoute(ox);
+      if (problem) return target(ox, ...problem);
+      if (!Number.isInteger(seasons) || seasons < 1 || seasons > SEASONS_MAX) return target(ox, 'bad-seasons', `seasons must be 1 to ${SEASONS_MAX}`, { max: SEASONS_MAX });
+      if (!holds(ox.people, give)) return target(ox, 'cannot-give', 'the people does not hold what it offers');
+      if (!tradeRoute(ox.state, ox.world, ox.pid, partner)) return noRoute(ox, { partner });
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
@@ -132,9 +133,9 @@ const ORDERS = {
     available: (ox) => sliceOf(ox.state).offers.some((x) => x.to === ox.pid && x.expiresAt >= ox.turn),
     check(ox, o) {
       const offer = openOffer(ox, o.params?.offer);
-      if (!offer) return target(ox, 'offer must be an open offer to this people');
-      if (!holds(ox.people, offer.get)) return target(ox, 'the people does not hold what the offer asks of it');
-      if (!tradeRoute(ox.state, ox.world, offer.from, ox.pid)) return noRoute(ox);
+      if (!offer) return target(ox, 'not-open-offer', 'offer must be an open offer to this people');
+      if (!holds(ox.people, offer.get)) return target(ox, 'cannot-pay', 'the people does not hold what the offer asks of it');
+      if (!tradeRoute(ox.state, ox.world, offer.from, ox.pid)) return noRoute(ox, { partner: offer.from, offer: offer.id });
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
@@ -161,7 +162,7 @@ const ORDERS = {
     available: (ox) => sliceOf(ox.state).contracts.some((c) => involves(c, ox.pid) && c.until >= ox.turn),
     check(ox, o) {
       const c = sliceOf(ox.state).contracts.find((x) => x.id === o.params?.contract);
-      if (!c || !involves(c, ox.pid) || c.until < ox.turn) return target(ox, 'contract must be a running contract of this people');
+      if (!c || !involves(c, ox.pid) || c.until < ox.turn) return target(ox, 'not-running-contract', 'contract must be a running contract of this people');
       return [];
     },
     plan: () => ({ costs: {}, probe: null }),
@@ -184,9 +185,9 @@ const ORDERS = {
     check(ox, o) {
       const { mode, res, amount } = o.params ?? {};
       const currency = bind(ox).currency;
-      if (mode !== 'buy' && mode !== 'sell') return target(ox, 'mode must be buy or sell');
-      if (!ox.env.resourceIds.includes(res) || res === currency) return target(ox, `res must be a world resource other than ${currency}`);
-      if (!Number.isInteger(amount) || amount < 1 || amount > AMOUNT_MAX) return target(ox, `amount must be 1 to ${AMOUNT_MAX}`);
+      if (mode !== 'buy' && mode !== 'sell') return target(ox, 'bad-mode', 'mode must be buy or sell');
+      if (!ox.env.resourceIds.includes(res) || res === currency) return target(ox, 'bad-res', `res must be a world resource other than ${currency}`, { currency });
+      if (!Number.isInteger(amount) || amount < 1 || amount > AMOUNT_MAX) return target(ox, 'bad-amount', `amount must be 1 to ${AMOUNT_MAX}`, { max: AMOUNT_MAX });
       return [];
     },
     plan(ox, o) {
