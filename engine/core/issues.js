@@ -16,7 +16,7 @@
 export const SEVERITIES = Object.freeze(['error', 'warning']);
 
 export const CODES = Object.freeze({
-  // turn pipeline (kernel draft section 3)
+  // turn pipeline (knowledge/rules-kernel.md section 18)
   finished: 'error',
   phase: 'error',
   stale: 'error',
@@ -40,7 +40,7 @@ export const CODES = Object.freeze({
   tamper: 'error',
   idle_labour: 'warning',
 
-  // content validator (kernel draft section 5)
+  // content validator (knowledge/data-contracts.md, Validator)
   unknown_primitive: 'error',
   misplaced_effect: 'error',
   dangling_ref: 'error',
@@ -60,7 +60,7 @@ export const CODES = Object.freeze({
   pfad_tier: 'error',
   pfad_closed: 'error',
 
-  // proposal ingest (kernel draft section 7)
+  // proposal ingest (knowledge/agents-harness.md, Ingest)
   conflict: 'error',
   narrative_values: 'error',
 

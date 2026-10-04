@@ -17,7 +17,7 @@ export function chunkOf(q, r, chunkSize) {
 /**
  * The pack travels inside the world: the generation rules a world was made
  * with must stay with it, or a later pack edit would change tiles not yet
- * generated and break determinism for existing savegames.
+ * generated and break determinism for existing campaigns.
  */
 export function createWorld({ seed, pack }) {
   if (typeof seed !== 'number' && typeof seed !== 'string') throw new TypeError('createWorld: seed must be a number or string');

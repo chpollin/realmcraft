@@ -15,7 +15,7 @@
  *     tiles: { "q,r": Tile }, regions: { id: { id, name, centre } }, pack }
  * `pack` is the parsed welten/<id>/welt.json the world was created with; it
  * travels inside the world so that a later pack edit cannot alter tiles of an
- * existing savegame that are generated afterwards.
+ * existing campaign that are generated afterwards.
  *
  * Tile: { q, r, terrain, elevation, moisture, temperature, river,
  *         resources: [{ key, amount }], regionId }

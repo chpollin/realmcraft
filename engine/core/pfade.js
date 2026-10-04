@@ -125,7 +125,7 @@ export function openTier(state, env, pid) {
     if (row.tier <= 1) continue;
     const g = row.gate;
     const below = known.filter((e) => e.tier >= row.tier - 1).length;
-    if (below < g.prevTierKnown || people.population.core < g.groups || settlements < g.settlements || worldYear < g.worldYear) break;
+    if (below < g.prevTierKnown || people.population.core < g.clans || settlements < g.settlements || worldYear < g.worldYear) break;
     open = row.tier;
   }
   return Math.min(open, maxTier);

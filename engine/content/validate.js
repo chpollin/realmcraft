@@ -276,7 +276,7 @@ function vocabularyIssues(refs, ctx) {
 
 // Duplicate fingerprints, cached per content object: exact ignores identity
 // and prose, near compares kind, tag set and the effect skeleton without
-// amounts (mechanics draft 5.2 rule 5).
+// amounts (knowledge/data-contracts.md, Validator, drift protection).
 // The path only files the content; the same mechanics on another path stay a duplicate.
 const IDENTITY = new Set(['id', 'rev', 'name', 'summary', 'appearance', 'origin', 'pfad']);
 const keyCache = new WeakMap();
@@ -334,7 +334,7 @@ export function openTier(people, ctx = {}) {
     if (row.tier <= 1) continue;
     const g = row.gate;
     const below = known.filter((e) => e.tier >= row.tier - 1).length;
-    if (below < g.prevTierKnown || people.population.core < g.groups || settlements < g.settlements || year < g.worldYear) break;
+    if (below < g.prevTierKnown || people.population.core < g.clans || settlements < g.settlements || year < g.worldYear) break;
     open = row.tier;
   }
   return Math.min(open, maxTier);

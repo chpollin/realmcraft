@@ -27,10 +27,11 @@ function depositsNear(world, centre, radius) {
 }
 
 /**
- * Start tile of the player's mountain-nomad people: a pasture tile next to
- * mountains, with water (river or lake) within waterRadius and at least
- * minResources deposits within resourceRadius. Returns the tile, or null when
- * nothing within the pack's searchRadius qualifies.
+ * Start tile of the player's people: a tile of one of the pack's start
+ * terrains next to one of its adjacentTerrains, with a river or a
+ * waterTerrains tile within waterRadius and at least minResources deposits
+ * within resourceRadius. Returns the tile, or null when nothing within the
+ * pack's searchRadius qualifies.
  */
 export function findStart(world, { minResources, origin = { q: 0, r: 0 }, searchRadius } = {}) {
   const s = startRules(world);
