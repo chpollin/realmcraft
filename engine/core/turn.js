@@ -20,12 +20,11 @@
 
 import { RULES, RULES_VERSION, tune } from './rules.js';
 import { issue, hasErrors } from './issues.js';
-import { kissue } from './codes.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
 import { calendarOf } from './calendar.js';
 import { createContext, finish, fitLabour, notice, noteChange, record, setMember, setPeople, setRelation, fireHook } from './log.js';
-import { clone, peopleIds, relKey, settlementsOf, KERN_SLICE, DEFAULT_SETTINGS } from './state.js';
+import { clone, isAlive, peopleIds, relKey, settlementsOf, KERN_SLICE, DEFAULT_SETTINGS } from './state.js';
 import { DIFFICULTIES, PATTERNS } from '../schemas/common.js';
 import { applyOnce, applyOnceList, standingOf, ofOp } from './effects.js';
 import { checkDraft, orderContext, catalogueFor } from './orders.js';
@@ -71,8 +70,6 @@ const hideEntry = (entry) => {
   entry.visibleTo = [];
   return entry;
 };
-
-const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
 const TILE_KEY = new RegExp(PATTERNS.tile);
 
@@ -432,7 +429,7 @@ function gatherDrafts(state, env, drafts) {
   const used = {};
   const substitutions = [];
   for (const pid of peopleIds(state)) {
-    if (!alive(state, pid)) continue;
+    if (!isAlive(state, pid)) continue;
     const player = state.campaign.player === pid;
     // Every draft is checked on its people's projection, as the preview does:
     // a check against the full state would reject (and so reveal) what the
@@ -530,7 +527,7 @@ export function apply(state, env, drafts = {}) {
   if (s0.sealed) {
     for (const pid of Object.keys(s0.sealed).sort()) {
       if (!drafts[pid] || hashValue(drafts[pid]) !== s0.sealed[pid]) {
-        issues.push(kissue('tamper', `/drafts/${pid}`, `the draft of ${pid} differs from the one sealed for turn ${s0.turn}`, { params: { reason: 'sealed-draft', people: pid, turn: s0.turn } }));
+        issues.push(issue('tamper', `/drafts/${pid}`, `the draft of ${pid} differs from the one sealed for turn ${s0.turn}`, { params: { reason: 'sealed-draft', people: pid, turn: s0.turn } }));
       }
     }
     if (hasErrors(issues)) return { ok: false, issues, state };
@@ -645,7 +642,7 @@ export function apply(state, env, drafts = {}) {
   // 3. Modules in registry order, per people, then their global hooks.
   tc.step = 'modules';
   for (const pid of peopleIds(s0)) {
-    if (!alive(s0, pid)) continue;
+    if (!isAlive(s0, pid)) continue;
     for (const am of activeModules(s0, env, pid)) am.module.hooks?.resolve?.(tc, pid, { id: am.id, bind: am.bind });
   }
   for (const m of MODULES) m.hooks?.global?.(tc);
@@ -653,7 +650,7 @@ export function apply(state, env, drafts = {}) {
   tc.step = 'economy';
   economy.resolveEconomy(tc);
   for (const pid of peopleIds(s0)) {
-    if (!alive(s0, pid)) continue;
+    if (!isAlive(s0, pid)) continue;
     for (const am of activeModules(s0, env, pid)) am.module.hooks?.upkeep?.(tc, pid, { id: am.id, bind: am.bind });
   }
   // 5. Research. 6. Military.
@@ -860,7 +857,7 @@ export function open(state, env) {
     for (const m of tc.state.peoples[pid].council) {
       if (m.at != null) setMember(tc, pid, m.id, 'at', null, `${m.name} returns home as planning opens`, { kind: 'member.at' });
     }
-    if (!alive(state, pid)) continue;
+    if (!isAlive(state, pid)) continue;
     research.offerPool(tc, pid);
     bestimmung.offerDestinyPool(tc, pid);
   }

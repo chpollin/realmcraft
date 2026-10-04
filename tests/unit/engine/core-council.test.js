@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ORDERS, afterCouncilOrder, bookDecree, councilVote, isAlive, loyaltyBand, resolveCouncilSeason,
+  ORDERS, afterCouncilOrder, bookDecree, councilVote, loyaltyBand, resolveCouncilSeason,
 } from '../../../engine/core/council.js';
 import { checkDraft } from '../../../engine/core/orders.js';
+import { isAlive } from '../../../engine/core/state.js';
 import { apply, emptyDraft } from '../../../engine/core/turn.js';
 import { changeLoyalty } from '../../../engine/core/log.js';
 import { hasErrors } from '../../../engine/core/issues.js';

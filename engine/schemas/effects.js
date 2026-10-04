@@ -195,9 +195,9 @@ export const SPEC_WEIGHTS = Object.freeze({
 // is net x (tier + 1). Tier 0 is the starting endowment of a world and uses
 // the row of tier 1.
 export const TIERS = Object.freeze([
-  { tier: 1, effectMax: 4, netMin: 1, netMax: 3, priceMax: 0, gate: { prevTierKnown: 0, groups: 0, settlements: 0, worldYear: 0 } },
-  { tier: 2, effectMax: 6, netMin: 2, netMax: 4, priceMax: -1, gate: { prevTierKnown: 3, groups: 4, settlements: 0, worldYear: 2 } },
-  { tier: 3, effectMax: 9, netMin: 3, netMax: 6, priceMax: -2, gate: { prevTierKnown: 3, groups: 6, settlements: 2, worldYear: 5 } },
-  { tier: 4, effectMax: 12, netMin: 4, netMax: 8, priceMax: -3, gate: { prevTierKnown: 3, groups: 9, settlements: 0, worldYear: 9 } },
-  { tier: 5, effectMax: 15, netMin: 5, netMax: 10, priceMax: -4, gate: { prevTierKnown: 3, groups: 12, settlements: 0, worldYear: 14 } },
+  { tier: 1, effectMax: 4, netMin: 1, netMax: 3, priceMax: 0, gate: { prevTierKnown: 0, clans: 0, settlements: 0, worldYear: 0 } },
+  { tier: 2, effectMax: 6, netMin: 2, netMax: 4, priceMax: -1, gate: { prevTierKnown: 3, clans: 4, settlements: 0, worldYear: 2 } },
+  { tier: 3, effectMax: 9, netMin: 3, netMax: 6, priceMax: -2, gate: { prevTierKnown: 3, clans: 6, settlements: 2, worldYear: 5 } },
+  { tier: 4, effectMax: 12, netMin: 4, netMax: 8, priceMax: -3, gate: { prevTierKnown: 3, clans: 9, settlements: 0, worldYear: 9 } },
+  { tier: 5, effectMax: 15, netMin: 5, netMax: 10, priceMax: -4, gate: { prevTierKnown: 3, clans: 12, settlements: 0, worldYear: 14 } },
 ]);

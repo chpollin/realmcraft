@@ -22,7 +22,7 @@ import { RULES, tune } from './rules.js';
 import { calendarOf } from './calendar.js';
 import { applyOnceList, changeUnitStrength, ofOp, standingOf } from './effects.js';
 import { addPeople, addResource, changeLoyalty, fireHook, noteChange, setPeople } from './log.js';
-import { clamp, controlledRegions, peopleIds, regionTerrain, settlementsOf } from './state.js';
+import { clamp, controlledRegions, isAlive, peopleIds, regionTerrain, settlementsOf } from './state.js';
 import { unitStats } from './military.js';
 import { bagParam } from './issues.js';
 import { regionAt } from './map.js';
@@ -102,9 +102,9 @@ export function regionPotential(state, env, pid, standing, season) {
 }
 
 /**
- * Greedy placement of the labour groups: resources in world order, each group
+ * Greedy placement of the working clans: resources in world order, each clan
  * into the free slot of the region with the highest yield (ties by region id).
- * A group that finds no region yielding its resource stays idle and takes no slot.
+ * A clan that finds no region yielding its resource stays idle and takes no slot.
  */
 function placeLabour(env, potential, assign, core) {
   const free = Object.fromEntries(potential.map((p) => [p.region, RULES.slotsPerRegion]));
@@ -165,16 +165,16 @@ function gainsOf(state, env, pid, standing, season, now, cx) {
   const byRegion = new Map();
   for (const p of placed) {
     const k = `${p.res}|${p.region}`;
-    const e = byRegion.get(k) ?? { res: p.res, region: p.region, terrain: p.terrain, groups: 0, amount: 0 };
-    e.groups++;
+    const e = byRegion.get(k) ?? { res: p.res, region: p.region, terrain: p.terrain, clans: 0, amount: 0 };
+    e.clans++;
     e.amount += p.amount;
     byRegion.set(k, e);
   }
   for (const e of byRegion.values()) {
     harvest.push({ kind: 'harvest', ...e });
-    gains.push({ res: e.res, n: e.amount, kind: 'harvest', reason: `${e.groups} clan(s) harvest ${e.res} in ${e.region} (${e.terrain})`, refs: [e.region] });
+    gains.push({ res: e.res, n: e.amount, kind: 'harvest', reason: `${e.clans} clan(s) harvest ${e.res} in ${e.region} (${e.terrain})`, refs: [e.region] });
   }
-  for (const [res, groups] of Object.entries(idle)) harvest.push({ kind: 'idle', res, groups });
+  for (const [res, clans] of Object.entries(idle)) harvest.push({ kind: 'idle', res, clans });
 
   const worked = new Set(placed.map((p) => p.region));
   const deposits = {};
@@ -220,17 +220,17 @@ function gainsOf(state, env, pid, standing, season, now, cx) {
 }
 
 const EMPTY = () => ({
-  ops: [], shortfall: {}, income: {}, consumption: {}, upkeep: {}, risk: [], risks: [], harvest: [], famine: null, growth: null, approval: 0,
+  ops: [], shortfall: {}, income: {}, consumption: {}, upkeep: {}, risks: [], harvest: [], famine: null, growth: null, approval: 0,
 });
 
 /**
  * Dry run of one people's season. now = { stock, core, growth, assign } is the
  * working position (the stock after the season's order costs); state supplies
  * structure and standing. Returns { ops, shortfall, income, consumption,
- * upkeep, risk, risks, harvest, famine, growth, approval }; income,
+ * upkeep, risks, harvest, famine, growth, approval }; income,
  * consumption and upkeep are what is actually gained and paid, so income -
- * consumption - upkeep is the change of the stock before caps. risk holds the
- * English lines, risks the same as { message, params } for issues.
+ * consumption - upkeep is the change of the stock before caps. risks holds
+ * each English line with its params as { message, params } for issues.
  */
 export function planEconomy(state, env, pid, now) {
   const people = state.peoples[pid];
@@ -259,7 +259,6 @@ export function planEconomy(state, env, pid, now) {
   const payable = (bag) => Object.entries(bag).every(([res, n]) => get(res) >= n);
   const payBag = (bag, reason, refs) => { for (const [res, n] of Object.entries(bag)) pay(res, n, 'upkeep', reason, refs); };
   const risk = (message, params) => {
-    plan.risk.push(message);
     plan.risks.push({ message, params });
   };
 
@@ -371,7 +370,7 @@ export function planEconomy(state, env, pid, now) {
   return plan;
 }
 
-const EMPTY_FORECAST = (caps, cap) => ({ income: {}, consumption: {}, upkeep: {}, net: {}, caps, popCap: cap, shortfall: {}, upkeepRisk: [], upkeepRisks: [], harvest: [] });
+const EMPTY_FORECAST = (caps, cap) => ({ income: {}, consumption: {}, upkeep: {}, net: {}, caps, popCap: cap, shortfall: {}, upkeepRisks: [], harvest: [] });
 
 /**
  * Preview of the coming season's economy for one people. spend is the cost of
@@ -401,7 +400,6 @@ export function forecast(state, env, pid, { spend = {}, assign } = {}) {
     caps,
     popCap: cap,
     shortfall: plan.shortfall,
-    upkeepRisk: plan.risk,
     upkeepRisks: plan.risks,
     harvest: plan.harvest,
     famine: plan.famine,
@@ -475,7 +473,7 @@ function applyOp(tc, pid, op) {
 export function resolveEconomy(tc) {
   for (const pid of peopleIds(tc.state)) {
     const people = tc.state.peoples[pid];
-    if (people.population.core <= 0 || !settlementsOf(tc.state, pid).length) {
+    if (!isAlive(tc.state, pid)) {
       // A people that has gone under keeps no shortfall from earlier seasons.
       if (Object.keys(people.shortfall ?? {}).length) setPeople(tc, pid, 'shortfall', {}, `${pid} has gone under, its shortfall lapses`, { kind: 'shortfall.reset' });
       continue;

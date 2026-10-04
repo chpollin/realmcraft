@@ -8,7 +8,7 @@ import { makeEnv } from '../../../engine/core/env.js';
 import { preview, emptyDraft } from '../../../engine/core/turn.js';
 import { bandOf, resolveProbe, calculation, chance, eventBand } from '../../../engine/core/probes.js';
 import { tune } from '../../../engine/core/rules.js';
-import { viewsFor, loyaltyBand } from '../../../engine/core/views.js';
+import { loyaltyBand } from '../../../engine/core/council.js';
 import { mapLayers } from '../../../engine/core/derive.js';
 import { researchCost } from '../../../engine/core/research.js';
 import { calendarOf } from '../../../engine/core/calendar.js';
@@ -20,7 +20,7 @@ import { ofOp, standingOf } from '../../../engine/core/effects.js';
 /** True for order types the kernel allows once per season (research.assign, research.direct). */
 export const isUnique = (type) => registry()[type]?.def?.unique === true;
 
-export { tune, preview, emptyDraft, eventBand, bandOf, resolveProbe, calculation, chance, viewsFor, loyaltyBand, mapLayers, researchCost, calendarOf, SUCCESS_BANDS, BANDS, pathsView, pathsOf, pfadOf };
+export { tune, preview, emptyDraft, eventBand, bandOf, resolveProbe, calculation, chance, loyaltyBand, mapLayers, researchCost, calendarOf, SUCCESS_BANDS, BANDS, pathsView, pathsOf, pfadOf };
 
 /**
  * Research points the people's project `ref` gathers next season, by the rule

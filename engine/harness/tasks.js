@@ -25,7 +25,7 @@ import { projectFor } from '../core/project.js';
 import { practiceTop, openTier } from '../content/validate.js';
 import { libraryFrom } from '../content/library.js';
 import { catalogueFor, orderContext, registry, slotCapacity } from '../core/orders.js';
-import { homeSettlement, kern, maxKnownTier, peopleIds, settingsOf, settlementsOf } from '../core/state.js';
+import { homeSettlement, isAlive, kern, maxKnownTier, peopleIds, settingsOf, settlementsOf } from '../core/state.js';
 import { RULES } from '../core/rules.js';
 import { distance, parseKey } from '../world/index.js';
 import { calendarOf } from '../core/calendar.js';
@@ -35,8 +35,6 @@ const stem = (turn) => `T${String(turn).padStart(4, '0')}`;
 const ALL_PRIMITIVES = [...new Set([...STANDING_OPS, ...ONCE_OPS])];
 // Used when a world's regeln.json sets no tuning.limits.
 const DEFAULT_LIMITS = Object.freeze({ candidatesPerTurn: 3, aboveTier: 1, openCandidates: 6, moduleActivations: 1 });
-
-const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
 const MAX_NAMES = 40;
 const MAX_RESOLVED = 80;
@@ -341,7 +339,7 @@ function worldTask(state, env, notes) {
   const eventDraws = {};
   const situation = {};
   for (const pid of peopleIds(state)) {
-    if (!alive(state, pid)) continue;
+    if (!isAlive(state, pid)) continue;
     const p = state.peoples[pid];
     const d = state.eventDraws?.[pid];
     if (d) eventDraws[pid] = { band: d.band, roll: d.roll, card: d.card };
@@ -384,7 +382,7 @@ export function buildTasks(state, env, { library, phase = state.phase, notes = n
   const lib = library ?? packLibrary(env);
   const out = [];
   for (const pid of peopleIds(state)) {
-    if (!alive(state, pid)) continue;
+    if (!isAlive(state, pid)) continue;
     out.push(researchTask(state, env, lib, pid, notes));
     if (state.peoples[pid].controller === 'ai') out.push(rivalTask(state, env, pid, notes));
     else out.push(councilTask(state, env, pid, notes));

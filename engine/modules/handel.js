@@ -261,10 +261,8 @@ function globalHook(tc) {
 
 export default {
   id: 'handel',
-  version: 1,
   always: false,
   resourceRoles: [{ role: 'currency', defaultId: 'salz' }],
-  tags: { handel: 2, markt: 1, vertragsbruch: 1 },
   initGlobal: () => ({ offers: [], contracts: [], prices: {}, seq: 0 }),
   initPeople: () => ({ offersMade: 0 }),
   orders: ORDERS,
@@ -302,7 +300,4 @@ export default {
       };
     },
   },
-  views: [{ id: 'handel', labelKey: 'view.handel', icon: 'scale', order: 40, scope: 'people', sections: ['contracts', 'offers', 'market'] }],
-  labelKeys: ['view.handel', 'module.handel', 'modulerole.currency', 'order.trade.offer', 'order.trade.accept', 'order.trade.cancel', 'order.trade.market'],
-  agentHints: { primitives: ['order.unlock', 'resource.flow', 'module.activate'], tags: ['handel', 'markt', 'vertragsbruch'] },
 };

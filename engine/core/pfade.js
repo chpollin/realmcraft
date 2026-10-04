@@ -125,7 +125,7 @@ export function openTier(state, env, pid) {
     if (row.tier <= 1) continue;
     const g = row.gate;
     const below = known.filter((e) => e.tier >= row.tier - 1).length;
-    if (below < g.prevTierKnown || people.population.core < g.groups || settlements < g.settlements || worldYear < g.worldYear) break;
+    if (below < g.prevTierKnown || people.population.core < g.clans || settlements < g.settlements || worldYear < g.worldYear) break;
     open = row.tier;
   }
   return Math.min(open, maxTier);
@@ -134,7 +134,7 @@ export function openTier(state, env, pid) {
 /** Points of a season before the research.mod effects that depend on the project's tags. */
 export function pointsOf(env, people) {
   const base = RULES.researchBase;
-  const labour = (people.population.assigned?.research ?? 0) * RULES.researchPerGroup;
+  const labour = (people.population.assigned?.research ?? 0) * RULES.researchPerClan;
   const knowledge = Math.min(people.resources[RULES.knowledge] ?? 0, tune(env, 'knowledgeSpend'));
   return { base, labour, knowledge, total: base + labour + knowledge };
 }

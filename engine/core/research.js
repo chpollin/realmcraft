@@ -7,7 +7,6 @@
 //   expire(tc)                   cleanup: candidates, tokens, requests that ran out
 //   offerPool(tc, pid)           open step: pool candidates, ranked by practice
 //   recordPractice(tc, pid, executed)    ring buffer of order tags
-//   openTier(state, env, pid)    highest tier whose people gate and world-age gate are open (engine/core/pfade.js)
 //   practiceTop(people, n)       strongest practice tags
 //
 // With paths in the world (regeln.pfade) the pool offers only achievements on
@@ -26,7 +25,7 @@ import { evalCondition } from './conditions.js';
 import { applyOnceList, ofOp, standingOf } from './effects.js';
 import { addResource, noteChange, record, setPeople } from './log.js';
 import { SUCCESS } from './probes.js';
-import { maxKnownTier, peopleIds } from './state.js';
+import { isAlive, maxKnownTier, peopleIds } from './state.js';
 import { directTags, isOpen, latch, openTier, pathTier, pathsOf, pfadOf, pointsOf } from './pfade.js';
 import { activeModules } from '../modules/index.js';
 import { TIERS } from '../schemas/effects.js';
@@ -39,7 +38,6 @@ const MAX_CANDIDATES = 6;
 const DEFAULT_LIMITS = Object.freeze({ candidatesPerTurn: 3, aboveTier: 1, openCandidates: 6 });
 const TOKEN_KINDS_EXPIRING = new Set(['breakthrough', 'impulse', 'crisis']);
 
-const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 const tagsOfRef = (env, ref) => env.entwicklung(ref)?.tags ?? [];
 
 // --- orders -------------------------------------------------------------------
@@ -127,8 +125,6 @@ export function practiceTop(people, n = 3) {
   return [...sums.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, n);
 }
 
-export { openTier };
-
 // --- season step ----------------------------------------------------------------
 
 function payable(people, bag) {
@@ -143,7 +139,7 @@ function payable(people, bag) {
 export function resolveResearch(tc) {
   const { env } = tc;
   for (const pid of peopleIds(tc.s0)) {
-    if (!alive(tc.s0, pid)) continue;
+    if (!isAlive(tc.s0, pid)) continue;
     const people = tc.state.peoples[pid];
     const project = people.developments.research[0];
     if (!project) continue;
@@ -173,7 +169,7 @@ export function resolveResearch(tc) {
     if (progress >= cost) complete(tc, pid, project.ref, ent, cost);
   }
   // After completion, so an achievement finished this season opens its path now.
-  for (const pid of peopleIds(tc.s0)) if (alive(tc.s0, pid)) openPaths(tc, pid);
+  for (const pid of peopleIds(tc.s0)) if (isAlive(tc.s0, pid)) openPaths(tc, pid);
 }
 
 /**

@@ -2,11 +2,10 @@
 // deterministic ES module with a default export:
 //
 //   {
-//     id, version,
+//     id,
 //     always?: true                      active for every people (lebensweise)
 //     autoActive?(state, env, pid)       extra activation rule besides module.activate
 //     resourceRoles: [{ role, defaultId }]  bound to resource ids per people
-//     tags: { tag: breadth }             vocabulary the module brings
 //     initPeople(state, env, pid, bind)  -> people slice (people.modules[id])
 //     initGlobal?(env)                   -> global slice (state.modules[id])
 //     orders: { type: OrderDef }         see engine/core/orders.js
@@ -14,11 +13,9 @@
 //       resolve?(tc, pid, mx)            step 3, per people with the module active
 //       global?(tc)                      step 3, once after all peoples (prices)
 //       upkeep?(tc, pid, mx)             step 4, after the core economy
-//       derive?(state, env, pid, mx)     -> object for derived and views
+//       derive?(state, env, pid, mx)     -> object for derived and the board's options
 //       project?(state, env, pid, view)  -> filtered global slice for a projection
 //     }
-//     views: [{ id, labelKey, icon, order, scope, sections }]
-//     labelKeys: [...], agentHints: { primitives: [...], tags: [...] }
 //   }
 //
 // mx = { id, bind: { role: resourceId } }. A module reads S0 through tc.s0,
@@ -33,10 +30,6 @@ import { standingOf, activations } from '../core/effects.js';
 
 export const MODULES = Object.freeze([lebensweise, handel, magie, militaer]);
 export const MODULE_IDS = Object.freeze(MODULES.map((m) => m.id));
-
-export function moduleById(id) {
-  return MODULES.find((m) => m.id === id) ?? null;
-}
 
 /**
  * Active modules of a people in registry order: [{ id, module, bind }]. The
@@ -57,18 +50,9 @@ export function activeModules(state, env, pid, standing = standingOf(state, env,
   return out;
 }
 
-export function isModuleActive(state, env, pid, id, standing) {
-  return activeModules(state, env, pid, standing).some((m) => m.id === id);
-}
-
 /** All order definitions of all modules: { type: { def, module } }. */
 export function moduleOrders() {
   const out = {};
   for (const m of MODULES) for (const [type, def] of Object.entries(m.orders ?? {})) out[type] = { def, module: m.id };
   return out;
-}
-
-/** Label keys of all modules, for the world validator (missing_label). */
-export function moduleLabelKeys() {
-  return MODULES.flatMap((m) => m.labelKeys ?? []);
 }

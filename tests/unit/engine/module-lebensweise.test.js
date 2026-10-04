@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { testEnv } from '../../fixtures/engine/k1/pack.js';
 import {
   PLAYER, PARTNER, startState, hochlandEnv, edited, learn, forget, atTurn, contextOf, runHook, resolveOrder,
-  checkOrders, rolledDraft, season, uncoveredPaths, LABELS,
+  checkOrders, rolledDraft, season, uncoveredPaths,
 } from '../../fixtures/engine/k1/modules.js';
 import lebensweise from '../../../engine/modules/lebensweise.js';
 import { activeModules } from '../../../engine/modules/index.js';
@@ -383,11 +383,8 @@ test('real Hochland package: nomads migrate, the herd role defaults to herden', 
   assert.deepEqual(chk.issues.filter((i) => i.severity === 'error'), []);
 });
 
-test('descriptor: views, label keys and hints are well formed and the labels exist', () => {
-  assert.deepEqual(lebensweise.views, [{ id: 'lebensweise', labelKey: 'view.lebensweise', icon: 'tent', order: 25, scope: 'people', sections: ['camp', 'herds', 'transition'] }]);
+test('descriptor: the herd role and the derived camp and herds', () => {
   assert.deepEqual(lebensweise.resourceRoles, [{ role: 'herd', defaultId: 'herden' }]);
-  for (const k of lebensweise.labelKeys) assert.ok(Object.hasOwn(LABELS, k), `${k} is missing in labels.json`);
-  assert.ok(lebensweise.agentHints.tags.includes('zug'));
   const d = lebensweise.hooks.derive(base, env, PLAYER, { id: 'lebensweise', bind: { herd: 'herden' } });
   assert.equal(d.camp.id, camp0.id);
   assert.equal(d.herds.stock, 4);

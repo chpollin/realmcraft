@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {
   catalogueFor, slotCapacity, assertDraft, checkDraft, orderContext, registry, effectiveAssign,
 } from '../../../engine/core/orders.js';
-import { bareCode } from '../../../engine/core/codes.js';
 import { RULES } from '../../../engine/core/rules.js';
 import { CONTENT, ENTWICKLUNGEN } from '../../fixtures/engine/k1/pack.js';
 import { freshState, clone, draftOf, PLAYER } from '../../fixtures/engine/k1/foundation.js';
@@ -35,8 +34,8 @@ function check(patch = {}, { edit, mode, as, env: envPatch } = {}) {
   return { env: base.env, state, draft, chk: checkDraft(state, base.env, draft, { mode, as }) };
 }
 const errs = (chk) => chk.issues.filter((i) => i.severity === 'error');
-const issuesOf = (chk, code) => chk.issues.filter((i) => bareCode(i) === code);
-const codes = (chk) => chk.issues.map(bareCode);
+const issuesOf = (chk, code) => chk.issues.filter((i) => i.code === code);
+const codes = (chk) => chk.issues.map((i) => i.code);
 const rollsFor = (chk, value = 5) => Object.fromEntries(chk.probes.map((p) => [p.id, { value, fingerprint: p.fingerprint }]));
 
 // a development that adds slots, limits or restrictions, for catalogue and slot tests
@@ -486,12 +485,6 @@ test('labour: research is an activity, unknown keys are target errors, no assign
   assert.deepEqual(issuesOf(none, 'labour'), []);
   assert.deepEqual(issuesOf(none, 'idle_labour'), []);
   assert.deepEqual(none.assign, { nahrung: 2, material: 1 });
-});
-
-test('labour issues use the interim prefix until issues.js lists the code, bareCode strips it', () => {
-  const { chk } = check({ assign: { nahrung: 3, material: 1 } });
-  const raw = chk.issues.find((i) => bareCode(i) === 'labour');
-  assert.ok(raw.code === 'labour' || raw.code === 'kern.labour');
 });
 
 // choices

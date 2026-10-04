@@ -3,7 +3,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeDerived, mapLayers, statsOf } from '../../../engine/core/derive.js';
+import { computeDerived, mapLayers } from '../../../engine/core/derive.js';
+import { statsOf } from '../../../engine/core/stats.js';
 import { createCampaign, open, stateHash } from '../../../engine/core/turn.js';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { validate } from '../../../engine/content/schema.js';

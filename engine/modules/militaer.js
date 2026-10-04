@@ -208,11 +208,9 @@ const ORDERS = {
 
 export default {
   id: 'militaer',
-  version: 1,
   always: false,
   autoActive: (state, env, pid) => activeDevelopments(state, env, pid).some((d) => d.ent.kind === 'einheit'),
   resourceRoles: [],
-  tags: { krieg: 2, angriff: 2, verteidigung: 2, fuss: 1, reiter: 1, schuetzen: 1, beute: 1 },
   initPeople: () => ({ recruited: 0 }),
   orders: ORDERS,
   hooks: {
@@ -228,7 +226,4 @@ export default {
       };
     },
   },
-  views: [{ id: 'militaer', labelKey: 'view.militaer', icon: 'shield', order: 60, scope: 'people', sections: ['units', 'recruit', 'battles'] }],
-  labelKeys: ['view.militaer', 'order.recruit', 'order.move', 'order.attack', 'order.retreat', 'order.ausfall', 'order.raubzug'],
-  agentHints: { primitives: ['unit.mod', 'unit.spawn', 'probe.mod'], tags: ['krieg', 'angriff', 'verteidigung'] },
 };

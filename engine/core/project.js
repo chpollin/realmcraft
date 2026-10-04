@@ -11,9 +11,7 @@
 
 import { MODULES } from '../modules/index.js';
 import { knownRegions } from './map.js';
-import { kern, peopleIds, settingsOf } from './state.js';
-
-const clone = (v) => structuredClone(v);
+import { clone, kern, peopleIds, settingsOf } from './state.js';
 
 const visibleTile = (known, tile) => known[tile] === 'visible';
 

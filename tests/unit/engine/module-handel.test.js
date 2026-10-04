@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { testEnv } from '../../fixtures/engine/k1/pack.js';
 import {
   PLAYER, PARTNER, RIVAL, startState, hochlandEnv, edited, learn, withResources, withRelation, atTurn, contextOf,
-  runGlobal, resolveOrder, checkOrders, rolledDraft, season, uncoveredPaths, LABELS,
+  runGlobal, resolveOrder, checkOrders, rolledDraft, season, uncoveredPaths,
 } from '../../fixtures/engine/k1/modules.js';
 import handel, { tradeRoute } from '../../../engine/modules/handel.js';
 import { activeModules } from '../../../engine/modules/index.js';
@@ -398,11 +398,6 @@ test('the global hook leaves a world without a trade ledger alone', () => {
   assert.equal(tc.log.length, 0);
 });
 
-test('descriptor: views, label keys and hints are well formed and the labels exist', () => {
-  assert.deepEqual(handel.views, [{ id: 'handel', labelKey: 'view.handel', icon: 'scale', order: 40, scope: 'people', sections: ['contracts', 'offers', 'market'] }]);
-  for (const k of handel.labelKeys) assert.ok(Object.hasOwn(LABELS, k), `${k} is missing in labels.json`);
-  assert.ok(handel.agentHints.tags.includes('handel'));
-});
 
 test('project names the trading contacts and their market towns, and nothing of foreign stocks or ledgers', () => {
   const s = withSlice(atTurn(traders, 2), { offers: [offer({ id: 'of-1-2', from: PARTNER, to: RIVAL })], contracts: [contract({ id: 'ct-0-2', a: PARTNER, b: RIVAL })] });

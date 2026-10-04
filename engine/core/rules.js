@@ -121,10 +121,10 @@ export const RULES = Object.freeze({
   choiceDeadline: 1,
 
   // Labour. Each clan of draft.assign works one slot: a resource key harvests
-  // that resource, "research" yields researchPerGroup points, module activities
+  // that resource, "research" yields researchPerClan points, module activities
   // ("hueten", "adepten") are read by their module. Without a new assignment
   // the previous one stays.
-  researchPerGroup: 1,
+  researchPerClan: 1,
   activities: Object.freeze(['research', 'hueten', 'adepten']),
 
   // Venture (Wagnis): an order without probe gets ventureTarget, one with a

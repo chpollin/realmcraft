@@ -19,16 +19,12 @@ const codes = (errors) => errors.map((e) => e.code);
 const unitOf = (state, pid, id) => state.peoples[pid].units.find((u) => u.id === id);
 const spear = (id, tile, extra) => unit(id, 'speerwall@1', tile, extra);
 
-test('module contract: id, tags, orders, views, labels, hints', () => {
+test('module contract: id, roles, orders, initial slice', () => {
   assert.equal(militaer.id, 'militaer');
   assert.ok(MODULE_IDS.includes('militaer'));
   assert.deepEqual(militaer.resourceRoles, []);
-  assert.deepEqual(militaer.tags, { krieg: 2, angriff: 2, verteidigung: 2, fuss: 1, reiter: 1, schuetzen: 1, beute: 1 });
   assert.deepEqual(Object.keys(militaer.orders).sort(), ['attack', 'ausfall', 'move', 'raubzug', 'recruit', 'retreat']);
   assert.deepEqual(Object.entries(militaer.orders).filter(([, d]) => d.locked).map(([t]) => t).sort(), ['ausfall', 'raubzug']);
-  assert.deepEqual(militaer.views, [{ id: 'militaer', labelKey: 'view.militaer', icon: 'shield', order: 60, scope: 'people', sections: ['units', 'recruit', 'battles'] }]);
-  assert.deepEqual(militaer.labelKeys, ['view.militaer', 'order.recruit', 'order.move', 'order.attack', 'order.retreat', 'order.ausfall', 'order.raubzug']);
-  assert.deepEqual(militaer.agentHints, { primitives: ['unit.mod', 'unit.spawn', 'probe.mod'], tags: ['krieg', 'angriff', 'verteidigung'] });
   assert.deepEqual(militaer.initPeople(), { recruited: 0 });
 });
 

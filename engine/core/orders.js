@@ -1,12 +1,11 @@
 // Order registry, catalogue per people, draft checking and the core orders.
 //
 // OrderDef (core orders here, subsystem orders in council.js, research.js,
-// events.js, bestimmung.js, module orders in engine/modules/*):
+// bestimmung.js, module orders in engine/modules/*):
 //   {
 //     slot: 'main'|'minor'|'free' | (ox, order, k) => slot   k = earlier orders of this type
 //     tags: [tag] | (ox, order) => [tag]   practice, council and probe tags; main orders
 //                                          also carry RULES.mainTag
-//     value?: int                          budget weight for order.unlock (default 2)
 //     locked?: true                        needs an order.unlock of this type
 //     unique?: true                        at most once per draft
 //     available?(ox) -> bool               false: locked_order (nothing to build, no unit type)
@@ -23,7 +22,6 @@
 
 import { RULES } from './rules.js';
 import { issue, hasErrors } from './issues.js';
-import { kissue } from './codes.js';
 import { calendarOf } from './calendar.js';
 import { evalCondition } from './conditions.js';
 import { standingOf, ofOp, applyOnceList, setKern } from './effects.js';
@@ -40,7 +38,7 @@ import { regionAt, tileOf, route } from './map.js';
 import { distance, parseKey, reveal, key as tileKey } from '../world/index.js';
 import { councilVote, ORDERS as COUNCIL_ORDERS } from './council.js';
 import { ORDERS as RESEARCH_ORDERS } from './research.js';
-import { ORDERS as EVENT_ORDERS, eventProbeSpec } from './events.js';
+import { eventProbeSpec } from './events.js';
 import { ORDERS as BESTIMMUNG_ORDERS } from './bestimmung.js';
 
 // Probe subjects the kernel uses for its own probes (events.js world event and
@@ -290,7 +288,7 @@ function roadTiles(ox, to, mode) {
 /** Every registered order type: { type: { def, origin } } where origin is 'core' or a module id. */
 export function registry() {
   const out = {};
-  for (const [t, def] of Object.entries({ ...CORE_ORDERS, ...COUNCIL_ORDERS, ...RESEARCH_ORDERS, ...EVENT_ORDERS, ...BESTIMMUNG_ORDERS })) {
+  for (const [t, def] of Object.entries({ ...CORE_ORDERS, ...COUNCIL_ORDERS, ...RESEARCH_ORDERS, ...BESTIMMUNG_ORDERS })) {
     out[t] = { def, origin: 'core' };
   }
   for (const [t, { def, module }] of Object.entries(moduleOrders())) out[t] = { def, origin: module };
@@ -384,8 +382,8 @@ function checkLabour(state, env, draft, pid, issues) {
     }
     total += n;
   }
-  if (total > core) issues.push(kissue('labour', '/assign', `${total} clans assigned, the people has ${core}`, { params: { assigned: total, core } }));
-  else if (total < core) issues.push(kissue('idle_labour', '/assign', `${core - total} clan(s) without work`, { params: { idle: core - total } }));
+  if (total > core) issues.push(issue('labour', '/assign', `${total} clans assigned, the people has ${core}`, { params: { assigned: total, core } }));
+  else if (total < core) issues.push(issue('idle_labour', '/assign', `${core - total} clan(s) without work`, { params: { idle: core - total } }));
 }
 
 function checkChoices(state, draft, pid, issues) {
@@ -472,7 +470,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
     entry.origin = origin;
     const cat = catalogue[order.type];
     if (!cat.available) {
-      errors.push(kissue(cat.code, `${path}/type`, `${order.type}: ${cat.reason}`, { params: cat.params }));
+      errors.push(issue(cat.code, `${path}/type`, `${order.type}: ${cat.reason}`, { params: cat.params }));
       issues.push(...errors);
       return;
     }
@@ -480,16 +478,16 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
     typeCount[order.type] = k + 1;
     if (def.unique && k > 0) errors.push(issue('duplicate', `${path}/type`, `${order.type} is allowed once per season`, { params: { reason: 'once-per-season', type: order.type } }));
     if (cat.limit !== null && k >= cat.limit) {
-      errors.push(kissue('restricted', `${path}/type`, `${order.type} at most ${cat.limit} times per season`, { params: { reason: 'unlock-limit', type: order.type, limit: cat.limit } }));
+      errors.push(issue('restricted', `${path}/type`, `${order.type} at most ${cat.limit} times per season`, { params: { reason: 'unlock-limit', type: order.type, limit: cat.limit } }));
     }
     const slot = slotOf(def, ox, order, k);
     entry.slot = slot;
     let tags = [...new Set([...tagsOf(def, ox, order), ...(slot === 'main' ? [RULES.mainTag] : [])])];
     entry.tags = tags;
     for (const r of restrictionsFor(ox, order.type, tags)) {
-      if (r.mode === 'forbid') errors.push(kissue('restricted', `${path}/type`, `${order.type} is forbidden by ${r.label}`, { params: { reason: 'forbidden', type: order.type, by: r.label } }));
+      if (r.mode === 'forbid') errors.push(issue('restricted', `${path}/type`, `${order.type} is forbidden by ${r.label}`, { params: { reason: 'forbidden', type: order.type, by: r.label } }));
       if (r.mode === 'limit' && k >= r.limit) {
-        errors.push(kissue('restricted', `${path}/type`, `${order.type} limited to ${r.limit} per ${r.per} by ${r.label}`,
+        errors.push(issue('restricted', `${path}/type`, `${order.type} limited to ${r.limit} per ${r.per} by ${r.label}`,
           { params: { reason: 'limited', type: order.type, limit: r.limit, per: r.per, by: r.label } }));
       }
     }

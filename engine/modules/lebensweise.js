@@ -182,10 +182,8 @@ function tendHerds(tc, pid, mx) {
 
 export default {
   id: 'lebensweise',
-  version: 1,
   always: true,
   resourceRoles: [{ role: 'herd', defaultId: 'herden' }],
-  tags: { zug: 1, herde: 1, weide: 1, wandel: 1 },
   initPeople: (state, env, pid) => ({ camp: settlementsOf(state, pid).find((s) => s.mobile)?.id ?? null, migratedAt: 0, transition: null }),
   orders: ORDERS,
   hooks: {
@@ -209,7 +207,4 @@ export default {
       };
     },
   },
-  views: [{ id: 'lebensweise', labelKey: 'view.lebensweise', icon: 'tent', order: 25, scope: 'people', sections: ['camp', 'herds', 'transition'] }],
-  labelKeys: ['view.lebensweise', 'module.lebensweise', 'order.migrate', 'order.adopt'],
-  agentHints: { primitives: ['resource.flow', 'stat.mod', 'yield.mod'], tags: ['zug', 'herde', 'weide', 'wandel'] },
 };

@@ -9,7 +9,6 @@ import { readFileSync } from 'node:fs';
 import { makeEnv } from '../../../engine/core/env.js';
 import { createCampaign, open } from '../../../engine/core/turn.js';
 import { projectFor } from '../../../engine/core/project.js';
-import { selectView } from '../../../engine/core/views.js';
 import { RULES, tune } from '../../../engine/core/rules.js';
 import { directTags, isOpen, latch, pathOfTags, pathTier, pathsOf, pathsView, pfadOf, pfadeOf, pointsOf } from '../../../engine/core/pfade.js';
 import { validate } from '../../../engine/content/schema.js';
@@ -129,7 +128,7 @@ test('a practice condition with a higher minimum needs the whole sum over its ta
 
 test('research points are base, labour and burned knowledge', () => {
   const people = { population: { assigned: { research: 2 } }, resources: { [RULES.knowledge]: 1 } };
-  assert.deepEqual(pointsOf(env, people), { base: RULES.researchBase, labour: 2 * RULES.researchPerGroup, knowledge: 1, total: RULES.researchBase + 2 * RULES.researchPerGroup + 1 });
+  assert.deepEqual(pointsOf(env, people), { base: RULES.researchBase, labour: 2 * RULES.researchPerClan, knowledge: 1, total: RULES.researchBase + 2 * RULES.researchPerClan + 1 });
   const rich = { population: { assigned: {} }, resources: { [RULES.knowledge]: 99 } };
   assert.equal(pointsOf(env, rich).knowledge, tune(env, 'knowledgeSpend'));
 });
@@ -189,14 +188,6 @@ test('the projection carries the own path view only, and the view rebuilds it fr
   assert.deepEqual(p.derived[pid].pfade, s.derived[pid].pfade);
   assert.deepEqual(pathsView(p, env, pid), s.derived[pid].pfade);
   for (const other of Object.keys(p.peoples).filter((x) => x !== pid)) assert.equal(p.peoples[other].pfade, undefined);
-});
-
-test('the entwicklungen view names the path of every entry and carries the path section', () => {
-  const s = opened();
-  const pid = s.campaign.player;
-  const v = selectView(s, env, pid, 'entwicklungen');
-  assert.deepEqual(v.pfade, s.derived[pid].pfade);
-  for (const e of [...v.known, ...v.research, ...v.candidates]) assert.equal(e.pfad, pfadOf(env, env.entwicklung(e.ref)), e.ref);
 });
 
 test('the research task carries the path view and the path of every request', () => {
