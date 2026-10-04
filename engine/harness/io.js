@@ -4,7 +4,7 @@
 // serialise through an exclusive lock file. The API is synchronous because
 // CLI, server endpoints and hooks each do one short read-modify-write.
 //
-// Layout of campaigns/<cid>/ (kernel draft section 7; the agents/ prefix of
+// Layout of campaigns/<cid>/ (knowledge/architecture.md; the agents/ prefix of
 // tasks and proposals is fixed by respondAs.path in engine/schemas/task.js):
 //   state.json  world.lock.json  library.json  status.json
 //   drafts/<peopleId>.json  view/<peopleId>.json  log/T0006.json

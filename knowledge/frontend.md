@@ -78,7 +78,3 @@ The UI round of 3 October 2026 found data the kernel does not yet deliver. M1 cl
 ## M1 additions
 
 M1 adds a start screen with new game, continue, settings and rules, an Escape menu in game, English as default UI language with German selectable and labels per language, synthesised Web Audio with volumes and reduced motion, polished event cards, victory and defeat screens with a campaign summary and the research paths view ([decisions.md](decisions.md), D16 to D21). Their contracts are in [plan-m1.md](plan-m1.md).
-
-## Legacy dashboard
-
-`index.html`, `anleitung.html`, `js/` and `css/` at the repository root are the savegame dashboard of the former chat game-master procedure, with its contract in `docs/Frontend-Contract.md` and its visual tests under `tests/visual/`. It is not part of the new game and waits for removal ([decisions.md](decisions.md), D1).

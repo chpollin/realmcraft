@@ -1,5 +1,5 @@
 // Group 13, named saves. Play two seasons, save, play a season, load, and
-// check that state, journal, roll ledger and replay are those of the save,
+// check that state, journal, library and replay are those of the save,
 // then play on from the loaded season.
 //
 // Assumptions beyond lib/harness.js (A1 to A9):
@@ -26,7 +26,7 @@ describe('save, play on, load', { timeout: T_LONG }, () => {
     next = dice(31);
     c.playTurn({ next });
     c.playTurn({ next });
-    atSave = { state: c.raw('state.json'), journal: c.raw('log/journal.json'), rolls: c.raw('rolls.json'), library: c.raw('library.json') };
+    atSave = { state: c.raw('state.json'), journal: c.raw('log/journal.json'), library: c.raw('library.json') };
     saved = expectExit(c.run('save', '--name', 'Nach zwei Saisons'), [0], 'save').json.save;
   });
   after(() => removeRoot(c?.root));
@@ -40,7 +40,7 @@ describe('save, play on, load', { timeout: T_LONG }, () => {
     assert.ok(c.has(`saves/${saved.slot}/campaign/state.json`));
   });
 
-  it('S3: a load restores state, journal, ledger and library of the save and replays', () => {
+  it('S3: a load restores state, journal and library of the save and replays', () => {
     const played = c.playTurn({ next });
     const replaced = stateHash(played.after);
     assert.ok(played.after.turn > saved.turn);
@@ -49,7 +49,6 @@ describe('save, play on, load', { timeout: T_LONG }, () => {
     assert.deepEqual([r.json.slot, r.json.turn, r.json.rev], [saved.slot, saved.turn, saved.rev]);
     assert.equal(c.raw('state.json'), atSave.state);
     assert.equal(c.raw('log/journal.json'), atSave.journal);
-    assert.equal(c.raw('rolls.json'), atSave.rolls);
     assert.equal(c.raw('library.json'), atSave.library);
     assert.equal(c.view().turn, saved.turn);
 

@@ -24,8 +24,8 @@
 // Every transition (new, seal, apply, open, ingest) appends to
 // log/journal.json. Entries of format 2 form a hash chain: each carries the
 // hash of its predecessor and its own hash, and anchors next to the state
-// hash the library prefix, the drafts and rolls it leaves and the world
-// package. A transition on files that do not match the last entry is refused.
+// hash the library prefix, the drafts it leaves and the world package. A
+// transition on files that do not match the last entry is refused.
 // The chain detects edits made outside the kernel; whoever rewrites the whole
 // chain can forge it, and replay is the full proof of a campaign.
 //
@@ -40,9 +40,10 @@
 // (drafts, reports, texts), then the views; an interrupted commit is rolled
 // forward from its journal entry by the next transition.
 //
-// Rolls live in the append-only ledger rolls.json. A draft's rolls are
-// derived from it: a probe keeps the first value rolled for its fingerprint,
-// and a roll whose probe left the draft or changed is listed as withdrawn.
+// Rolls live in the player's draft. Its rolls and withdrawn list hold every
+// value rolled in the turn: a probe keeps the first value rolled for its
+// fingerprint, and a roll whose probe left the draft or changed is listed as
+// withdrawn. A rolls.json ledger of an older kernel is ignored.
 //
 // A save copies the campaign folder (without saves/, lock files and the run
 // marker) to saves/<slot>/campaign/ next to saves/<slot>/manifest.json. load
@@ -89,7 +90,6 @@ const CONTENT = ['entwicklungen', 'ereignisse', 'bestimmungen'];
 // path outside campaigns/ or a Windows alias of another folder.
 const CID = /^[a-z][a-z0-9-]{1,40}$/;
 const JOURNAL_FORMAT = 2;
-const ROLLS = 'rolls.json';
 const NEW_USAGE = 'new <worldId> --seed <n> --as <template> --id <cid> [--rivals a,b] [--difficulty easy|normal|hard] [--lang de]';
 
 // --- small helpers -----------------------------------------------------------
@@ -255,7 +255,6 @@ function chainEntry(journal, c, fields, { library, drafts }) {
     libraryCount: library.entries.length,
     libraryHash: libraryAnchor(library),
     draftsHash: hashValue(drafts),
-    rolls: rollsAnchor(c.dir),
     worldHash: c.env.hash,
   };
   return { ...body, hash: hashValue(body) };
@@ -278,57 +277,32 @@ function chainIssues(journal) {
   return [];
 }
 
-// --- rolls ledger ------------------------------------------------------------
-
-const rollsPath = (dir) => join(dir, ROLLS);
-
-/**
- * The ledger entries. A campaign from before the ledger has none on disk;
- * its stored player draft of the current turn seeds the ledger once, so rolls
- * entered before the upgrade stay valid.
- */
-function readRolls(c) {
-  const held = readJson(rollsPath(c.dir), { fallback: null });
-  if (held) return held.entries;
-  const pid = c.state.campaign.player;
-  const draft = tryJson(join(c.dir, LAYOUT.drafts, `${pid}.json`)).value;
-  if (!draft || draft.turn !== c.state.turn || typeof draft.rolls !== 'object' || draft.rolls === null) return [];
-  const out = [];
-  for (const w of Array.isArray(draft.withdrawn) ? draft.withdrawn : []) out.push({ turn: draft.turn, people: pid, probe: w.probe, fingerprint: w.fingerprint, value: w.value });
-  for (const [probe, r] of Object.entries(draft.rolls)) out.push({ turn: draft.turn, people: pid, probe, fingerprint: r.fingerprint, value: r.value });
-  return out;
-}
-
-function writeRolls(dir, entries) {
-  writeJsonAtomic(rollsPath(dir), { format: 'realmcraft-rolls', version: 1, entries });
-}
-
-// The anchor a transition records: count and hash of the ledger so far.
-// Later rolls only append, so the prefix stays checkable.
-function rollsAnchor(dir) {
-  const held = readJson(rollsPath(dir), { fallback: null });
-  const entries = held?.entries ?? [];
-  return { count: entries.length, hash: hashValue(entries) };
-}
+// --- rolls -------------------------------------------------------------------
 
 const isRollValue = (v) => Number.isInteger(v) && v >= 1 && v <= 10;
+const isRecord = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 /**
- * The player's draft with rolls and withdrawn taken from the ledger. A probe
- * keeps the value the ledger holds for its id and fingerprint. An incoming
- * value counts only for a probe the ledger has no roll for, and only when
- * `adopt` is set (a draft the player submits); it becomes a new ledger entry.
- * An incoming roll whose probe left the draft or changed stays as it is, so
- * the check reports it as roll_stale until the player drops it; a ledger roll
- * no longer in the draft is listed as withdrawn. Returns { draft, added,
- * kept } (kept: probes whose incoming value was ignored for the held one).
+ * The player's draft with rolls and withdrawn settled against `stored`, the
+ * stored draft of the turn, whose rolls and withdrawn list hold the values
+ * rolled so far. A probe keeps the value held for its id and fingerprint, so
+ * an order removed and added again gets its first roll back. An incoming
+ * value counts only for a probe with no held roll, and only when `adopt` is
+ * set (a draft the player submits). An incoming roll whose probe left the
+ * draft or changed stays as it is, so the check reports it as roll_stale
+ * until the player drops it; a held roll no longer in the draft is listed as
+ * withdrawn. Returns { draft, kept } (kept: probes whose incoming value was
+ * ignored for the held one).
  */
-function reconcileRolls(view, env, draft, pid, ledger, { incoming = draft.rolls, adopt = false } = {}) {
-  const turn = view.turn;
+function settleRolls(view, env, draft, pid, stored, { adopt = false } = {}) {
   const chk = checkDraft(view, env, { ...draft, rolls: {}, withdrawn: [] }, { as: pid, mode: 'preview' });
   const probes = new Map(chk.probes.filter((x) => x.roller === 'player').map((p) => [p.id, p]));
-  const mine = ledger.filter((r) => r.turn === turn && r.people === pid);
-  const offered = incoming && typeof incoming === 'object' ? incoming : {};
+  // The stored file is read back from disk, so its shape is checked before use.
+  const mine = [
+    ...(Array.isArray(stored.withdrawn) ? stored.withdrawn : []),
+    ...Object.entries(isRecord(stored.rolls) ? stored.rolls : {}).map(([probe, r]) => isRecord(r) && { ...r, probe }),
+  ].filter(isRecord);
+  const offered = isRecord(draft.rolls) ? draft.rolls : {};
   const rolls = {};
   const added = [];
   const kept = [];
@@ -340,7 +314,7 @@ function reconcileRolls(view, env, draft, pid, ledger, { incoming = draft.rolls,
       if (inc && inc.fingerprint === p.fingerprint && inc.value !== held.value) kept.push(p.id);
     } else if (adopt && inc && inc.fingerprint === p.fingerprint && isRollValue(inc.value)) {
       rolls[p.id] = { value: inc.value, fingerprint: p.fingerprint };
-      added.push({ turn, people: pid, probe: p.id, fingerprint: p.fingerprint, value: inc.value });
+      added.push({ probe: p.id, fingerprint: p.fingerprint, value: inc.value });
     }
   }
   for (const [id, r] of Object.entries(offered)) {
@@ -356,7 +330,7 @@ function reconcileRolls(view, env, draft, pid, ledger, { incoming = draft.rolls,
     seen.add(k);
     withdrawn.push({ probe: r.probe, value: r.value, fingerprint: r.fingerprint });
   }
-  return { draft: { ...draft, rolls, withdrawn: withdrawn.slice(-16) }, added, kept };
+  return { draft: { ...draft, rolls, withdrawn: withdrawn.slice(-16) }, kept };
 }
 
 // --- views, index, tasks -----------------------------------------------------
@@ -604,10 +578,6 @@ function guard(cc, { allowDrift = false } = {}) {
       return [kissue('tamper', '/library', 'library.json was changed outside the kernel', { params: { reason: 'library-edited' } })];
     }
     cc.holder.library = cc.library;
-    const held = readJson(rollsPath(cc.dir), { fallback: null })?.entries ?? [];
-    if (held.length < last.rolls.count || hashValue(held.slice(0, last.rolls.count)) !== last.rolls.hash) {
-      return [kissue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`, { params: { reason: 'rolls-edited', file: ROLLS } })];
-    }
     if (!allowDrift && last.worldHash !== cc.env.hash) return [cliIssue('cli.world_drift', '/world', 'the world package changed since the last transition; restore it or run repin', { reason: 'since-transition' })];
   }
   if (!allowDrift && cc.drift) return [cliIssue('cli.world_drift', '/world', 'the world package differs from the one the campaign is pinned to; restore it or run repin', { reason: 'since-pin' })];
@@ -718,7 +688,6 @@ function cmdNew(a) {
     rulesVersion: state.rulesVersion,
   });
   writeJsonAtomic(join(dir, LAYOUT.library), holder.library);
-  writeRolls(dir, []);
   if (fromState) writeJsonAtomic(join(dir, 'anchor.json'), state);
   const entry = chainEntry([], c, { op: 'new', turn: state.turn, revAfter: state.rev, hashAfter: stateHash(state), input: fromState ? { anchor: 'anchor.json' } : {} }, { library: holder.library, drafts: {} });
   writeJsonAtomic(journalPath(dir), [entry]);
@@ -815,9 +784,7 @@ function cmdPreview(c, a) {
     // A draft that does not parse as a draft or names another turn is not stored.
     const shape = errorsOf(checkDraft(view, cc.env, { ...incoming, sealed: false }, { as: pid, mode: 'preview' }).issues);
     if (shape.some((i) => i.code.startsWith('schema.') || ['format', 'stale'].includes(i.code))) return fail(2, shape);
-    const ledger = readRolls(cc);
-    const rec = reconcileRolls(view, cc.env, { ...incoming, sealed: false }, pid, ledger, { adopt: true });
-    if (rec.added.length || !existsSync(rollsPath(cc.dir))) writeRolls(cc.dir, [...ledger, ...rec.added]);
+    const rec = settleRolls(view, cc.env, { ...incoming, sealed: false }, pid, storedDraft(cc, pid), { adopt: true });
     writeJsonAtomic(draftPath(cc, pid), rec.draft);
     const res = previewResult(cc, pid, rec.draft);
     const kept = rec.kept.map((id) => cliIssue('duplicate', `/rolls/${id}`, `probe ${id} keeps its first roll ${rec.draft.rolls[id].value}`,
@@ -839,15 +806,13 @@ function cmdRoll(c, a) {
     if (phase) return fail(4, [phase]);
     const pid = cc.state.campaign.player;
     const view = projectFor(cc.state, cc.env, pid);
-    const ledger = readRolls(cc);
-    const rec = reconcileRolls(view, cc.env, storedDraft(cc, pid), pid, ledger);
+    const stored = storedDraft(cc, pid);
+    const rec = settleRolls(view, cc.env, stored, pid, stored);
     const chk = checkDraft(view, cc.env, rec.draft, { as: pid, mode: 'preview' });
     const probe = chk.probes.find((p) => p.id === probeId && p.roller === 'player');
     if (!probe) return fail(2, [cliIssue('target', '/probe', `no probe "${probeId}" the player rolls in the current draft`, { reason: 'no-probe', probe: probeId })]);
     const held = rec.draft.rolls[probeId];
     if (held) return fail(2, [cliIssue('duplicate', '/probe', `probe ${probeId} was already rolled (${held.value})`, { reason: 'already-rolled', probe: probeId, value: held.value })]);
-    const entry = { turn: cc.state.turn, people: pid, probe: probeId, fingerprint: probe.fingerprint, value };
-    writeRolls(cc.dir, [...ledger, entry]);
     writeJsonAtomic(draftPath(cc, pid), { ...rec.draft, sealed: false, rolls: { ...rec.draft.rolls, [probeId]: { value, fingerprint: probe.fingerprint } } });
     const resolved = resolveProbe(probe, value);
     return ok({ probe: { ...resolved, calculation: calculation(resolved) }, band: resolved.band, natural: resolved.natural, margin: resolved.margin }, calculation(resolved));
@@ -859,17 +824,6 @@ function cmdRoll(c, a) {
 function cmdSeal(c) {
   return locked(c, (cc) => {
     const drafts = draftsOf(cc);
-    const pid = cc.state.campaign.player;
-    if (cc.state.phase === 'planning' && drafts[pid]) {
-      // The player's rolls must be the ledger's: a value edited in the draft file is refused.
-      const ledger = readRolls(cc);
-      const rec = reconcileRolls(projectFor(cc.state, cc.env, pid), cc.env, drafts[pid], pid, ledger);
-      const stored = drafts[pid].rolls ?? {};
-      const edited = Object.keys({ ...stored, ...rec.draft.rolls })
-        .filter((id) => stored[id]?.value !== rec.draft.rolls[id]?.value || stored[id]?.fingerprint !== rec.draft.rolls[id]?.fingerprint);
-      if (edited.length) return fail(4, [kissue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`, { params: { reason: 'rolls-differ', people: pid, probes: edited } })]);
-      drafts[pid] = rec.draft;
-    }
     const res = seal(cc.state, cc.env, drafts);
     if (!res.ok) return fail(exitFor(res.issues), res.issues);
     const done = commit(cc, { op: 'seal', next: res.state, input: { drafts }, res, events: res.events });

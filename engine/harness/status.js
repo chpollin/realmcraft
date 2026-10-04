@@ -2,7 +2,7 @@
 // what the validator decided on each proposal item. Hooks, the turn command
 // and ingest write it from separate processes, so every change is a locked
 // read-modify-write with an atomic rename. The file is a view for the
-// dashboard; nothing reads it back into the state. Each call validates the
+// board; nothing reads it back into the state. Each call validates the
 // result against engine/schemas/status.js and writes nothing when it fails.
 
 import { join } from 'node:path';
@@ -165,7 +165,7 @@ export function recordFinding(dir, stepId, { id, judge, severity, text, refs = [
  * Brings status.json in line with the campaign state after a kernel
  * transition: the phase always follows the state. When apply moves to a new
  * turn, the steps of the resolved turn (phase B before it, the world step of
- * phase A) move to `resolved`, so the dashboard can show the round that just
+ * phase A) move to `resolved`, so the board can show the round that just
  * ended; open drops them when planning starts.
  */
 export function followState(dir, state, { lock } = {}) {

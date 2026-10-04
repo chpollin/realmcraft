@@ -1,7 +1,6 @@
 // Status entries of /zug in campaigns/<cid>/status.json, through
-// engine/harness/status.js (lock, atomic rename, schema check). The
-// Agentenvertrag foresees `node engine/cli.mjs status-note`; this helper is
-// the same write without a kernel process.
+// engine/harness/status.js (lock, atomic rename, schema check), without a
+// kernel process.
 //
 //   node tools/harness/status-note.mjs init [--campaign <cid>]
 //   node tools/harness/status-note.mjs plan [--campaign <cid>]
