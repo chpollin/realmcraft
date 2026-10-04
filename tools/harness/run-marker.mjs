@@ -1,8 +1,7 @@
 // Run marker campaigns/<cid>/run.json of one /zug execution. While it is
 // active, the SubagentStart and SubagentStop hooks record RealmCraft agents
-// in status.json of that campaign. The Agentenvertrag foresees
-// `node engine/cli.mjs run start|end` for this; until the CLI offers it, this
-// helper writes the same file under the io.js lock.
+// in status.json of that campaign. This helper writes the file under the
+// io.js lock.
 //
 //   node tools/harness/run-marker.mjs start|end|show [--campaign <cid>] [--root <dir>]
 //

@@ -103,7 +103,7 @@ Standing fundamental decisions of the rebuild with date, decision, reason, conse
 - Date 2026-10-03.
 - Decision. Running campaigns live in `campaigns/<cid>/`, ignored by git. Checked-in test campaigns were planned under `examples/campaigns/`.
 - Reason. Running games are private and change every turn.
-- Consequence. `examples/campaigns/` was never created. The tests build their campaigns in temporary roots, and the hooks leave `examples/campaigns/` to development.
+- Consequence. `examples/campaigns/` was never created. The tests build their campaigns in temporary roots, and the hooks carry no exemption for it.
 - Revisit when campaigns should synchronise between machines.
 
 ### D9 Projection as the only view
@@ -212,6 +212,6 @@ The owner settled the open questions for M1 as follows. Each can be revised by t
 
 - Date 2026-10-03, extends D8 and D18.
 - Decision. A save is a full copy of the campaign folder under `campaigns/<cid>/saves/<slot>/` with a manifest, written and restored only by the kernel CLI (`save`, `saves`, `load`) under the campaign lock. Saving needs a playing campaign in planning. Loading needs planning or an ended campaign, restores in place and first keeps the replaced files as the save `autosave-<rev>`. A load is staged, checked like a transition and swapped in with a step marker, so a crash is either dropped or completed by the next command. Neither runs while a `/zug` run marker is active. Loading a save as a new campaign id is not offered.
-- Reason. The owner asked for a main menu with continue, load, options and quit and for saving a game. A copy of the whole folder keeps journal, roll ledger and library together, so the existing integrity checks and `replay` prove a restored campaign without a second format. Allowing load after the end lets a lost game return to an earlier season.
+- Reason. The owner asked for a main menu with continue, load, options and quit and for saving a game. A copy of the whole folder keeps journal, drafts and library together, so the existing integrity checks and `replay` prove a restored campaign without a second format. Allowing load after the end lets a lost game return to an earlier season.
 - Consequence. Agents never read `saves/` or the staging folder `.restore/` (guard hook). A save made under another world package restores into the drift state and waits for `repin`. A fork under a new id would need a new journal anchored on the saved state and the save's agent content in the library, which is more than the request carried.
 - Revisit when saves should leave the campaign folder, be exported, or when their disk use matters.

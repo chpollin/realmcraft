@@ -1,24 +1,14 @@
-// tools/portraits/gemini.js — Bild-API-Client fuer die Gemini generateContent-API.
-// Reine ES-Modul-Datei ohne Top-Level-Seiteneffekt; der Netzaufruf erfolgt
-// ausschliesslich in generateImage via global fetch.
+// tools/portraits/gemini.js — image client for the Gemini generateContent API.
+// A pure ES module without top-level side effects; the only network call is
+// the global fetch in generateImage.
 
-export const MODELS = {
-  portrait: 'gemini-3.1-flash-image',
-};
-
-// Baut die generateContent-URL fuer ein Modell.
-export function endpoint(model) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-}
-
-// Erzeugt ein Bild ueber die Gemini-API.
-// Wirft ohne apiKey (vor dem Netzaufruf), bei fehlgeschlagenem Call und wenn
-// die Antwort kein inlineData-Bild enthaelt.
+// Generates one image and returns it as { data (base64), mimeType }.
+// Throws without apiKey (before any network call), when the call fails and
+// when the answer carries no inlineData image.
 export async function generateImage({
   apiKey,
   model,
   prompt,
-  refImages = [],
   aspectRatio,
   timeoutMs = 60000,
 } = {}) {
@@ -26,31 +16,19 @@ export async function generateImage({
     throw new Error('Kein API-Key: generateImage benoetigt einen apiKey.');
   }
 
-  // A bare base64 string is taken as PNG, the type the first callers sent;
-  // { data, mimeType } carries the real type (JPEG photos, WebP demo images).
-  const parts = [
-    { text: prompt },
-    ...refImages.map((r) => ({
-      inlineData: typeof r === 'string'
-        ? { mimeType: 'image/png', data: r }
-        : { mimeType: r.mimeType || 'image/png', data: r.data },
-    })),
-  ];
-
   const generationConfig = {
     responseModalities: ['IMAGE'],
     ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
   };
 
   const body = JSON.stringify({
-    contents: [{ parts }],
+    contents: [{ parts: [{ text: prompt }] }],
     generationConfig,
   });
 
-  // Harte Obergrenze fuer einen haengenden Aufruf: ohne Timeout blockiert ein
-  // nie antwortender Request den Generieren-Flow unbegrenzt. Manueller Controller
-  // statt AbortSignal.timeout, damit der Timer im finally sicher geloescht wird
-  // (kein lingernder Timer, der z. B. den Unit-Test-Prozess offen haelt).
+  // Hard ceiling for a hanging call, which would otherwise block the run
+  // without end. A manual controller instead of AbortSignal.timeout, so the
+  // timer is cleared in finally and no lingering timer keeps a test process open.
   const controller = new AbortController();
   const timer = setTimeout(
     () => controller.abort(new DOMException('Zeitueberschreitung', 'TimeoutError')),
@@ -59,7 +37,7 @@ export async function generateImage({
 
   let response;
   try {
-    response = await fetch(endpoint(model), {
+    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
       headers: {
         'x-goog-api-key': apiKey,
@@ -85,8 +63,8 @@ export async function generateImage({
     } catch {
       detail = (await response.text().catch(() => '')) || '';
     }
-    // Haeufigster Fall: das Gemini-Free-Tier gibt Bildmodellen das Kontingent 0.
-    // Keine Wiederholung und kein Modellwechsel hilft, nur aktiviertes Billing.
+    // The common case: the Gemini free tier gives image models a quota of 0.
+    // No retry and no other model helps, only billing enabled for the key.
     if (response.status === 429 || /quota|RESOURCE_EXHAUSTED|limit:\s*0/i.test(detail)) {
       throw new Error(
         `Bildgenerierung nicht moeglich: ${model} hat im Gemini-Free-Tier kein Kontingent (Limit 0). ` +
@@ -107,8 +85,5 @@ export async function generateImage({
     throw new Error('Antwort enthaelt kein Bild (kein inlineData).');
   }
 
-  const mimeType = inline.mimeType || 'image/png';
-  const dataUrl = 'data:' + mimeType + ';base64,' + inline.data;
-
-  return { dataUrl, mimeType };
+  return { data: inline.data, mimeType: inline.mimeType || 'image/png' };
 }

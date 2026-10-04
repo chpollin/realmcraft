@@ -111,6 +111,6 @@ A load restores the save in place and keeps the files it replaces as `autosave-<
 
 ## Boundaries
 
-- `.env` holds the image key of the legacy dashboard. It never enters campaign files, knowledge or commits, and agents never read it.
+- `.env` holds the image key of the portrait generator `tools/portraits/generate.mjs`. It never enters campaign files, knowledge or commits, and agents never read it.
 - `campaigns/` is private and ignored by git. Back up a campaign by copying its whole folder while no transition runs.
 - The ports of the owner's running servers are not used by tests or development sessions.

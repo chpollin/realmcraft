@@ -76,7 +76,7 @@ Run these with `REALMCRAFT_ROOT` set to a temporary folder or with `--root <dir>
 - Openings. Costs only from the opening stock, effects of new things from the next turn.
 - Fog. Nothing shown to the player or to an agent of a people carries foreign stocks or drafts.
 - Origin. Every changed field has a log entry with source, target and change.
-- Integrity. A state, draft, roll ledger or library changed outside the kernel is refused with `tamper`, an interrupted commit rolls forward, and campaigns written before an additive change stay loadable.
+- Integrity. A state, sealed draft or library changed outside the kernel is refused with `tamper`, an interrupted commit rolls forward, and campaigns written before an additive change stay loadable.
 - Validator. The corpus pins issue codes and hand-computed budgets of its cases independently of the implementation.
 
 ## Gaps

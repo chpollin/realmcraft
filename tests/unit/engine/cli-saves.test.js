@@ -91,7 +91,7 @@ describe('cli save and saves', () => {
     assert.deepEqual(m.world.hash, read(root, 'world.lock.json').hash);
     assert.deepEqual(read(root, `saves/${m.slot}/manifest.json`), m);
     const copy = `saves/${m.slot}/campaign`;
-    for (const f of ['state.json', 'library.json', 'world.lock.json', 'rolls.json', 'status.json', 'log/journal.json', 'view/bergnomaden.json']) {
+    for (const f of ['state.json', 'library.json', 'world.lock.json', 'status.json', 'log/journal.json', 'view/bergnomaden.json']) {
       assert.equal(raw(root, `${copy}/${f}`), raw(root, f), f);
     }
     assert.ok(has(root, `${copy}/agents/tasks`));
@@ -163,7 +163,7 @@ describe('cli load', () => {
     assert.equal(r.code, 0, r.stdout);
     assert.equal(r.json.autosave, `autosave-${current.rev}`);
     assert.deepEqual([r.json.turn, r.json.rev, r.json.phase, r.json.stateHash], [saved.turn, saved.rev, 'planning', saved.stateHash]);
-    for (const f of ['state.json', 'library.json', 'rolls.json', 'log/journal.json', 'world.lock.json']) assert.equal(raw(root, f), snap(f), f);
+    for (const f of ['state.json', 'library.json', 'log/journal.json', 'world.lock.json']) assert.equal(raw(root, f), snap(f), f);
     assert.ok(!has(root, '.restore'));
     assert.equal(read(root, 'view/bergnomaden.json').turn, saved.turn);
     assert.equal(JSON.parse(readFileSync(join(root, 'campaigns', 'index.json'), 'utf8')).campaigns[0].turn, saved.turn);

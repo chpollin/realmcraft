@@ -148,39 +148,26 @@ export function relInside(p, root) {
   return a.startsWith(`${r}/`) ? p.slice(r.length + 1) : null;
 }
 
-// "<root>/campaigns/<cid>/<rel>". examples/campaigns/ holds committed test
-// campaigns that developer sessions edit by hand, so it is not game territory.
-const CAMPAIGN_RE = /^(.*?)\/campaigns\/([^/]+)(?:\/(.*))?$/i;
 export const CID_RE = /^[a-z][a-z0-9-]{1,40}$/;
 
-/**
- * Location of a path inside a live campaign folder, or null. The campaign
- * list campaigns/index.json comes back with cid null and rel "index.json".
- */
-export function campaignPath(filePath, cwd) {
-  if (typeof filePath !== 'string' || !filePath) return null;
-  const p = normPath(filePath, cwd);
-  const m = CAMPAIGN_RE.exec(p);
-  if (!m || /\/examples$/i.test(m[1])) return null;
-  const root = m[1];
-  if (m[3] === undefined) {
-    if (m[2] === 'index.json') return { root, cid: null, rel: 'index.json', dir: `${root}/campaigns` };
-    if (!CID_RE.test(m[2])) return null;
-    return { root, cid: m[2], rel: '', dir: `${root}/campaigns/${m[2]}` };
-  }
-  if (!CID_RE.test(m[2])) return null;
-  return { root, cid: m[2], rel: m[3], dir: `${root}/campaigns/${m[2]}` };
+/** "campaigns/<cid>/<rest>" of a canonical path inside root, as { cid, rest }, or null. */
+export function campaignRel(p, root) {
+  const rel = relInside(p, root);
+  if (rel === null) return null;
+  const parts = rel.split('/');
+  if (foldCase(parts[0]) !== 'campaigns') return null;
+  return { cid: parts[1] ?? '', rest: parts.slice(2).join('/') };
 }
 
 // engine/schemas/common.js PATTERNS.proposal, repeated here so the hot path
 // needs no engine import; tests/unit/harness-hooks.test.js checks they agree.
 export const PROPOSAL_ID_RE = /^[a-z][a-z0-9-]{1,24}(\.[a-z][a-z0-9-]{1,40})?\.T(0|[1-9][0-9]*)$/;
 
-/** proposalId of a campaign-relative path agents/proposals/<proposalId>.json, else null. */
-export function proposalIdOfRel(rel) {
-  const m = /^agents\/proposals\/([^/]+)\.json$/.exec(rel ?? '');
+/** proposalId of a campaignRel location agents/proposals/<proposalId>.json of a valid campaign, else null. */
+export const proposalOf = (loc) => {
+  const m = loc && CID_RE.test(loc.cid) ? /^agents\/proposals\/([^/]+)\.json$/.exec(loc.rest) : null;
   return m && PROPOSAL_ID_RE.test(m[1]) ? m[1] : null;
-}
+};
 
 /** Agent id named by a proposal id ("judge-balance.T6" -> judge-balance). */
 export const agentOfProposalId = (pid) => String(pid).split('.')[0];
@@ -246,7 +233,7 @@ export function proposalIdIn(text, agent) {
 }
 
 const TASK_REF_RE = /agents[\\/]tasks[\\/](T\d{4,})[\\/]([a-z][a-z0-9-]*)\.json/g;
-const CAMPAIGN_REF_RE = /(?<!examples[\\/])campaigns[\\/]([a-z][a-z0-9-]{1,40})(?=[\\/])/g;
+const CAMPAIGN_REF_RE = /campaigns[\\/]([a-z][a-z0-9-]{1,40})(?=[\\/])/g;
 
 /**
  * The one task a running RealmCraft subagent works on, as { cid, dir, task,

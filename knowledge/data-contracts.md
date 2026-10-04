@@ -44,7 +44,7 @@ The data contracts of RealmCraft are the schemas under `engine/schemas/`. Where 
 
 `welt.json` is validated by `engine/world` (required keys in `WELT_REQUIRED_KEYS`). `node engine/cli.mjs schema <name>` prints any schema as JSON.
 
-Files without a schema of their own are `world.lock.json`, `rolls.json` (append-only roll ledger, format `realmcraft-rolls`, entries `{ turn, people, probe, fingerprint, value }`), `log/journal.json` (hash chain, entries of format 2 carry `kernel`, `prev`, `hash`, `libraryCount`, `libraryHash`, `draftsHash`, `rolls` with count and hash, and `worldHash`, the first chained entry after an older journal carries `base` with an anchor), `anchors/` (anchor states of `repin` and of the chain start), `run.json` and the save manifests (section Saves).
+Files without a schema of their own are `world.lock.json`, `log/journal.json` (hash chain, entries of format 2 carry `kernel`, `prev`, `hash`, `libraryCount`, `libraryHash`, `draftsHash` and `worldHash`, the first chained entry after an older journal carries `base` with an anchor, and entries of an earlier kernel also carry `rolls` with count and hash of a roll ledger `rolls.json` that the CLI no longer reads), `anchors/` (anchor states of `repin` and of the chain start), `run.json` and the save manifests (section Saves).
 
 ## Campaign state
 
@@ -60,7 +60,7 @@ The state holds references to world content and the mutable part of the map. Gen
 
 ## Draft
 
-`{ format, version, people, turn, baseRev, orders, assign, choices, venture, lead, mandate, rolls, withdrawn, sealed }`. Orders are `{ id, type, params }`, with order ids from `PATTERNS.orderId`, where `event` and the kernel subjects `life-N` and `hollow-N` are reserved. `assign` maps a resource key, `research` or a module activity to clans. `choices` maps an id of `pendingChoices` to an option id. `venture` and `lead` map order ids to `true` and to a council member. `rolls` maps probe ids (`T<turn>:<people>:<order id or event>`) to `{ value, fingerprint }`, derived from the roll ledger. A draft is stale only when `turn` differs from the state, `baseRev` is informational.
+`{ format, version, people, turn, baseRev, orders, assign, choices, venture, lead, mandate, rolls, withdrawn, sealed }`. Orders are `{ id, type, params }`, with order ids from `PATTERNS.orderId`, where `event` and the kernel subjects `life-N` and `hollow-N` are reserved. `assign` maps a resource key, `research` or a module activity to clans. `choices` maps an id of `pendingChoices` to an option id. `venture` and `lead` map order ids to `true` and to a council member. `rolls` maps probe ids (`T<turn>:<people>:<order id or event>`) to `{ value, fingerprint }`. `rolls` and `withdrawn` of the stored player draft hold every value rolled in the turn, so a probe keeps its first value ([rules-kernel.md](rules-kernel.md), section 6). A draft is stale only when `turn` differs from the state, `baseRev` is informational.
 
 ## Content objects
 

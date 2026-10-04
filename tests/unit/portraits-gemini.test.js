@@ -1,39 +1,24 @@
-// Unit-Tests fuer tools/portraits/gemini.js — Bild-API-Client.
-// global.fetch wird gemockt; geprueft werden URL, Header, Body und das Parsen
-// von inlineData zur data:-URL anhand des Mock-Pixels.
+// Unit tests of tools/portraits/gemini.js, the image API client.
+// global.fetch is mocked; the tests check URL, headers, body and the parsing
+// of inlineData with the mock pixel.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MODELS, endpoint, generateImage } from '../../tools/portraits/gemini.js';
-import {
-  MOCK_PIXEL_BASE64,
-  MOCK_PIXEL_MIME,
-  MOCK_PIXEL_DATA_URL,
-} from '../fixtures/mock-pixel.js';
+import { generateImage } from '../../tools/portraits/gemini.js';
+import { MOCK_PIXEL_BASE64, MOCK_PIXEL_MIME } from '../fixtures/mock-pixel.js';
 
-// Baut eine erfolgreiche Gemini-Antwort mit dem Mock-Pixel.
-function okResponse(
-  base64 = MOCK_PIXEL_BASE64,
-  mimeType = MOCK_PIXEL_MIME,
-) {
+const MODEL = 'gemini-3.1-flash-image';
+
+function okResponse(base64 = MOCK_PIXEL_BASE64, mimeType = MOCK_PIXEL_MIME) {
   return {
     ok: true,
     status: 200,
-    json: async () => ({
-      candidates: [
-        {
-          content: {
-            parts: [{ inlineData: { mimeType, data: base64 } }],
-          },
-        },
-      ],
-    }),
+    json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType, data: base64 } }] } }] }),
   };
 }
 
-// Installiert einen fetch-Mock, der die Aufrufe aufzeichnet, und gibt ein
-// Restore zurueck.
+// Records the calls; restore() puts the real fetch back.
 function installFetch(handler) {
   const calls = [];
   const original = global.fetch;
@@ -49,33 +34,13 @@ function installFetch(handler) {
   };
 }
 
-test('MODELS traegt das Porträtmodell', () => {
-  assert.equal(MODELS.portrait, 'gemini-3.1-flash-image');
-});
-
-test('endpoint(model) baut die generateContent-URL korrekt', () => {
-  assert.equal(
-    endpoint('gemini-3.1-flash-image'),
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
-  );
-  assert.equal(
-    endpoint('gemini-3-pro-image'),
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent',
-  );
-});
-
-test('generateImage: ruft die richtige URL mit dem richtigen Header', async () => {
+test('generateImage: calls the generateContent URL of the model with the key header', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    await generateImage({
-      apiKey: 'TEST-KEY',
-      model: MODELS.portrait,
-      prompt: 'Ein Portrait',
-    });
-
+    await generateImage({ apiKey: 'TEST-KEY', model: MODEL, prompt: 'Ein Portrait' });
     assert.equal(mock.calls.length, 1);
     const { url, options } = mock.calls[0];
-    assert.equal(url, endpoint(MODELS.portrait));
+    assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent');
     assert.equal(options.method, 'POST');
     assert.equal(options.headers['x-goog-api-key'], 'TEST-KEY');
     assert.equal(options.headers['Content-Type'], 'application/json');
@@ -84,34 +49,21 @@ test('generateImage: ruft die richtige URL mit dem richtigen Header', async () =
   }
 });
 
-test('generateImage: Body traegt den Prompt-Text in parts', async () => {
+test('generateImage: the body carries the prompt as its only part', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'Mein Prompt',
-    });
-
+    await generateImage({ apiKey: 'K', model: MODEL, prompt: 'Mein Prompt' });
     const body = JSON.parse(mock.calls[0].options.body);
-    assert.ok(Array.isArray(body.contents));
-    const parts = body.contents[0].parts;
-    assert.ok(Array.isArray(parts));
-    assert.equal(parts[0].text, 'Mein Prompt');
+    assert.deepEqual(body.contents, [{ parts: [{ text: 'Mein Prompt' }] }]);
   } finally {
     mock.restore();
   }
 });
 
-test('generateImage: generationConfig fordert responseModalities IMAGE', async () => {
+test('generateImage: generationConfig asks for responseModalities IMAGE', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'p',
-    });
-
+    await generateImage({ apiKey: 'K', model: MODEL, prompt: 'p' });
     const body = JSON.parse(mock.calls[0].options.body);
     assert.deepEqual(body.generationConfig.responseModalities, ['IMAGE']);
   } finally {
@@ -119,61 +71,10 @@ test('generateImage: generationConfig fordert responseModalities IMAGE', async (
   }
 });
 
-test('generateImage: refImages werden als inlineData mit image/png angehaengt', async () => {
+test('generateImage: aspectRatio goes into generationConfig.imageConfig', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'p',
-      refImages: [MOCK_PIXEL_BASE64, MOCK_PIXEL_BASE64],
-    });
-
-    const body = JSON.parse(mock.calls[0].options.body);
-    const parts = body.contents[0].parts;
-    // erstes part ist der Text, danach die Referenzbilder
-    assert.equal(parts[0].text, 'p');
-    assert.equal(parts.length, 3);
-    assert.deepEqual(parts[1].inlineData, {
-      mimeType: 'image/png',
-      data: MOCK_PIXEL_BASE64,
-    });
-    assert.deepEqual(parts[2].inlineData, {
-      mimeType: 'image/png',
-      data: MOCK_PIXEL_BASE64,
-    });
-  } finally {
-    mock.restore();
-  }
-});
-
-test('generateImage: refImages als Objekt tragen ihren echten mimeType', async () => {
-  const mock = installFetch(() => okResponse());
-  try {
-    await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'p',
-      refImages: [{ data: 'QUJD', mimeType: 'image/webp' }, { data: 'REVG' }],
-    });
-    const parts = JSON.parse(mock.calls[0].options.body).contents[0].parts;
-    assert.deepEqual(parts[1].inlineData, { mimeType: 'image/webp', data: 'QUJD' });
-    assert.deepEqual(parts[2].inlineData, { mimeType: 'image/png', data: 'REVG' });
-  } finally {
-    mock.restore();
-  }
-});
-
-test('generateImage: aspectRatio landet in generationConfig.imageConfig', async () => {
-  const mock = installFetch(() => okResponse());
-  try {
-    await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'Karte',
-      aspectRatio: '16:9',
-    });
-
+    await generateImage({ apiKey: 'K', model: MODEL, prompt: 'Karte', aspectRatio: '16:9' });
     const body = JSON.parse(mock.calls[0].options.body);
     assert.equal(body.generationConfig.imageConfig.aspectRatio, '16:9');
   } finally {
@@ -181,10 +82,10 @@ test('generateImage: aspectRatio landet in generationConfig.imageConfig', async 
   }
 });
 
-test('generateImage: ohne aspectRatio kein imageConfig', async () => {
+test('generateImage: no imageConfig without aspectRatio', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    await generateImage({ apiKey: 'K', model: MODELS.portrait, prompt: 'p' });
+    await generateImage({ apiKey: 'K', model: MODEL, prompt: 'p' });
     const body = JSON.parse(mock.calls[0].options.body);
     assert.equal(body.generationConfig.imageConfig, undefined);
   } finally {
@@ -192,32 +93,22 @@ test('generateImage: ohne aspectRatio kein imageConfig', async () => {
   }
 });
 
-test('generateImage: parst inlineData zur data:-URL (Mock-Pixel)', async () => {
+test('generateImage: returns the inlineData image as base64 data and its type', async () => {
   const mock = installFetch(() => okResponse());
   try {
-    const result = await generateImage({
-      apiKey: 'K',
-      model: MODELS.portrait,
-      prompt: 'p',
-    });
-
-    assert.equal(result.mimeType, MOCK_PIXEL_MIME);
-    assert.equal(result.dataUrl, MOCK_PIXEL_DATA_URL);
-    assert.ok(result.dataUrl.startsWith('data:image/png;base64,'));
+    const result = await generateImage({ apiKey: 'K', model: MODEL, prompt: 'p' });
+    assert.deepEqual(result, { data: MOCK_PIXEL_BASE64, mimeType: MOCK_PIXEL_MIME });
   } finally {
     mock.restore();
   }
 });
 
-test('generateImage: ohne apiKey wirft es', async () => {
-  // Kein fetch-Mock noetig: der Wurf muss vor dem Netzaufruf passieren.
-  await assert.rejects(
-    () => generateImage({ model: MODELS.portrait, prompt: 'p' }),
-    /key|schluessel|api/i,
-  );
+test('generateImage: throws without apiKey', async () => {
+  // No fetch mock: the throw must come before any network call.
+  await assert.rejects(() => generateImage({ model: MODEL, prompt: 'p' }), /key|schluessel|api/i);
 });
 
-test('generateImage: fehlgeschlagener Call (fetch ok:false) wirft', async () => {
+test('generateImage: throws on a failed call (fetch ok:false)', async () => {
   const mock = installFetch(() => ({
     ok: false,
     status: 403,
@@ -225,15 +116,13 @@ test('generateImage: fehlgeschlagener Call (fetch ok:false) wirft', async () => 
     text: async () => 'verboten',
   }));
   try {
-    await assert.rejects(() =>
-      generateImage({ apiKey: 'K', model: MODELS.portrait, prompt: 'p' }),
-    );
+    await assert.rejects(() => generateImage({ apiKey: 'K', model: MODEL, prompt: 'p' }));
   } finally {
     mock.restore();
   }
 });
 
-test('generateImage: ein vom Dienst zurueckgegebener Key erscheint nicht in der Meldung', async () => {
+test('generateImage: a key the service echoes back does not appear in the message', async () => {
   const key = 'AIzaGeheimerTestschluessel';
   const mock = installFetch(() => ({
     ok: false,
@@ -242,7 +131,7 @@ test('generateImage: ein vom Dienst zurueckgegebener Key erscheint nicht in der 
   }));
   try {
     await assert.rejects(
-      () => generateImage({ apiKey: key, model: MODELS.portrait, prompt: 'p' }),
+      () => generateImage({ apiKey: key, model: MODEL, prompt: 'p' }),
       (err) => !err.message.includes(key) && err.message.includes('***'),
     );
   } finally {
@@ -250,16 +139,14 @@ test('generateImage: ein vom Dienst zurueckgegebener Key erscheint nicht in der 
   }
 });
 
-test('generateImage: Antwort ohne inlineData wirft', async () => {
+test('generateImage: throws on an answer without inlineData', async () => {
   const mock = installFetch(() => ({
     ok: true,
     status: 200,
     json: async () => ({ candidates: [{ content: { parts: [{ text: 'kein Bild' }] } }] }),
   }));
   try {
-    await assert.rejects(() =>
-      generateImage({ apiKey: 'K', model: MODELS.portrait, prompt: 'p' }),
-    );
+    await assert.rejects(() => generateImage({ apiKey: 'K', model: MODEL, prompt: 'p' }));
   } finally {
     mock.restore();
   }

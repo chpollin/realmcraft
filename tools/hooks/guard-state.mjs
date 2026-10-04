@@ -26,12 +26,13 @@ import { statSync } from 'node:fs';
 import { posix } from 'node:path';
 import {
   CID_RE,
-  PROPOSAL_ID_RE,
   agentOfProposalId,
   boundTask,
+  campaignRel,
   canonPath,
   foldCase,
   listTasks,
+  proposalOf,
   readHookInput,
   relInside,
   roleOf,
@@ -51,20 +52,6 @@ function deny(reason) {
   })}\n`);
   process.exit(0);
 }
-
-/** "campaigns/<cid>/<rest>" of a canonical path inside root, as { cid, rest }, or null. */
-function campaignRel(p, root) {
-  const rel = relInside(p, root);
-  if (rel === null) return null;
-  const parts = rel.split('/');
-  if (foldCase(parts[0]) !== 'campaigns') return null;
-  return { cid: parts[1] ?? '', rest: parts.slice(2).join('/') };
-}
-
-const proposalOf = (loc) => {
-  const m = loc && CID_RE.test(loc.cid) ? /^agents\/proposals\/([^/]+)\.json$/.exec(loc.rest) : null;
-  return m && PROPOSAL_ID_RE.test(m[1]) ? m[1] : null;
-};
 
 // --- RealmCraft subagents ---------------------------------------------------
 
@@ -203,9 +190,7 @@ const NULL_SINK = /^(?:\/dev\/null|nul|\$null)$/i;
 const VARIABLE = /[$%`]|^\(/;
 
 function checkShell(input) {
-  const raw = String(input.tool_input?.command ?? '');
-  // examples/campaigns/ is developer territory, as in the file check.
-  const live = raw.replace(/examples[\\/]+campaigns\b/gi, 'examples/_');
+  const live = String(input.tool_input?.command ?? '');
   if (ENCODED.test(live)) deny('Encoded PowerShell commands are not allowed in this repository; the guard cannot see what they write.');
   if (!/campaigns/i.test(live)) return;
   const say = (what) => deny(`${what} The command touches campaigns/, which only the RealmCraft kernel writes. Use node engine/cli.mjs or tools/harness/*.mjs; agents write their proposal with the Write tool.`);

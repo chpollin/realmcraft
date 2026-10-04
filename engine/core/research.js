@@ -28,14 +28,11 @@ import { SUCCESS } from './probes.js';
 import { isAlive, maxKnownTier, peopleIds } from './state.js';
 import { directTags, isOpen, latch, openTier, pathTier, pathsOf, pfadOf, pointsOf } from './pfade.js';
 import { activeModules } from '../modules/index.js';
-import { TIERS } from '../schemas/effects.js';
 
 // TUNING: research requests stay readable for the research agent this many turns.
 const REQUEST_LIFE = 8;
 const MAX_REQUESTS = 8;
 const MAX_RESEARCH = 3;
-const MAX_CANDIDATES = 6;
-const DEFAULT_LIMITS = Object.freeze({ candidatesPerTurn: 3, aboveTier: 1, openCandidates: 6 });
 const TOKEN_KINDS_EXPIRING = new Set(['breakthrough', 'impulse', 'crisis']);
 
 const tagsOfRef = (env, ref) => env.entwicklung(ref)?.tags ?? [];
@@ -287,8 +284,8 @@ export function offerPool(tc, pid) {
   const { env, s0 } = tc;
   const people = s0.peoples[pid];
   const dev = tc.state.peoples[pid].developments;
-  const limits = { ...DEFAULT_LIMITS, ...(env.regeln.tuning?.limits ?? {}) };
-  const open = Math.min(openTier(s0, env, pid), env.regeln.tuning?.maxTier ?? TIERS.length);
+  const { limits } = env.regeln.tuning;
+  const open = Math.min(openTier(s0, env, pid), env.regeln.tuning.maxTier);
   const known = new Set(people.developments.known.map((k) => idOfRef(k.ref)));
   const taken = new Set([...dev.candidates, ...dev.research].map((x) => idOfRef(x.ref)));
   const top = new Set(practiceTop(people, 3).map(([t]) => t));
@@ -312,7 +309,7 @@ export function offerPool(tc, pid) {
     .sort((a, b) => b.overlap - a.overlap || (a.e.id < b.e.id ? -1 : 1));
 
   const offeredNow = dev.candidates.filter((c) => c.offeredAt === tc.turn);
-  const room = Math.min(limits.candidatesPerTurn - offeredNow.length, Math.min(limits.openCandidates, MAX_CANDIDATES) - dev.candidates.length);
+  const room = Math.min(limits.candidatesPerTurn - offeredNow.length, limits.openCandidates - dev.candidates.length);
   let above = offeredNow.filter((c) => (env.entwicklung(c.ref)?.tier ?? 0) > maxKnown).length;
   const added = [];
   for (const { e } of ranked) {

@@ -1,12 +1,12 @@
-// Regression tests of the CLI review findings (lane K): campaign ids, the
-// rolls ledger, the seal lock on disk, the journal hash chain, interrupted
+// Regression tests of the CLI review findings (lane K): campaign ids, kept
+// rolls, the seal lock on disk, the journal hash chain, interrupted
 // commits, the proposal path and envelope, tasks for state-changing items,
 // duplicate verdicts, appended texts, status.json and the existing-campaign
 // migration.
 
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stateHash } from '../../../engine/core/turn.js';
 import { hashValue } from '../../../engine/core/hash.js';
@@ -64,7 +64,7 @@ describe('cli campaign ids', () => {
   });
 });
 
-describe('cli rolls ledger and seal lock', () => {
+describe('cli kept rolls and seal lock', () => {
   let root;
   before(() => {
     root = makeRoot();
@@ -78,14 +78,11 @@ describe('cli rolls ledger and seal lock', () => {
     assert.equal(run(root, 'preview', '--draft', inputFile(root, 'd0.json', draft)).code, 3);
     const probe = playerProbes(run(root, 'preview')).find((p) => p.order === 'o1');
     assert.equal(run(root, 'roll', probe.id, '2').code, 0);
-    const ledger = read(root, 'rolls.json').entries;
-    assert.equal(ledger.length, 1);
 
     const forged = { ...draft, rolls: { [probe.id]: { value: 10, fingerprint: probe.fingerprint } } };
     const r = run(root, 'preview', '--draft', inputFile(root, 'd1.json', forged));
     assert.ok(r.codes.includes('duplicate'), 'the kept roll is reported');
     assert.equal(read(root, 'drafts/bergnomaden.json').rolls[probe.id].value, 2);
-    assert.deepEqual(read(root, 'rolls.json').entries, ledger, 'the ledger only grows by new rolls');
     assert.equal(run(root, 'roll', probe.id, '9').code, 2, 'a probe is rolled once');
 
     // Dropping the order withdraws the roll; bringing it back restores the first value.
@@ -96,21 +93,15 @@ describe('cli rolls ledger and seal lock', () => {
     const back = read(root, 'drafts/bergnomaden.json');
     assert.equal(back.rolls[probe.id].value, 2);
     assert.deepEqual(back.withdrawn, []);
-  });
-
-  it('H2: seal refuses a draft file whose rolls differ from the ledger', () => {
-    for (const p of playerProbes(run(root, 'preview'))) if (!read(root, 'drafts/bergnomaden.json').rolls[p.id]) assert.equal(run(root, 'roll', p.id, '5').code, 0);
-    const stored = read(root, 'drafts/bergnomaden.json');
-    const edited = structuredClone(stored);
-    for (const k of Object.keys(edited.rolls)) edited.rolls[k].value = 10;
-    write(root, 'drafts/bergnomaden.json', edited);
-    const r = run(root, 'seal');
-    assert.equal(r.code, 4);
-    assert.ok(r.codes.includes('tamper'));
-    write(root, 'drafts/bergnomaden.json', stored);
+    // Brought back without a roll, the order gets its first value as well and cannot be rolled again.
+    run(root, 'preview', '--draft', inputFile(root, 'd4.json', { ...draft, orders: [], rolls: {} }));
+    run(root, 'preview', '--draft', inputFile(root, 'd5.json', draft));
+    assert.equal(read(root, 'drafts/bergnomaden.json').rolls[probe.id].value, 2);
+    assert.equal(run(root, 'roll', probe.id, '9').code, 2);
   });
 
   it('H1: apply refuses a sealed draft edited on disk', () => {
+    for (const p of playerProbes(run(root, 'preview'))) if (!read(root, 'drafts/bergnomaden.json').rolls[p.id]) assert.equal(run(root, 'roll', p.id, '5').code, 0);
     assert.equal(run(root, 'seal').code, 0);
     const state = read(root, 'state.json');
     assert.equal(state.sealed.bergnomaden, hashValue(read(root, 'drafts/bergnomaden.json')));
@@ -145,7 +136,7 @@ describe('cli journal chain and interrupted commits', () => {
   });
   after(() => removeRoot(root));
 
-  it('H9: every journal entry is chained and anchors library, drafts, rolls and world', () => {
+  it('H9: every journal entry is chained and anchors library, drafts and world', () => {
     assert.equal(run(root, 'open').code, 0);
     const j = read(root, 'log/journal.json');
     assert.equal(j.length, 2);
@@ -154,11 +145,11 @@ describe('cli journal chain and interrupted commits', () => {
       const { hash, ...body } = e;
       assert.equal(hash, hashValue(body));
       assert.equal(e.kernel, 2);
-      assert.ok(e.libraryHash && e.worldHash && e.draftsHash && e.rolls);
+      assert.ok(e.libraryHash && e.worldHash && e.draftsHash);
     }
   });
 
-  it('H9: a state edit with a forged journal entry, an edited library or an edited ledger is refused', () => {
+  it('H9: a state edit with a forged journal entry or an edited library is refused', () => {
     const state0 = raw(root, 'state.json');
     const journal0 = raw(root, 'log/journal.json');
     const s = JSON.parse(state0);
@@ -293,28 +284,52 @@ describe('cli on a campaign written before the integrity changes', () => {
   });
   after(() => removeRoot(root));
 
-  it('a legacy journal and a draft with rolls but no ledger keep working and the chain starts after them', () => {
-    // Strip what the new kernel writes: chain fields of the journal and the ledger.
+  it('a legacy journal keeps working and the chain starts after it', () => {
+    // Strip the chain fields the current kernel writes.
     const journal = read(root, 'log/journal.json').map(({ op, turn, revAfter, hashAfter, input }) => ({ op, turn, revAfter, hashAfter, input }));
     write(root, 'log/journal.json', journal);
-    unlinkSync(join(dirOf(root), 'rolls.json'));
     const legacyState = read(root, 'state.json');
     assert.equal(run(root, 'open').code, 0);
     const j = read(root, 'log/journal.json');
     assert.equal(j[0].kernel, undefined);
     assert.equal(j[1].prev, hashValue(j[0]));
     assert.deepEqual(read(root, j[1].base.anchor), legacyState, 'the first chained entry anchors the state it starts from');
-    // A draft with a roll entered before the ledger existed seeds the ledger.
+    assert.equal(run(root, 'replay').code, 0);
+  });
+});
+
+describe('cli on a campaign written with the rolls ledger', () => {
+  let root;
+  before(() => {
+    root = makeRoot();
+    create(root);
+    assert.equal(run(root, 'open').code, 0);
+  });
+  after(() => removeRoot(root));
+
+  it('journal entries anchoring the ledger still verify, and the ledger file is ignored', () => {
     const draft = exploreDraft(root);
     run(root, 'preview', '--draft', inputFile(root, 'd.json', draft));
     const probe = playerProbes(run(root, 'preview')).find((p) => p.order === 'o1');
-    const stored = read(root, 'drafts/bergnomaden.json');
-    unlinkSync(join(dirOf(root), 'rolls.json'));
-    write(root, 'drafts/bergnomaden.json', { ...stored, rolls: { [probe.id]: { value: 4, fingerprint: probe.fingerprint } } });
-    assert.equal(run(root, 'roll', probe.id, '9').code, 2, 'the legacy roll is held');
-    const event = playerProbes(run(root, 'preview')).find((p) => p.kind === 'event');
-    assert.equal(run(root, 'roll', event.id, '3').code, 0);
-    assert.deepEqual(read(root, 'rolls.json').entries.map((e) => [e.probe, e.value]), [[probe.id, 4], [event.id, 3]]);
+    assert.equal(run(root, 'roll', probe.id, '4').code, 0);
+    // That kernel kept every roll in rolls.json and anchored its count and hash in each journal entry.
+    const ledger = [{ turn: read(root, 'state.json').turn, people: 'bergnomaden', probe: probe.id, fingerprint: probe.fingerprint, value: 9 }];
+    write(root, 'rolls.json', { format: 'realmcraft-rolls', version: 1, entries: ledger });
+    const chained = [];
+    for (const e of read(root, 'log/journal.json')) {
+      const { hash, ...body } = e;
+      const old = { ...body, prev: chained.length ? chained.at(-1).hash : null, rolls: { count: ledger.length, hash: hashValue(ledger) } };
+      chained.push({ ...old, hash: hashValue(old) });
+    }
+    write(root, 'log/journal.json', chained);
+
+    assert.equal(run(root, 'roll', probe.id, '9').code, 2, 'the roll in the draft is held');
+    assert.equal(read(root, 'drafts/bergnomaden.json').rolls[probe.id].value, 4, 'the ledger value is not used');
+    for (const p of playerProbes(run(root, 'preview'))) if (!read(root, 'drafts/bergnomaden.json').rolls[p.id]) assert.equal(run(root, 'roll', p.id, '5').code, 0);
+    assert.equal(run(root, 'seal').code, 0);
+    assert.equal(run(root, 'apply').code, 0);
+    const j = read(root, 'log/journal.json');
+    assert.ok(j.at(-3).rolls && !j.at(-1).rolls, 'new entries no longer anchor a ledger');
     assert.equal(run(root, 'replay').code, 0);
   });
 });
