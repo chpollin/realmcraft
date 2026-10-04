@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, game-design, glossary]
@@ -25,13 +25,13 @@ A world package under `welten/<id>/` carries everything that makes a world diffe
 |---|---|---|
 | `welt.json` | generator parameters (chunk size, elevation, moisture, temperature, thresholds), terrains with move cost, sight, buildability and base yields, deposits, start rules, name parts | `engine/world` |
 | `regeln.json` | calendar, resources with value and cap, stats with base, tag vocabulary with breadth, people templates, council templates, `tuning`, AI profiles, module bindings | schema `regeln` |
-| `labels.json` | every visible text by key, with `locale` | schema `labels`, `missing_label` for every view and module label key |
+| `labels.json` | every visible text by key, with `locale` | schema `labels`, `missing_label` for every kernel and module label key of `labelKeys()` in `engine/core/views.js` |
 | `style.json` | image style and image types, accent tokens | schema `style` |
 | `content/entwicklungen.json` | start endowment (tier 0) and world pool developments | schema `entwicklungen` plus the validator |
 | `content/ereignisse.json` | event cards per band | schema `ereignisse` plus band budget |
 | `content/bestimmungen.json` | start destinies and destinies for later switches | schema `bestimmungen` plus difficulty |
 
-`node engine/cli.mjs validate welten/<id>` validates the whole package, including that every development is reachable from a start endowment and every label key exists.
+`node engine/cli.mjs validate welten/<id>` validates the whole package, including that every development is reachable from a start endowment and every label key exists. `new` and `repin` run the same check and refuse a package that fails it.
 
 ## Pinning and repin
 

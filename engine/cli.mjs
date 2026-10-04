@@ -68,6 +68,7 @@ import { DEFAULT_SETTINGS, peopleIds, settingsOf } from './core/state.js';
 import { checkDraft } from './core/orders.js';
 import { resolveProbe, calculation } from './core/probes.js';
 import { projectFor, projectEvents } from './core/project.js';
+import { labelKeys } from './core/views.js';
 import { apply, createCampaign, creationProblem, emptyDraft, open, preview, repin, seal, stateHash } from './core/turn.js';
 import { appendToLibrary, createLibrary, resolveRef } from './content/library.js';
 import {
@@ -651,7 +652,7 @@ function cmdNew(a) {
   const worldDir = worldDirFor(root, worldId);
   if (!worldDir) return fail(3, [cliIssue('cli.no_world', '/world', `world package "${worldId}" not found`, { world: worldId })]);
   const { pack, problems } = loadPack(worldDir);
-  const checked = [...problems, ...validateWorldPackage(pack)];
+  const checked = [...problems, ...validateWorldPackage(pack, { labelKeys: labelKeys() })];
   if (hasErrors(checked)) return fail(2, checked);
 
   const dir = campaignDir(root, cid);
@@ -912,7 +913,7 @@ function cmdOpen(c) {
 
 function cmdRepin(c) {
   return locked(c, (cc) => {
-    const checked = validateWorldPackage(cc.pack);
+    const checked = validateWorldPackage(cc.pack, { labelKeys: labelKeys() });
     if (hasErrors(checked)) return fail(2, checked);
     const from = cc.lock?.hash ?? cc.state.campaign.world.hash;
     if (from === cc.env.hash && cc.state.campaign.world.hash === cc.env.hash) {
@@ -1100,7 +1101,7 @@ function cmdValidate(a) {
   if (!existsSync(path)) return fail(3, [cliIssue('cli.missing_input', '/path', `${target} not found`, { reason: 'file-missing', file: target })]);
   if (statSync(path).isDirectory()) {
     const { pack, problems } = loadPack(path);
-    const issues = [...problems, ...validateWorldPackage(pack)];
+    const issues = [...problems, ...validateWorldPackage(pack, { labelKeys: labelKeys() })];
     return { code: hasErrors(issues) ? 2 : 0, issues, data: { kind: 'world', path }, text: `world package ${target}` };
   }
   const r = tryJson(path);

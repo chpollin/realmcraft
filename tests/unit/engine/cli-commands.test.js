@@ -1,6 +1,6 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { validate } from '../../../engine/content/schema.js';
@@ -298,6 +298,29 @@ describe('cli validate, budget and schema', () => {
     assert.equal(cli(root, ['validate', fixturePath('proposal-invalid-narrative-value.json')]).code, 2);
     assert.equal(cli(root, ['validate', fixturePath('campaign-midgame.json')]).code, 0);
     assert.equal(cli(root, ['validate', join(root, 'missing.json')]).code, 3);
+  });
+
+  it('validate, new and repin refuse a world package that lacks a kernel label key', () => {
+    const own = makeRoot();
+    try {
+      const dir = join(own, 'welten', 'hochland');
+      cpSync(join(REPO, 'welten', 'hochland'), dir, { recursive: true });
+      assert.equal(cli(own, ['new', 'hochland', '--seed', '7', '--as', 'bergnomaden', '--id', CAMPAIGN]).code, 0);
+      const file = join(dir, 'labels.json');
+      const labels = JSON.parse(readFileSync(file, 'utf8'));
+      delete labels.labels['view.lage'];
+      writeFileSync(file, JSON.stringify(labels));
+      for (const r of [
+        cli(own, ['validate', dir]),
+        cli(own, ['new', 'hochland', '--seed', '7', '--as', 'bergnomaden', '--id', 'kaputt']),
+        run(own, 'repin'),
+      ]) {
+        assert.equal(r.code, 2, r.stdout);
+        assert.ok(r.json.issues.some((i) => i.code === 'missing_label' && i.path === '/labels/labels/view.lage'), r.stdout);
+      }
+    } finally {
+      removeRoot(own);
+    }
   });
 
   it('scores a development and rejects an over-budget one', () => {

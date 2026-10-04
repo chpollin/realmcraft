@@ -13,6 +13,7 @@ import { validate } from '../../../engine/content/schema.js';
 import { scoreEntwicklung, scoreEreignis, scoreBestimmung } from '../../../engine/content/budget.js';
 import { validateWorldPackage } from '../../../engine/content/validate.js';
 import { pfadOf } from '../../../engine/core/pfade.js';
+import { labelKeys } from '../../../engine/core/views.js';
 
 const DIR = fileURLToPath(new URL('../../../welten/hochland/', import.meta.url));
 const load = (file) => JSON.parse(readFileSync(join(DIR, file), 'utf8'));
@@ -42,7 +43,7 @@ for (const [name, file] of Object.entries(FILES)) {
 }
 
 test('the world validator finds no issue in the package', () => {
-  assert.deepEqual(validateWorldPackage(pack).map(({ code, path, message }) => `${code} ${path} ${message}`), []);
+  assert.deepEqual(validateWorldPackage(pack, { labelKeys: labelKeys() }).map(({ code, path, message }) => `${code} ${path} ${message}`), []);
 });
 
 test('prerequisites name existing developments and respect the tier rule', () => {
