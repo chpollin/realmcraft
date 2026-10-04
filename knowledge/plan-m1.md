@@ -239,7 +239,7 @@ S may refine names and adds every route to the server's module header. Errors an
 | `GET /api/campaigns` | the `campaignIndex` rows, newest first |
 | `POST /api/campaigns` | `{ world, seed, people, rivals, difficulty, language, id? }`, validated, runs `engine/cli.mjs new`, answers `201 { id }`, `409` when the id exists, never overwrites |
 | `POST /api/campaigns/<cid>/activate` | marks the campaign active for the harness through `tools/harness/active-campaign.mjs` |
-| existing `GET /campaigns/<cid>/...`, `GET /api/campaigns/<cid>/(content, draft, chronik)`, `POST /api/draft`, `POST /api/seal`, `GET /env.js`, `GET /events` | unchanged in shape |
+| existing `GET /campaigns/<cid>/...`, `GET /api/campaigns/<cid>/(content, draft, chronik)`, `POST /api/draft`, `POST /api/seal`, `GET /events` | unchanged in shape |
 
 ## Board contracts (lanes I and A)
 

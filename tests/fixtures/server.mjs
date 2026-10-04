@@ -1,12 +1,12 @@
-// Shared by the server tests: a real serve.mjs process on a free port with a
-// throwaway campaign root, and a raw HTTP client.
+// Shared by the server unit tests and the e2e specs: a real serve.mjs process
+// with a throwaway campaign root, and a raw HTTP client.
 import { spawn } from 'node:child_process';
 import { createServer, request } from 'node:http';
 import { fileURLToPath } from 'node:url';
 
-export const REPO = fileURLToPath(new URL('../../../', import.meta.url));
-// The operator's servers; a port the OS hands out is never one of them, the
-// check only guards against a changed OS range.
+export const REPO = fileURLToPath(new URL('../../', import.meta.url));
+// The owner's servers. A port the OS hands out is never one of them, the check
+// guards against a changed OS range and against a pinned port.
 const FORBIDDEN_PORTS = new Set([4173, 4185, 4186, 4187, 4190]);
 
 function freePort() {
@@ -20,10 +20,18 @@ function freePort() {
   });
 }
 
-/** Starts serve.mjs with REALMCRAFT_ROOT=root; resolves to { port, stop }. */
-export async function startServer(root) {
-  let port = await freePort();
-  while (FORBIDDEN_PORTS.has(port)) port = await freePort();
+/**
+ * Starts serve.mjs with REALMCRAFT_ROOT=root; resolves to { port, base, stop }.
+ * `port` pins the port (an e2e run limited to assigned ports passes SPEC_PORT),
+ * otherwise the OS picks a free one.
+ */
+export async function startServer(root, { port: pinned } = {}) {
+  let port = Number(pinned) || 0;
+  if (FORBIDDEN_PORTS.has(port)) throw new Error(`port ${port} belongs to the owner's servers`);
+  if (!port) {
+    port = await freePort();
+    while (FORBIDDEN_PORTS.has(port)) port = await freePort();
+  }
   const proc = spawn(process.execPath, ['serve.mjs'], {
     cwd: REPO,
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
@@ -35,7 +43,7 @@ export async function startServer(root) {
       if (String(d).includes('dev server')) resolve();
     });
   });
-  return { port, stop: () => proc.kill() };
+  return { port, base: `http://localhost:${port}`, stop: () => proc.kill() };
 }
 
 /** Raw request without URL normalisation; resolves to { status, headers, text, json }. */

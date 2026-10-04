@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, rules-kernel, agents-harness, frontend, operations]
@@ -27,12 +27,11 @@ npm run check               # syntax of every tracked JS module, schema conforma
 npm run test:unit           # node --test "tests/unit/**/*.test.js"
 npm run test:acceptance     # node --test "tests/acceptance/**/*.test.js"
 npm run test:e2e            # Playwright, project e2e
-npm run test:visual         # Playwright, project visual (legacy dashboard)
 npm run test:fuzz           # long sweep of tests/unit/sim/fuzz-*.test.js, node tools/sim/fuzz.mjs --runs <n> --seeds 1,2,3
 npm run sim                 # headless campaigns under the fallback policy, invariants and balance report
 ```
 
-`npm test` is the quality gate before a commit. Without the bundled Chromium the browser tests run in the installed Chrome with `PLAYWRIGHT_CHANNEL=chrome`. Playwright's own web server uses port 4391 (`playwright.config.mjs`) and never reuses a running server. The board specs that need a campaign start their own `serve.mjs` on a port given by `PORT` with a temporary `REALMCRAFT_ROOT`. The ports 4173, 4185, 4186, 4187 and 4190 belong to the owner's running servers and are never used by tests. `test-results/` and `playwright-report/` are ignored artifacts and are deleted after a run.
+`npm test` is the quality gate before a commit. Without the bundled Chromium the browser tests run in the installed Chrome with `PLAYWRIGHT_CHANNEL=chrome`. The Playwright config starts no server. Every board spec and every server unit test starts its own `serve.mjs` with a temporary `REALMCRAFT_ROOT` through `startServer` in `tests/fixtures/server.mjs`, on a free port or, in the specs, on the port given by `SPEC_PORT`. A run limited to one assigned port sets `SPEC_PORT` together with `--workers=1`, since the specs of one run would otherwise compete for that port. The ports 4173, 4185, 4186, 4187 and 4190 belong to the owner's running servers, `startServer` refuses them and no test uses them. `test-results/` and `playwright-report/` are ignored artifacts and are deleted after a run.
 
 ## Layers
 
@@ -42,16 +41,16 @@ npm run sim                 # headless campaigns under the fallback policy, inva
 | Unit, world | hex geometry, generator order independence, paths, start placement, vision, RNG | `tests/unit/world-*.test.js` |
 | Unit, fuzz | random drafts of player and AI peoples over seasons in a row (no crash, valid integer state, determinism, fog), validator and budget over mutated content, and the smallest reproduction of every finding in `fuzz-findings.test.js`. `FUZZ_SEED` also picks the campaign seeds, `FUZZ_RUNS` scales the cases | `tests/unit/sim/` |
 | Unit, harness | hooks fed with hook inputs (path filter, denials, Windows paths, pre-check) and the dry run of `/zug` in a temporary root | `tests/unit/harness-hooks.test.js`, `tests/unit/harness-dryrun.test.js` |
-| Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/serve.test.js` |
+| Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge, the API, saves, static files and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/server/` |
 | Acceptance | black-box tests of the kernel written from the specification without knowledge of the implementation, driving only `node engine/cli.mjs` and checking its files with Ajv | `tests/acceptance/` |
-| End to end | the board against a real campaign (load, preview, roll, seal) and the blocker flow from the playtest | `tests/e2e/spielbrett-real.spec.js`, `tests/e2e/spielbrett-blocker.spec.js` |
-| Legacy | dashboard, Nachtmeer and strategy prototype tests, visual baselines of the dashboard | other files in `tests/unit/`, `tests/e2e/`, `tests/visual/` |
+| End to end | the board against real campaigns. Load, preview, roll and seal, the blocker flow from the playtest, the paths wheel with council strip and destinies, the module views with event cards, provinces, attack, trade and the agent round, the game shell with start screen, menu and end screens, the language switch, and the synthesized audio | `tests/e2e/` |
 
-The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The kernel lanes do not change these tests, a changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
+The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The harness reads every value under the one field name the CLI emits, so a renamed field fails the suite instead of passing through a fallback. A changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
 
 ## Fixtures
 
-- `tests/fixtures/engine/` holds campaign states (turn 0, midgame, near victory, near collapse) built by `build-state-fixtures.mjs` from a real kernel run on Hochland with seed 7, drafts, views, a report, tasks and proposals with invalid counterexamples, and the validator corpus `corpus/manifest.json` with hand-computed expectations for the synthetic world `korpus`.
+- `tests/fixtures/engine/` holds the turn-0 campaign state, drafts, tasks and proposals with invalid counterexamples, and the validator corpus `corpus/manifest.json` with hand-computed expectations for the synthetic world `korpus`. The mid-game set (`campaign-midgame.json`, `draft-midgame.json`, `view-talbund.json`, `report-T0011.json`) is a frozen shape of an earlier kernel run on an older Hochland package. It is kept deliberately as older-package input, for `--from-state` in the CLI tests and for the board adapter test that expects a package hash differing from the current one, and it has no builder. Its provenance lies in the git history.
+- `tests/fixtures/server.mjs` starts `serve.mjs` on a temporary root and holds the raw HTTP client of the server tests.
 - `tests/fixtures/harness/T<turn4>/` holds the recorded agent proposals for the dry run. The research proposal there is deliberately invalid to show a refused proposal in the status.
 - `tests/fixtures/spielbrett/` holds views and event logs of Hochland for the board tests, rebuilt with `build.mjs` and `build-events.mjs` when the world hash changes.
 
@@ -84,4 +83,4 @@ Run these with `REALMCRAFT_ROOT` set to a temporary folder or with `--root <dir>
 - No balance simulation over many years with AI profiles on different paths.
 - No measurement of live agent proposal acceptance.
 - No browser end-to-end test of a full turn including live agents.
-- The legacy dashboard e2e and visual tests are obsolete and wait for the removal of the legacy code.
+- The module spec still waits a fixed time before it looks for event cards in the agent-round campaign and after a reload, because the board exposes no signal that its card queue has settled.

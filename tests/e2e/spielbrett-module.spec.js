@@ -4,27 +4,23 @@
 // the kernel preview, the province panel, an attack with its battle forecast
 // and probe, a trade offer built in the people's panel, and the steps of the
 // agent round with the judges' findings.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4455 SPEC_PORT=4456 npx playwright test --project=e2e tests/e2e/spielbrett-module.spec.js
+// Run: PLAYWRIGHT_CHANNEL=chrome SPEC_PORT=4456 npx playwright test --project=e2e tests/e2e/spielbrett-module.spec.js
 
 import { test, expect } from '@playwright/test';
-import { spawn } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createAgentsCampaign, createModuleCampaign } from '../fixtures/spielbrett/build-module.mjs';
+import { REPO, startServer } from '../fixtures/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-module';
 const AGENTS = 'e2e-agenten';
 const PID = 'bergnomaden';
-// Port of the module lane, clear of the operator's live servers.
-const PORT = Number(process.env.SPEC_PORT) || 4456;
-const BASE = `http://localhost:${PORT}`;
 const en = JSON.parse(readFileSync(join(REPO, 'spielbrett/labels/en.json'), 'utf8')).labels;
 
 let root;
 let server;
+let BASE;
 let fx;
 
 test.describe.configure({ mode: 'serial' });
@@ -33,19 +29,12 @@ test.beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-module-'));
   fx = createModuleCampaign(root, CID);
   await createAgentsCampaign(root, AGENTS);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(PORT), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = server.base;
 });
 
 test.afterAll(() => {
-  server?.kill();
+  server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 
@@ -59,7 +48,7 @@ async function openBoard(page, cid = CID) {
   return errors;
 }
 
-/** Reads every event card of the season with Continue. */
+/** Reads every event card of the season with Continue; the module fixture always opens on one. */
 async function readCards(page) {
   const dlg = page.locator('#dlg-ereignis');
   await expect(dlg).toBeVisible();
@@ -101,8 +90,7 @@ test('the event card answers a decision with the kernel preview and closes with 
 
 test('the province panel names owner and places and offers what wins the region', async ({ page }) => {
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const view = viewOf(CID);
   const camp = view.map.settlements.find((s) => s.people === PID);
   expect(view.map.control[camp.regionId]).toBe(PID);
@@ -125,8 +113,7 @@ test('the province panel names owner and places and offers what wins the region'
 
 test('an attack shows the battle the kernel would fight and opens its probe', async ({ page }) => {
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   await clickTile(page, fx.enemy);
   const forecast = await page.evaluate((tile) => {
     const g = window.spielbrett.game;
@@ -150,8 +137,7 @@ test('an attack shows the battle the kernel would fight and opens its probe', as
 
 test('a trade offer is put together in the partner panel and enters the draft', async ({ page }) => {
   const errors = await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const handel = page.locator('#module [data-modul="handel"]');
   await expect(handel).toBeVisible();
   await handel.click();
@@ -193,8 +179,7 @@ test('the agent round shows its steps at a glance and the judges findings by sev
 test('the board keeps the modules usable on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const bar = page.locator('#module');
   await expect(bar).toBeInViewport();
   await bar.locator('[data-modul="militaer"]').click();

@@ -3,24 +3,19 @@
 // stores rolls in the draft through POST /api/draft and seals the turn
 // through POST /api/seal.
 //
-// The campaign lives in a temporary REALMCRAFT_ROOT. Playwright's webServer
-// (playwright.config.mjs) serves the repository root and cannot take a root
-// per spec, so this spec starts its own serve.mjs on a free port with that root.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4410 npx playwright test --project=e2e tests/e2e/spielbrett-real.spec.js
+// The campaign lives in a temporary REALMCRAFT_ROOT served by an own serve.mjs
+// (tests/fixtures/server.mjs) on a free port or on SPEC_PORT.
+// Run: PLAYWRIGHT_CHANNEL=chrome npx playwright test --project=e2e tests/e2e/spielbrett-real.spec.js
 
 import { test, expect } from '@playwright/test';
-import { spawn } from 'node:child_process';
-import { createServer } from 'node:net';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createHochland } from '../fixtures/spielbrett/build.mjs';
+import { REPO, startServer } from '../fixtures/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-hochland';
 const PID = 'bergnomaden';
-const FORBIDDEN_PORTS = [4173, 4185, 4186, 4187, 4190];
 
 const json = (p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
 const labels = json('welten/hochland/labels.json').labels;
@@ -30,36 +25,13 @@ let root;
 let server;
 let BASE;
 
-// A port the OS hands out is free and never one of the operator's servers.
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port } = srv.address();
-      srv.close(() => resolve(port));
-    });
-  });
-}
-
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  // SPEC_PORT pins the port when a run is limited to assigned ports.
-  let port = Number(process.env.SPEC_PORT) || await freePort();
-  while (FORBIDDEN_PORTS.includes(port)) port = await freePort();
-  BASE = `http://localhost:${port}`;
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-e2e-'));
   createHochland(root, CID);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = server.base;
 });
 
 // The assertions read the German labels; English is the board's default language.
@@ -70,7 +42,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.afterAll(() => {
-  server?.kill();
+  server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

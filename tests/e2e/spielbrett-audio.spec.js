@@ -4,44 +4,32 @@
 // persisted mute that silences the next visit. Sources are counted by
 // wrapping the context's factory methods, so the test sees what is scheduled
 // without listening to it.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4426 npx playwright test --project=e2e tests/e2e/spielbrett-audio.spec.js
+// Run: PLAYWRIGHT_CHANNEL=chrome npx playwright test --project=e2e tests/e2e/spielbrett-audio.spec.js
 
 import { test, expect } from '@playwright/test';
-import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createHochland } from '../fixtures/spielbrett/build.mjs';
+import { startServer } from '../fixtures/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-audio';
-// Port assigned to the audio lane, clear of the operator's live servers;
-// SPEC_PORT pins another one when a run is limited to assigned ports.
-const PORT = Number(process.env.SPEC_PORT) || 4425;
-const BASE = `http://localhost:${PORT}`;
 
 let root;
 let server;
+let BASE;
 
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-audio-'));
   createHochland(root, CID);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(PORT), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = server.base;
 });
 
 test.afterAll(() => {
-  server?.kill();
+  server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

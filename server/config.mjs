@@ -5,13 +5,13 @@ import { CID_RE } from '../tools/harness/lib.mjs';
 
 export const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const PORT = Number(process.env.PORT) || 4173;
-// Loopback only by default: the dev server hands the local Gemini key to the
-// browser through /env.js and must not be reachable from the LAN. HOST=0.0.0.0
-// opens it deliberately. http://localhost stays reachable.
+// Loopback only by default: the dev server serves the campaign files and
+// accepts drafts and seals, so it must not be reachable from the LAN.
+// HOST=0.0.0.0 opens it deliberately. http://localhost stays reachable.
 export const HOST = process.env.HOST || '127.0.0.1';
 
 // DNS rebinding: a foreign site whose name resolves to 127.0.0.1 is same-origin
-// with itself and could read /env.js and the campaign files. Only loopback Host
+// with itself and could read the campaign files. Only loopback Host
 // headers are accepted while bound to loopback; HOST=0.0.0.0 is a deliberate
 // LAN opt-in, where the Host is the unknown LAN address.
 export const LOOPBACK_BIND = ['127.0.0.1', 'localhost', '::1'].includes(HOST);

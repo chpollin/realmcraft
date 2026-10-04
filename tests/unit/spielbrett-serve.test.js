@@ -1,60 +1,21 @@
 // tests/unit/spielbrett-serve.test.js — campaign bridge of serve.mjs against a
-// real server process and a throwaway campaign root (REALMCRAFT_ROOT). The
-// port is free and never one of the operator ports (4173/4185/4186/4190).
+// real server process and a throwaway campaign root (REALMCRAFT_ROOT).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
-import { createServer, request } from 'node:http';
+import { execFileSync } from 'node:child_process';
+import { request } from 'node:http';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { REPO as ROOT, http as rawHttp, startServer } from '../fixtures/server.mjs';
 
-const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 't1';
 const PLAYER = 'bergnomaden';
 const PROBE = 'T0:bergnomaden:event';
-let proc;
-let port;
+let server;
 let tempRoot;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port: p } = srv.address();
-      srv.close(() => resolve(p));
-    });
-  });
-}
-
-// Raw path without URL normalisation, so %5C and %2f arrive as written.
-function http(method, path, { headers = {}, body } = {}) {
-  return new Promise((resolve, reject) => {
-    const req = request(
-      { host: '127.0.0.1', port, path, method, headers: { Host: `localhost:${port}`, ...headers } },
-      (res) => {
-        const chunks = [];
-        res.on('data', (c) => chunks.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          let json = null;
-          try {
-            json = JSON.parse(text);
-          } catch {
-            // not JSON
-          }
-          resolve({ status: res.statusCode, headers: res.headers, text, json });
-        });
-      },
-    );
-    req.on('error', reject);
-    if (body !== undefined) req.write(body);
-    req.end();
-  });
-}
-
+const http = (method, path, opts) => rawHttp(server.port, method, path, opts);
 const get = (path, headers) => http('GET', path, { headers });
 const post = (path, payload, headers = {}) =>
   http('POST', path, {
@@ -86,22 +47,11 @@ before(async () => {
   tempRoot = mkdtempSync(join(tmpdir(), 'rc-spielbrett-'));
   cli('new', 'hochland', '--seed', '7', '--id', CID);
   cli('open', '--campaign', CID);
-  port = await freePort();
-  proc = spawn(process.execPath, ['serve.mjs'], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: tempRoot },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    proc.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    proc.stdout.on('data', (d) => {
-      if (String(d).includes('dev server')) resolve();
-    });
-  });
+  server = await startServer(tempRoot);
 });
 
 after(() => {
-  proc?.kill();
+  server?.stop();
   if (tempRoot) rmSync(tempRoot, { recursive: true, force: true });
 });
 
@@ -194,7 +144,7 @@ test('POST guards answer in order', async () => {
   assert.equal((await post('/api/draft', good, { 'Sec-Fetch-Site': 'cross-site' })).status, 403);
   assert.equal((await post('/api/draft', good, { 'Sec-Fetch-Site': 'same-site' })).status, 403);
   assert.equal((await post('/api/draft', good, { Origin: 'http://evil.example' })).status, 403);
-  assert.equal((await post('/api/draft', good, { Origin: `http://localhost:${port + 1}` })).status, 403);
+  assert.equal((await post('/api/draft', good, { Origin: `http://localhost:${server.port + 1}` })).status, 403);
   assert.equal((await post('/api/draft', 'x'.repeat(70 * 1024))).status, 413);
   assert.equal((await post('/api/draft', '{not json')).status, 400);
   assert.equal((await post('/api/draft', { ...good, people: 'talbund' })).status, 400);
@@ -204,7 +154,7 @@ test('POST guards answer in order', async () => {
   assert.equal((await post('/api/draft', { campaign: CID, people: PLAYER })).status, 400);
   assert.equal((await post('/api/seal', { campaign: '../x' })).status, 400);
   // Same-origin browser headers pass the guards.
-  const ok = await post('/api/draft', good, { 'Sec-Fetch-Site': 'same-origin', Origin: `http://localhost:${port}` });
+  const ok = await post('/api/draft', good, { 'Sec-Fetch-Site': 'same-origin', Origin: `http://localhost:${server.port}` });
   assert.equal(ok.status, 200);
 });
 
@@ -268,7 +218,7 @@ function openEvents() {
     const seen = [];
     const waiters = [];
     let buffer = '';
-    const req = request({ host: '127.0.0.1', port, path: '/events', headers: { Host: `localhost:${port}` } }, (res) => {
+    const req = request({ host: '127.0.0.1', port: server.port, path: '/events', headers: { Host: `localhost:${server.port}` } }, (res) => {
       res.setEncoding('utf8');
       res.on('data', (chunk) => {
         buffer += chunk;

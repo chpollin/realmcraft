@@ -4,55 +4,29 @@
 // probe is gone, a stale roll and the missing world-event roll. The board must
 // name every blocker beside "Zug beenden", let each be fixed in place, and
 // seal once they are gone.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4420 npx playwright test --project=e2e tests/e2e/spielbrett-blocker.spec.js
+// Run: PLAYWRIGHT_CHANNEL=chrome npx playwright test --project=e2e tests/e2e/spielbrett-blocker.spec.js
 
 import { test, expect } from '@playwright/test';
-import { spawn } from 'node:child_process';
-import { createServer } from 'node:net';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createHochland } from '../fixtures/spielbrett/build.mjs';
+import { startServer } from '../fixtures/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-blocker';
 const PID = 'bergnomaden';
-const FORBIDDEN_PORTS = [4173, 4185, 4186, 4187, 4190];
 
 let root;
 let server;
 let BASE;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port } = srv.address();
-      srv.close(() => resolve(port));
-    });
-  });
-}
-
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  // SPEC_PORT pins the port when a run is limited to assigned ports.
-  let port = Number(process.env.SPEC_PORT) || await freePort();
-  while (FORBIDDEN_PORTS.includes(port)) port = await freePort();
-  BASE = `http://localhost:${port}`;
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-blocker-'));
   createHochland(root, CID);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = server.base;
 });
 
 // The assertions read the German labels; English is the board's default language.
@@ -63,7 +37,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.afterAll(() => {
-  server?.kill();
+  server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 
