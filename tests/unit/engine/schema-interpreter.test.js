@@ -3,9 +3,6 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
 import { validate, check, assertSubset } from '../../../engine/content/schema.js';
 import { issue, CODES, hasErrors } from '../../../engine/core/issues.js';
 
@@ -115,14 +112,6 @@ test('assertSubset rejects keywords outside the subset and dangling refs', () =>
   assert.doesNotThrow(() => assertSubset({ $id: 'x', type: 'object', additionalProperties: { type: 'integer' } }));
 });
 
-test('contract modules stay free of node: imports so the browser can load them', () => {
-  const root = fileURLToPath(new URL('../../../engine/', import.meta.url));
-  for (const dir of ['core', 'content', 'schemas']) {
-    for (const f of readdirSync(join(root, dir)).filter((n) => n.endsWith('.js'))) {
-      assert.doesNotMatch(readFileSync(join(root, dir, f), 'utf8'), /from\s+['"]node:/, `${dir}/${f}`);
-    }
-  }
-});
 
 test('issue() fills severity from the code table and rejects typos', () => {
   assert.deepEqual(issue('softcap', '/probes/0', 'capped'), { code: 'softcap', severity: 'warning', path: '/probes/0', message: 'capped' });

@@ -8,7 +8,7 @@
 // status-note sync brings status.json in line. tools/harness/acceptance.mjs
 // then measures the verdicts.
 // Spec: .claude/commands/zug.md, knowledge/agents-harness.md, knowledge/plan-m1.md
-// (lane H, kernel contracts "Research orders" and "Derived path view").
+// (kernel contracts "Research orders" and "Derived path view").
 //
 // Assumptions beyond lib/harness.js (A1 to A9):
 // H1 Tasks carry context.pfade (research, rival), context.orders with

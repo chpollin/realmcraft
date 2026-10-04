@@ -1,4 +1,4 @@
-// Regression tests of the CLI review findings (lane K): campaign ids, the
+// Regression tests of the CLI review findings: campaign ids, the
 // rolls ledger, the seal lock on disk, the journal hash chain, interrupted
 // commits, the proposal path and envelope, tasks for state-changing items,
 // duplicate verdicts, appended texts, status.json and the existing-campaign

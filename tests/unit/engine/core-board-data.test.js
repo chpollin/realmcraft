@@ -1,4 +1,4 @@
-// Kernel data the board reads (plan-m1, lane K2): machine-readable issues,
+// Kernel data the board reads (plan-m1): machine-readable issues,
 // council, trade, rival destinies and the outcome in derived, the preview of
 // decisions and of a destiny adoption, campaign settings and their migration.
 

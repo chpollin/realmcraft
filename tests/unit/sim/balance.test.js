@@ -41,7 +41,7 @@ describe('balance simulation', () => {
   });
 });
 
-// Balance of the Hochland package under the fallback policy (lane C, M1). A
+// Balance of the Hochland package under the fallback policy (M1). A
 // short run on a few seeds; the full figures come from npm run sim:balance.
 describe('hochland balance under the fallback policy', () => {
   const report = runSimulation(env, { seeds: [1, 2, 3], seasons: 24 });

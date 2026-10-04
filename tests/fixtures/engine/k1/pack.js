@@ -1,6 +1,6 @@
-// Test world package for the kernel tests (lane K1): the real Hochland
+// Test world package for the kernel tests: the real Hochland
 // welt.json plus a small regeln.json and content set, schema-valid, so the
-// kernel tests do not depend on the content lane. Kept as a JS module because
+// kernel tests do not depend on the shipped content. Kept as a JS module because
 // tests/unit/engine/schema-fixtures.test.js requires every *.json fixture to be
 // listed in its manifest.
 
@@ -234,18 +234,4 @@ export const CONTENT = { entwicklungen: ENTWICKLUNGEN, ereignisse: EREIGNISSE, b
 /** Fresh environment over the test package; regeln may be patched per test. */
 export function testEnv(patch = {}) {
   return makeEnv({ welt: WELT, regeln: structuredClone({ ...REGELN, ...(patch.regeln ?? {}) }), content: structuredClone(patch.content ?? CONTENT) });
-}
-
-/** Package files as they would lie on disk under welten/<id>/. */
-export function packageFiles() {
-  const head = (format) => ({ format, version: 1, world: 'hochland' });
-  return {
-    'welt.json': WELT,
-    'regeln.json': REGELN,
-    'labels.json': { ...head('realmcraft-labels'), locale: 'de', labels: { 'view.karte': 'Karte' } },
-    'style.json': { ...head('realmcraft-style'), image: { base: 'Aquarell', negative: '' }, imageTypes: {}, accents: {} },
-    'content/entwicklungen.json': { ...head('realmcraft-entwicklungen'), items: ENTWICKLUNGEN },
-    'content/ereignisse.json': { ...head('realmcraft-ereignisse'), items: EREIGNISSE },
-    'content/bestimmungen.json': { ...head('realmcraft-bestimmungen'), items: BESTIMMUNGEN },
-  };
 }

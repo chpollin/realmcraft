@@ -1,6 +1,6 @@
 # Acceptance tests of the rules kernel
 
-Black-box tests for the turn-based RealmCraft kernel, written from the specification without knowledge of the implementation (lane A of the first plan, see [knowledge/testing.md](../../knowledge/testing.md)). They drive the kernel only through `node engine/cli.mjs` and check the JSON files it writes, using the schemas in `engine/schemas/` through Ajv. The kernel lanes do not change these tests. The readings in `lib/harness.js` are verified against the delivered `engine/cli.mjs`; a changed CLI contract is reconciled in that file or in the assumption block of the affected test.
+Black-box tests for the turn-based RealmCraft kernel, written from the specification without knowledge of the implementation (lane A of the first plan, see [knowledge/testing.md](../../knowledge/testing.md)). They drive the kernel only through `node engine/cli.mjs` and check the JSON files it writes, using the schemas in `engine/schemas/` through Ajv. The readings in `lib/harness.js` are pinned to the field names the delivered `engine/cli.mjs` emits, and a changed CLI contract is reconciled in that file or in the assumption block of the affected test.
 
 ## Running
 
@@ -34,6 +34,7 @@ Environment variables:
 | `10-pfade.test.js` | paths in the projection, research requests on a path, points that accumulate until an achievement completes | plan-m1, owner decision M1-1 |
 | `11-migration.test.js` | a campaign from before the paths model loads after `repin` and keeps its developments | plan-m1, kernel contracts, Migration |
 | `12-board-data.test.js` | options of `new`, machine-readable issues, council, trade, rivals, outcome, judges' findings in `status.json` | plan-m1, View additions for the board |
+| `13-saves.test.js` | save, list and load of named saves, state, journal, roll ledger and replay restored, play on after a load | plan-m1, D24 |
 | `harness-turn.test.js` | a turn of `/zug` with scripted agents through the CLI, the proposal hook and the harness helpers, research on a path, findings and stances in the next tasks, the acceptance tool | `.claude/commands/zug.md`, agents-harness |
 
 Each test file opens with the assumptions it adds to those of `lib/harness.js`.

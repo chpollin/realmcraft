@@ -17,21 +17,22 @@
 //    guard); the state's campaign.id is replaced by --id.
 // A3 Every other command takes `--campaign <cid>`, every command takes
 //    `--json`. stdout is then one JSON document. Issues are objects with a
-//    string `code` plus `severity`, `message` or `path`. Exit codes: 0 ok,
-//    2 refused (validation, stale, conflict, duplicate), 3 missing input or
-//    pending rolls.
+//    string `code` plus `severity`, `message` or `path`. Exit codes as in the
+//    header of engine/cli.mjs: 0 ok, 1 internal error, 2 refused (validation,
+//    stale, duplicate), 3 missing input or pending rolls, 4 phase, revision,
+//    world or tamper conflict, 5 replay mismatch.
 // A4 Player draft. `preview --as <player> --draft <file>` stores the file as
 //    drafts/<player>.json and answers with the preview. Drafts carry exactly
 //    the keys of engine/schemas/draft.js.
 // A5 Preview output has `probes`. A probe has id, roller ('player' when the
-//    player rolls it), target, modifiers [{ source, value }], a total
-//    (modTotal or mod), a fingerprint and its success probability. The world
-//    event probe has id T<turn>:<people>:event and chance null (the event
-//    table is rolled, there is no success chance). When rolls are missing,
-//    `seal` answers exit 3 with roll_missing issues.
+//    player rolls it), target, modifiers [{ source, value, struck? }], the
+//    total modTotal, a fingerprint and its success chance in percent. The
+//    world event probe has id T<turn>:<people>:event and chance null (the
+//    event table is rolled, there is no success chance). When rolls are
+//    missing, `seal` answers exit 3 with roll_missing issues.
 // A6 Turn flow planning --seal--> resolving --apply--> agents --open-->
 //    planning. apply gets --expect-rev with the rev read from state.json after
-//    seal; a stale rev or a conflict is refused with exit 2.
+//    seal; a stale rev or a phase conflict is refused with exit 4.
 // A7 Round report at log/T<turn as 4 digits>.json, projection of a people at
 //    view/<people>.json, projected events at
 //    view/<people>/events/T<turn as 4 digits>.json.
@@ -39,8 +40,8 @@
 //    the shape of engine/schemas/event.js (target { kind, id }, change
 //    { field, before, after } or { field, delta }).
 // A9 Bands. A natural 10 is 'crit_success', a natural 1 is 'crit_fail'
-//    (engine/schemas/entwicklung.js). The names 'fortune' and 'setback' of
-//    the Regelkern prose stay accepted.
+//    (engine/core/probes.js bandOf). 'setback' is the band of a margin of -4
+//    or less, so it does not stand for a natural 1.
 
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -62,8 +63,8 @@ export const FIXTURES = join(REPO, 'tests', 'fixtures', 'engine');
 const KEEP = process.env.RC_ACCEPT_KEEP === '1';
 const CALL_TIMEOUT = 180_000;
 
-export const FORTUNE = Object.freeze(['crit_success', 'fortune']);
-export const SETBACK = Object.freeze(['crit_fail', 'setback']);
+export const FORTUNE = Object.freeze(['crit_success']);
+export const SETBACK = Object.freeze(['crit_fail']);
 
 // Generous per-test budgets: every CLI call is a fresh node process that may
 // regenerate world chunks. Timeouts guard against hangs, not against slowness.
@@ -119,7 +120,6 @@ export function collectIssues(doc) {
 }
 
 export function runCli(root, args) {
-  assert.ok(existsSync(CLI), 'engine/cli.mjs does not exist yet (lanes K1 to K3 and H)');
   const r = spawnSync(process.execPath, [CLI, ...args, '--json'], {
     cwd: root,
     env: { ...process.env, REALMCRAFT_ROOT: root },
@@ -243,17 +243,14 @@ export function expectedP(target, mod) {
   return Math.min(0.9, Math.max(0.1, (11 - target + mod) / 10));
 }
 
+/** Success probability as a fraction; the kernel reports `chance` in percent. */
 export function probabilityOf(probe) {
-  const raw = probe.probability ?? probe.P ?? probe.p ?? probe.chance;
-  if (typeof raw !== 'number') return undefined;
-  return raw > 1 ? raw / 100 : raw;
+  return typeof probe.chance === 'number' ? probe.chance / 100 : undefined;
 }
 
-export const isStruck = (m) => Boolean(m.struck || m.dropped || m.ignored || m.capped || m.active === false || m.counted === false);
+export const isStruck = (m) => m.struck === true;
 
-export function modTotalOf(probe) {
-  return probe.modTotal ?? probe.mod ?? probe.modifierTotal;
-}
+export const modTotalOf = (probe) => probe.modTotal;
 
 /** Band of a probe in a CLI answer or a round report, located by probe id. */
 export function bandIn(doc, probeId) {
@@ -324,10 +321,7 @@ export function covers(entry, path, before, after) {
 
 // ---- state helpers
 
-export function settlementsOf(state) {
-  const s = state.map?.settlements ?? [];
-  return Array.isArray(s) ? s : Object.entries(s).map(([tile, v]) => ({ tile, ...v }));
-}
+export const settlementsOf = (state) => state.map.settlements;
 
 export function wesensart(people) {
   const w = people.identity?.wesensart ?? {};
@@ -335,7 +329,7 @@ export function wesensart(people) {
   return { plus: tag(w.plus), minus: tag(w.minus) };
 }
 
-export const destinyOf = (people) => people.bestimmung ?? people.destiny ?? null;
+export const destinyOf = (people) => people.bestimmung;
 
 /** Tiles at distance 2 and 3 around a tile key, in ring order, as explore candidates. */
 export function tilesAround(tileKey, radii = [2, 3]) {

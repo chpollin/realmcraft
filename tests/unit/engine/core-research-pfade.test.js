@@ -8,7 +8,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { RULES } from '../../../engine/core/rules.js';
 import * as research from '../../../engine/core/research.js';
-import { issue } from '../../../engine/core/issues.js';
 import { orderContext } from '../../../engine/core/orders.js';
 import { pathTier, pathsView, pointsOf } from '../../../engine/core/pfade.js';
 import { validate } from '../../../engine/content/schema.js';
@@ -16,9 +15,6 @@ import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { assertCovered, dev, envWith, fresh, knownEntry, context, logKinds } from '../../fixtures/engine/k1/research.js';
 
 const H = 'hochweide';
-// issue() carries params once lane K2 lands the option; until then the params assertions wait.
-const PARAMS = 'params' in issue('target', '', 'probe', { params: { reason: 'x' } });
-const withParams = { skip: PARAMS ? false : 'issue() params arrive with lane K2' };
 
 // Paths over the test vocabulary; magie opens with two points of magic practice.
 const PFADE = {
@@ -126,7 +122,7 @@ test('research.direct refuses a closed or unknown path and a request without dir
   assert.equal(def.check({ ...orderContext(p, plain, H), path: '/orders/0' }, order({ pfad: 'krieg' }))[0].code, 'target');
 });
 
-test('refusals of the research orders carry a reason key and their values', withParams, () => {
+test('refusals of the research orders carry a reason key and their values', () => {
   const env = pathEnv();
   const s = fresh(env);
   const ox = { ...orderContext(s, env, H), path: '/orders/0' };

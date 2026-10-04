@@ -10,7 +10,6 @@ import { fileURLToPath } from 'node:url';
 import { changesState, findingsOf, openTier, validateBestimmung, validateCampaign, validateEntwicklung, validateEreignis, validateProposal, validateTask, validateWorldPackage, withCatalogue } from '../../../engine/content/validate.js';
 import { libraryFrom } from '../../../engine/content/library.js';
 import { hashValue } from '../../../engine/core/hash.js';
-import { issue } from '../../../engine/core/issues.js';
 
 const DIR = fileURLToPath(new URL('../../fixtures/engine/', import.meta.url));
 const load = (f) => JSON.parse(readFileSync(join(DIR, f), 'utf8'));
@@ -245,10 +244,8 @@ const PFADE = {
   fallback: 'weide',
 };
 const pathRegeln = () => ({ ...structuredClone(corpus.regeln), pfade: structuredClone(PFADE) });
-// issue() carries params once lane K2 lands the option; until then only code and path are compared.
-const PARAMS = 'params' in issue('target', '', 'probe', { params: { reason: 'x' } });
-const gate = (issues) => issues.filter((i) => i.code.startsWith('pfad_') || i.path === '/pfad').map((i) => (PARAMS ? [i.code, i.path, i.params] : [i.code, i.path]));
-const pfadIssue = (code, path, params) => (PARAMS ? [code, path, params] : [code, path]);
+const gate = (issues) => issues.filter((i) => i.code.startsWith('pfad_') || i.path === '/pfad').map((i) => [i.code, i.path, i.params]);
+const pfadIssue = (code, path, params) => [code, path, params];
 
 function candidate(over) {
   const base = structuredClone(corpus.library.find((e) => e.id === 'erzschmelze'));

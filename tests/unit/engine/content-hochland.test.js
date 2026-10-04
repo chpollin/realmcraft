@@ -280,8 +280,8 @@ test('every event card fits its band, every option included', () => {
 });
 
 // Difficulty band of this package for destinies at adoption, measured from the
-// people template. regeln.json has no destiny band yet; this is the content
-// lane's working band until the balance simulation sets one.
+// people template. regeln.json has no destiny band yet; this is the
+// working band until the balance simulation sets one.
 const DESTINY_BAND = { min: 28, max: 38 };
 const PLAYER_ALTERNATIVES = ['herr-der-paesse', 'uneinnehmbare-feste', 'herrschaft-der-schauenden', 'hegemonie', 'bund-der-taeler'];
 

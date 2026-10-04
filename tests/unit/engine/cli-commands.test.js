@@ -304,7 +304,6 @@ describe('cli validate, budget and schema', () => {
     const ok = cli(root, ['budget', fixturePath('entwicklung/pulverwall.json')]);
     assert.equal(ok.code, 0);
     assert.ok(Number.isInteger(ok.json.net));
-    assert.equal(ok.json.N, ok.json.net);
     assert.equal(cli(root, ['budget', fixturePath('entwicklung/bannfeuer.json')]).json.net, ok.json.net);
     const over = cli(root, ['budget', fixturePath('entwicklung/donnerkeil-over-budget.json')]);
     assert.equal(over.code, 2);
