@@ -8,7 +8,7 @@ method:
   url: https://lisa.gerda-henkel-stiftung.de/digitale_geschichte_pollin
 status: active
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Handoff
@@ -35,11 +35,60 @@ This process inbox holds only open hand-over points. Before using a point, check
 
 ### Remaining steps of milestone M1
 
-- Received. 2026-10-03
-- Source. Session of 3 October 2026, ended in a controlled way after the second merge of M1.
-- Target. [plan-m1.md](plan-m1.md), every knowledge document.
-- Context. Wave 1 (lanes R, S, I, A, B, K1, K2, D) and wave 2 (F1, F2, F3, C, H) are merged on `main`, together with the save and load lane SL and the kernel-fix lane KB. The planned independent reviews (kernel, server and harness security, player experience in the browser, balance), the fix round and the final documentation pass did not run.
-- Next action. Run the saved workflow `realmcraft-refactor-verify` (`.claude/workflows/`), which audits six areas, refactors with a golden replay as proof of unchanged behaviour, runs the UI optimisation round on playtest entries 23 to 36 and the audit below, verifies a full game loop in the browser, checks every acceptance criterion and every documented claim, and closes with fixes. Mark the acceptance criteria of the plan honestly afterwards.
+- Received. 2026-10-03, updated 2026-10-04
+- Source. Sessions of 3 and 4 October 2026. The second ended in a controlled way after the refactor wave of `realmcraft-refactor-verify` was merged, while its UI phase was running.
+- Target. [plan-m1.md](plan-m1.md), every knowledge document, the saved workflow.
+- Context. Wave 1, wave 2, the lanes SL and KB and the refactor wave of 4 October are merged on `main` ([journal.md](journal.md)). Audit, refactor and merge of the saved workflow are done and must not run again. The UI optimisation lane, the verification (full-loop e2e, completeness critic, docs truth check) and the close phase did not run, so the fix round, the handoff points below and the final documentation pass are still open.
+- Next action. Run only the phases UI, Verify and Close of `realmcraft-refactor-verify`, starting the UI lane from the design audit below instead of a new audit. Change the saved script together with [agents-harness.md](agents-harness.md) or [operations.md](operations.md) where they describe it, and drop its stale core-lane mention of `views.js` and the unused constants `OWNER_DECISIONS` and `KERNEL_GAPS`, which still cite removed `docs/` paths. Mark the acceptance criteria of the plan honestly afterwards.
+
+### UI design audit of the board, 4 October 2026
+
+- Received. 2026-10-04
+- Source. UI audit agent of `realmcraft-refactor-verify`, read-only on `main` at `61c4948` (before the refactor wave), fixture campaigns in a temp root, screenshots at 390, 1280, 1920 and 2560 px in English and German, contrast and Tab order measured by script.
+- Target. The UI optimisation lane, [frontend.md](frontend.md), [playtests.md](playtests.md).
+- Context. Wave 2 resolved the refused-order reason, research in progress in paths view and turn bar, German tag names in the German paths view and the map strip at phone width. The rest of the turn-1 audit above and of playtest entries 23 to 36 is still present. The refactor wave removed the `?demo` mode, so recheck each item on the current `main`. The items below stand in order of impact on play.
+- Next action. Resolve every item in the UI lane, move the result into the playtest table, then remove this point and the turn-1 audit point.
+
+1. Problem list at 390 px opens off-screen, Escape opens the game menu instead of closing it. Needs a bottom sheet in the viewport, Escape and a close button, focus back to End turn.
+2. Labour rows in `labour()` (`spielbrett/js/ui/kontext.js`) are built from the first three resources, so they offer Knowledge (`wissen`, which yields nothing) and never Research. Fix together with kernel defect 1 below.
+3. Sealing a turn with no orders or after withdrawn rolls gives no warning, `draft.withdrawn` is never shown (entry 35).
+4. Turn bar truncates order chips at every width, shows no order chips at 390 px, counts problems three times and shows overflow as an extra red slot instead of a swap (entry 26).
+5. End turn looks ready while problems block it and its label counts only rolls.
+6. The camera centres on the camp at fixed zoom instead of fitting the known tiles between the panels (entry 23).
+7. Type and controls keep their 1280 px sizes at 2560 px, dialogs stay small.
+8. Agents' round shows two contradictory states, judge findings with severity reach the player view, durations read 0 s.
+9. Tooltips stack, open on dialog focus and cover controls, and are clipped at 390 px.
+10. At 390 px the selected camp sits under the bottom sheet and the panel title runs under the close button.
+11. Paths wheel labels overlap at 1280 and 1920 px and shrink to about 7 px at 390 px. Needs collision-free labels and a list below about 600 px (entry 33).
+12. Effect chips in council questions are empty arrows with the raw key `flag.set` as accessible name, event effects are icons only, which breaks D15.
+13. German world content in the English UI carries `lang="en"`. Content language policy still open.
+14. Top bar hides the people name and path, council and chronicle labels below 1920 px, milestone diamonds lack a reading, resources overflow at 390 px without a cue (entry 25).
+15. Council strip chips mix lead modifier, favoured and opposed topics by small glyphs, loyalty has no symbol, the header toggle has no tooltip (entry 27).
+16. Camp dots, region flags, border lines and the ownership colour have no tooltip or legend (entry 28).
+17. Region names are letter-spaced italic and run off the edge at 390 px (entry 24).
+18. Shortcuts E, R, C, B fire inside open dialogs and from focused buttons, because the handler in `board.js` checks shortcuts before open dialogs.
+19. Save and Load are missing from start screen and game menu although kernel and server support named saves (entries 30, 31).
+20. Tab order jumps across regions and reaches the hidden place-list button, the canvas has no visible focus ring.
+21. Proposals messages use the trade glyph and show only an icon.
+22. Place list opens far from its trigger over the council strip, with an empty Places heading and the camp listed as a unit.
+23. Threat and Trade layers have no empty-state cue.
+24. Council dialog actions sit below the cards, Honour appears for one member only, members show no vote on the open question, cards are too large at 390 px.
+25. Event card uses the trade glyph for a magic event, a placeholder figure, "Decide by Autumn" during autumn and an unexplained reaction glyph.
+26. Chronicle labels spring as "Summer, year 1" and repeats the date as title.
+27. Panels repeat the same name in title, targets and chips.
+28. Numbers on order options, the camp shield (clan count, not a kernel value) and the army panel have no icon or tooltip.
+29. Colour and glyph meaning is inconsistent (rival chips on the start screen, failure bands, defeat triangle, Community path and council share a glyph).
+30. Research pill truncates the name and omits progress.
+31. End screen has plural errors, a season that differs from the top bar, and a collapse summary that counts a settlement beside zero clans.
+32. The Narrow cell of the chance band in the Rules dialog fails WCAG AA contrast.
+33. Problem and roll buttons, sliders and probe radios are below 24 px targets.
+34. Probe dialog at 390 px opens scrolled past its target block.
+35. Settings toggles at 390 px are misaligned with the sliders.
+36. Start screen rows cannot be told apart, the seed is a raw field with an unlabelled die, people-card chevrons have no tooltip.
+37. Heading icons of panels and dialogs use different shapes for the same role.
+38. "Research direct here" looks like a text link, its text field has no label.
+39. German start screen and board name the player people differently.
+40. Missing portraits produce 404s in the console on every load.
 
 ### Read-only audit of the live game, turn 1
 
@@ -154,6 +203,7 @@ Polish:
 - Source. Owner and main session, honest assessment at the end of the M1 session.
 - Target. [architecture.md](architecture.md), [decisions.md](decisions.md), [plan-m1.md](plan-m1.md), the refactor workflow.
 - Context. The foundation carries the idea and stays: the deterministic kernel with the CLI as only writer, the power budget and validator, fog-safe projections, hooks that confine agents (agent output is untrusted input), tests and migrations. Two layers exceed what the problem needs. The integrity layer (journal hash chain, anchors, roll ledger with fingerprints, sealed draft hashes, tamper detection, roll-forward recovery in every step) is anti-cheat architecture for a single-player game; every behaviour change drags repin, migration and replay questions behind it. The process built faster than it learned: contracts, many parallel lanes and two merge waves came before anyone had played five turns in a row, and lanes fixed the same defects twice. Open measurement questions are the number of agent runs per turn (world, research per people, council, rivals, chronicler, two judges every turn) and the paths model, whose structure runs ahead of its content (Erkenntnis empty, Magie hard to open, no military candidate for the player).
+- Progress. The refactor wave of 4 October removed the roll ledger `rolls.json` (rolls live only in the draft). Journal hash chain, anchors, sealed draft hashes and tamper detection stay, and no decision on them is recorded yet.
 - Next action. Build no new feature before the game has been played over several turns in a row and the refactor workflow has run. In that workflow, take the integrity layer as first simplification candidate, aiming at a state hash plus replay for debugging, and measure whether research and rival runs can be batched and judges run every few turns. Record what is kept, simplified or removed as a decision.
 
 ### Housekeeping
