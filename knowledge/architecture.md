@@ -39,8 +39,6 @@ RealmCraft is plain ES modules without a build step on Node 21 or later. Four pa
 
 The kernel never imports Node modules outside `engine/harness/`, `engine/cli.mjs` and the tools, so `engine/core/`, `engine/modules/`, `engine/content/`, `engine/schemas/` and `engine/world/` load unchanged in the browser. `engine/core/env.js` builds the read-only environment from the pinned package and a content resolver, so the core does not need the library module.
 
-Legacy code of the earlier games is still on `main` and outside this architecture. It comprises the savegame dashboard (`index.html`, `anleitung.html`, `js/`, `css/`, `schema/`, `tools/` image scripts), the round prototypes (`spiel/`, `design/nachtmeer/`) and their tests. Their removal is open ([decisions.md](decisions.md), D1).
-
 ## Data flow of a turn
 
 ```

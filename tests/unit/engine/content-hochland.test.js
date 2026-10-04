@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { SCHEMAS, AGENTS, PHASES, KINDS, LIFE_STAGES, BANDS } from '../../../engine/schemas/index.js';
 import { validate } from '../../../engine/content/schema.js';
 import { scoreEntwicklung, scoreEreignis, scoreBestimmung } from '../../../engine/content/budget.js';
-import { validateWorldPackage } from '../../../engine/content/validate.js';
+import { kernelLabelKeys, validateWorldPackage } from '../../../engine/content/validate.js';
 import { pfadOf } from '../../../engine/core/pfade.js';
 import { registry } from '../../../engine/core/orders.js';
 import { loyaltyBand } from '../../../engine/core/council.js';
@@ -44,7 +44,7 @@ for (const [name, file] of Object.entries(FILES)) {
 }
 
 test('the world validator finds no issue in the package', () => {
-  assert.deepEqual(validateWorldPackage(pack).map(({ code, path, message }) => `${code} ${path} ${message}`), []);
+  assert.deepEqual(validateWorldPackage(pack, { labelKeys: kernelLabelKeys() }).map(({ code, path, message }) => `${code} ${path} ${message}`), []);
 });
 
 test('prerequisites name existing developments and respect the tier rule', () => {

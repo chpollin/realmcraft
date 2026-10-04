@@ -25,13 +25,13 @@ A world package under `welten/<id>/` carries everything that makes a world diffe
 |---|---|---|
 | `welt.json` | generator parameters (chunk size, elevation, moisture, temperature, thresholds), terrains with move cost, sight, buildability and base yields, deposits, start rules, name parts | `engine/world` |
 | `regeln.json` | calendar, resources with value and cap, stats with base, tag vocabulary with breadth, people templates, council templates, `tuning`, AI profiles, module bindings | schema `regeln` |
-| `labels.json` | every visible text by key, with `locale` | schema `labels`, and the content test of the package requires a text for every label key the content and the kernel imply |
+| `labels.json` | every visible text by key, with `locale` | schema `labels`, `missing_label` for every kernel label key of `kernelLabelKeys()` in `engine/content/validate.js` (probe bands, loyalty bands, order types), and the content test of the package requires a text for every further label key the content implies |
 | `style.json` | image style and image types, accent tokens | schema `style` |
 | `content/entwicklungen.json` | start endowment (tier 0) and world pool developments | schema `entwicklungen` plus the validator |
 | `content/ereignisse.json` | event cards per band | schema `ereignisse` plus band budget |
 | `content/bestimmungen.json` | start destinies and destinies for later switches | schema `bestimmungen` plus difficulty |
 
-`node engine/cli.mjs validate welten/<id>` validates the whole package, including that every development is reachable from a start endowment and every label key exists.
+`node engine/cli.mjs validate welten/<id>` validates the whole package, including that every development is reachable from a start endowment and every label key exists. `new` and `repin` run the same check and refuse a package that fails it.
 
 ## Pinning and repin
 

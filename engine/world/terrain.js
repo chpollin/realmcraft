@@ -24,7 +24,7 @@ export function seedContext(seed, pack) {
 }
 
 const clamp = (v) => (v > 1 ? 1 : v < -1 ? -1 : v);
-// Stored fields are rounded so savegames stay compact; classification uses the
+// Stored fields are rounded so campaigns stay compact; classification uses the
 // rounded values, so a tile's numbers and its terrain never disagree.
 const round3 = (v) => Math.round(v * 1000) / 1000 + 0;
 

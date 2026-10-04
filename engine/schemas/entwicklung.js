@@ -68,7 +68,7 @@ export const ENTWICKLUNG_DEFS = Object.freeze({
     any: arr(str('^[a-z][a-z0-9-]{2,40}$'), 3),
     if: nullable(ref('condition')),
   }),
-  // research cap follows the mechanics draft: net 10 x (tier 5 + 1) = 60.
+  // research cap follows TIERS: netMax 10 x (tier 5 + 1) = 60.
   developmentCost: obj({ research: int(2, 60), resources: map(str(PATTERNS.key), int(1, 12)) }),
   origin: obj({
     source: { enum: ['world', 'agent'] },

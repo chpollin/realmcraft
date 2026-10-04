@@ -1,5 +1,5 @@
 // Progress of one turn's agent round (campaigns/<cid>/status.json), written by
-// the harness so the dashboard can show which agent is working and what the
+// the harness so the board can show which agent is working and what the
 // validator decided on each proposal. It is a view: nothing reads it back
 // into the state.
 

@@ -26,6 +26,8 @@ import { issue, hasErrors } from '../core/issues.js';
 import { canon } from '../core/canon.js';
 import { hashValue } from '../core/hash.js';
 import { registry } from '../core/orders.js';
+import { BANDS, bandLabelKey } from '../core/probes.js';
+import { loyaltyBand } from '../core/council.js';
 import { MODULE_IDS } from '../modules/index.js';
 import { primitiveWeight, scoreBestimmung, scoreEntwicklung, scoreEreignis, sumWeights } from './budget.js';
 import { resolveRef, refOf } from './library.js';
@@ -276,7 +278,7 @@ function vocabularyIssues(refs, ctx) {
 
 // Duplicate fingerprints, cached per content object: exact ignores identity
 // and prose, near compares kind, tag set and the effect skeleton without
-// amounts (mechanics draft 5.2 rule 5).
+// amounts (knowledge/data-contracts.md, Validator, drift protection).
 // The path only files the content; the same mechanics on another path stay a duplicate.
 const IDENTITY = new Set(['id', 'rev', 'name', 'summary', 'appearance', 'origin', 'pfad']);
 const keyCache = new WeakMap();
@@ -733,6 +735,15 @@ function pathBlockIssues(regeln, labels) {
   if (!ids.has(fallback)) out.push(issue('dangling_ref', `${base}/fallback`, `fallback "${fallback}" is not a path`, { params: { pfad: fallback } }));
   if (unlock[0] !== 0) out.push(issue('format', `${base}/unlock/0`, `unlock[0] must be 0, tier 1 of a path is always open, got ${unlock[0]}`, { params: { value: unlock[0] } }));
   return out;
+}
+
+/** Label keys of the kernel's own vocabulary (probe bands, council loyalty bands, order types), sorted, for the missing_label check. */
+export function kernelLabelKeys() {
+  const keys = new Set(BANDS.map(bandLabelKey));
+  // The council clamps loyalty to -5..5, so this range meets every band.
+  for (let v = -5; v <= 5; v++) keys.add(`loyalty.${loyaltyBand(v)}`);
+  for (const type of Object.keys(registry())) keys.add(`order.${type}`);
+  return [...keys].sort();
 }
 
 const PACK_FILES = ['regeln', 'labels', 'style', 'entwicklungen', 'ereignisse', 'bestimmungen'];

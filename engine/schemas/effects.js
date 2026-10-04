@@ -8,9 +8,10 @@
 // rule (effects >= 0, price <= 0) needs the weights and belongs to the
 // content validator (misplaced_effect).
 //
-// Mapping of the mechanics draft's eleven primitives onto kernel ops:
+// Mapping of the eleven effect primitives generalised from the campaigns
+// (knowledge/data-contracts.md, Primitive set) onto kernel ops:
 //
-//   mechanics   kernel op(s)                                    note
+//   primitive   kernel op(s)                                    note
 //   ---------   ---------------------------------------------   ------------------------------------------
 //   modify      probe.mod, unit.mod                             tag-scoped die modifier, optional condition
 //   bonus       stat.mod, order.slot, stock.cap, population.cap standing shift of a derived value or capacity
@@ -30,7 +31,7 @@
 //   tag         status.add, token.add, flag.set, loyalty.bind   timed status, marker, switch, hollow loyalty
 //   reveal      reveal (one-off), sight.mod (standing)          fog over tiles, a region or a people's intent
 //
-// module.activate has no mechanics counterpart; it is the kernel's handle for
+// module.activate has no counterpart among them; it is the kernel's handle for
 // switching a mechanics module on (weight 0, modules are balanced as code).
 
 import { arr, int, nullable, obj, ref, str, text, PATTERNS, TOKEN_KINDS } from './common.js';
@@ -140,33 +141,33 @@ export const EFFECT_DEFS = Object.freeze({
   statusEffect: { oneOf: refs(Object.keys(STANDING).filter((k) => !NOT_IN_STATUS.has(k))) },
 });
 
-// TUNING: power weights from the mechanics draft (section 5.1), placeholder
-// until simulation calibrates them. One weight unit is one point of a one-off
-// adjust. Effects count positive, prices negative, so every entry is the
-// weight per unit of the op's amount with the amount's sign unless stated.
-// Entries marked "derived" have no row in the mechanics draft; the note
-// names how the value follows from rows that exist.
+// TUNING: power weights (knowledge/data-contracts.md, Power budget),
+// placeholder until simulation calibrates them. One weight unit is one point
+// of a one-off adjust. Effects count positive, prices negative, so every entry
+// is the weight per unit of the op's amount with the amount's sign unless
+// stated. Entries marked "derived" are not set on their own; the note names
+// how the value follows from other rows.
 export const WEIGHTS = Object.freeze({
   'probe.mod': { perPoint: { narrow: 1, broad: 2 }, note: 'tag breadth from the world vocabulary, broad = a whole probe category' },
   'unit.mod': { perPoint: { narrow: 1, broad: 2 }, note: 'derived: treated as modify on units' },
   'stat.mod': { perPoint: 3 },
   'order.slot': { minor: 4, main: 6 },
   'stock.cap': { perTwoPoints: 1 },
-  'population.cap': { perPoint: 3, note: 'bonus +1 Arbeitsgruppe' },
-  'population.growth': { perPoint: 3, note: 'derived: four growth points are one group (spawn 3) per year, as flow +1' },
-  'resource.flow': { perPoint: { seasons4: 3, seasons3: 2, seasons2: 2, seasons1: 1 }, earmarked: 2, scaleBound: 2, note: 'seasons2 derived, no row in the draft; a scaled benefit counts scaleBound x tuning.expected units (an upper bound, the expected count is a campaign average), a scaled burden the expected count' },
+  'population.cap': { perPoint: 3, note: 'bonus +1 clan' },
+  'population.growth': { perPoint: 3, note: 'derived: four growth points are one clan (spawn 3) per year, as flow +1' },
+  'resource.flow': { perPoint: { seasons4: 3, seasons3: 2, seasons2: 2, seasons1: 1 }, earmarked: 2, scaleBound: 2, note: 'seasons2 derived; a scaled benefit counts scaleBound x tuning.expected units (an upper bound, the expected count is a campaign average), a scaled burden the expected count' },
   'yield.mod': { perPoint: { seasons4: 3, seasons3: 2, seasons2: 2, seasons1: 1 }, note: 'derived: treated as flow' },
   'research.mod': { perPoint: 2, note: 'flow of research, earmarked to tags' },
   dependency: { perPoint: -3, note: 'derived: upkeep flow -1 is -3; the people pays or takes the penalty each season, so the weight is the lighter of the payment and the harmful part of the penalty on the resource.flow scale of every season (a helpful penalty counts 0)' },
   'order.unlock': { plain: 2, withStandingOutcome: 3 },
-  'order.restrict': { forbidNarrow: -1, forbidBroad: -2, limitNarrow: -1, limitBroad: -2, duty: 0, note: 'duty weighs 0 while the kernel has no duty rule, the draft value -2 returns with an enforcing kernel; a restriction without orders and tags weighs 0' },
+  'order.restrict': { forbidNarrow: -1, forbidBroad: -2, limitNarrow: -1, limitBroad: -2, duty: 0, note: 'duty weighs 0 while the kernel has no duty rule and returns to -2 with an enforcing kernel; a restriction without orders and tags weighs 0' },
   meter: { severity: { light: 1, heavy: 2, existential: 3 }, cadence: { use: 1, season: 2 }, severityByThresholdWeight: [[2, 1], [5, 2], [null, 3]], repeat: 2, note: 'weight = gain - severity x cadence; severity from |w| of the worst harmful threshold the meter reaches, null = no upper bound; gain = sum of the beneficial thresholds in range, x repeat when the meter can fall and cross again (a use meter with decay crosses at most every other season)' },
   trigger: { negativeOnOmission: -2, otherwise: 'sum of effects x hook frequency on the resource.flow scale: season every season, winter in the winter seasons, use: and shortfall: every season for a benefit and once for a burden, other hooks once, a burden under an if once' },
   'sight.mod': { perPoint: 2, note: 'standing reveal' },
   'module.activate': { fixed: 0 },
   'governance.rule': { fixed: 0 },
   'resource.delta': { perPoint: 1 },
-  'population.delta': { perPoint: 3, note: 'spawn group' },
+  'population.delta': { perPoint: 3, note: 'spawn clan' },
   'loyalty.delta': { perPoint: 1 },
   'loyalty.bind': { fixed: 1, note: 'tag, beneficial status' },
   'relation.delta': { perPoint: { people: 1, $target: 1, neighbours: 2, all: 2 }, note: 'all treated like a tag group' },
@@ -176,24 +177,27 @@ export const WEIGHTS = Object.freeze({
   'token.add': { fixed: 1 },
   'unit.spawn': { perStrength: 1 },
   'unit.delta': { perStrength: 1 },
-  'region.control': { fixed: 6, note: 'derived: kernel draft 10 on a scale where stat.mod is 5, rescaled to stat.mod 3' },
+  'region.control': { fixed: 6, note: 'derived: 10 on an earlier scale where stat.mod weighed 5, rescaled to stat.mod 3' },
   'council.seat': { fixed: 1, note: 'spawn advisor' },
   'flag.set': { fixed: 0 },
   reveal: { perRegion: 1 },
 });
 
-// TUNING: grants carried by an Entwicklung's spec (mechanics draft 5.1).
+// TUNING: grants carried by an Entwicklung's spec (knowledge/data-contracts.md, Power budget).
 export const SPEC_WEIGHTS = Object.freeze({
   einheit: { perStrength: 1 },
   bauwerk: { withoutOwnEffect: 1 },
   application: { plain: 2, withStandingOutcome: 3, maxOutcomePerUse: 3 },
 });
 
-// TUNING: tier limits and gates (mechanics draft 5.2). effectMax bounds the
-// summed effect weight E, net = E + P must lie in [netMin, netMax], and the
-// price P must be at most priceMax (negative = a minimum price). Research cost
-// is net x (tier + 1). Tier 0 is the starting endowment of a world and uses
-// the row of tier 1.
+// TUNING: tier limits (knowledge/rules-kernel.md section 10) and gates
+// (section 8, Research). effectMax bounds the summed effect weight E, net =
+// E + P must lie in [netMin, netMax], and the standing part of the price P
+// must be at most priceMax (negative = a minimum price). Research cost is
+// net x (tier + 1). A gate opens the tier when the people knows prevTierKnown
+// developments of the tier below or higher and has `clans` clans (population.core),
+// `settlements` settlements and a world age of worldYear years. Tier 0 is the
+// starting endowment of a world and uses the row of tier 1.
 export const TIERS = Object.freeze([
   { tier: 1, effectMax: 4, netMin: 1, netMax: 3, priceMax: 0, gate: { prevTierKnown: 0, clans: 0, settlements: 0, worldYear: 0 } },
   { tier: 2, effectMax: 6, netMin: 2, netMax: 4, priceMax: -1, gate: { prevTierKnown: 3, clans: 4, settlements: 0, worldYear: 2 } },

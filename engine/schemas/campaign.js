@@ -173,7 +173,8 @@ export const CAMPAIGN_DEFS = Object.freeze({
   feature,
   campaignRef: obj({
     id: ref('id'),
-    // The pinned world package: welt.json carries a semver, the hash covers the whole package.
+    // The pinned world package: welt.json carries a semver, the hash covers
+    // welt, regeln and content (engine/core/env.js), not labels and style.
     world: obj({ id: ref('id'), version: str(PATTERNS.semver), hash: ref('hash') }),
     player: ref('id'),
   }),
