@@ -125,27 +125,5 @@ export function wheelOf({ view, env, t, draft, pv }) {
   const top = env.regeln.pfade?.unlock?.length ?? 1;
   const tiers = Math.max(Math.min(top, env.regeln.tuning?.maxTier ?? top), ...paths.flatMap((p) => p.nodes.map((n) => n.tier)), 1);
   const all = paths.flatMap((p) => p.nodes);
-  return { real: true, points: now.points, tiers, current, chosen, direct, paths, nodeOf: (ref) => all.find((n) => n.ref === ref) ?? null };
-}
-
-// The prototype's fixture kinds on the Hochland paths, for ?demo only.
-const DEMO_PATH = { institution: 'gemeinschaft', einheit: 'militaer', bauwerk: 'werk', technik: 'werk', magie: 'magie' };
-const DEMO_PATHS = ['nahrung', 'gemeinschaft', 'militaer', 'werk', 'erkenntnis', 'magie'];
-
-/** Wheel of the prototype (?demo) from its fixture developments; it has no kernel, so no points. */
-export function demoWheel(model, t) {
-  const E = model.entwicklungen;
-  const node = (n, state, tier) => ({
-    ref: n.id, pfad: DEMO_PATH[n.art] ?? 'erkenntnis', name: n.name, kind: n.art, kindName: t(`kind.${n.art}`, n.art ?? ''),
-    icon: n.art ?? 'technik', tier, state, summary: n.wirkung ?? '', kurz: n.kurz ?? null, resources: n.kosten ?? [],
-    cost: state === 'known' ? null : n.dauer ?? null, progress: n.fortschritt ?? 0, points: null, gain: 0,
-    current: false, chosen: false, completes: false, waits: false, seasons: null, active: true,
-  });
-  const all = [...E.bekannt.map((n) => node(n, 'known', 1)), ...E.forschung.map((n) => node(n, 'research', 2)), ...E.vorschlaege.map((n) => node(n, 'candidate', 2))];
-  const paths = DEMO_PATHS.map((id) => {
-    const nodes = all.filter((n) => n.pfad === id);
-    const done = nodes.filter((n) => n.state === 'known').length;
-    return { id, name: t(`pfad.${id}`, id), icon: pathIcon(id), open: true, openedAt: null, tier: done ? 2 : 1, cap: done ? 2 : 1, done, next: null, opens: null, tags: [], directed: false, nodes };
-  });
-  return { real: false, points: null, tiers: 5, current: null, chosen: null, direct: null, paths, nodeOf: (ref) => all.find((n) => n.ref === ref) ?? null };
+  return { points: now.points, tiers, current, chosen, direct, paths, nodeOf: (ref) => all.find((n) => n.ref === ref) ?? null };
 }

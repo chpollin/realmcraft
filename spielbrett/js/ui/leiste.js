@@ -32,7 +32,7 @@ export function reservedFor(model, key) {
   return model.orders.flatMap((o) => (o.kosten ?? []).filter((k) => k.key === key).map((k) => ({ menge: k.menge, titel: o.titel })));
 }
 
-export function renderResources(api, { bump = [], fresh = [] } = {}) {
+export function renderResources(api, { bump = [] } = {}) {
   const { model } = api;
   const ul = document.getElementById('ressourcen');
   const preview = model.preview?.deltas ?? {};
@@ -46,7 +46,7 @@ export function renderResources(api, { bump = [], fresh = [] } = {}) {
       const free = r.wert - reserved;
       const d = preview[r.key];
       const btn = el('button', {
-        class: `res${fresh.includes(r.key) ? ' is-new' : ''}${model.module.includes(r) ? ' res-sonder' : ''}`,
+        class: `res${model.module.includes(r) ? ' res-sonder' : ''}`,
         type: 'button',
         'aria-label': [`${r.name} ${free}`, reserved ? t.fmt('board.res.reserved', { n: reserved }) : null, tWord].filter(Boolean).join(', '),
       },
@@ -67,7 +67,7 @@ export function renderResources(api, { bump = [], fresh = [] } = {}) {
   );
 }
 
-export function renderDestinyChip(api, { freshIndex = -1 } = {}) {
+export function renderDestinyChip(api) {
   const b = api.model.bestimmung;
   const btn = document.getElementById('bestimmung-kurz');
   const done = b.meilensteine.filter((m) => m.erreicht).length;
@@ -75,7 +75,7 @@ export function renderDestinyChip(api, { freshIndex = -1 } = {}) {
     icon('bestimmung', { size: 18 }),
     el('span', { class: 'world', text: b.name }),
     el('span', { class: 'pips', 'aria-hidden': 'true' },
-      ...b.meilensteine.map((m, i) => el('span', { class: `pip${m.erreicht ? ' on' : ''}${i === freshIndex ? ' fresh' : ''}` }))),
+      ...b.meilensteine.map((m) => el('span', { class: `pip${m.erreicht ? ' on' : ''}` }))),
     el('span', { class: 'tip tip-rechts', role: 'tooltip', id: 'tip-bestimmung' },
       el('strong', { text: b.name }),
       ...b.meilensteine.map((m) => el('span', { style: { display: 'block' }, text: `${m.erreicht ? t('board.destiny.reached') : m.stand}, ${m.text}` })),
@@ -87,7 +87,9 @@ export function renderDestinyChip(api, { freshIndex = -1 } = {}) {
 }
 
 export function budgetState(model) {
-  // A real campaign takes used and available slots from the kernel preview.
+  // Used and available slots come from the kernel preview; a draft the preview
+  // stops early on (an ended campaign, a phase without planning) has none, so
+  // the orders are counted against the default budget.
   if (model.slots) return { used: { haupt: model.slots.main.used, neben: model.slots.minor.used }, max: { haupt: model.slots.main.max, neben: model.slots.minor.max } };
   const used = { haupt: 0, neben: 0 };
   for (const o of model.orders) if (o.art in used) used[o.art]++;
@@ -144,7 +146,6 @@ function slotGroup(api, art, used, max) {
  */
 function researchBudget(api) {
   const { game, model } = api;
-  if (!game) return null;
   const now = currentResearch({ view: game.view, env: game.env, draft: game.draft, pv: game.base });
   const name = now.ref ? game.env.entwicklung(now.ref)?.name ?? now.ref : t('board.research.open');
   const hint = model.slotHint?.art === 'forschung';
@@ -175,14 +176,14 @@ export function renderBudget(api) {
   document.getElementById('budget').replaceChildren(
     slotGroup(api, 'haupt', used.haupt, max.haupt),
     slotGroup(api, 'neben', used.neben, max.neben),
-    researchBudget(api) ?? '',
+    researchBudget(api),
   );
 }
 
 /** The world event of the season as a step of its own in the turn bar, rolled like any probe. */
 function eventChip(api) {
   const { game } = api;
-  const p = game?.base?.probes?.find((x) => x.target == null && x.roller === 'player');
+  const p = game.base.probes.find((x) => x.target == null && x.roller === 'player');
   if (!p) return null;
   const roll = game.draft.rolls?.[p.id];
   const face = roll ? game.faces(p)[roll.value - 1] : null;
@@ -192,7 +193,7 @@ function eventChip(api) {
     el('span', { class: 'befehl-titel', text: t('ui.weltereignis') }),
     roll
       ? withTip(el('span', { class: 'befehl-wurf', tabindex: '0', 'aria-label': t.fmt('board.event.rolled', { value: roll.value, band: face.label }) }, icon('wuerfel', { size: 14 }), String(roll.value)), [el('span', { text: face.label })], null, { up: true })
-      : locked ? null : el('button', { class: 'btn btn-klein', type: 'button', 'data-ereignis-wurf': '', onclick: () => api.openDialog('probe', { real: true, probeId: p.id }) }, icon('wuerfel', { size: 16 }), t('ui.wuerfeln')));
+      : locked ? null : el('button', { class: 'btn btn-klein', type: 'button', 'data-ereignis-wurf': '', onclick: () => api.openDialog('probe', { probeId: p.id }) }, icon('wuerfel', { size: 16 }), t('ui.wuerfeln')));
 }
 
 export function renderOrders(api, { freshId } = {}) {
@@ -213,8 +214,8 @@ export function renderOrders(api, { freshId } = {}) {
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',
         el('span', { class: 'befehl-ziel', text: o.ziel })),
       o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.stale ? 'veraltet' : o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.stale ? 'warnung' : o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
-      o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.roll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
-      o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.reroll', { title: o.titel }), onclick: () => api.rollOrder?.(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.offen && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.roll', { title: o.titel }), onclick: () => api.rollOrder(o.id) }, icon('wuerfel', { size: 14 })) : null,
+      o.wurf?.stale && !locked ? el('button', { class: 'befehl-wurf offen', type: 'button', 'aria-label': t.fmt('board.orders.reroll', { title: o.titel }), onclick: () => api.rollOrder(o.id) }, icon('wuerfel', { size: 14 })) : null,
       // Issue texts are labels from the issue code; the kernel's English message is for logs only.
       o.issues?.length ? withTip(el('span', { class: 'befehl-problem', tabindex: '0', 'data-issue': o.issues[0].code, 'aria-label': [...new Set(o.issues.map((i) => i.text))].join(', ') }, icon('warnung', { size: 14 })), [el('span', { text: [...new Set(o.issues.map((i) => i.text))].join(', ') })], null, { up: true }) : null,
       o.kosten?.length ? el('span', { class: 'costs' }, ...o.kosten.map((k) => el('span', { class: 'cost', 'aria-label': `${k.menge} ${k.key}` }, icon(k.key, { size: 14 }), String(k.menge)))) : null,
@@ -248,10 +249,10 @@ export function renderEndTurn(api) {
   const { model } = api;
   const b = document.getElementById('zug-beenden');
   const busy = model.phase === 'A';
-  const next = model.real ? model.naechsteZeit : model.zugGelaufen ? nextSeason(model.zeit) : model.S.naechsteZeit;
-  // In a real campaign the agents' round keeps planning open but the turn closed until the kernel opens it.
-  const waiting = model.real && !busy && model.kernPhase === 'agents';
-  const rolls = model.real && !busy && !waiting ? model.offeneWuerfe?.length ?? 0 : 0;
+  const next = model.naechsteZeit;
+  // The agents' round keeps planning open but the turn closed until the kernel opens it.
+  const waiting = !busy && model.kernPhase === 'agents';
+  const rolls = !busy && !waiting ? model.offeneWuerfe?.length ?? 0 : 0;
   const nextTime = t.fmt('board.time', { season: next.saison, year: next.jahr });
   const title = t(busy ? 'board.endturn.busy' : waiting ? 'board.endturn.waiting' : 'ui.zug-beenden');
   const sub = busy ? t('board.endturn.locked') : waiting ? t('board.endturn.after-agents') : rolls ? t.plural('board.rolls-open', rolls) : nextTime;
@@ -274,7 +275,7 @@ export function renderEndTurn(api) {
 export function renderBlocker(api, { open } = {}) {
   const box = document.getElementById('blocker');
   const { game, model } = api;
-  if (!game || model.phase === 'A' || model.kernPhase === 'agents') {
+  if (model.phase === 'A' || model.kernPhase === 'agents') {
     box.replaceChildren();
     return;
   }
@@ -311,7 +312,7 @@ function blockerItem(api, b) {
   } else if (b.kind === 'wurf-verwaist') {
     actions.push(btn(t('board.blocker.discard'), 'schliessen', () => game.dropRoll(b.probeId), 'verwerfen'));
   } else if (b.kind === 'wurf') {
-    actions.push(btn(t(b.veraltet ? 'board.blocker.reroll' : 'ui.wuerfeln'), 'wuerfel', () => api.openDialog('probe', { real: true, probeId: b.probeId }), 'wuerfeln'));
+    actions.push(btn(t(b.veraltet ? 'board.blocker.reroll' : 'ui.wuerfeln'), 'wuerfel', () => api.openDialog('probe', { probeId: b.probeId }), 'wuerfeln'));
   }
   const why = b.kind === 'wurf' ? t(b.veraltet ? 'issue.roll-stale' : 'issue.roll-missing') : b.texte.join(', ');
   return el('li', { class: `blocker-eintrag be-${b.kind}`, 'data-blocker-id': b.id },
@@ -319,11 +320,3 @@ function blockerItem(api, b) {
     why ? el('span', { class: 'be-grund', text: why }) : null,
     el('span', { class: 'be-aktionen' }, ...actions));
 }
-
-const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
-export function nextSeason(z) {
-  const i = SEASONS.indexOf(z.saison);
-  return i === 3 ? { saison: SEASONS[0], jahr: z.jahr + 1 } : { saison: SEASONS[i + 1], jahr: z.jahr };
-}
-
-export { signed };

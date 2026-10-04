@@ -35,7 +35,7 @@
   .overlay-body { overflow-y: auto; padding: var(--space-3) var(--space-6) var(--space-6); scrollbar-width: thin; }
   .abschnitt { font-size: var(--step-0); font-weight: 600; color: var(--ink-dim); margin-block-end: var(--space-3); }
 
-  /* Entwicklungen: the tree. The sheet starts below the top bar, so cost
+  /* Entwicklungen: the paths wheel. The sheet starts below the top bar, so cost
      previews in the stores stay visible while a development is selected. */
   dialog.overlay-voll {
     inline-size: 100vw;
@@ -49,93 +49,6 @@
     box-shadow: none;
   }
   dialog.overlay-voll::backdrop { background: transparent; backdrop-filter: none; }
-  .baum-buehne { position: relative; flex: 1; min-block-size: 0; }
-  .baum { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; cursor: grab; touch-action: none; }
-  .baum.is-panning { cursor: grabbing; }
-  .baum-kopf { position: absolute; z-index: 2; inset: var(--space-4) var(--space-4) auto var(--space-5); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-  .baum-kopf > * { pointer-events: auto; }
-  .baum-kopf h2 { display: inline-flex; align-items: center; gap: var(--space-3); font-size: var(--step-3); font-weight: 600; }
-  .baum-kopf h2 .icon { color: var(--origin-forschung); }
-  .baum-kopf h2:focus { outline: none; }
-  .baum-werkzeug { display: flex; gap: var(--space-1); }
-  .baum-panel {
-    position: absolute;
-    inset-block: 4.5rem var(--space-4);
-    inset-inline-end: var(--space-4);
-    inline-size: 22rem;
-    overflow-y: auto;
-    padding: var(--space-5);
-    border-radius: var(--radius-l);
-    background: oklch(from var(--night-1) l c h / 0.94);
-    box-shadow: var(--shadow-float);
-    scrollbar-width: thin;
-  }
-  .baum-seite { display: grid; gap: var(--space-4); }
-  .baum-seite h3 { display: flex; align-items: center; gap: var(--space-3); font-size: var(--step-2); font-weight: 600; }
-  .baum-seite h3 .icon { color: var(--ink-dim); flex: none; }
-  .bs-art { color: var(--ink-subtle); font-size: var(--step--1); margin-block-start: calc(var(--space-3) * -1); }
-  .bs-zeile { display: grid; grid-template-columns: 1.5rem 1fr; gap: var(--space-3); align-items: start; }
-  .bs-zeile > div { display: grid; gap: 0.15rem; }
-  .bs-icon { color: var(--ink-subtle); padding-block-start: 1px; }
-  .bs-wirkung { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--step-1); }
-  .bs-text { color: var(--ink-dim); font-size: var(--step--1); }
-  .bs-wert { font-weight: 600; }
-  .bs-weil { font-style: italic; color: var(--ink-dim); line-height: 1.45; }
-  .v-weil-wort { color: var(--origin-forschung); }
-  .bs-rat { display: flex; gap: var(--space-3); }
-  .bs-rat li { position: relative; }
-  .bs-rat .pro .portraet { --ring: var(--up); }
-  .bs-rat .contra .portraet { --ring: var(--down); }
-  .bs-hand { position: absolute; inset-block-end: -4px; inset-inline-end: -6px; display: grid; place-items: center; inline-size: 1.35rem; block-size: 1.35rem; border-radius: 50%; background: var(--night-1); }
-  .bs-rat .pro .bs-hand { color: var(--up); }
-  .bs-rat .contra .bs-hand { color: var(--down); }
-  .baum-seite .btn { justify-self: start; }
-  .bs-gruppe h4 { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); margin-block-end: var(--space-1); }
-  .bs-knopf { display: flex; align-items: center; gap: var(--space-2); inline-size: 100%; padding: var(--space-2); border-radius: var(--radius-s); text-align: start; }
-  .bs-knopf:hover { background: var(--hover-wash); }
-  .bs-knopf > .icon { color: var(--ink-dim); }
-  .bs-kurz { display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto; font-size: var(--step--1); font-weight: 700; color: var(--ink-dim); }
-  .baum-seite textarea { padding: var(--space-3); border: 1px solid var(--ink-faint); border-radius: var(--radius-s); background: var(--night-0); color: var(--ink); font-size: 1rem; resize: vertical; }
-  .baum-seite textarea:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
-
-  .b-ast { fill: none; stroke-linecap: round; transition: stroke var(--dur-2), opacity var(--dur-2); }
-  .b-ast.stamm { stroke: oklch(from var(--ink) l c h / 0.32); }
-  .b-ast.forschung { stroke: oklch(from var(--ember) l c h / 0.55); }
-  .b-ast.sprosse { stroke: oklch(from var(--origin-forschung) l c h / 0.6); }
-  .b-ast.eigen { stroke: oklch(from var(--ember) l c h / 0.5); stroke-dasharray: 3 5; }
-  .b-ast.weil { stroke: oklch(from var(--origin-forschung) l c h / 0.45); stroke-dasharray: 2 6; }
-  .b-ast.is-heiss { stroke: var(--origin-forschung); filter: drop-shadow(0 0 4px oklch(from var(--origin-forschung) l c h / 0.7)); }
-  .b-ast.stamm.is-heiss { stroke: var(--ink); }
-  .b-knoten { cursor: pointer; outline: none; }
-  .b-knoten .b-scheibe { fill: var(--night-2); stroke: oklch(from var(--ink) l c h / 0.35); stroke-width: 1.5; transition: fill var(--dur-1), stroke var(--dur-1); }
-  .b-knoten .b-hof { fill: transparent; }
-  .b-knoten .b-icon path { fill: none; stroke: var(--ink); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
-  .b-knoten text { font-family: var(--font-world); fill: var(--ink); text-anchor: middle; paint-order: stroke; stroke: var(--night-0); stroke-width: 4px; stroke-linejoin: round; }
-  .b-knoten text.b-name { font-size: 15px; font-weight: 600; }
-  .b-knoten text.b-praxis { font-size: 13px; font-style: italic; fill: var(--ink-subtle); }
-  .t-praxis .b-scheibe { fill: var(--night-3); stroke: none; }
-  .t-praxis .b-icon path { stroke: var(--ink-subtle); }
-  .b-wirkung rect { fill: var(--night-3); }
-  .b-knoten .b-wirkung text { font-family: var(--font-ui); font-size: 12px; font-weight: 700; text-anchor: start; stroke: none; fill: var(--ink); }
-  .b-wirkung .b-icon path { stroke: var(--ink-dim); stroke-width: 2; }
-  .t-emblem .b-scheibe { fill: var(--night-1); stroke: var(--ember); stroke-width: 2.5; }
-  .t-emblem .b-emblem-glow { fill: oklch(from var(--ember) l c h / 0.12); }
-  .t-emblem .b-icon path { stroke: var(--ember); }
-  .t-emblem text.b-name { font-size: 17px; }
-  .b-ring-spur { fill: none; stroke: var(--night-4); stroke-width: 4; }
-  .b-ring { fill: none; stroke: var(--ember); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--ember-glow)); }
-  .t-forschung .b-icon path { stroke: var(--ember); }
-  .t-vorschlag .b-scheibe { stroke: var(--origin-forschung); stroke-dasharray: 5 4; fill: oklch(from var(--origin-forschung) l c h / 0.08); }
-  .t-vorschlag .b-icon path { stroke: var(--origin-forschung); }
-  .t-eigen .b-scheibe, .t-eigen-vorschlag .b-scheibe { stroke: var(--ember); stroke-dasharray: 3 4; fill: var(--night-1); }
-  .t-eigen .b-icon path, .t-eigen-vorschlag .b-icon path { stroke: var(--ember); }
-  .b-knoten.is-neu .b-hof { fill: oklch(from var(--origin-forschung) l c h / 0.14); animation: hof 1.6s ease-in-out infinite alternate; }
-  @keyframes hof { to { fill: oklch(from var(--origin-forschung) l c h / 0.02); } }
-  .b-knoten:hover .b-scheibe { fill: var(--night-3); }
-  .b-knoten.is-sel .b-scheibe { stroke: var(--ember); stroke-width: 2.5; stroke-dasharray: none; }
-  .b-knoten.is-sel .b-hof { fill: oklch(from var(--ember) l c h / 0.14); }
-  .b-knoten:focus-visible .b-scheibe { stroke: var(--ember); stroke-width: 3; stroke-dasharray: none; }
-  .b-knoten:focus-visible text.b-name, .b-knoten:focus-visible text.b-praxis { fill: var(--ember); }
 
   /* Rat */
   .rat-body { display: grid; gap: var(--space-5); }
@@ -164,24 +77,6 @@
     transition: background var(--dur-1), transform var(--dur-2) var(--ease-out);
   }
   .berater-karte:hover { background: oklch(from var(--night-2) calc(l + 0.015) c h); transform: translateY(-2px); }
-  .wahl-ja .portraet { --ring: var(--up); }
-  .wahl-nein .portraet { --ring: var(--down); }
-  .wahl-enthaltung .portraet { --ring: var(--ink-faint); }
-  .bk-wahl {
-    position: absolute;
-    inset-block-start: calc(var(--space-5) + 50px);
-    inset-inline-start: calc(50% + 22px);
-    display: grid;
-    place-items: center;
-    inline-size: 2.1rem;
-    block-size: 2.1rem;
-    border-radius: 50%;
-    background: var(--night-1);
-    box-shadow: 0 0 0 2px var(--night-2);
-  }
-  .wahl-ja .bk-wahl { color: var(--up); }
-  .wahl-nein .bk-wahl { color: var(--down); }
-  .wahl-enthaltung .bk-wahl { color: var(--ink-subtle); }
   .rb-name { font-size: var(--step-1); font-weight: 600; margin-block-start: var(--space-1); }
   .rb-rolle { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--step--1); color: var(--ink-subtle); }
   .b-loyal { display: flex; align-items: center; gap: var(--space-2); margin-block-start: var(--space-1); }
@@ -192,21 +87,12 @@
   .lm-zelle.pos { background: var(--up); }
   .lm-zelle.neg { background: var(--down); }
   .lm-null { inline-size: 2px; block-size: 16px; margin-inline: 2px; background: var(--ink-faint); border-radius: 1px; }
-  [data-preview="annahme"] .gain-annahme, [data-preview="veto"] .gain-veto { background: var(--ember); animation: preview-pulse 900ms ease-in-out infinite alternate; }
-  [data-preview="annahme"] .loss-annahme, [data-preview="veto"] .loss-veto { opacity: 0.25; }
-  @keyframes preview-pulse { to { opacity: 0.55; } }
-  .b-loyal .delta { display: none; }
-  [data-preview="annahme"] .d-annahme, [data-preview="veto"] .d-veto { display: inline; }
   .entscheidungen { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-5); }
   .entscheid { display: flex; flex-direction: column; gap: var(--space-3); }
   .entscheid .btn { align-self: flex-start; min-block-size: 2.875rem; padding-inline: var(--space-4) var(--space-5); }
-  .entscheid .btn .costs { margin-inline-start: var(--space-2); }
-  .entscheid .btn .cost { color: inherit; }
-  .entscheid .btn .cost .icon { color: inherit; }
   .folgen-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .folge-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem 0.25rem 0.5rem; border-radius: 999px; background: var(--night-2); font-size: var(--step--1); font-weight: 600; color: var(--ink-dim); }
   .folge-chip .icon { color: var(--ink-subtle); }
-  .rat-ergebnis { display: flex; align-items: center; gap: var(--space-3); font-size: var(--step-1); color: var(--ember); }
 
   /* Chronik */
   .chronik { display: grid; gap: var(--space-6); }
@@ -279,7 +165,6 @@
   .pe-urteil.erfolg { color: var(--up); }
   .pe-urteil.fehlschlag, .pe-urteil.krit-tief { color: var(--down); }
   .pe-urteil.krit-hoch { color: var(--ember); }
-  .pe-hinweis { font-size: var(--step--1); color: var(--ink-subtle); }
   .probe-aktionen { display: flex; justify-content: center; }
   .btn-gross { min-block-size: 3rem; padding-inline: var(--space-6); font-size: var(--step-1); }
 }
@@ -295,6 +180,5 @@
   .overlay-kopf h2 { font-size: var(--step-2); }
   .overlay-body { padding: var(--space-2) var(--space-4) var(--space-5); }
   dialog.overlay-voll { block-size: calc(100dvh - var(--leiste-h, 5.5rem)); margin-block-start: var(--leiste-h, 5.5rem); }
-  .baum-panel { inset: auto 0 0 0; inline-size: auto; max-block-size: 45%; border-radius: var(--radius-l) var(--radius-l) 0 0; }
   .chronik-eintrag { grid-template-columns: 1fr; gap: var(--space-1); }
 }

@@ -96,10 +96,6 @@
   .link:hover { text-decoration-color: var(--ember); }
   .beschreibung { font-family: var(--font-world); font-size: 1rem; color: var(--ink-dim); line-height: 1.55; }
 
-  .vorkommen { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-  .vorkommen li { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--night-2); font-size: var(--step--1); }
-  .vorkommen .icon { color: var(--ink-subtle); }
-
   .liste-objekte { display: grid; gap: 2px; }
   .objekt-btn { display: flex; align-items: center; gap: var(--space-2); inline-size: 100%; padding: var(--space-2); border-radius: var(--radius-s); text-align: start; }
   .objekt-btn:hover { background: var(--hover-wash); }
@@ -126,7 +122,6 @@
   .bo-titel { font-weight: 600; }
   .bo-art { display: inline-grid; color: var(--ember); }
   .bo-marken { display: inline-flex; align-items: center; gap: var(--space-3); justify-self: end; }
-  .bo-ueber { display: inline-grid; color: var(--down); }
   .probe-mod { font-weight: 500; color: var(--ink-subtle); margin-inline-start: 1px; }
   .bo-folge, .bo-grund, .is-queued { grid-column: 2 / -1; font-size: var(--step--1); }
   .bo-folge { color: var(--ink-subtle); }

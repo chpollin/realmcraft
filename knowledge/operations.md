@@ -27,7 +27,7 @@ PORT=4200 node serve.mjs      # another port (Git Bash)
 $env:PORT=4200; node serve.mjs   # PowerShell
 ```
 
-The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`, the prototype at `/spielbrett/?demo`. The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It reloads open pages when code changes and pushes campaign changes over server-sent events.
+The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`. Fixture campaigns for looking at the board without a live game come from `node tests/fixtures/spielbrett/build-module.mjs --keep`, which prints the temporary root it wrote. `REALMCRAFT_ROOT=<root> PORT=<port> node serve.mjs` then serves them at `?campaign=module` and `?campaign=agenten` ([frontend.md](frontend.md)). The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It reloads open pages when code changes and pushes campaign changes over server-sent events.
 
 ## Start a game master session
 
@@ -111,6 +111,6 @@ A load restores the save in place and keeps the files it replaces as `autosave-<
 
 ## Boundaries
 
-- `.env` holds the image key of the legacy dashboard. It never enters campaign files, knowledge or commits, and agents never read it.
+- `.env` holds the image key of the portrait generator (`tools/portraits/`). It never enters campaign files, knowledge or commits, and agents never read it.
 - `campaigns/` is private and ignored by git. Back up a campaign by copying its whole folder while no transition runs.
 - The ports of the owner's running servers are not used by tests or development sessions.

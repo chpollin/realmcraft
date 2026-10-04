@@ -77,10 +77,7 @@
   .res-sonder > .icon:first-child { color: var(--ink-subtle); }
   .res-trenner { margin-inline-start: var(--space-3); }
   .befehl-wurf { display: inline-flex; align-items: center; gap: 1px; }
-  .res.is-new { animation: res-arrive var(--dur-3) var(--ease-spring) both; }
-  .res.is-new > .icon:first-child { color: var(--origin-welt); }
   .res-wert.bump { animation: bump 600ms var(--ease-out); }
-  @keyframes res-arrive { from { opacity: 0; transform: translateY(-10px) scale(0.8); } }
   @keyframes bump { 30% { color: var(--ember); transform: translateY(-2px); } }
 
   .bestimmung-kurz {
@@ -101,8 +98,6 @@
   .pip { inline-size: 7px; block-size: 7px; rotate: 45deg; border: 1.5px solid var(--ember); border-radius: 1px; }
   .pip.on { background: var(--ember); }
   .pip.over { border-color: var(--down); background: var(--down); }
-  .pip.fresh { animation: pip-fresh 900ms var(--ease-spring); }
-  @keyframes pip-fresh { 0% { scale: 0.2; } 50% { scale: 1.8; box-shadow: 0 0 0 6px var(--ember-glow); } }
 
   .kurzwahl { display: flex; gap: var(--space-1); }
   .kurz {

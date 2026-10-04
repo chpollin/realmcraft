@@ -6,10 +6,9 @@
 // a logged change or a declared effect of the library card, never an estimate.
 
 import { seasonOf } from './adapter.js';
+import { signed } from './labels.js';
 
-const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
 const seqOf = (id) => Number(/-e(\d+)$/.exec(String(id))?.[1] ?? 0);
-const fill = (text, vars) => text.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
 // Icon of the image slot per event tag, first match wins. Icons all exist in icons.js.
 const TAG_ICON = [
@@ -174,7 +173,7 @@ export function buildCards({ view, env, t, events = [], draft = null }) {
       const heirName = heir ? /^(.+) succeeds the leader$/.exec(heir.reason)?.[1] : null;
       cards.push({
         id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: t('ereignis.tod'),
-        text: [fill(t('ereignis.tod.text'), { name: who }), heirName ? fill(t('ereignis.nachfolge'), { name: heirName }) : ''].filter(Boolean).join(' '),
+        text: [t.fmt('ereignis.tod.text', { name: who }), heirName ? t.fmt('ereignis.nachfolge', { name: heirName }) : ''].filter(Boolean).join(' '),
         tags: ['rat'], image: null, icon: 'rat', chips: [], choice: null, order: seqOf(e.id),
       });
     } else if (e.kind === 'relation.contact' || e.kind === 'relation.war') {
@@ -183,7 +182,7 @@ export function buildCards({ view, env, t, events = [], draft = null }) {
       const war = e.kind === 'relation.war';
       cards.push({
         id: `e:${e.id}`, kind: 'notiz', turn: e.turn, title: war ? t('ereignis.krieg') : t('ereignis.kontakt'),
-        text: fill(war ? t('ereignis.krieg.text') : t('ereignis.kontakt.text'), { name: peopleName(view, other) }),
+        text: t.fmt(war ? 'ereignis.krieg.text' : 'ereignis.kontakt.text', { name: peopleName(view, other) }),
         tags: war ? ['krieg', 'angriff'] : ['kontakt', 'erkundung'], image: null, icon: war ? 'krieger' : 'rivalen', chips: [], choice: null, order: seqOf(e.id),
       });
     }

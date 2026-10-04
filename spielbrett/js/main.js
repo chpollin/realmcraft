@@ -1,15 +1,12 @@
 // Entry of the Spielbrett. Without parameters the page is the start screen
 // (new game, continue, settings, rules); ?campaign=<cid> opens that campaign
-// and plays it against the rules kernel; ?demo keeps the prototype on its
-// fixtures.
+// and plays it against the rules kernel.
 
-import { createModel } from './model.js';
-import { createGame, worldLabelFiles } from './data/game.js';
-import { server } from './data/server.js';
+import { createGame } from './data/game.js';
 import { startBoard } from './board.js';
 import { el } from './dom.js';
 import { icon } from './icons.js';
-import { t, applyStatic, setWorldLabels } from './i18n/index.js';
+import { t, applyStatic } from './i18n/index.js';
 import { installAudio } from './audio/index.js';
 import { applyMotion } from './ui/einstellungen.js';
 import { installMenu, toStart } from './ui/menu.js';
@@ -21,9 +18,8 @@ const params = new URLSearchParams(location.search);
 /** UI state every board model carries besides the game data. */
 function boardState() {
   return {
-    selection: null, hover: null, layer: 'gelaende', preview: null, panel: null, ownerVersion: 0,
-    highlights: [], moves: [], frostRegions: new Set(), orders: [], meldungen: [], chronik: [],
-    zz: null, zugGelaufen: false, ratBeschluss: null,
+    selection: null, hover: null, layer: 'gelaende', preview: null, panel: null,
+    highlights: [], orders: [], meldungen: [], chronik: [], zz: null,
   };
 }
 
@@ -37,7 +33,7 @@ function noCampaign(error) {
 }
 
 /** Menu and end screen of the board; the end screen opens when the campaign has ended or ends. */
-function installShell(api, game, demoRegeln = null) {
+function installShell(api, game) {
   const showEnd = (live) => openEnde(game, {
     live,
     onMenu: toStart,
@@ -45,11 +41,10 @@ function installShell(api, game, demoRegeln = null) {
   });
   installMenu({
     api,
-    regeln: () => (game ? game.pack.regeln : demoRegeln),
-    ended: () => Boolean(game && outcomeOf(game.view)),
+    regeln: () => game.pack.regeln,
+    ended: () => Boolean(outcomeOf(game.view)),
     onResult: () => showEnd(false),
   });
-  if (!game) return;
   let shown = Boolean(outcomeOf(game.view));
   if (shown) showEnd(false);
   game.onUpdate((kind) => {
@@ -63,20 +58,7 @@ applyStatic();
 const audio = installAudio();
 applyMotion(audio.settings.reduced);
 
-if (params.has('demo')) {
-  // The prototype plays the Hochland fixtures, so it names things with the Hochland labels.
-  let regeln = null;
-  try {
-    setWorldLabels(await worldLabelFiles('hochland'));
-    regeln = await server.pack('hochland', 'regeln.json');
-  } catch (err) {
-    console.error(err);
-  }
-  const model = await createModel();
-  model.panel = null;
-  model.ownerVersion = 0;
-  installShell(startBoard(model, null), null, regeln);
-} else if (params.has('campaign')) {
+if (params.has('campaign')) {
   const model = boardState();
   let game = null;
   let error = null;

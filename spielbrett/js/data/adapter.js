@@ -7,9 +7,9 @@
 // appears as volk "spieler" on map objects, a camp (settlement kind lager) is
 // a unit of art "lager", other settlements are places of art "siedlung".
 
-import { key, parseKey, neighbors, regionOf, regionInfo } from '../../../engine/world/index.js';
+import { key, parseKey, neighbors, regionOf, regionInfo, tileAt } from '../../../engine/world/index.js';
 import { bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, SUCCESS_BANDS } from './kernel.js';
-import { bandKey, fill, makeLabels } from './labels.js';
+import { bandKey, fill, makeLabels, signed } from './labels.js';
 import { tradeRoute } from '../../../engine/modules/handel.js';
 
 export const OWN = 'spieler';
@@ -24,7 +24,6 @@ const BASE_RESOURCES = 3;
 
 export const slotArt = (slot) => SLOT_ART[slot] ?? 'frei';
 export const volkOf = (view, pid) => (pid === view.people ? OWN : pid);
-const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
 
 export function seasonOf(env, t, turn) {
   const cal = calendarOf(env.regeln, turn);
@@ -606,10 +605,7 @@ export function blockersOf(view, env, t, draft, pv, world) {
 
 // --- whole model ---------------------------------------------------------------------
 
-/**
- * Board model of a real campaign. ctx = { view, env, t, world, preview,
- * chronik }. The fields match the prototype model so the views stay shared.
- */
+/** Board model of a campaign. ctx = { view, env, t, world, preview, chronik }. */
 export function adaptView({ view, env, t, world, preview: pv, chronik }) {
   const pid = view.people;
   const own = view.peoples[pid];
@@ -620,7 +616,6 @@ export function adaptView({ view, env, t, world, preview: pv, chronik }) {
   const L = layers(view, env, world);
   const { ressourcen, module } = resourceRows(view, env, t, pv);
   return {
-    real: true,
     campaign: view.campaign.id,
     turn: view.turn,
     rev: view.rev,
@@ -650,4 +645,31 @@ export function adaptView({ view, env, t, world, preview: pv, chronik }) {
     chronik: chronicle(env, t, chronik),
     meldungen: messages(view, env, t, pv),
   };
+}
+
+// --- lookups on the board model ----------------------------------------------------
+
+export function regionName(model, id) {
+  return regionInfo(model.world, id)?.name ?? '';
+}
+
+export function tileInfo(model, q, r) {
+  const tile = tileAt(model.world, q, r);
+  return { tile, def: model.terrains.get(tile.terrain), regionName: regionName(model, tile.regionId), regionId: tile.regionId };
+}
+
+export function objectsAt(model, q, r) {
+  return {
+    units: model.units.filter((u) => u.q === q && u.r === r),
+    places: model.places.filter((p) => p.q === q && p.r === r),
+  };
+}
+
+export function peopleName(model, id) {
+  if (id === OWN) return model.volk.name;
+  return model.rivalen.find((r) => r.id === id)?.name ?? id;
+}
+
+export function resourceByKey(model, k) {
+  return model.ressourcen.find((r) => r.key === k) ?? model.module.find((r) => r.key === k);
 }

@@ -12,6 +12,9 @@ export const UI_LABELS = { de: de.labels, en: en.labels };
 export const LANGUAGES = ['en', 'de'];
 export const DEFAULT_LANGUAGE = 'en';
 
+/** A number with its sign, a true minus for negatives: "+2", "−1", "0". */
+export const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+
 /** Fills "{name}" placeholders; an unknown placeholder stays visible. */
 export const fill = (text, params) => (params ? String(text).replace(/\{(\w+)\}/g, (m, k) => (params[k] ?? m)) : text);
 

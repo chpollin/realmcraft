@@ -61,11 +61,7 @@ export function withoutOrder(draft, id, probeId = null) {
   for (const field of ['venture', 'lead', 'mandate']) if (draft[field]) next[field] = without(draft[field], id);
   // A Machtprobe overriding this order loses its object.
   next = { ...next, orders: next.orders.filter((o) => !(o.type === 'machtprobe' && o.params?.order === id)) };
-  if (probeId && draft.rolls?.[probeId]) {
-    const r = draft.rolls[probeId];
-    next = { ...next, rolls: without(draft.rolls, probeId), withdrawn: [...(draft.withdrawn ?? []), { probe: probeId, value: r.value, fingerprint: r.fingerprint }].slice(-MAX_WITHDRAWN) };
-  }
-  return next;
+  return probeId ? withoutRoll(next, probeId) : next;
 }
 
 /** Stores a roll against the probe's current fingerprint; a replaced stale roll is kept in `withdrawn`. */

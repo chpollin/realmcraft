@@ -5,9 +5,8 @@
 
 import { el } from '../dom.js';
 import { icon } from '../icons.js';
-import { regionName } from '../model.js';
 import { adoptCandidates, moduleData } from '../data/options.js';
-import { seasonOf } from '../data/adapter.js';
+import { seasonOf, regionName } from '../data/adapter.js';
 import { t } from '../i18n/index.js';
 import { header, fact, facts, section, orderOptions, optionRow } from './kontext.js';
 
@@ -48,6 +47,6 @@ export function renderLebensweise(api, close) {
   const home = model.home;
   const target = home ? { kind: 'unit', id: home.id, q: home.q, r: home.r } : { kind: 'modul', id: 'lebensweise' };
   const adopt = adoptCandidates(game.view, game.env).map((c) => optionRow(game.previewOption(c)));
-  if (adopt.length) body.push(orderOptions(api, null, target, { given: adopt, titel: t('board.life.adopt'), hid: 'wandel-order-h', iconName: 'praxis' }));
+  if (adopt.length) body.push(orderOptions(api, target, { given: adopt, titel: t('board.life.adopt'), hid: 'wandel-order-h', iconName: 'praxis' }));
   return { kopf, body };
 }

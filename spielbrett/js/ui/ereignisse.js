@@ -45,14 +45,11 @@ function chipList(chips) {
     withTip(el('span', { class: 'folge-chip', tabindex: '0', 'aria-label': `${c.text} ${c.wert}`.trim() }, icon(c.icon, { size: 15 }), c.wert), [el('span', { text: c.text })], null, { up: true }))));
 }
 
-/**
- * Wires the event queue to a real campaign. Returns { reopen } or null in the
- * prototype (?demo), which has no kernel events.
- */
+/** Wires the event queue to the campaign. Returns { reopen }, or null without the event dialog. */
 export function initEreignisse(api) {
   const { game } = api;
   const dlg = document.getElementById('dlg-ereignis');
-  if (!game || !dlg) return null;
+  if (!dlg) return null;
 
   let queue = [];
   let index = 0;

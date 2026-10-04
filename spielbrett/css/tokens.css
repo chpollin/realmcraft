@@ -95,7 +95,6 @@
   /* Map overlays */
   --map-river: oklch(0.70 0.08 228);
   --map-snow: oklch(0.95 0.012 230);
-  --map-frost: oklch(0.88 0.06 220);
   --map-camp-glow: oklch(0.78 0.16 62);
   --map-label: oklch(0.95 0.012 85);
   --map-label-halo: oklch(0.16 0.012 250);

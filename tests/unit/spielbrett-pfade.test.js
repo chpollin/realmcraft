@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { buildEnv, previewDraft, pathsView, researchCost, seasonPoints, tune } from '../../spielbrett/js/data/kernel.js';
 import { makeLabels } from '../../spielbrett/js/data/labels.js';
 import { draftFor, withOrder, withAssign } from '../../spielbrett/js/data/draft.js';
-import { currentResearch, demoWheel, wheelOf } from '../../spielbrett/js/data/pfade.js';
+import { currentResearch, wheelOf } from '../../spielbrett/js/data/pfade.js';
 import { RULES } from '../../engine/core/rules.js';
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
@@ -74,13 +74,6 @@ describe('wheel model', () => {
     }
   });
 
-  test('the prototype fixtures fill the six Hochland paths without a kernel', () => {
-    const model = { entwicklungen: { bekannt: [{ id: 'a', name: 'A', art: 'einheit' }], forschung: [{ id: 'b', name: 'B', art: 'magie', fortschritt: 1, dauer: 3 }], vorschlaege: [] } };
-    const d = demoWheel(model, t);
-    assert.equal(d.paths.length, 6);
-    assert.equal(d.nodeOf('a').pfad, 'militaer');
-    assert.equal(d.nodeOf('b').state, 'research');
-  });
 });
 
 describe('research points and the project of the season', () => {
