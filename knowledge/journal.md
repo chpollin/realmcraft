@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [decisions, playtests, handoff, plan-m1]
@@ -75,3 +75,10 @@ The curated backward-looking provenance index of the project. Current specificat
 - Decided. Paths and achievements, English as default UI language, start screen and menus, synthesized audio and end screens as M1 decisions. The owner confirmed the paths model with an own branch described in a prompt and proposed configuring the set of paths per game, recorded as a decision candidate in [playtests.md](playtests.md).
 - Verified. Unit, acceptance and all board end-to-end specs green on the merged `main`. The live campaign `hochland-1` played through turn 2 on the new kernel, was repinned after content changes, and its journal replays.
 - Open. The independent reviews, the fix round and the reconciliation of every knowledge document with the merged code did not run. The owner's UI feedback (playtest entries 23 to 36), a read-only audit of the live game and kernel defects found by fuzzing wait in [handoff.md](handoff.md) for the saved workflow `realmcraft-refactor-verify`.
+
+### 2026-10-04 refactor wave merged
+
+- Changed. Six lanes of the saved workflow `realmcraft-refactor-verify` were merged into `main`. Core removed the dead forwarders, the view descriptor layer and duplicate alive checks and names labour units clans. Content made `validate`, `new` and `repin` refuse a world package that lacks a kernel label key and replaced stale citations. Harness reads candidate limits, maximum tier and member loyalty from the world rules, shares one campaign path parser between guard and proposal check, keeps the player's rolls only in the draft without the ledger `rolls.json`, and trims the portrait client. Server dropped the `/env.js` route, serves static files only from the board's folders and shares one test server starter. Board removed the `?demo` prototype. Tests pinned the acceptance driver to the field names the CLI emits and dropped dead guards and unplayed fixtures.
+- Decided. Core and content resolved the unwired label-key option in opposite directions. The merge keeps the refusal at `validate`, `new` and `repin` and takes the keys from `kernelLabelKeys()` in `engine/content/validate.js` (probe bands, loyalty bands, order types), since the view keys left with the view descriptors and stay covered by the Hochland content test. Server and tests lanes both built the shared server starter, the server lane's `tests/lib/server.mjs` stays and refuses a pinned owner port.
+- Verified. Check, unit, acceptance and the board end-to-end specs green on the merged `main`. The golden replays of every lane, run against the pre-merge `main` and the merged `main`, give identical hashes once the intended changes are normalised (no `rolls.json`, no `rolls` anchor in journal entries, no budget alias `N`, no null severity on finding rows, no `upkeepRisk`, harvest `clans`). The stored draft, the journal input and the round reports list the player's rolls in a different key order, with equal content. The live campaign `hochland-1` repinned without change, and its preview answers exit 3 for the unrolled event probe of the turn.
+- Open. `bestimmung.js` and `tools/sim/simulate.js` keep their own alive checks, the saved workflow still names `views.js` in its core lane description, the module spec keeps fixed waits until the board exposes a settled event queue, the swap button of an order option has no browser test, and some dead board CSS and labels outside the accepted candidates remain.
