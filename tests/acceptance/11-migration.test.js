@@ -26,7 +26,7 @@ const CONTENT = readJson(join(REPO, 'welten', WORLD, 'content', 'entwicklungen.j
 const costOf = (ref) => CONTENT.find((e) => `${e.id}@${e.rev}` === ref)?.cost.research ?? 0;
 const refsOf = (list) => list.map((x) => x.ref);
 
-describe('migration of a campaign from before paths', { timeout: T_LONG, skip: REGELN.pfade ? false : `world ${WORLD} has no paths` }, () => {
+describe('migration of a campaign from before paths', { timeout: T_LONG }, () => {
   let root;
   let c;
   let pid;

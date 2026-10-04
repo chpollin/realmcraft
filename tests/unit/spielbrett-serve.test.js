@@ -1,6 +1,5 @@
 // tests/unit/spielbrett-serve.test.js — campaign bridge of serve.mjs against a
-// real server process and a throwaway campaign root (REALMCRAFT_ROOT). The
-// port is free and never one of the operator ports (4173/4185/4186/4190).
+// real server process and a throwaway campaign root (REALMCRAFT_ROOT).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

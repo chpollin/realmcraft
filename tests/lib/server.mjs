@@ -27,8 +27,12 @@ function freePort() {
  * for the next spec file.
  */
 export async function startServer(root, { port: pinned } = {}) {
-  let port = Number(pinned) || await freePort();
-  while (FORBIDDEN_PORTS.has(port)) port = await freePort();
+  let port = Number(pinned) || 0;
+  if (FORBIDDEN_PORTS.has(port)) throw new Error(`port ${port} belongs to the owner's servers`);
+  if (!port) {
+    port = await freePort();
+    while (FORBIDDEN_PORTS.has(port)) port = await freePort();
+  }
   const proc = spawn(process.execPath, ['serve.mjs'], {
     cwd: REPO,
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },

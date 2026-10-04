@@ -48,7 +48,7 @@ async function openBoard(page, cid = CID) {
   return errors;
 }
 
-/** Reads every event card of the season with Continue. */
+/** Reads every event card of the season with Continue; the module fixture always opens on one. */
 async function readCards(page) {
   const dlg = page.locator('#dlg-ereignis');
   await expect(dlg).toBeVisible();
@@ -90,8 +90,7 @@ test('the event card answers a decision with the kernel preview and closes with 
 
 test('the province panel names owner and places and offers what wins the region', async ({ page }) => {
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const view = viewOf(CID);
   const camp = view.map.settlements.find((s) => s.people === PID);
   expect(view.map.control[camp.regionId]).toBe(PID);
@@ -114,8 +113,7 @@ test('the province panel names owner and places and offers what wins the region'
 
 test('an attack shows the battle the kernel would fight and opens its probe', async ({ page }) => {
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   await clickTile(page, fx.enemy);
   const forecast = await page.evaluate((tile) => {
     const g = window.spielbrett.game;
@@ -139,8 +137,7 @@ test('an attack shows the battle the kernel would fight and opens its probe', as
 
 test('a trade offer is put together in the partner panel and enters the draft', async ({ page }) => {
   const errors = await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const handel = page.locator('#module [data-modul="handel"]');
   await expect(handel).toBeVisible();
   await handel.click();
@@ -182,8 +179,7 @@ test('the agent round shows its steps at a glance and the judges findings by sev
 test('the board keeps the modules usable on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openBoard(page);
-  await page.waitForTimeout(500);
-  if (await page.locator('#dlg-ereignis').isVisible()) await readCards(page);
+  await readCards(page);
   const bar = page.locator('#module');
   await expect(bar).toBeInViewport();
   await bar.locator('[data-modul="militaer"]').click();

@@ -11,21 +11,18 @@
 //    enter through the sanctioned loader `new <world> --seed n --as tpl --id
 //    cid --from-state <file>` (lib/harness.js createCampaign option `craft`):
 //    the harness creates a throwaway base campaign, mutates its real state and
-//    loads the result as the campaign under test. The fixtures
-//    campaign-near-victory.json and campaign-near-collapse.json serve the same
-//    path in the kernel's own tests.
-// B2 A milestone is latched by reached: true with reachedAt (engine/schemas)
-//    or by latched: <turn> (Regelkern). Latched milestones stay latched, so a
+//    loads the result as the campaign under test.
+// B2 A milestone is latched by reached: true with reachedAt
+//    (engine/schemas/bestimmung.js). Latched milestones stay latched, so a
 //    destiny with every milestone latched is fulfilled at the next season end.
 // B3 Population core 0 is below any tuning.collapseCore and makes the player
 //    people collapse at the next season end.
-// B4 The end of a campaign shows as status 'ended' plus an event-log entry of
-//    that season whose kind or reason names the outcome: victory, sieg, win or
-//    fulfil for a victory, defeat, niederlage, collapse or untergang for a
-//    defeat. Regelkern's `result` field is checked when present. The kernel
-//    records an AI victory as result { winner: <AI people>, kind: 'victory' }
-//    (engine/schemas/campaign.js), so the player's defeat is the end of the
-//    campaign with a winner other than the player.
+// B4 The end of a campaign shows as status 'ended', a result { winner, kind }
+//    (engine/schemas/campaign.js) and an event-log entry of that season of
+//    kind campaign.victory or campaign.defeat (engine/core/bestimmung.js). A
+//    victory has kind 'victory' and names its winner, a collapse of the player
+//    has kind 'collapse' and no winner. The player's defeat by an AI victory
+//    is the end of the campaign with a winner other than the player.
 // B5 Every people carries a destiny after `new` (Regelkern section 13, "Jedes
 //    Volk hat eine Bestimmung"), the AI peoples included.
 // B6 The last test checks the tamper guard itself: a state edited in place
@@ -35,10 +32,6 @@
 import { describe, it, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { T_SHORT, codesOf, createCampaign, destinyOf, dice, removeRoot } from './lib/harness.js';
-
-// Word boundaries keep "winter", "versiegelt" and herd losses from passing as outcomes.
-const VICTORY = /victor|\bsieg\b|\bwins?\b|\bwon\b|fulfil|erfuellt|erfüllt/i;
-const DEFEAT = /defeat|niederlage|collaps|untergang/i;
 
 const roots = [];
 after(() => roots.forEach(removeRoot));
@@ -53,17 +46,13 @@ function latchAll(state, peopleId) {
   const d = destinyOf(state.peoples[peopleId]);
   assert.ok(d && Array.isArray(d.milestones) && d.milestones.length >= 3, `${peopleId} has a destiny with three or four milestones (assumption B5)`);
   for (const m of d.milestones) {
-    if ('reached' in m || !('latched' in m)) {
-      m.reached = true;
-      m.reachedAt = state.turn;
-    }
-    if ('latched' in m) m.latched = state.turn;
+    m.reached = true;
+    m.reachedAt = state.turn;
   }
 }
 
-function outcomeEntries(c, state, turn, pattern) {
-  return c.allLogEntries(state).filter((e) => (e.turn === undefined || e.turn === turn || e.turn === turn + 1)
-    && pattern.test(JSON.stringify([e.kind, e.reason, e.change])));
+function outcomeEntries(c, state, turn, kind) {
+  return c.allLogEntries(state).filter((e) => (e.turn === turn || e.turn === turn + 1) && e.kind === kind);
 }
 
 function assertFinished(c) {
@@ -89,11 +78,9 @@ describe('bestimmung', { timeout: T_SHORT }, () => {
     });
     const { afterApply, turn } = c.playTurn({ next: dice(81) });
     assert.equal(afterApply.status, 'ended', 'the campaign ends with the victory');
-    assert.ok(outcomeEntries(c, afterApply, turn, VICTORY).length > 0, 'an event-log entry records the victory');
-    if (afterApply.result !== undefined && afterApply.result !== null) {
-      assert.match(JSON.stringify(afterApply.result), VICTORY);
-      assert.ok(JSON.stringify(afterApply.result).includes(s.campaign.player), 'the result names the player people');
-    }
+    assert.ok(outcomeEntries(c, afterApply, turn, 'campaign.victory').length > 0, 'an event-log entry records the victory');
+    assert.equal(afterApply.result.kind, 'victory');
+    assert.equal(afterApply.result.winner, s.campaign.player, 'the result names the player people');
     assertFinished(c);
   });
 
@@ -105,8 +92,9 @@ describe('bestimmung', { timeout: T_SHORT }, () => {
     });
     const { afterApply, turn } = c.playTurn({ next: dice(82) });
     assert.equal(afterApply.status, 'ended', 'the campaign ends with the collapse');
-    assert.ok(outcomeEntries(c, afterApply, turn, DEFEAT).length > 0, 'an event-log entry records the defeat');
-    if (afterApply.result !== undefined && afterApply.result !== null) assert.match(JSON.stringify(afterApply.result), DEFEAT);
+    assert.ok(outcomeEntries(c, afterApply, turn, 'campaign.defeat').length > 0, 'an event-log entry records the defeat');
+    assert.equal(afterApply.result.kind, 'collapse');
+    assert.equal(afterApply.result.winner, null);
     assertFinished(c);
   });
 
@@ -121,7 +109,8 @@ describe('bestimmung', { timeout: T_SHORT }, () => {
     assert.equal(afterApply.status, 'ended', 'the campaign ends when an AI people fulfils its destiny');
     assert.equal(afterApply.result?.winner, ai, 'the AI people is the winner, so the player has lost');
     assert.notEqual(afterApply.result.winner, c.player);
-    assert.ok(outcomeEntries(c, afterApply, turn, VICTORY).some((e) => JSON.stringify(e).includes(ai)), 'an event-log entry records the victory of the AI people');
+    assert.equal(afterApply.result.kind, 'victory');
+    assert.ok(outcomeEntries(c, afterApply, turn, 'campaign.victory').some((e) => e.change.after.winner === ai), 'an event-log entry records the victory of the AI people');
     assertFinished(c);
   });
 

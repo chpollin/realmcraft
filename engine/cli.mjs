@@ -1084,11 +1084,11 @@ function cmdBudget(a) {
   const doc = r.value;
   if (Number.isInteger(doc?.band) && !doc.format) {
     const score = scoreEreignis(doc, ctx);
-    return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, N: score.net, issues: undefined }, text: `event card ${doc.id}: net ${score.net}` };
+    return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, issues: undefined }, text: `event card ${doc.id}: net ${score.net}` };
   }
   if (doc?.format !== 'realmcraft-entwicklung') return fail(2, [cliIssue('format', '', 'budget needs an Entwicklung or an event card', { reason: 'not-priceable' })]);
   const score = scoreEntwicklungStandalone(doc, ctx.regeln);
-  return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, N: score.net, issues: undefined }, text: `${doc.id}: effect ${score.effect}, price ${score.price}, net ${score.net}` };
+  return { code: hasErrors(score.issues) ? 2 : 0, issues: score.issues, data: { ...score, issues: undefined }, text: `${doc.id}: effect ${score.effect}, price ${score.price}, net ${score.net}` };
 }
 
 function cmdSchema(a) {

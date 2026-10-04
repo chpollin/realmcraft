@@ -35,7 +35,7 @@ function dryrun(root, cid, ...extra) {
 const read = (root, cid, rel) => JSON.parse(readFileSync(join(root, 'campaigns', cid, rel), 'utf8'));
 const step = (summary, id) => summary.steps.find((s) => s.id === id);
 
-describe('harness dry run', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is missing (lane K1)' }, () => {
+describe('harness dry run', () => {
   let root;
   let first;
   let second;
@@ -130,7 +130,7 @@ describe('harness dry run', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is
 // Code's SubagentStart carries no task description, and steps ended failed or
 // waiting although every agent delivered, with the status phase stuck in
 // agents. Here the real hooks write the status from Claude Code's payloads.
-describe('harness dry run through the hooks', { skip: existsSync(CLI) ? false : 'engine/cli.mjs is missing (lane K1)' }, () => {
+describe('harness dry run through the hooks', () => {
   let root;
   let first;
   let second;

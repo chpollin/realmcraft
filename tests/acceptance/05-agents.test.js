@@ -25,16 +25,16 @@
 // G5 A stale basedOnRev is tested with an entwicklung item, because the
 //    Agentenvertrag still admits text items after a revision change.
 // G6 `budget <file> --json` answers with the breakdown including the net
-//    value as N (Regelkern) or net (engine/schemas status budget); exit 0 when
-//    the budget holds, exit 2 with an issue whose code starts with "budget"
-//    (or min_price) when it does not. Both answers are pure and need no
-//    campaign context beyond the --campaign flag the harness always passes.
+//    value as net; exit 0 when the budget holds, exit 2 with an issue whose
+//    code starts with "budget" when it does not. Both answers are pure and
+//    need no campaign context beyond the --campaign flag the harness always
+//    passes.
 
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import {
-  FIXTURES, T_SHORT, assertSchema, codesOf, collect, createCampaign, dice, expectExit, fixture, pick, removeRoot, stateHash,
+  FIXTURES, T_SHORT, assertSchema, codesOf, collect, createCampaign, dice, expectExit, fixture, removeRoot, stateHash,
 } from './lib/harness.js';
 
 const isTask = (o) => o && typeof o === 'object' && o.format === 'realmcraft-task';
@@ -157,7 +157,7 @@ describe('agents contract', { timeout: T_SHORT }, () => {
 
   it('an over-budget development is rejected by budget with a budget issue', () => {
     const res = expectExit(c.run('budget', join(FIXTURES, 'entwicklung', 'donnerkeil-over-budget.json')), [2], 'budget donnerkeil');
-    assert.ok(codesOf(res).some((code) => /^budget|^min_price$/.test(code)), `expected a budget issue, got ${codesOf(res).join(', ')}`);
+    assert.ok(codesOf(res).some((code) => /^budget/.test(code)), `expected a budget issue, got ${codesOf(res).join(', ')}`);
   });
 
   it('an over-budget development proposed by the research agent does not enter the library', () => {
@@ -177,7 +177,7 @@ describe('agents contract', { timeout: T_SHORT }, () => {
   it('Pulverwall and Bannfeuer both pass the budget with equal net value', () => {
     const net = (file) => {
       const res = expectExit(c.run('budget', join(FIXTURES, 'entwicklung', file)), [0], `budget ${file}`);
-      const n = pick(res.json, 'N', 'net');
+      const n = res.json.net;
       assert.ok(Number.isInteger(n), `budget ${file} reports no integer net value: ${res.stdout.slice(0, 400)}`);
       return n;
     };

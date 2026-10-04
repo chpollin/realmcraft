@@ -121,19 +121,6 @@ test('mid-game fixtures hold what the acceptance tests start from', () => {
   assert.deepEqual(Object.keys(v.map.known), ['talbund']);
   assert.ok(Object.keys(v.relations).every((k) => k.split('|').includes('talbund')));
 
-  const won = load('campaign-near-victory.json');
-  const last = won.map.settlements.filter((s) => s.people === 'schaedelklan');
-  assert.equal(last.length, 1, 'one settlement left to take');
-  assert.equal(won.relations['schaedelklan|talbund'].atWar, true);
-  assert.ok(won.peoples.talbund.units.some((u) => won.map.known.talbund[u.tile] === 'visible'));
-  assert.equal(won.result, null);
-
-  const lost = load('campaign-near-collapse.json');
-  assert.equal(lost.peoples.talbund.population.core, 1);
-  assert.equal(lost.peoples.talbund.resources.nahrung, 0);
-  assert.ok(lost.peoples.talbund.shortfall.nahrung > 0);
-  assert.equal(lost.result, null);
-
   // The report belongs to the kernel run behind the mid-game state.
   const r = load('report-T0011.json');
   assert.equal(r.turn, 11);

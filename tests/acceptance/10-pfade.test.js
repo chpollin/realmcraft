@@ -26,7 +26,7 @@ const PATHS = REGELN.pfade?.paths ?? [];
 const CONTENT = readJson(join(REPO, 'welten', WORLD, 'content', 'entwicklungen.json')).items;
 const costOf = (ref) => CONTENT.find((e) => `${e.id}@${e.rev}` === ref)?.cost.research ?? 0;
 
-describe('paths', { timeout: T_LONG, skip: PATHS.length ? false : `world ${WORLD} has no paths` }, () => {
+describe('paths', { timeout: T_LONG }, () => {
   let c;
   let pid;
   const next = dice(1010);

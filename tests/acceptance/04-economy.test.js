@@ -5,10 +5,8 @@
 // excess lost at round end); RealmCraft-Plan test strategy "Langlauf-Invarianten".
 //
 // Assumptions beyond lib/harness.js (A1 to A9):
-// E1 The stock cap of each people is observable in state.derived[people] under
-//    caps, stockCaps, limits or storage, as a map resource -> integer. The
-//    rules make a cap observable to the player, but neither Regelkern nor
-//    engine/schemas names the field.
+// E1 The stock cap of each people is observable in state.derived[people].caps
+//    as a map resource -> integer (engine/core/derive.js).
 // E2 Cap invariant without knowing the gains: since gains are capped before
 //    losses and half of any excess is lost at round end, a stock above its cap
 //    after a season must be strictly smaller than at the start of that season.
@@ -26,8 +24,7 @@ import { T_LONG, assertSchema, createCampaign, dice, isObj, removeRoot, schemaEr
 const TURNS = 50;
 
 function capsOf(state, people) {
-  const d = state.derived?.[people] ?? state.derived?.peoples?.[people];
-  const caps = d?.caps ?? d?.stockCaps ?? d?.limits ?? d?.storage;
+  const caps = state.derived?.[people]?.caps;
   return isObj(caps) ? caps : null;
 }
 

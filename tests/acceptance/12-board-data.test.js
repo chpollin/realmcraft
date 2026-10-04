@@ -1,4 +1,4 @@
-// Group 12, the data the board reads from the kernel (plan-m1, lane K2):
+// Group 12, the data the board reads from the kernel (plan-m1):
 // creation options of `new`, machine-readable issues in every CLI answer, the
 // council, trade, rival and outcome blocks of the projection, and judges'
 // findings in status.json.

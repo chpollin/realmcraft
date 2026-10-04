@@ -6,7 +6,7 @@ import { createCampaign, open, preview, seal, apply, emptyDraft } from '../../..
 import { createContext } from '../../../../engine/core/log.js';
 import { orderContext } from '../../../../engine/core/orders.js';
 import { resolveProbe } from '../../../../engine/core/probes.js';
-import { peopleIds, clone } from '../../../../engine/core/state.js';
+import { peopleIds } from '../../../../engine/core/state.js';
 
 export const STRENGTH = { 'speerwall@1': 3, 'reiterschar@1': 2 };
 
@@ -90,5 +90,3 @@ export function errorsOf(state, env, orders) {
   const pv = preview(state, env, { ...emptyDraft(state, pid), orders }, { as: pid });
   return pv.issues.filter((i) => i.severity === 'error');
 }
-
-export const cloneState = clone;

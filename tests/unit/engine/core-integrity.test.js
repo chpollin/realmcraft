@@ -1,4 +1,4 @@
-// Regression tests of the kernel review findings (lane K): the seal lock,
+// Regression tests of the kernel review findings: the seal lock,
 // costs before orders, checks on the projection, decisions at resolve, ids
 // that collide with Object.prototype or kernel probes, and the council
 // forecast of the preview.
