@@ -109,10 +109,8 @@ function upkeep(tc, pid) {
 
 export default {
   id: 'magie',
-  version: 1,
   always: false,
   resourceRoles: [{ role: 'source', defaultId: null }],
-  tags: { magie: 2 },
   // Real worlds activate the module by the first disziplin itself, without a module.activate effect.
   autoActive: (state, env, pid) => disciplines(state, env, pid).length > 0,
   initPeople: () => ({ withdrawal: {}, uses: {} }),
@@ -135,7 +133,4 @@ export default {
       };
     },
   },
-  views: [{ id: 'magie', labelKey: 'view.magie', icon: 'flame', order: 50, scope: 'people', sections: ['disciplines', 'sources', 'withdrawal'] }],
-  labelKeys: ['view.magie', 'module.magie', 'modulerole.source'],
-  agentHints: { primitives: ['dependency', 'meter', 'resource.flow', 'research.mod'], tags: ['magie'] },
 };

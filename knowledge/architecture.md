@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, agents-harness, frontend, testing, operations]
@@ -24,7 +24,7 @@ RealmCraft is plain ES modules without a build step on Node 21 or later. Four pa
 | Part | Location | Role |
 |---|---|---|
 | World generator | `engine/world/` | Pure hex world from seed and `welt.json` (`createWorld`, `tileAt`, `regionOf`, `regionInfo`, `reveal`, `findPath`, `reachable`, `findStart`, `placePeoples`, hex helpers). Chunks are generated on demand with identical results regardless of order |
-| Rules kernel | `engine/core/` | Turn pipeline (`createCampaign`, `preview`, `seal`, `apply`, `open`, `repin`), orders, probes, economy, research, council, events, destiny, map, military, fog (`projectFor`), view descriptors, log and hashing |
+| Rules kernel | `engine/core/` | Turn pipeline (`createCampaign`, `preview`, `seal`, `apply`, `open`, `repin`), orders, probes, economy, research, council, events, destiny, map, military, fog (`projectFor`), log and hashing |
 | Modules | `engine/modules/` | Lebensweise, Handel, Magie and Militär as DOM-free deterministic modules in a fixed registry order |
 | Content | `engine/content/` | Schema interpreter, validator, power budget and append-only campaign library |
 | Schemas | `engine/schemas/` | Data contracts of every file, the primitive set and the budget tables ([data-contracts.md](data-contracts.md)) |

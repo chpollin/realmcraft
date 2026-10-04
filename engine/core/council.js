@@ -14,7 +14,7 @@ import { seasonsPerYear } from './calendar.js';
 import { applyOnce, ofOp, setKern } from './effects.js';
 import { SUCCESS, buildProbe, calculation, probeId, resolveProbe } from './probes.js';
 import { addPeople, changeLoyalty, notice, record, setMember, setPeople } from './log.js';
-import { KERN_SLICE, controlledRegions, findMember, kern, peopleIds } from './state.js';
+import { KERN_SLICE, controlledRegions, findMember, isAlive, kern, peopleIds } from './state.js';
 import { regionAt } from './map.js';
 import { PATTERNS } from '../schemas/common.js';
 
@@ -24,9 +24,6 @@ const slice = (people) => ({ ...KERN_SLICE(), ...kern(people) });
 const AIMS = ['override', 'rally', 'reconcile', 'quell'];
 const TALK_MODES = ['listen', 'ask', 'honor', 'honor-dead'];
 const tagPattern = new RegExp(PATTERNS.tag);
-
-/** Same test turn.js uses to skip a people that has gone under. */
-export const isAlive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
 export function loyaltyBand(v) {
   if (v >= 4) return 'ergeben';

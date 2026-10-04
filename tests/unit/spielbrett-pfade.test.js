@@ -88,7 +88,7 @@ describe('research points and the project of the season', () => {
     const p = seasonPoints(view, env, pid, null, null);
     const wissen = view.peoples[pid].resources[RULES.knowledge] ?? 0;
     assert.equal(p.base, RULES.researchBase);
-    assert.equal(p.labour, (view.peoples[pid].population.assigned.research ?? 0) * RULES.researchPerGroup);
+    assert.equal(p.labour, (view.peoples[pid].population.assigned.research ?? 0) * RULES.researchPerClan);
     assert.equal(p.knowledge, Math.min(wissen, tune(env, 'knowledgeSpend')));
     assert.equal(p.total, p.base + p.labour + p.knowledge + p.mods);
   });
@@ -98,7 +98,7 @@ describe('research points and the project of the season', () => {
     const [from] = Object.keys(assigned).filter((k) => assigned[k] > 0);
     const draft = withAssign(draft0, { ...assigned, [from]: assigned[from] - 1, research: (assigned.research ?? 0) + 1 });
     const before = currentResearch(ctx(draft0)).points.total;
-    assert.equal(currentResearch(ctx(draft)).points.total, before + RULES.researchPerGroup);
+    assert.equal(currentResearch(ctx(draft)).points.total, before + RULES.researchPerClan);
   });
 
   test('without research and without a choice no project takes the points', () => {

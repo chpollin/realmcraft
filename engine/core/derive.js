@@ -2,7 +2,7 @@
 // catalogue per people (written to state.derived on every write, never an
 // input to a rule), and the map layers the views draw.
 
-import { atWar, controlledRegions, homeSettlement, kern, peopleIds, relation, settlementsOf } from './state.js';
+import { atWar, controlledRegions, homeSettlement, isAlive, kern, peopleIds, relation, settlementsOf } from './state.js';
 import { statsOf } from './stats.js';
 import { standingOf } from './effects.js';
 import { forecast, popCap, stockCaps } from './economy.js';
@@ -15,9 +15,6 @@ import { projectEvents, projectFor } from './project.js';
 import { pathsView } from './pfade.js';
 import { activeModules } from '../modules/index.js';
 import { tradeRoute } from '../modules/handel.js';
-
-/** Base value plus stat.mod effects, held to -2..3. */
-export { statsOf };
 
 /**
  * Layers of one people's map view: controller of every known region, threat
@@ -166,12 +163,11 @@ export function outcomeView(state, env, pid, pfade) {
 export function computeDerived(state, env) {
   const out = {};
   for (const pid of peopleIds(state)) {
-    const people = state.peoples[pid];
     const standing = standingOf(state, env, pid);
     const entry = { stats: statsOf(state, env, pid, standing), caps: stockCaps(state, env, pid, standing), popCap: popCap(state, env, pid, standing) };
     let catalogue = [];
     entry.pfade = pathsView(state, env, pid);
-    if (people.population.core > 0 && settlementsOf(state, pid).length) {
+    if (isAlive(state, pid)) {
       const f = forecast(state, env, pid);
       const ox = orderContext(state, env, pid);
       catalogue = catalogueFor(state, env, pid, ox);

@@ -10,7 +10,7 @@ import { RULES } from '../../../engine/core/rules.js';
 import * as research from '../../../engine/core/research.js';
 import { issue } from '../../../engine/core/issues.js';
 import { orderContext } from '../../../engine/core/orders.js';
-import { pathTier, pathsView, pointsOf } from '../../../engine/core/pfade.js';
+import { openTier, pathTier, pathsView, pointsOf } from '../../../engine/core/pfade.js';
 import { validate } from '../../../engine/content/schema.js';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { assertCovered, dev, envWith, fresh, knownEntry, context, logKinds } from '../../fixtures/engine/k1/research.js';
@@ -69,7 +69,7 @@ function richEsk(env, extra = []) {
 test('the pool keeps a higher tier closed until the path tier reaches it', () => {
   const env = pathEnv({ ...WIDE, developments: [dev({ id: 'tauschplatz', name: 'Tauschplatz', tags: ['handel', 'markt'] })] });
   const one = richEsk(env, ['salzpfad']);
-  assert.equal(research.openTier(one, env, 'esk'), 2);
+  assert.equal(openTier(one, env, 'esk'), 2);
   assert.equal(pathTier(env, one.peoples.esk, 'handel'), 1);
   assert.equal(refs(offer(one, env, 'esk'), 'esk').includes('marktrecht@1'), false);
   const two = richEsk(env, ['salzpfad', 'tauschplatz']);

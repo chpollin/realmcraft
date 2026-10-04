@@ -19,7 +19,6 @@ export const RIVAL = 'glutreiter';
 export const startState = (env = testEnv(), seed = 7) => open(createCampaign(env, { id: 'm-1', seed }).state, env).state;
 
 const readJson = (p) => JSON.parse(readFileSync(new URL(`../../../../welten/hochland/${p}`, import.meta.url), 'utf8'));
-export const LABELS = readJson('labels.json').labels;
 export const hochlandEnv = () => makeEnv({
   welt: readJson('welt.json'),
   regeln: readJson('regeln.json'),

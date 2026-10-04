@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ORDERS, eventProbeSpec, resolveEvents } from '../../../engine/core/events.js';
+import { eventProbeSpec, resolveEvents } from '../../../engine/core/events.js';
 import { apply, emptyDraft, stateHash } from '../../../engine/core/turn.js';
 import { checkDraft } from '../../../engine/core/orders.js';
 import { fireHook } from '../../../engine/core/log.js';
@@ -17,8 +17,7 @@ const gain = (amount) => ({ op: 'resource.delta', res: 'nahrung', amount });
 const addStanding = (state, effects, pid = PLAYER) => state.peoples[pid].statuses.push({ id: 'teststand', effects, until: null, endsOn: null });
 const noRoll = () => { throw new Error('no random draw expected'); };
 
-test('events own no orders and keep the event probe spec', () => {
-  assert.deepEqual(ORDERS, {});
+test('the event probe spec', () => {
   const { state } = world();
   assert.deepEqual(eventProbeSpec(state, 'esk', 'kernel'), {
     id: 'T0:esk:event', people: 'esk', order: null, kind: 'event', tags: ['ereignis'], roller: 'kernel', target: null, modifiers: [], params: {},

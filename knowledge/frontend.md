@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, architecture, data-contracts, playtests, testing, plan-m1]
@@ -28,7 +28,7 @@ The game board (Spielbrett) under `spielbrett/` is the map-first browser surface
 | Module | Role |
 |---|---|
 | `js/data/server.js` | client of the dev server that reads the campaign index, the player's view and events, `status.json`, chronicle and report summaries, writes through `POST /api/draft` and `POST /api/seal` |
-| `js/data/kernel.js` | the kernel as the browser uses it, with the environment from the pinned world package plus the released content, and `preview`, probes, bands, view descriptors, map layers and research cost |
+| `js/data/kernel.js` | the kernel as the browser uses it, with the environment from the pinned world package plus the released content, and `preview`, probes, bands, loyalty bands, map layers and research cost |
 | `js/data/game.js` | a real campaign on the board, which loads view, package and content, keeps the draft, previews every change, stores the draft through the server and follows server-sent events |
 | `js/data/adapter.js` | maps the projection and the preview to the board model, pure and DOM-free so unit tests run it in Node |
 | `js/data/draft.js` | immutable updates of the player's draft (orders, rolls, mandates, choices, labour) |

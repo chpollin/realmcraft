@@ -11,10 +11,7 @@ import { evalCondition } from './conditions.js';
 import { SUCCESS, buildProbe, calculation, probeId, resolveProbe } from './probes.js';
 import { activeModules } from '../modules/index.js';
 import { addPeople, fireHook, noteChange, notice, record, setMember, setPeople } from './log.js';
-import { KERN_SLICE, atWar, clamp, findMember, kern, peopleIds } from './state.js';
-import { isAlive } from './council.js';
-
-export const ORDERS = {};
+import { KERN_SLICE, atWar, clamp, findMember, isAlive, kern, peopleIds } from './state.js';
 
 export function eventProbeSpec(state, pid, roller) {
   return { id: probeId(state.turn, pid, 'event'), people: pid, order: null, kind: 'event', tags: ['ereignis'], roller, target: null, modifiers: [], params: {} };

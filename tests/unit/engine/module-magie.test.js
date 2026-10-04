@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PLAYER, PARTNER, startState, hochlandEnv, magieEnv, edited, learn, withResources, atTurn, contextOf, runHook,
-  resolveOrder, checkOrders, rolledDraft, season, uncoveredPaths, BAND_AMOUNT, LABELS,
+  resolveOrder, checkOrders, rolledDraft, season, uncoveredPaths, BAND_AMOUNT,
 } from '../../fixtures/engine/k1/modules.js';
 import magie from '../../../engine/modules/magie.js';
 import { activeModules } from '../../../engine/modules/index.js';
@@ -67,9 +67,6 @@ test('real Hochland: the first disziplin activates magie and the world binds the
 test('initial slice and the descriptor', () => {
   assert.deepEqual(magie.initPeople(), { withdrawal: {}, uses: {} });
   assert.deepEqual(magie.resourceRoles, [{ role: 'source', defaultId: null }]);
-  assert.deepEqual(magie.views, [{ id: 'magie', labelKey: 'view.magie', icon: 'flame', order: 50, scope: 'people', sections: ['disciplines', 'sources', 'withdrawal'] }]);
-  for (const k of magie.labelKeys) assert.ok(Object.hasOwn(LABELS, k), `${k} is missing in labels.json`);
-  assert.ok(magie.agentHints.tags.includes('magie'));
 });
 
 test('slot and tags come from the application', () => {

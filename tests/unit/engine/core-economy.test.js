@@ -56,7 +56,7 @@ test('popCap counts settlements by way of life, adds population.cap and is at le
 
 // --- harvest -------------------------------------------------------------------
 
-test('harvest: groups work the best land of their region, the settlement surroundings included; a resource no land yields stays idle', () => {
+test('harvest: clans work the best land of their region, the settlement surroundings included; a resource no land yields stays idle', () => {
   const { env, state } = setup();
   setDeposits(env, state);
   hw(state).population.assigned = { nahrung: 2, material: 1 };
@@ -78,7 +78,7 @@ test('harvest: groups work the best land of their region, the settlement surroun
   assert.ok(harvest.visibleTo.includes(PID));
   hw(state).population.assigned = { nahrung: 2, herden: 1 };
   const f = forecast(state, env, PID);
-  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'herden', groups: 1 });
+  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'herden', clans: 1 });
 });
 
 test('harvest: slots per region are exhausted, the surplus clans stay idle', () => {
@@ -88,8 +88,8 @@ test('harvest: slots per region are exhausted, the surplus clans stay idle', () 
   hw(state).population.assigned = { nahrung: 5 };
   const f = forecast(state, env, PID);
   assert.equal(f.income.nahrung, 9, 'three slots on the meadow');
-  assert.deepEqual(f.harvest.find((h) => h.kind === 'harvest'), { kind: 'harvest', res: 'nahrung', region: '-1:0:0', terrain: 'wiese', groups: 3, amount: 9 });
-  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'nahrung', groups: 2 });
+  assert.deepEqual(f.harvest.find((h) => h.kind === 'harvest'), { kind: 'harvest', res: 'nahrung', region: '-1:0:0', terrain: 'wiese', clans: 3, amount: 9 });
+  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'nahrung', clans: 2 });
 });
 
 test('harvest: greedy placement fills the richest region first, then the next', () => {
@@ -100,10 +100,10 @@ test('harvest: greedy placement fills the richest region first, then the next', 
   hw(state).population.assigned = { nahrung: 4, material: 3 };
   const f = forecast(state, env, PID);
   const at = (res, region) => f.harvest.find((h) => h.kind === 'harvest' && h.res === res && h.region === region);
-  assert.equal(at('nahrung', '-1:0:0').groups, 3);
-  assert.equal(at('nahrung', '0:-1:1').groups, 1);
-  assert.equal(at('material', '0:-1:1').groups, 2, 'the meadow slots are full and yield no material');
-  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'material', groups: 1 });
+  assert.equal(at('nahrung', '-1:0:0').clans, 3);
+  assert.equal(at('nahrung', '0:-1:1').clans, 1);
+  assert.equal(at('material', '0:-1:1').clans, 2, 'the meadow slots are full and yield no material');
+  assert.deepEqual(f.harvest.find((h) => h.kind === 'idle'), { kind: 'idle', res: 'material', clans: 1 });
   assert.equal(f.income.nahrung, 3 * 3 + 2);
   assert.equal(f.income.material, 2);
 });
@@ -117,8 +117,8 @@ test('harvest: equal yields go to the lowest region id first', () => {
   hw(state).population.core = 4;
   hw(state).population.assigned = { nahrung: 4 };
   const f = forecast(state, env, PID);
-  const groups = Object.fromEntries(f.harvest.filter((h) => h.kind === 'harvest').map((h) => [h.region, h.groups]));
-  assert.deepEqual(groups, { '-1:-1:0': 3, '0:-1:1': 1 });
+  const clans = Object.fromEntries(f.harvest.filter((h) => h.kind === 'harvest').map((h) => [h.region, h.clans]));
+  assert.deepEqual(clans, { '-1:-1:0': 3, '0:-1:1': 1 });
 });
 
 test('regionPotential folds welt.json keys onto world resources: alias, or the key itself when the world has it', () => {
@@ -143,7 +143,7 @@ test('yieldFactor 0 of the world switches a yield off for that season only', () 
   setDeposits(spring.env, spring.state);
   const f0 = forecast(spring.state, spring.env, PID);
   assert.equal(f0.income.nahrung, undefined);
-  assert.deepEqual(f0.harvest.find((h) => h.res === 'nahrung'), { kind: 'idle', res: 'nahrung', groups: 2 });
+  assert.deepEqual(f0.harvest.find((h) => h.res === 'nahrung'), { kind: 'idle', res: 'nahrung', clans: 2 });
   const summer = setup({ turn: 1, ...patchTuning(tuning) });
   setDeposits(summer.env, summer.state);
   assert.equal(forecast(summer.state, summer.env, PID).income.nahrung, 6);
@@ -695,7 +695,7 @@ test('forecast of a stressed people agrees with the season as well', () => {
   hw(state).units = [unit('u-1')];
   const f = forecast(state, env, PID);
   const tc = run(state, env);
-  assert.ok(f.shortfall.nahrung > 0 && f.upkeepRisk.length > 0);
+  assert.ok(f.shortfall.nahrung > 0 && f.upkeepRisks.length > 0);
   for (const res of env.resourceIds) {
     assert.equal((hw(tc.state).resources[res] ?? 0) - (hw(state).resources[res] ?? 0), f.net[res] ?? 0, res);
   }
@@ -713,9 +713,9 @@ test('forecast: spend lowers the opening stock, assign replaces the standing lab
   assert.equal(forecast(state, env, PID, { assign: { nahrung: 3 } }).income.nahrung, 9);
   assert.equal(none.famine.clans, 3);
   hw(state).resources.nahrung = 6;
-  const risk = forecast(state, env, PID, { assign: {} }).upkeepRisk;
+  const risk = forecast(state, env, PID, { assign: {} }).upkeepRisks;
   assert.equal(risk.length, 1);
-  assert.match(risk[0], /Sippenrat/);
+  assert.match(risk[0].message, /Sippenrat/);
   assert.equal(forecast(state, env, PID).popCap, 6);
   assert.equal(forecast(state, env, PID).caps.nahrung, 30);
 });

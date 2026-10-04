@@ -334,7 +334,7 @@ export function openTier(people, ctx = {}) {
     if (row.tier <= 1) continue;
     const g = row.gate;
     const below = known.filter((e) => e.tier >= row.tier - 1).length;
-    if (below < g.prevTierKnown || people.population.core < g.groups || settlements < g.settlements || year < g.worldYear) break;
+    if (below < g.prevTierKnown || people.population.core < g.clans || settlements < g.settlements || year < g.worldYear) break;
     open = row.tier;
   }
   return Math.min(open, maxTier);
@@ -741,8 +741,8 @@ const CONTENT_FILES = new Set(['entwicklungen', 'ereignisse', 'bestimmungen']);
 /**
  * Validates a parsed world package { welt, regeln, labels, style,
  * entwicklungen, ereignisse, bestimmungen } (the files of welten/<id>/).
- * opts.labelKeys lists every label key the kernel and the activatable
- * modules use in view descriptors; opts.destinyBand bounds Bestimmungen.
+ * opts.labelKeys lists label keys the package must define (missing_label);
+ * opts.destinyBand bounds Bestimmungen.
  */
 export function validateWorldPackage(pack, opts = {}) {
   const issues = [];

@@ -13,6 +13,8 @@ import { validate } from '../../../engine/content/schema.js';
 import { scoreEntwicklung, scoreEreignis, scoreBestimmung } from '../../../engine/content/budget.js';
 import { validateWorldPackage } from '../../../engine/content/validate.js';
 import { pfadOf } from '../../../engine/core/pfade.js';
+import { registry } from '../../../engine/core/orders.js';
+import { loyaltyBand } from '../../../engine/core/council.js';
 
 const DIR = fileURLToPath(new URL('../../../welten/hochland/', import.meta.url));
 const load = (file) => JSON.parse(readFileSync(join(DIR, file), 'utf8'));
@@ -96,8 +98,9 @@ test('start endowments and lifestyles refer to developments of the package', () 
   }
 });
 
-// Every label key the content implies: core views, phases, agents and probe
-// bands, plus whatever the package itself names (resources, stats, seasons,
+// Every label key the content implies: core views, phases, agents, probe
+// bands, the order types of the kernel and the council's loyalty bands, plus
+// whatever the package itself names (resources, stats, seasons,
 // tags, roles, meters, statuses, orders, modules, kinds, tiers, peoples,
 // settlement kinds). Probe bands keep their schema id with "_" as "-",
 // because label keys allow no underscore.
@@ -117,6 +120,9 @@ function impliedLabelKeys() {
   add('people', regeln.peopleTemplates.map((t) => t.id));
   add('role', regeln.councilTemplates.flatMap((c) => c.members.map((m) => m.role)));
   add('kind', KINDS);
+  // The board falls back to the raw id when a label is missing, so only this test notices one.
+  add('order', Object.keys(registry()));
+  add('loyalty', Array.from({ length: 21 }, (_, i) => loyaltyBand(i - 10)));
 
   const modules = new Set(Object.keys(regeln.moduleBindings));
   regeln.resources.filter((r) => r.module).forEach((r) => modules.add(r.module));

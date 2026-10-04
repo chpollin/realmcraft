@@ -1,13 +1,9 @@
 // Read helpers over a campaign state (or a projection of it, which has the
 // same shape). Nothing here mutates; changes go through engine/core/log.js.
 
-import { idOfRef } from './env.js';
 import { regionInfo } from '../world/index.js';
 
-export { RESERVED_KEYS, reservedKeyPaths } from './canon.js';
-
 export const clone = (v) => structuredClone(v);
-
 
 export function peopleIds(state) {
   return Object.keys(state.peoples).sort();
@@ -32,6 +28,15 @@ export function atWar(state, a, b) {
 
 export function settlementsOf(state, pid) {
   return state.map.settlements.filter((s) => s.people === pid);
+}
+
+/**
+ * A people is in play while it has clans and a settlement. The one test the
+ * season steps share; the collapse check in bestimmung.js reads its own
+ * tuning threshold instead.
+ */
+export function isAlive(state, pid) {
+  return state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 }
 
 /** Kernel-owned per-people slice (seats, flags, holds, honours); see KERN_SLICE. */
@@ -79,25 +84,12 @@ export function unitsOn(state, tile) {
   return out;
 }
 
-export function findUnit(state, pid, unitId) {
-  return state.peoples[pid]?.units?.find((u) => u.id === unitId) ?? null;
-}
-
 export function findMember(people, memberId) {
   return people.council?.find((m) => m.id === memberId) ?? null;
 }
 
-export function leaderOf(people) {
-  return people.council?.find((m) => m.leader) ?? null;
-}
-
 export function knownEntry(people, ref) {
   return people.developments.known.find((k) => k.ref === ref) ?? null;
-}
-
-/** Known entry by id regardless of revision. */
-export function knowsId(people, id) {
-  return people.developments.known.some((k) => idOfRef(k.ref) === id);
 }
 
 /**
@@ -141,10 +133,6 @@ export function buildingsOf(state, env, pid, turn = state.turn) {
     }
   }
   return out;
-}
-
-export function lebensweiseOf(state, env, pid) {
-  return env.entwicklung(state.peoples[pid]?.lebensweise) ?? null;
 }
 
 /** Highest tier among known developments, 0 when only the endowment is known. */

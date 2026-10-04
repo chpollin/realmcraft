@@ -59,7 +59,6 @@ import { fileURLToPath } from 'node:url';
 import { SCHEMAS } from './schemas/index.js';
 import { validate as schemaIssues } from './content/schema.js';
 import { issue, hasErrors } from './core/issues.js';
-import { bareCode, kissue } from './core/codes.js';
 import { hashValue } from './core/hash.js';
 import { reservedKeyPaths } from './core/canon.js';
 import { makeEnv } from './core/env.js';
@@ -112,7 +111,7 @@ const flag = (a, name) => a.flags[name]?.at(-1);
 const parseSeed = (s) => (/^-?\d+$/.test(String(s)) ? Number(s) : String(s));
 
 const norm = (i) => ({
-  code: bareCode(i), severity: i.severity ?? 'error', path: i.path ?? '', message: i.message ?? '', ...(i.params ? { params: i.params } : {}), ...(i.refs ? { refs: i.refs } : {}),
+  code: i.code, severity: i.severity ?? 'error', path: i.path ?? '', message: i.message ?? '', ...(i.params ? { params: i.params } : {}), ...(i.refs ? { refs: i.refs } : {}),
 });
 const fail = (code, issues, extra = {}) => ({ code, issues, ...extra });
 const ok = (data = {}, text = '') => ({ code: 0, issues: [], data, text });
@@ -123,7 +122,7 @@ const errorsOf = (issues) => issues.filter((i) => i.severity === 'error');
 // Exit code of kernel issues: phase, revision, world and tamper conflicts are
 // 4, a missing player roll alone is 3, everything else 2.
 function exitFor(issues) {
-  const errors = errorsOf(issues).map(bareCode);
+  const errors = errorsOf(issues).map((i) => i.code);
   if (!errors.length) return 0;
   if (errors.some((c) => ['phase', 'finished', 'tamper', 'cli.stale_rev', 'cli.world_drift', 'cli.interrupted'].includes(c))) return 4;
   if (errors.every((c) => c === 'roll_missing')) return 3;
@@ -263,7 +262,7 @@ function chainEntry(journal, c, fields, { library, drafts }) {
 
 /** Problems of the chain itself: an edited entry, a broken link, a revision that does not rise. */
 function chainIssues(journal) {
-  const bad = (i, why) => [kissue('tamper', `/journal/${i}`, `log/journal.json entry ${i} ${why}`, { params: { reason: 'journal-chain', entry: i } })];
+  const bad = (i, why) => [issue('tamper', `/journal/${i}`, `log/journal.json entry ${i} ${why}`, { params: { reason: 'journal-chain', entry: i } })];
   for (let i = 0; i < journal.length; i++) {
     const e = journal[i];
     if (i > 0 && Number.isInteger(journal[i - 1].revAfter) && !(e.revAfter > journal[i - 1].revAfter)) return bad(i, 'does not raise the revision');
@@ -587,13 +586,13 @@ function rollForward(cc, journal) {
 /** The campaign files match the journal; an interrupted commit is completed first. */
 function guard(cc, { allowDrift = false } = {}) {
   const journal = readJournal(cc.dir);
-  if (!journal?.length) return [kissue('tamper', '/state', 'the campaign has no journal, its state cannot be verified', { params: { reason: 'no-journal' } })];
+  if (!journal?.length) return [issue('tamper', '/state', 'the campaign has no journal, its state cannot be verified', { params: { reason: 'no-journal' } })];
   const chain = chainIssues(journal);
   if (chain.length) return chain;
   let last = journal.at(-1);
   if (stateHash(cc.state) !== last.hashAfter) {
     const rolled = rollForward(cc, journal);
-    if (rolled === null) return [kissue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)', { params: { reason: 'state-edited' } })];
+    if (rolled === null) return [issue('tamper', '/state', 'state.json was changed outside the kernel (hash differs from the journal)', { params: { reason: 'state-edited' } })];
     if (rolled.length) return rolled;
     last = journal.at(-1);
   }
@@ -601,12 +600,12 @@ function guard(cc, { allowDrift = false } = {}) {
     // An interrupted ingest may leave library entries no state refers to yet.
     if (cc.library.entries.length > last.libraryCount) cc.library = { ...cc.library, entries: cc.library.entries.slice(0, last.libraryCount) };
     if (cc.library.entries.length !== last.libraryCount || libraryAnchor(cc.library) !== last.libraryHash) {
-      return [kissue('tamper', '/library', 'library.json was changed outside the kernel', { params: { reason: 'library-edited' } })];
+      return [issue('tamper', '/library', 'library.json was changed outside the kernel', { params: { reason: 'library-edited' } })];
     }
     cc.holder.library = cc.library;
     const held = readJson(rollsPath(cc.dir), { fallback: null })?.entries ?? [];
     if (held.length < last.rolls.count || hashValue(held.slice(0, last.rolls.count)) !== last.rolls.hash) {
-      return [kissue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`, { params: { reason: 'rolls-edited', file: ROLLS } })];
+      return [issue('tamper', `/${ROLLS}`, `${ROLLS} was changed outside the kernel (it is append-only)`, { params: { reason: 'rolls-edited', file: ROLLS } })];
     }
     if (!allowDrift && last.worldHash !== cc.env.hash) return [cliIssue('cli.world_drift', '/world', 'the world package changed since the last transition; restore it or run repin', { reason: 'since-transition' })];
   }
@@ -630,7 +629,7 @@ function locked(c, fn, { verify = true, allowDrift = false } = {}) {
       }
       if (settled.length) refreshAfterLoad(cc, settled);
       const r = fn(cc);
-      return { ...r, issues: [...settled, ...cc.warnings.filter((w) => bareCode(w) !== 'cli.world_drift'), ...(r.issues ?? [])] };
+      return { ...r, issues: [...settled, ...cc.warnings.filter((w) => w.code !== 'cli.world_drift'), ...(r.issues ?? [])] };
     });
   } catch (err) {
     if (err instanceof LockError) return fail(4, [lockHeld(c.cid)]);
@@ -867,7 +866,7 @@ function cmdSeal(c) {
       const stored = drafts[pid].rolls ?? {};
       const edited = Object.keys({ ...stored, ...rec.draft.rolls })
         .filter((id) => stored[id]?.value !== rec.draft.rolls[id]?.value || stored[id]?.fingerprint !== rec.draft.rolls[id]?.fingerprint);
-      if (edited.length) return fail(4, [kissue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`, { params: { reason: 'rolls-differ', people: pid, probes: edited } })]);
+      if (edited.length) return fail(4, [issue('tamper', '/drafts', `rolls of ${pid} differ from the rolls ledger: ${edited.join(', ')}`, { params: { reason: 'rolls-differ', people: pid, probes: edited } })]);
       drafts[pid] = rec.draft;
     }
     const res = seal(cc.state, cc.env, drafts);
@@ -1366,10 +1365,10 @@ function verifySave(cc, dir, manifest) {
   if (t.length) return t;
   const head = entryHash(readJournal(dir).at(-1));
   if (manifest.campaign !== cc.cid || sc.state.campaign.id !== cc.cid) {
-    return [kissue('tamper', '/slot', `the save belongs to campaign ${manifest.campaign}`, { params: { reason: 'save-campaign', campaign: String(manifest.campaign) } })];
+    return [issue('tamper', '/slot', `the save belongs to campaign ${manifest.campaign}`, { params: { reason: 'save-campaign', campaign: String(manifest.campaign) } })];
   }
   if (manifest.stateHash !== stateHash(sc.state) || manifest.journalHead !== head) {
-    return [kissue('tamper', '/slot', 'the save differs from its manifest', { params: { reason: 'save-edited', slot: manifest.slot } })];
+    return [issue('tamper', '/slot', 'the save differs from its manifest', { params: { reason: 'save-edited', slot: manifest.slot } })];
   }
   return [];
 }

@@ -7,6 +7,7 @@ import { standingOf, ofOp } from '../../../engine/core/effects.js';
 import { validate } from '../../../engine/content/schema.js';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { practiceTop as validatorPracticeTop, openTier as validatorOpenTier } from '../../../engine/content/validate.js';
+import { openTier } from '../../../engine/core/pfade.js';
 import { assertCovered, dev, envWith, fresh, knownEntry, context, logKinds } from '../../fixtures/engine/k1/research.js';
 
 const H = 'hochweide';
@@ -43,7 +44,7 @@ test('points are the base rate plus one per clan assigned to research', () => {
   const s = withResearch(fresh(env), 'marktrecht@1', 0, { research: 1 });
   const tc = context(s, env);
   research.resolveResearch(tc);
-  assert.equal(tc.state.peoples[H].developments.research[0].progress, RULES.researchBase + RULES.researchPerGroup);
+  assert.equal(tc.state.peoples[H].developments.research[0].progress, RULES.researchBase + RULES.researchPerClan);
   const e = tc.log.find((x) => x.kind === 'research.progress');
   assert.equal(e.target.id, H);
   assert.equal(e.change.field, 'developments.research');
@@ -354,11 +355,11 @@ test('open tier gates on known developments, clans and world years, the same as 
     [fewer, 1],
   ];
   for (const [s, want] of cases) {
-    assert.equal(research.openTier(s, env, 'esk'), want);
+    assert.equal(openTier(s, env, 'esk'), want);
     assert.equal(validatorOpenTier(s.peoples.esk, ctxOf(s)), want);
   }
   const capped = envWith({ tuning: { maxTier: 1 } });
-  assert.equal(research.openTier(tierState(capped, { turn: 8, core: 4 }), capped, 'esk'), 1);
+  assert.equal(openTier(tierState(capped, { turn: 8, core: 4 }), capped, 'esk'), 1);
 });
 
 // --- pool offers ------------------------------------------------------------------------------------------

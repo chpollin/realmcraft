@@ -63,7 +63,7 @@ K1 owns:
 
 K2 owns:
 
-- `engine/core/issues.js`, `codes.js`, `orders.js`, `council.js`, `military.js`, `economy.js`, `events.js`, `bestimmung.js`, `turn.js`, `project.js`, `effects.js`, `map.js`, `state.js`
+- `engine/core/issues.js`, `orders.js`, `council.js`, `military.js`, `economy.js`, `events.js`, `bestimmung.js`, `turn.js`, `project.js`, `effects.js`, `map.js`, `state.js`
 - `engine/modules/`, `engine/ai/` (wave 1 only), `engine/cli.mjs`, `engine/harness/ingest.js`, `engine/harness/status.js`, `engine/harness/io.js`
 - `engine/schemas/common.js`, `draft.js`, `proposal.js`, `status.js`, `files.js`, `index.js`
 - every other test under `tests/unit/engine/` and `tests/acceptance/`
@@ -73,7 +73,6 @@ Files both must touch, with the section each owns:
 | File | K1 | K2 |
 |---|---|---|
 | `engine/core/derive.js` | one line in `computeDerived` that sets `entry.pfade` | everything else, including `entry.council`, `entry.trade`, `entry.rivals`, `entry.outcome` |
-| `engine/core/views.js` | `entwicklungen()` and its `CORE_VIEWS` row | `rat()`, `bestimmung()`, `voelker()`, `labelKeys()` |
 | `engine/core/issues.js` | the two codes `pfad_tier` and `pfad_closed` in the content validator block of `CODES` | the rest |
 | `engine/schemas/campaign.js` | `people.pfade`, `developments.requests[].pfad` | `settings`, `member.at`, every other change |
 | `engine/core/turn.js` | the line `pfade: { opened: {} }` in the people literal of `createCampaign` | `createCampaign` options, `preview`, the rest |
@@ -161,7 +160,7 @@ Gating applies when something enters the candidate list. `offerPool` skips world
 
 ### Research points and accumulation
 
-Research points of a season stay the existing figure of `resolveResearch`, `researchBase + labour + mods + knowledge`. `labour` is the clans assigned to `research` times `researchPerGroup`, `mods` the standing `research.mod` effects whose tags meet the project, `knowledge` the Wissen burned from stock, at most `tune(env, 'knowledgeSpend')`. Points flow into the first project of `developments.research` and accumulate across seasons until the effective cost `researchCost` is reached. The cost already rises with tier through `cost.research` and with the number of known achievements. Completion is unchanged, with resources paid at completion and the effect from the next turn.
+Research points of a season stay the existing figure of `resolveResearch`, `researchBase + labour + mods + knowledge`. `labour` is the clans assigned to `research` times `researchPerClan`, `mods` the standing `research.mod` effects whose tags meet the project, `knowledge` the Wissen burned from stock, at most `tune(env, 'knowledgeSpend')`. Points flow into the first project of `developments.research` and accumulate across seasons until the effective cost `researchCost` is reached. The cost already rises with tier through `cost.research` and with the number of known achievements. Completion is unchanged, with resources paid at completion and the effect from the next turn.
 
 ### Research orders
 
@@ -204,7 +203,7 @@ Label keys follow the existing rule that keys have no underscore:
 - With `params.reason` the board first looks up `issue.<code>.<reason>`, then `issue.<code>`.
 - Placeholders in a label are `{name}` and are filled from `params`.
 
-Issue labels live in the board's label files (lane I), not in the world labels, and are not part of `labelKeys()`.
+Issue labels live in the board's label files (lane I), not in the world labels.
 
 Severity of kernel issues stays `error` or `warning`. Judges' findings carry `info`, `warn` or `severe`. `status.json` gains an optional `steps[].findings`, a list of `{ id, judge, severity, text, refs }`, which `engine/harness/status.js` writes from accepted finding items.
 
