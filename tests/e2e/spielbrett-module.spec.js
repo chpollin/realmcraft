@@ -4,27 +4,23 @@
 // the kernel preview, the province panel, an attack with its battle forecast
 // and probe, a trade offer built in the people's panel, and the steps of the
 // agent round with the judges' findings.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4455 SPEC_PORT=4456 npx playwright test --project=e2e tests/e2e/spielbrett-module.spec.js
+// Run: PLAYWRIGHT_CHANNEL=chrome SPEC_PORT=4456 npx playwright test --project=e2e tests/e2e/spielbrett-module.spec.js
 
 import { test, expect } from '@playwright/test';
-import { spawn } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createAgentsCampaign, createModuleCampaign } from '../fixtures/spielbrett/build-module.mjs';
+import { REPO, startServer } from '../lib/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-module';
 const AGENTS = 'e2e-agenten';
 const PID = 'bergnomaden';
-// Port of the module lane, clear of the operator's live servers.
-const PORT = Number(process.env.SPEC_PORT) || 4456;
-const BASE = `http://localhost:${PORT}`;
 const en = JSON.parse(readFileSync(join(REPO, 'spielbrett/labels/en.json'), 'utf8')).labels;
 
 let root;
 let server;
+let BASE;
 let fx;
 
 test.describe.configure({ mode: 'serial' });
@@ -33,19 +29,12 @@ test.beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-module-'));
   fx = createModuleCampaign(root, CID);
   await createAgentsCampaign(root, AGENTS);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(PORT), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = `http://localhost:${server.port}`;
 });
 
-test.afterAll(() => {
-  server?.kill();
+test.afterAll(async () => {
+  await server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

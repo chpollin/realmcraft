@@ -154,15 +154,7 @@ A save lives in `saves/<slot>/` of its campaign, with the copy of the campaign f
 
 The CLI answers `save` with `{ save: manifest }`, `saves` with `{ saves: [manifest] }` newest first, and `load` with `{ slot, autosave, turn, phase, status, rev, stateHash, drift }`. Refusals are `cli.missing_input` (no `--name` or `--slot`, exit 3), `format` with reason `label`, `slot-id` or `fork-unsupported` (exit 2), `cli.no_save` (exit 3), `phase` with reason `save-needs-planning` or `load-needs-planning`, `cli.turn_running` while `run.json` is active, `cli.locked` while another command holds the campaign lock, and `tamper` with reason `save-edited` or `save-campaign` for a copy that fails its checks (all exit 4). Warnings are `cli.world_drift` with reason `save-world` after loading a save of another package, and `cli.recovered` with reason `load-completed` or `load-dropped` after an interrupted load.
 
-The dev server relays these commands ([architecture.md](architecture.md), route table in `serve.mjs`).
-
-| Method and path | Body | Answer |
-|---|---|---|
-| `GET /api/campaigns/<cid>/saves` | none | 200 `{ ok, exit, saves, issues }` |
-| `POST /api/campaigns/<cid>/saves` | `{ label }` | 201 `{ ok, exit, save, issues }` |
-| `POST /api/campaigns/<cid>/load` | `{ slot }` | 200 `{ ok, exit, slot, autosave, turn, phase, status, rev, stateHash, drift, issues }`, then the events `view` and `status` |
-
-Bodies are JSON objects of at most 1 KB without other fields. Errors answer `{ error, issues }` with 400 for an invalid field, 404 for an unknown campaign or slot, 409 for the phase, a running turn or a held lock, and 413 for a larger body.
+The dev server relays these commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load`, whose answers carry the CLI fields above plus `ok`, `exit` and `issues`. The route table in `serve.mjs` is the endpoint reference ([architecture.md](architecture.md)). Bodies are JSON objects of at most 1 KB without other fields. Errors answer `{ error, issues }` with 400 for an invalid field, 404 for an unknown campaign or slot, 409 for the phase, a running turn or a held lock, and 413 for a larger body.
 
 ## Gaps known on main
 

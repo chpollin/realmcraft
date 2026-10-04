@@ -1,12 +1,12 @@
-// Shared by the server tests: a real serve.mjs process on a free port with a
-// throwaway campaign root, and a raw HTTP client.
+// Shared by the server unit tests and the board specs: a real serve.mjs process
+// with a throwaway campaign root, and a raw HTTP client.
 import { spawn } from 'node:child_process';
 import { createServer, request } from 'node:http';
 import { fileURLToPath } from 'node:url';
 
-export const REPO = fileURLToPath(new URL('../../../', import.meta.url));
+export const REPO = fileURLToPath(new URL('../../', import.meta.url));
 // The operator's servers; a port the OS hands out is never one of them, the
-// check only guards against a changed OS range.
+// check guards against a changed OS range and a pinned port that hits one.
 const FORBIDDEN_PORTS = new Set([4173, 4185, 4186, 4187, 4190]);
 
 function freePort() {
@@ -20,9 +20,14 @@ function freePort() {
   });
 }
 
-/** Starts serve.mjs with REALMCRAFT_ROOT=root; resolves to { port, stop }. */
-export async function startServer(root) {
-  let port = await freePort();
+/**
+ * Starts serve.mjs with REALMCRAFT_ROOT=root on `port` (the board specs pass
+ * SPEC_PORT to pin a lane port) or a free one; resolves to { port, stop }.
+ * stop() resolves once the process has exited, so a pinned port is free again
+ * for the next spec file.
+ */
+export async function startServer(root, { port: pinned } = {}) {
+  let port = Number(pinned) || await freePort();
   while (FORBIDDEN_PORTS.has(port)) port = await freePort();
   const proc = spawn(process.execPath, ['serve.mjs'], {
     cwd: REPO,
@@ -35,7 +40,12 @@ export async function startServer(root) {
       if (String(d).includes('dev server')) resolve();
     });
   });
-  return { port, stop: () => proc.kill() };
+  const stop = () => new Promise((resolve) => {
+    if (proc.exitCode !== null || proc.signalCode !== null) return resolve();
+    proc.once('exit', () => resolve());
+    proc.kill();
+  });
+  return { port, stop };
 }
 
 /** Raw request without URL normalisation; resolves to { status, headers, text, json }. */

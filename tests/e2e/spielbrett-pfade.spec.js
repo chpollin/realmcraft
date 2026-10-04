@@ -6,23 +6,19 @@
 // view reveals them.
 //
 // The campaign lives in a temporary REALMCRAFT_ROOT served by its own
-// serve.mjs (see spielbrett-real.spec.js). Lane ports: SPEC_PORT 4453 for this
-// server, PORT 4454 for Playwright's own webServer.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4454 SPEC_PORT=4453 npx playwright test --project=e2e tests/e2e/spielbrett-pfade.spec.js
+// serve.mjs (see spielbrett-real.spec.js).
+// Run: PLAYWRIGHT_CHANNEL=chrome SPEC_PORT=4453 npx playwright test --project=e2e tests/e2e/spielbrett-pfade.spec.js
 
 import { test, expect } from '@playwright/test';
-import { execFileSync, spawn } from 'node:child_process';
-import { createServer } from 'node:net';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createHochland } from '../fixtures/spielbrett/build.mjs';
+import { REPO, startServer } from '../lib/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 'e2e-pfade';
 const PID = 'bergnomaden';
-const FORBIDDEN_PORTS = [4173, 4185, 4186, 4187, 4190];
 
 const json = (p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
 const en = json('spielbrett/labels/en.json').labels;
@@ -33,17 +29,6 @@ let root;
 let server;
 let BASE;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port } = srv.address();
-      srv.close(() => resolve(port));
-    });
-  });
-}
-
 const cli = (...args) => JSON.parse(execFileSync(process.execPath, ['engine/cli.mjs', ...args, '--campaign', CID, '--json'], { cwd: REPO, env: { ...process.env, REALMCRAFT_ROOT: root }, encoding: 'utf8' }));
 const viewFile = () => JSON.parse(readFileSync(join(root, 'campaigns', CID, 'view', `${PID}.json`), 'utf8'));
 const storedDraft = async (page) => (await (await page.request.get(`${BASE}/api/campaigns/${CID}/draft`)).json()).draft;
@@ -51,24 +36,14 @@ const storedDraft = async (page) => (await (await page.request.get(`${BASE}/api/
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  let port = Number(process.env.SPEC_PORT) || await freePort();
-  while (FORBIDDEN_PORTS.includes(port)) port = await freePort();
-  BASE = `http://localhost:${port}`;
   root = mkdtempSync(join(tmpdir(), 'rc-pfade-e2e-'));
   createHochland(root, CID);
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = `http://localhost:${server.port}`;
 });
 
-test.afterAll(() => {
-  server?.kill();
+test.afterAll(async () => {
+  await server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

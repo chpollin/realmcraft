@@ -36,7 +36,7 @@ The game board (Spielbrett) under `spielbrett/` is the map-first browser surface
 | `js/data/ereignisse.js` | event cards after a turn change from the projected log, open decisions and library cards |
 | `js/data/labels.js` | label lookup over the world's `labels.json` |
 
-The server releases only fog-safe files ([architecture.md](architecture.md)), which are `GET /campaigns/index.json`, `/campaigns/<cid>/view/<player>.json`, `/campaigns/<cid>/view/<player>/events/T<turn>.json`, `/campaigns/<cid>/status.json`, narrative files and `/campaigns/<cid>/log/T<turn>.json` as a player-filtered summary. `GET /api/campaigns/<cid>/content` returns the library items the player's view references, `/draft` the stored draft and `/chronik` the chronicle files. Server-sent events on `/events` announce `view`, `status`, `chronik` and `report` changes with `{ campaign, file }`.
+The server releases only fog-safe campaign files ([architecture.md](architecture.md), trust boundaries). The route table at the head of `serve.mjs` is the reference for every endpoint the board calls and for the server-sent events on `/events`.
 
 ## Surface
 

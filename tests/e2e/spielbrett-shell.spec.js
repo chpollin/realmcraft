@@ -7,19 +7,16 @@
 // Every campaign lives in a temporary REALMCRAFT_ROOT served by an own
 // serve.mjs; ended campaigns are crafted through the acceptance driver, which
 // reaches the kernel only through engine/cli.mjs.
-// Run: PLAYWRIGHT_CHANNEL=chrome PORT=4451 SPEC_PORT=4452 npx playwright test --project=e2e tests/e2e/spielbrett-shell.spec.js
+// Run: PLAYWRIGHT_CHANNEL=chrome SPEC_PORT=4452 npx playwright test --project=e2e tests/e2e/spielbrett-shell.spec.js
 
 import { test, expect } from '@playwright/test';
-import { execFileSync, spawn } from 'node:child_process';
-import { createServer } from 'node:net';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createCampaign, destinyOf, dice } from '../acceptance/lib/harness.js';
+import { REPO, startServer } from '../lib/server.mjs';
 
-const REPO = fileURLToPath(new URL('../../', import.meta.url));
-const FORBIDDEN_PORTS = [4173, 4185, 4186, 4187, 4190];
 
 const json = (p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
 const de = { ...json('welten/hochland/labels.json').labels, ...json('spielbrett/labels/de.json').labels };
@@ -28,17 +25,6 @@ const en = { ...json('welten/hochland/labels.en.json').labels, ...json('spielbre
 let root;
 let server;
 let BASE;
-
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port } = srv.address();
-      srv.close(() => resolve(port));
-    });
-  });
-}
 
 const cli = (...args) => JSON.parse(execFileSync(process.execPath, ['engine/cli.mjs', ...args, '--json'], { cwd: REPO, env: { ...process.env, REALMCRAFT_ROOT: root }, encoding: 'utf8' }));
 const readCampaign = (cid, file) => JSON.parse(readFileSync(join(root, 'campaigns', cid, file), 'utf8'));
@@ -61,26 +47,16 @@ function endedCampaign(id, craft, seed) {
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  let port = Number(process.env.SPEC_PORT) || await freePort();
-  while (FORBIDDEN_PORTS.includes(port)) port = await freePort();
-  BASE = `http://localhost:${port}`;
   root = mkdtempSync(join(tmpdir(), 'rc-spielbrett-shell-'));
   mkdirSync(join(root, '_input'), { recursive: true });
   // The server watches campaigns/ from its start only when the folder exists; it retries otherwise.
   mkdirSync(join(root, 'campaigns'), { recursive: true });
-  server = spawn(process.execPath, ['serve.mjs'], {
-    cwd: REPO,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    server.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    server.stdout.on('data', (d) => { if (String(d).includes('dev server')) resolve(); });
-  });
+  server = await startServer(root, { port: process.env.SPEC_PORT });
+  BASE = `http://localhost:${server.port}`;
 });
 
-test.afterAll(() => {
-  server?.kill();
+test.afterAll(async () => {
+  await server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { REPO, http, startServer } from './helpers.mjs';
+import { REPO, http, startServer } from '../../lib/server.mjs';
 
 const regeln = JSON.parse(readFileSync(join(REPO, 'welten/hochland/regeln.json'), 'utf8'));
 const TEMPLATES = regeln.peopleTemplates.map((t) => t.id);
@@ -27,8 +27,8 @@ before(async () => {
   server = await startServer(root);
 });
 
-after(() => {
-  server?.stop();
+after(async () => {
+  await server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

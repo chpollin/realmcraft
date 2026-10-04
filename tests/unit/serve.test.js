@@ -3,67 +3,39 @@
 // REALMCRAFT_ROOT, damit der Test die echten Partien nie sieht.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { createServer, request } from 'node:http';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { http, startServer } from '../lib/server.mjs';
 
-const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-let proc;
-let port;
+let server;
 let tempRoot;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port: p } = srv.address();
-      srv.close(() => resolve(p));
-    });
-  });
-}
-
 // Roher Pfad ohne Normalisierung durch fetch/URL, damit %5C und %2f so ankommen.
-function get(path, headers = {}) {
-  return new Promise((resolve, reject) => {
-    const req = request(
-      { host: '127.0.0.1', port, path, method: 'GET', headers: { Host: `localhost:${port}`, ...headers } },
-      (res) => {
-        res.resume();
-        res.on('end', () => resolve(res.statusCode));
-      },
-    );
-    req.on('error', reject);
-    req.end();
-  });
-}
+const get = async (path, headers) => (await http(server.port, 'GET', path, { headers })).status;
 
 before(async () => {
-  port = await freePort();
   tempRoot = mkdtempSync(join(tmpdir(), 'rc-serve-'));
-  proc = spawn(process.execPath, ['serve.mjs'], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: tempRoot },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    proc.once('exit', (code) => reject(new Error(`serve.mjs beendet (${code})`)));
-    proc.stdout.on('data', (d) => {
-      if (String(d).includes('dev server')) resolve();
-    });
-  });
+  server = await startServer(tempRoot);
 });
 
-after(() => {
-  proc?.kill();
+after(async () => {
+  await server?.stop();
   if (tempRoot) rmSync(tempRoot, { recursive: true, force: true });
 });
 
 test('normale Datei wird ausgeliefert', async () => {
   assert.equal(await get('/index.html'), 200);
+});
+
+test('nur index.html und die Ordner des Spielbretts werden ausgeliefert', async () => {
+  for (const p of ['/', '/spielbrett/', '/engine/core/turn.js', '/welten/hochland/welt.json', '/fonts/inter-latin.woff2']) {
+    assert.equal(await get(p), 200, p);
+  }
+  // savegame.json gibt es nur auf Betreiber-Maschinen, package.json immer.
+  for (const p of ['/savegame.json', '/package.json', '/serve.mjs', '/server/config.mjs', '/tools/check.mjs', '/knowledge/INDEX.md', '/tests/lib/server.mjs', '/env.js']) {
+    assert.equal(await get(p), 404, p);
+  }
 });
 
 test('Backslash-kodierte Punktdateien werden nicht ausgeliefert', async () => {
@@ -74,20 +46,13 @@ test('Backslash-kodierte Punktdateien werden nicht ausgeliefert', async () => {
 });
 
 test('Pfad-Traversal wird abgewiesen', async () => {
-  for (const p of ['/..%2f', '/..%2fpackage.json', '/js/..%5c..%5c..%5cWindows%5cwin.ini']) {
+  for (const p of ['/..%2f', '/..%2fpackage.json', '/js/..%5c..%5c..%5cWindows%5cwin.ini', '/spielbrett/..%2fpackage.json', '/spielbrett%5c..%5cpackage.json']) {
     assert.ok([403, 404].includes(await get(p)), p);
   }
 });
 
-test('/env.js nur same-origin oder ohne Fetch-Metadaten', async () => {
-  assert.equal(await get('/env.js', { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Dest': 'script' }), 403);
-  assert.equal(await get('/env.js', { 'Sec-Fetch-Site': 'same-site' }), 403);
-  assert.equal(await get('/env.js', { 'Sec-Fetch-Site': 'same-origin', 'Sec-Fetch-Dest': 'script' }), 200);
-  assert.equal(await get('/env.js'), 200);
-});
-
 test('fremder Host-Header wird abgewiesen (DNS-Rebinding)', async () => {
-  assert.equal(await get('/index.html', { Host: `evil.example:${port}` }), 403);
+  assert.equal(await get('/index.html', { Host: `evil.example:${server.port}` }), 403);
   assert.equal(await get('/savegame.json', { Host: 'evil.example' }), 403);
-  assert.equal(await get('/index.html', { Host: `127.0.0.1:${port}` }), 200);
+  assert.equal(await get('/index.html', { Host: `127.0.0.1:${server.port}` }), 200);
 });
