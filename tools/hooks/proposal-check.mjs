@@ -13,23 +13,26 @@
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { campaignPath, findTask, itemTitle, proposalIdOfRel, readHookInput, readJsonFile, stepIdOf } from '../harness/lib.mjs';
+import { campaignRel, canonPath, findTask, itemTitle, proposalOf, readHookInput, readJsonFile, rootDir, stepIdOf } from '../harness/lib.mjs';
 
 const MAX_LISTED = 12;
 const PROPOSAL_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 
 const input = await readHookInput();
 const target = input?.tool_input?.file_path;
-const loc = input && PROPOSAL_TOOLS.has(input.tool_name) ? campaignPath(target, input.cwd) : null;
-const pid = loc?.cid ? proposalIdOfRel(loc.rel) : null;
+// The same root-bound reading of the path as guard-state, so the check runs on exactly the proposal writes the guard admits.
+const root = input && PROPOSAL_TOOLS.has(input.tool_name) && typeof target === 'string' && target ? canonPath(rootDir(input)) : null;
+const loc = root ? campaignRel(canonPath(target, input.cwd), root) : null;
+const pid = proposalOf(loc);
 if (!pid) process.exit(0);
+const dir = `${root}/campaigns/${loc.cid}`;
 
 function fail(lines) {
-  process.stderr.write(`${[`RealmCraft: proposal ${pid} is not valid. Correct ${loc.rel} and write it again.`, ...lines].join('\n')}\n`);
+  process.stderr.write(`${[`RealmCraft: proposal ${pid} is not valid. Correct ${loc.rest} and write it again.`, ...lines].join('\n')}\n`);
   process.exit(2);
 }
 
-const file = `${loc.dir}/${loc.rel}`;
+const file = `${dir}/${loc.rest}`;
 let proposal;
 try {
   proposal = JSON.parse(readFileSync(file, 'utf8'));
@@ -37,20 +40,20 @@ try {
   fail([`- the file is not valid JSON: ${err.message}`]);
 }
 
-const task = findTask(loc.dir, pid);
+const task = findTask(dir, pid);
 if (!task) fail([`- no task under agents/tasks/ names respondAs.proposalId "${pid}"; write exactly the path given in your task`]);
 
 const { validateProposal } = await import('../../engine/content/validate.js');
 const { createLibrary } = await import('../../engine/content/library.js');
-const state = readJsonFile(`${loc.dir}/state.json`, null);
+const state = readJsonFile(`${dir}/state.json`, null);
 // The world package as the CLI pins it: world.lock.json names its folder
 // (relative to the root or absolute), else welten/<id> under the root, else
 // the repository's welten/ (the CLI's own fallback).
-const lock = readJsonFile(`${loc.dir}/world.lock.json`, null);
+const lock = readJsonFile(`${dir}/world.lock.json`, null);
 const worldId = lock?.id ?? state?.campaign?.world?.id;
 const worldDirs = [
-  lock?.worldDir && (/^([a-zA-Z]:)?[\\/]/.test(lock.worldDir) ? lock.worldDir : `${loc.root}/${lock.worldDir}`),
-  worldId && `${loc.root}/welten/${worldId}`,
+  lock?.worldDir && (/^([a-zA-Z]:)?[\\/]/.test(lock.worldDir) ? lock.worldDir : `${root}/${lock.worldDir}`),
+  worldId && `${root}/welten/${worldId}`,
   worldId && fileURLToPath(new URL(`../../welten/${worldId}`, import.meta.url)),
 ].filter(Boolean);
 const world = (name) => {
@@ -63,7 +66,7 @@ const world = (name) => {
 const ctx = {
   state: state ?? undefined,
   task,
-  library: readJsonFile(`${loc.dir}/library.json`, null) ?? createLibrary(),
+  library: readJsonFile(`${dir}/library.json`, null) ?? createLibrary(),
   regeln: world('regeln'),
   welt: world('welt'),
 };
@@ -118,9 +121,9 @@ async function note(fn) {
   // status.json is a view: a failure to record must never block the agent.
   try {
     const status = await import('../../engine/harness/status.js');
-    const cur = readJsonFile(`${loc.dir}/status.json`, null);
+    const cur = readJsonFile(`${dir}/status.json`, null);
     if (cur && cur.campaign !== loc.cid) return;
-    if (!cur) status.initTurnStatus(loc.dir, task.turn, { campaign: loc.cid, phase: state?.phase ?? 'agents' });
+    if (!cur) status.initTurnStatus(dir, task.turn, { campaign: loc.cid, phase: state?.phase ?? 'agents' });
     fn(status);
   } catch {
     // lock timeout or schema mismatch of the view; ignore
@@ -144,7 +147,7 @@ const warnings = [
 
 const stepId = stepIdOf(task);
 if (errors.length) {
-  await note((s) => s.updateStep(loc.dir, { id: stepId, agent: task.agent, state: 'running', summary: `Vorprüfung: ${errors.length} Fehler, Agent korrigiert` }));
+  await note((s) => s.updateStep(dir, { id: stepId, agent: task.agent, state: 'running', summary: `Vorprüfung: ${errors.length} Fehler, Agent korrigiert` }));
   const lines = errors.slice(0, MAX_LISTED).map((i) => `- ${i.where ? `${i.where} ` : ''}${i.path || '/'} [${i.code}] ${i.message}`);
   if (errors.length > MAX_LISTED) lines.push(`- … and ${errors.length - MAX_LISTED} more`);
   if (budgetLines.length) lines.push('Budget per item:', ...budgetLines);
@@ -154,7 +157,7 @@ if (errors.length) {
 if (!result.duplicate) {
   await note((s) => {
     proposal.items.forEach((item, i) => {
-      s.recordVerdict(loc.dir, stepId, {
+      s.recordVerdict(dir, stepId, {
         proposalId: pid,
         kind: item.type,
         title: itemTitle(item),
@@ -163,7 +166,7 @@ if (!result.duplicate) {
         reason: null,
       });
     });
-    s.updateStep(loc.dir, { id: stepId, agent: task.agent, state: 'done', summary: 'Vorschlag liegt vor, Vorprüfung bestanden' });
+    s.updateStep(dir, { id: stepId, agent: task.agent, state: 'done', summary: 'Vorschlag liegt vor, Vorprüfung bestanden' });
   });
 }
 const context = [`RealmCraft: proposal ${pid} passed the pre-check${result.duplicate ? ' (unchanged duplicate)' : ''}.`];

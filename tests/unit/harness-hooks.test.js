@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PATTERNS } from '../../engine/schemas/index.js';
-import { PROPOSAL_ID_RE, campaignPath, normPath } from '../../tools/harness/lib.mjs';
+import { PROPOSAL_ID_RE, campaignRel, canonPath, normPath, proposalOf } from '../../tools/harness/lib.mjs';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const HOOK = (name) => join(REPO, 'tools', 'hooks', `${name}.mjs`);
@@ -96,13 +96,16 @@ describe('harness lib', () => {
   it('normalises Windows, Git Bash and relative paths onto one campaign location', () => {
     const forms = [`${root}\\campaigns\\${CID}\\state.json`, `${normPath(root)}/campaigns/${CID}/state.json`, `campaigns/${CID}/state.json`];
     if (process.platform === 'win32') forms.push(normPath(root).replace(/^([A-Z]):/, (_, d) => `/${d.toLowerCase()}`) + `/campaigns/${CID}/state.json`);
+    const base = canonPath(root);
     for (const f of forms) {
-      const loc = campaignPath(f, root);
+      const loc = campaignRel(canonPath(f, root), base);
       assert.equal(loc?.cid, CID, f);
-      assert.equal(loc.rel, 'state.json', f);
+      assert.equal(loc.rest, 'state.json', f);
     }
-    assert.equal(campaignPath(`${root}/examples/campaigns/${CID}/state.json`), null, 'examples/campaigns is developer territory');
-    assert.equal(campaignPath(`${root}/campaigns/index.json`).rel, 'index.json');
+    const proposal = (rel) => proposalOf(campaignRel(canonPath(`${root}/${rel}`), base));
+    assert.equal(proposal(`campaigns/${CID}/agents/proposals/chronicler.T${TURN}.json`), `chronicler.T${TURN}`);
+    assert.equal(proposal('campaigns/index.json'), null);
+    assert.equal(proposal(`campaigns/${CID}/agents/proposals/notes.json`), null);
   });
 });
 
@@ -113,7 +116,6 @@ describe('guard-state', () => {
     assert.ok(silent(run('guard-state', shell('git status'))));
     assert.ok(silent(run('guard-state', '')));
     assert.ok(silent(run('guard-state', 'not json')));
-    assert.ok(silent(run('guard-state', write(join(root, 'examples', 'campaigns', CID, 'state.json')))));
   });
 
   it('denies writes to kernel files of a campaign', () => {
@@ -314,7 +316,6 @@ describe('guard-state against the review cases', () => {
       `cat campaigns/${CID}/state.json > ${join(tmpdir(), 'copy.json')}`,
       `ls campaigns/${CID}/agents/proposals`,
       'powershell -ExecutionPolicy Bypass -File x.ps1',
-      `cp examples/campaigns/${CID}/state.json examples/campaigns/${CID}/b.json`,
     ]) assert.ok(silent(run('guard-state', sh(c))), c);
   });
 
@@ -392,6 +393,18 @@ describe('proposal-check', () => {
     assert.ok(silent(run('proposal-check', post(join(REPO, 'js', 'app.js')))));
     assert.ok(silent(run('proposal-check', post(join(dir, 'narrative', 'x.json')))));
     assert.ok(!existsSync(join(dir, 'status.json')));
+  });
+
+  it('acts only inside the project root, as the guard does', () => {
+    const elsewhere = mkdtempSync(join(tmpdir(), 'rc-elsewhere-'));
+    try {
+      const file = join(elsewhere, 'campaigns', CID, 'agents', 'proposals', `chronicler.T${TURN}.json`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, '{ "format": ');
+      assert.ok(silent(run('proposal-check', post(file))));
+    } finally {
+      rmSync(elsewhere, { recursive: true, force: true });
+    }
   });
 
   it('accepts a valid proposal and records its items as pending', () => {
