@@ -7,7 +7,7 @@ playwright-report/
 blob-report/
 .playwright/
 
-# Running private campaign (terminal game-master writes savegame.json live)
+# Untracked owner file
 savegame.json
 
 # Secrets — never commit API keys

@@ -15,9 +15,10 @@
 import { readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { MODELS, generateImage } from './gemini.js';
+import { generateImage } from './gemini.js';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const MODEL = 'gemini-3.1-flash-image';
 const OUT_DIR = path.join(REPO, 'spielbrett', 'assets', 'portraits');
 // The board shows portraits at most a few dozen pixels wide, so a small WebP
 // keeps the committed assets light.
@@ -141,8 +142,8 @@ async function main() {
   for (const p of jobs) {
     process.stdout.write(`${p.id} ... `);
     try {
-      const { dataUrl } = await generateImage({ apiKey, model: MODELS.portrait, prompt: portraitPrompt(p, style, labels), aspectRatio: aspect });
-      const raw = Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
+      const { data } = await generateImage({ apiKey, model: MODEL, prompt: portraitPrompt(p, style, labels), aspectRatio: aspect });
+      const raw = Buffer.from(data, 'base64');
       const file = `${p.id}.webp`;
       await writeAtomic(path.join(OUT_DIR, file), await sharp(raw).resize({ width: SIZE, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer());
       manifest = mergeManifest(manifest, { id: p.id, file });
