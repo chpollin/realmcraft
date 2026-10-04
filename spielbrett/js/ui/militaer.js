@@ -5,7 +5,7 @@
 
 import { el, signed } from '../dom.js';
 import { icon } from '../icons.js';
-import { peopleName } from '../model.js';
+import { peopleName } from '../data/adapter.js';
 import { withTip } from './tip.js';
 import { attackForecast, moduleData } from '../data/options.js';
 import { RULES } from '../../../engine/core/rules.js';
@@ -27,7 +27,7 @@ export function unitFacts(api, u) {
     r ? fact('bewegung', String(r.mobility), t('board.unit.mobility'), [el('span', { text: t.fmt('board.unit.reach', { n: r.tiles.length }) })]) : null,
     r ? fact('sicht', String(r.radius), t('board.unit.sight'), [el('span', { text: t('board.unit.sight-tip') })]) : null,
     ...upkeep.map(([res, n]) => fact(res, signed(-n), t.fmt('board.unit.upkeep', { res: api.resourceName(res) }), null)),
-    !own && game ? fact('ort', t.plural('board.unit.distance', distanceToOwn(game, u)), t('board.unit.distance-label'), null, { cls: 'is-text' }) : null,
+    !own ? fact('ort', t.plural('board.unit.distance', distanceToOwn(game, u)), t('board.unit.distance-label'), null, { cls: 'is-text' }) : null,
   );
 }
 
@@ -104,7 +104,7 @@ export function renderMilitaer(api, close) {
   const home = model.home;
   if (home) {
     const recruit = realOptions(api, { kind: 'unit', id: home.id, q: home.q, r: home.r }).filter((o) => o.opt.type === 'recruit' || o.opt.type === 'ausfall');
-    body.push(orderOptions(api, null, { kind: 'unit', id: home.id, q: home.q, r: home.r }, { given: recruit, titel: t('board.military.recruit'), hid: 'rekrut-h', iconName: 'plus' }));
+    body.push(orderOptions(api, { kind: 'unit', id: home.id, q: home.q, r: home.r }, { given: recruit, titel: t('board.military.recruit'), hid: 'rekrut-h', iconName: 'plus' }));
   }
   const foes = model.units.filter((u) => u.volk !== 'spieler' && u.objekt === 'unit' && model.known[`${u.q},${u.r}`]);
   if (foes.length) {

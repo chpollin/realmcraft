@@ -172,10 +172,3 @@ test('ending the turn rolls the world event, seals through the server and locks 
   await clickCamp(page);
   await expect(page.locator('#kontext .bo-gesperrt')).toBeVisible();
 });
-
-test('the prototype stays reachable with ?demo', async ({ page }) => {
-  await page.goto(`${BASE}/spielbrett/?demo`);
-  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
-  await expect(page.locator('html')).not.toHaveAttribute('data-campaign', /.+/);
-  await expect(page.locator('#befehle .befehl:not(.ereignis-schritt)')).toHaveCount(2);
-});

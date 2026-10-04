@@ -5,7 +5,7 @@
 
 import { el } from '../dom.js';
 import { icon } from '../icons.js';
-import { tileInfo, peopleName, regionName } from '../model.js';
+import { tileInfo, peopleName, regionName } from '../data/adapter.js';
 import { regionInfo } from '/engine/world/index.js';
 import { tune } from '../data/kernel.js';
 import { attackersFor } from '../data/options.js';
@@ -33,7 +33,7 @@ export function province(api, regionId, tileKey, close) {
   for (const k of known) {
     const [q, r] = k.split(',').map(Number);
     for (const d of tileInfo(model, q, r).tile.resources ?? []) {
-      const y = game ? tune(game.env, 'featureYield', d.key) : { res: d.key, amount: d.amount };
+      const y = tune(game.env, 'featureYield', d.key);
       if (y?.res) yields.set(y.res, (yields.get(y.res) ?? 0) + y.amount);
     }
   }
@@ -54,7 +54,7 @@ export function province(api, regionId, tileKey, close) {
       terrainFacts(api, q, r, { region: false }),
       deposits(api, q, r),
       def && !def.water && typeof def.moveCost === 'number'
-        ? orderOptions(api, 'feld', target, game ? { given: realOptions(api, target).filter((o) => !CONTROL_ORDERS.has(o.opt.type)) } : {})
+        ? orderOptions(api, target, { given: realOptions(api, target).filter((o) => !CONTROL_ORDERS.has(o.opt.type)) })
         : null);
     body.push(field);
   }
@@ -66,9 +66,9 @@ export function province(api, regionId, tileKey, close) {
         icon(p.art, { size: 18 }), p.name, el('span', { class: 'meta', text: p.volk && p.volk !== 'spieler' ? peopleName(model, p.volk) : artName(p.art) }))))));
   }
 
-  if (game && owner !== 'spieler') {
+  if (owner !== 'spieler') {
     const list = controlOptions(api, regionId, tileKey, owner, settlements);
-    if (list.length) body.push(orderOptions(api, null, tileKey ? { kind: 'tile', id: tileKey } : { kind: 'region', id: regionId }, { given: list, titel: t('board.province.win'), hid: 'herrschaft-h', iconName: 'besitz' }));
+    if (list.length) body.push(orderOptions(api, tileKey ? { kind: 'tile', id: tileKey } : { kind: 'region', id: regionId }, { given: list, titel: t('board.province.win'), hid: 'herrschaft-h', iconName: 'besitz' }));
   }
   return { kopf, body };
 }

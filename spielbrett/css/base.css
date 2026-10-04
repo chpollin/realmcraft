@@ -146,18 +146,6 @@
   @media (min-width: 1721px) {
     .has-tip:is(:hover, :focus-visible, :focus-within) > .tip-kurz { display: none; }
   }
-
-  .monogram {
-    display: inline-grid;
-    place-items: center;
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
-    border-radius: 50%;
-    background: var(--night-3);
-    font-family: var(--font-world);
-    font-size: 1.05rem;
-    color: var(--ink);
-  }
 }
 
 @layer utilities {

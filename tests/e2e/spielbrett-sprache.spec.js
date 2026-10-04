@@ -40,10 +40,10 @@ test.afterAll(async () => {
   if (root) rmSync(root, { recursive: true, force: true });
 });
 
-async function openBoard(page, query = `campaign=${CID}`) {
+async function openBoard(page) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(`${BASE}/spielbrett/?${query}`);
+  await page.goto(`${BASE}/spielbrett/?campaign=${CID}`);
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   return errors;
 }
@@ -149,14 +149,5 @@ test('after sealing, the world events panel keeps the resolution phase in the ne
   await expect(page.locator('#weltgeschehen .phase')).toHaveText(phase(de));
   await expect(page.locator('#weltgeschehen #wg-titel')).toHaveText(de['view.weltgeschehen']);
   await expect(page.locator('#zug-beenden .zb-titel')).toHaveText(de['board.endturn.busy']);
-  expect(errors).toEqual([]);
-});
-
-test('the prototype speaks the chosen language too', async ({ page }) => {
-  const errors = await openBoard(page, 'demo');
-  await expect(page.locator('#ebenen [data-ebene="besitz"] .ebene-label')).toHaveText(en['board.layer.besitz']);
-  await expect(page.locator('#zug-beenden .zb-titel')).toHaveText(en['ui.zug-beenden']);
-  await (await languageSwitch(page)).locator('[data-lang="de"]').click();
-  await expect(page.locator('#ebenen [data-ebene="besitz"] .ebene-label')).toHaveText(de['board.layer.besitz']);
   expect(errors).toEqual([]);
 });

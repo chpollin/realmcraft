@@ -170,8 +170,6 @@ describe('label completeness', () => {
     'board.vote': ['ja', 'nein', 'enthaltung'],
     'board.vote-reason': ['favours', 'opposes', 'loyal', 'discontent', 'loyalty-at-breaking-point'],
     'board.stance': ['unbekannt', 'feindlich', 'freundlich', 'wachsam', 'neutral'],
-    'board.probe.verdict': ['krit-tief', 'krit-hoch', 'erfolg', 'fehlschlag'],
-    'board.tree.state': ['forschung', 'vorschlag', 'bekannt'],
     'board.council': ['passed', 'by-decree', 'on-machtprobe', 'refused'],
     'board.world': ['angenommen', 'abgelehnt'],
     'board.order-status': ['executed', 'rejected', 'unpaid'],
@@ -220,6 +218,14 @@ describe('label completeness', () => {
   test('board label files name their language', () => {
     assert.equal(board.de.locale, 'de');
     assert.equal(board.en.locale, 'en');
+  });
+
+  // JSON.parse keeps the last of two equal keys, so a duplicate would silently replace a label.
+  test('board label files carry every key once', () => {
+    for (const lang of ['de', 'en']) {
+      const keys = [...readFileSync(join(REPO, `spielbrett/labels/${lang}.json`), 'utf8').matchAll(/^\s*"([^"]+)":/gm)].map((m) => m[1]);
+      assert.deepEqual(keys.filter((k, i) => keys.indexOf(k) !== i), [], lang);
+    }
   });
 });
 

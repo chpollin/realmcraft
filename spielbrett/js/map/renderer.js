@@ -2,14 +2,14 @@
 // frame loop runs only while something moves (camera tween, pulses, trade
 // flow, the selection settling) and stops by itself afterwards.
 
-import { hexToPixel, pixelToHex, hexKey, neighbors, CORNERS, hexPath, hash01, hexDistance } from './hex.js';
+import { hexToPixel, pixelToHex, hexKey, neighbors, CORNERS, hexPath, hash01 } from './hex.js';
 // EDGE_CORNERS is declared at the end of this module and only read inside methods.
 import { token, col } from './palette.js';
 import { drawTerrainMark } from './terrain.js';
 import { iconPath } from '../icons.js';
 import { tileAt } from '/engine/world/index.js';
 import { prefersReducedMotion } from '../dom.js';
-import { regionName } from '../model.js';
+import { regionName } from '../data/adapter.js';
 
 export const BASE = 30;
 const ZOOM_MIN = 0.45;
@@ -47,7 +47,6 @@ export class MapView {
     this.fogCanvas = document.createElement('canvas');
     this.terrainCanvas = document.createElement('canvas');
     this.grain = this.makeGrain();
-    this.ownerVersion = -1;
     const css = getComputedStyle(document.documentElement);
     this.fontWorld = css.getPropertyValue('--font-world');
     this.fontUi = css.getPropertyValue('--font-ui');
@@ -280,7 +279,6 @@ export class MapView {
     }
 
     this.drawRivers(cells, s);
-    if (model.frostRegions.size) this.drawFrost(cells, s);
 
     for (const c of cells) {
       if (!c.def) continue;
@@ -301,7 +299,6 @@ export class MapView {
     this.drawCampGlow(s);
     if (s > 20) this.drawRegionLabels(cells, s);
     if (model.layer === 'handel') this.drawTrade(s, now);
-    this.drawMoves(s);
     this.drawPlans(s);
     this.drawPlaces(s);
     this.drawUnits(s);
@@ -352,28 +349,6 @@ export class MapView {
     ctx.stroke(paths);
   }
 
-  drawFrost(cells, s) {
-    const { ctx, model } = this;
-    for (const c of cells) {
-      if (c.status === 'frontier' || !model.frostRegions.has(c.tile.regionId)) continue;
-      ctx.beginPath();
-      hexPath(ctx, c.x, c.y, s + 0.5);
-      const g = ctx.createRadialGradient(c.x, c.y - s * 0.3, s * 0.1, c.x, c.y, s * 1.1);
-      g.addColorStop(0, col('--map-frost', { a: 0.42 }));
-      g.addColorStop(1, col('--map-frost', { a: 0.2 }));
-      ctx.fillStyle = g;
-      ctx.fill();
-      // Scattered rime crystals, placed per tile so they hold still while panning.
-      if (s > 18) {
-        for (let i = 0; i < 2; i++) {
-          const x = c.x + (hash01(c.tile.q, c.tile.r, 200 + i) - 0.5) * s * 1.1;
-          const y = c.y + (hash01(c.tile.q, c.tile.r, 210 + i) - 0.5) * s * 0.9;
-          this.icon('frost', x, y, s * (0.32 + hash01(c.tile.q, c.tile.r, 220 + i) * 0.14), col('--map-snow', { a: 0.75 }));
-        }
-      }
-    }
-  }
-
   drawFog(cells, s) {
     const { ctx } = this;
     const f = this.fogCanvas;
@@ -400,27 +375,9 @@ export class MapView {
     ctx.restore();
   }
 
+  /** The kernel's region control per known tile. */
   ownership() {
-    // A real campaign carries the kernel's region control per known tile.
-    if (this.model.owners instanceof Map) return this.model.owners;
-    if (this.ownerVersion === this.model.ownerVersion && this.owners) return this.owners;
-    const holdings = [];
-    for (const u of this.model.units) holdings.push({ q: u.q, r: u.r, volk: u.volk, reach: u.art === 'lager' ? 3 : 1 });
-    for (const p of this.model.places) if (p.volk) holdings.push({ q: p.q, r: p.r, volk: p.volk, reach: p.art === 'siedlung' ? 3 : 2 });
-    const owners = new Map();
-    for (const k of Object.keys(this.model.known)) {
-      const [q, r] = k.split(',').map(Number);
-      let best = null;
-      let bestD = Infinity;
-      for (const h of holdings) {
-        const d = hexDistance(h, { q, r });
-        if (d <= h.reach && d < bestD) { best = h.volk; bestD = d; }
-      }
-      if (best) owners.set(k, best);
-    }
-    this.owners = owners;
-    this.ownerVersion = this.model.ownerVersion;
-    return owners;
+    return this.model.owners;
   }
 
   drawOwnership(cells, s) {
@@ -452,22 +409,14 @@ export class MapView {
 
   threatAt(q, r) {
     // Kernel threat layer: level 2 where a foreign unit or danger stands, 1 within its reach.
-    if (this.model.threat instanceof Map) return (this.model.threat.get(`${q},${r}`) ?? 0) / 2;
-    let v = 0;
-    for (const u of this.model.units) {
-      if (u.volk !== 'schaedelklan') continue;
-      const d = hexDistance(u, { q, r });
-      if (d < 5) v = Math.max(v, (u.staerke / 3) * (1 - d / 5));
-    }
-    return Math.min(1, v);
+    return (this.model.threat.get(`${q},${r}`) ?? 0) / 2;
   }
 
   drawThreat(cells, s) {
-    const { ctx, model } = this;
+    const { ctx } = this;
     for (const c of cells) {
       if (c.status === 'frontier') continue;
-      let v = this.threatAt(c.tile.q, c.tile.r);
-      if (model.frostRegions.has(c.tile.regionId)) v = Math.max(v, 0.3);
+      const v = this.threatAt(c.tile.q, c.tile.r);
       if (v <= 0.02) continue;
       ctx.beginPath();
       hexPath(ctx, c.x, c.y, s + 0.5);
@@ -736,7 +685,7 @@ export class MapView {
    */
   drawPlans(s) {
     const { model } = this;
-    if (!model.real || model.phase === 'A') return;
+    if (model.phase === 'A') return;
     const at = (k) => { const [q, r] = String(k).split(',').map(Number); return Number.isInteger(q) && Number.isInteger(r) ? { q, r } : null; };
     const unitAt = (id) => model.units.find((u) => u.id === id && u.volk === 'spieler') ?? null;
     for (const o of model.orders) {
@@ -824,7 +773,7 @@ export class MapView {
 
   /**
    * Trade routes: a running contract flows, a route a trade order would find
-   * is a quiet dotted line, a closed one is not drawn. A real route is drawn
+   * is a quiet dotted line, a closed one is not drawn. A route is drawn
    * only over tiles the people knows; its chip with partner and length sits at
    * the last known tile towards the partner.
    */
@@ -833,11 +782,11 @@ export class MapView {
     const reduced = prefersReducedMotion();
     for (const route of model.tradeRoutes) {
       if (route.state === 'closed') continue;
-      const flowing = route.state === undefined || route.state === 'contract';
+      const flowing = route.state === 'contract';
       const runs = [];
       let run = [];
       for (const h of route.path) {
-        if (!model.real || model.known[hexKey(h.q, h.r)]) run.push(h);
+        if (model.known[hexKey(h.q, h.r)]) run.push(h);
         else if (run.length) { runs.push(run); run = []; }
       }
       if (run.length) runs.push(run);
@@ -860,8 +809,7 @@ export class MapView {
       }
       const last = drawn.at(-1).at(-1);
       const end = this.hexScreen(last.q, last.r);
-      const text = route.label ?? route.gut;
-      if (text) this.chip(end.x, end.y - s * 0.6, text, 'handel', '--map-trade');
+      if (route.label) this.chip(end.x, end.y - s * 0.6, route.label, 'handel', '--map-trade');
       ctx.restore();
     }
   }
@@ -937,44 +885,6 @@ export class MapView {
     ctx.lineWidth = 1.9;
     ctx.stroke(p);
     ctx.restore();
-  }
-
-  drawMoves(s) {
-    const { ctx, model } = this;
-    for (const m of model.moves) {
-      const a = this.hexScreen(m.from.q, m.from.r);
-      const b = this.hexScreen(m.to.q, m.to.r);
-      const ang = Math.atan2(b.y - a.y, b.x - a.x);
-      const end = { x: b.x - Math.cos(ang) * s * 0.55, y: b.y - Math.sin(ang) * s * 0.55 };
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = col('--map-label-halo', { a: 0.6 });
-      ctx.lineWidth = Math.max(4, s * 0.17);
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
-      ctx.strokeStyle = col('--people-schaedelklan');
-      ctx.lineWidth = Math.max(2, s * 0.08);
-      ctx.setLineDash([s * 0.2, s * 0.16]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = col('--people-schaedelklan');
-      ctx.beginPath();
-      const hs = Math.max(7, s * 0.3);
-      ctx.moveTo(end.x + Math.cos(ang) * hs * 0.6, end.y + Math.sin(ang) * hs * 0.6);
-      ctx.lineTo(end.x + Math.cos(ang + 2.4) * hs, end.y + Math.sin(ang + 2.4) * hs);
-      ctx.lineTo(end.x + Math.cos(ang - 2.4) * hs, end.y + Math.sin(ang - 2.4) * hs);
-      ctx.closePath();
-      ctx.fill();
-      // Ghost of the old position.
-      ctx.globalAlpha = 0.4;
-      this.tokenShape('schaedelklan', a.x, a.y, Math.max(9, s * 0.36));
-      ctx.strokeStyle = col('--people-schaedelklan');
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.restore();
-    }
   }
 
   drawPlaces(s) {

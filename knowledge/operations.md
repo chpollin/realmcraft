@@ -27,7 +27,7 @@ PORT=4200 node serve.mjs      # another port (Git Bash)
 $env:PORT=4200; node serve.mjs   # PowerShell
 ```
 
-The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`, the prototype at `/spielbrett/?demo`. The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It pushes campaign changes over server-sent events. Code changes reach an open page only after a reload in the browser.
+The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`. Fixture campaigns for looking at the board without a live game come from `node tests/fixtures/spielbrett/build-module.mjs --keep`, which prints the temporary root it wrote. `REALMCRAFT_ROOT=<root> PORT=<port> node serve.mjs` then serves them at `?campaign=module` and `?campaign=agenten` ([frontend.md](frontend.md)). The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It pushes campaign changes over server-sent events. Code changes reach an open page only after a reload in the browser.
 
 ## Start a game master session
 

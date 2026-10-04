@@ -43,7 +43,7 @@ npm run sim                 # headless campaigns under the fallback policy, inva
 | Unit, harness | hooks fed with hook inputs (path filter, denials, Windows paths, pre-check) and the dry run of `/zug` in a temporary root | `tests/unit/harness-hooks.test.js`, `tests/unit/harness-dryrun.test.js` |
 | Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/serve.test.js`, `tests/unit/server/`, with the shared server helper `tests/lib/server.mjs` |
 | Acceptance | black-box tests of the kernel written from the specification without knowledge of the implementation, driving only `node engine/cli.mjs` and checking its files with Ajv | `tests/acceptance/` |
-| End to end | the board against a real campaign (load, preview, roll, seal) and the blocker flow from the playtest | `tests/e2e/spielbrett-real.spec.js`, `tests/e2e/spielbrett-blocker.spec.js` |
+| End to end | the board against campaigns the CLI writes into temporary roots, covering load, preview, roll and seal, the blocker flow from the playtest, the module views and the agent round, the paths wheel, start screen and menu, language and audio | `tests/e2e/spielbrett-*.spec.js` |
 
 The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The kernel lanes do not change these tests, a changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
 
@@ -51,7 +51,7 @@ The acceptance groups cover lifecycle, determinism with replay, probes, the econ
 
 - `tests/fixtures/engine/` holds campaign states (turn 0, midgame, near victory, near collapse) built by `build-state-fixtures.mjs` from a real kernel run on Hochland with seed 7, drafts, views, a report, tasks and proposals with invalid counterexamples, and the validator corpus `corpus/manifest.json` with hand-computed expectations for the synthetic world `korpus`.
 - `tests/fixtures/harness/T<turn4>/` holds the recorded agent proposals for the dry run. The research proposal there is deliberately invalid to show a refused proposal in the status.
-- `tests/fixtures/spielbrett/` holds views and event logs of Hochland for the board tests, rebuilt with `build.mjs` and `build-events.mjs` when the world hash changes.
+- `tests/fixtures/spielbrett/` holds views and event logs of Hochland for the board tests, rebuilt with `build.mjs` and `build-events.mjs` when the world hash changes. `build-module.mjs` writes the campaigns `module` (every board module in play) and `agenten` (agent steps and judge findings in `status.json`) through the CLI for the module tests, and with `--keep` as fixture campaigns for looking at the board ([frontend.md](frontend.md)).
 
 Campaigns of tests live in temporary roots. No test touches `campaigns/`.
 

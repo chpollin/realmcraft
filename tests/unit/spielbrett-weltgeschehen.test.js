@@ -24,10 +24,6 @@ const findingStep = {
     proposalId: judge.proposalId, kind: 'finding', title: i.text.slice(0, 80), verdict: 'accepted', budget: null, reason: null,
   })),
 };
-const findingEvents = judge.items.filter((i) => i.type === 'finding').map((i, n) => ({
-  id: `T12-e${n}`, turn: 12, source: `agent:${judge.agent}`, kind: 'ingest.finding',
-  target: { kind: 'campaign', id: judge.campaign }, change: null, reason: `${i.severity}: ${i.text}`, refs: [i.id, ...i.refs],
-}));
 
 describe('durations', () => {
   test('whole seconds between the step timestamps, null when one is missing', () => {
@@ -91,17 +87,10 @@ describe('shapeSteps', () => {
 });
 
 describe('event index and findings', () => {
-  test('severity of a finding is taken from the logged finding, matched by its text', () => {
-    const { findings } = agentEventIndex(findingEvents, () => null);
-    const [row] = shapeSteps([findingStep], { t, findings });
-    const wanted = judge.items.filter((i) => i.type === 'finding');
-    assert.deepEqual(row.results.map((r) => r.severity), wanted.map((i) => i.severity));
-    assert.ok(row.results.some((r) => r.severity === 'severe' && r.icon === 'warnung'));
-  });
-
-  test('without a logged finding the severity stays empty', () => {
+  test('a finding proposal is a warning row without a severity; the severity comes from status.json', () => {
     const [row] = shapeSteps([findingStep], { t });
-    assert.ok(row.results.every((r) => r.severity === null && r.severityText === null));
+    assert.ok(row.results.length > 0);
+    assert.ok(row.results.every((r) => r.kind === 'finding' && r.icon === 'warnung' && r.severity === undefined));
   });
 
   test('a position is attached through the proposal id in refs of agent entries only', () => {

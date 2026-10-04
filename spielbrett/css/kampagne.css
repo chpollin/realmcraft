@@ -32,9 +32,6 @@
 
   .ratsfrage + .ratsfrage { border-block-start: 1px solid var(--night-3); padding-block-start: var(--space-4); }
 
-  .bs-aktion { display: grid; gap: var(--space-2); justify-items: start; }
-  .richtung-tags { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: 0 var(--space-2); max-block-size: 14rem; overflow: auto; }
-
   .probe-rechnung .gekappt { text-decoration: line-through; color: var(--ink-dim); }
   .chance-feld.neutral { background: var(--night-4); color: var(--ink); }
 

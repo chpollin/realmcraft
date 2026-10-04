@@ -3,7 +3,7 @@
 
 import { el } from '../dom.js';
 import { icon } from '../icons.js';
-import { peopleName, tileInfo } from '../model.js';
+import { peopleName, tileInfo } from '../data/adapter.js';
 import { t } from '../i18n/index.js';
 
 export function renderOrtsliste(api) {

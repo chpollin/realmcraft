@@ -35,7 +35,8 @@ function append(node, children) {
   }
 }
 
-export const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+// signed lives in the DOM-free label module, so the data layer shares it.
+export { signed } from './data/labels.js';
 
 export function prefersReducedMotion() {
   // The viewer's choice in the settings (html data-motion) outranks the system preference.

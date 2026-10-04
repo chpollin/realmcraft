@@ -49,8 +49,7 @@ function column(peopleName, peopleCls, b, { rival = false } = {}) {
 
 /** One symbol per milestone of a destiny the people could adopt; the wording is on demand. */
 function candidateMilestones(list) {
-  return el('ul', { class: 'ms-chips plain' }, ...list.map((entry) => {
-    const m = typeof entry === 'string' ? { text: entry } : entry;
+  return el('ul', { class: 'ms-chips plain' }, ...list.map((m) => {
     const chip = el('div', { class: 'ms-chip', tabindex: '0', role: 'group', 'aria-label': m.text }, icon(symbol(m.icon), { size: 20 }));
     return el('li', {}, withTip(chip, milestoneTip(m.text)));
   }));
@@ -87,24 +86,9 @@ function deltaChips(api, delta) {
   return chips.length ? el('ul', { class: 'folgen-chips plain', 'aria-label': t('board.destiny.change') }, ...chips) : null;
 }
 
-/** Prototype (?demo): a free order with the price the fixture names. */
-function demoButton(api, w, queued) {
-  const blocked = queued || api.model.phase === 'A';
-  return adoptButton({
-    queued,
-    blocked,
-    reason: w.preis ?? null,
-    onclick: () => {
-      api.addOrder({ id: `b-${w.name}`, quelle: `bestimmung-${w.name}`, titel: t('board.destiny.switch'), ziel: w.name, kosten: [{ key: 'zustimmung', menge: 2 }], art: 'frei' });
-      api.rerenderDialog('bestimmung');
-    },
-  });
-}
-
 /** Rival columns: the kernel reveals a rival's destiny after contact and a reached milestone, or by a reveal. */
 function rivalColumns(api) {
-  const { game, model } = api;
-  if (!game) return model.rivalen.filter((r) => r.bestimmung.bekannt).map((r) => column(r.name, r.id, r.bestimmung, { rival: true }));
+  const { game } = api;
   const rivals = game.view.derived?.[game.pid]?.rivals ?? [];
   return rivals.filter((r) => r.destiny).map((r) => {
     const def = game.env.bestimmung(r.destiny.ref);
@@ -119,15 +103,9 @@ function rivalColumns(api) {
   });
 }
 
-/** Offer cards. In a real campaign only destinies the kernel accepts now, each with the preview of the switch. */
+/** Offer cards: only destinies the kernel accepts now, each with the preview of the switch. */
 function offerCards(api) {
-  const { model } = api;
-  const own = model.bestimmung;
-  if (!model.real) {
-    const switchQueued = (name) => model.orders.some((o) => o.quelle === `bestimmung-${name}`);
-    return own.wechsel.map((w) => ({ w, button: demoButton(api, w, switchQueued(w.name)), delta: null }));
-  }
-  return own.wechsel.map((w) => {
+  return api.model.bestimmung.wechsel.map((w) => {
     const opt = api.game.previewOption({ type: 'destiny.adopt', params: { bestimmung: w.ref } });
     if (opt.grund && !opt.queued) return null;
     const locked = api.model.phase === 'A';
@@ -160,11 +138,11 @@ export function renderBestimmung(dlg, api) {
         ...rivalColumns(api)),
       offers.length ? el('section', { class: 'wechsel', 'aria-labelledby': 'bst-w' },
         el('h3', { class: 'abschnitt', id: 'bst-w', text: t('board.destiny.offers') }),
-        el('ul', { class: 'wechsel-liste plain' }, ...offers.map(({ w, button, delta }) => el('li', { class: 'wechsel-karte', 'data-angebot': w.ref ?? w.name },
+        el('ul', { class: 'wechsel-liste plain' }, ...offers.map(({ w, button, delta }) => el('li', { class: 'wechsel-karte', 'data-angebot': w.ref },
           // The summary of the destiny sits in the tooltip of its name, not as standing text.
           w.weil ? withTip(el('h4', { class: 'world', tabindex: '0', text: w.name }), [el('span', { text: w.weil })], null, { up: true }) : el('h4', { class: 'world', text: w.name }),
           candidateMilestones(w.meilensteine),
-          model.real ? deltaChips(api, delta) : null,
+          deltaChips(api, delta),
           button)))) : null),
   );
 }

@@ -21,7 +21,9 @@ The game board (Spielbrett) under `spielbrett/` is the map-first browser surface
 
 ## Entry and modes
 
-`spielbrett/index.html` loads `js/main.js`. Without parameters the board opens the most recent campaign served from `campaigns/`, `?campaign=<cid>` opens a specific one. Without a campaign it shows how to create one with the CLI. `?demo` runs the frozen prototype on its fixtures under `js/mock/`, which is kept as a design reference.
+`spielbrett/index.html` loads `js/main.js`. Without parameters the board shows the start screen with new game, continue, settings and rules (`ui/start.js`), and `?campaign=<cid>` opens that campaign. A campaign that cannot be read shows the reason and the way back to the start screen.
+
+For looking at the board without a live game, `node tests/fixtures/spielbrett/build-module.mjs --keep` writes two campaigns through the kernel CLI into a temporary root and prints that root. The campaign `module` has every board module in play (trade, a war band in sight, magic, a change of way of life) and opens on an event decision. The campaign `agenten` stands in the agents phase with waiting, running and finished agent steps and judge findings of every severity. `REALMCRAFT_ROOT=<root> PORT=<port> node serve.mjs` serves them at `?campaign=module` and `?campaign=agenten`. The former prototype on hand-written fixtures stays preserved at commit `44bb892` ([playtests.md](playtests.md)).
 
 ## Data layer
 
@@ -30,11 +32,11 @@ The game board (Spielbrett) under `spielbrett/` is the map-first browser surface
 | `js/data/server.js` | client of the dev server that reads the campaign index, the player's view and events, `status.json`, chronicle and report summaries, writes through `POST /api/draft` and `POST /api/seal` |
 | `js/data/kernel.js` | the kernel as the browser uses it, with the environment from the pinned world package plus the released content, and `preview`, probes, bands, loyalty bands, map layers and research cost |
 | `js/data/game.js` | a real campaign on the board, which loads view, package and content, keeps the draft, previews every change, stores the draft through the server and follows server-sent events |
-| `js/data/adapter.js` | maps the projection and the preview to the board model, pure and DOM-free so unit tests run it in Node |
+| `js/data/adapter.js` | maps the projection and the preview to the board model, pure and DOM-free so unit tests run it in Node, and holds the lookups the views make on that model (tile, region, objects on a tile, people and resource names) |
 | `js/data/draft.js` | immutable updates of the player's draft (orders, rolls, mandates, choices, labour) |
 | `js/data/options.js` | orders a selection allows, decided by previewing each candidate with the kernel |
 | `js/data/ereignisse.js` | event cards after a turn change from the projected log, open decisions and library cards |
-| `js/data/labels.js` | label lookup over the world's `labels.json` |
+| `js/data/labels.js` | label lookup over the board labels (`spielbrett/labels/`) and the label files of the world in the chosen language, and the signed number format the views share |
 
 The server releases only fog-safe campaign files ([architecture.md](architecture.md), trust boundaries). The route table at the head of `serve.mjs` is the reference for every endpoint the board calls and for the server-sent events on `/events`.
 
@@ -48,8 +50,8 @@ The map is the main surface. Everything else is a panel or overlay over it.
 - Context panel (`ui/kontext.js`). What the selected tile, unit, place, region or people is and which orders it allows, each previewed on hover.
 - Place list (`ui/ortsliste.js`). Keyboard and screen-reader equivalent of the canvas.
 - Turn bar. Orders of the turn with slot indicator and slot icon per order, messages, the blocker summary next to "Zug beenden" with fixes in place, and the button itself.
-- Overlays as native `<dialog>` (`ui/dialoge.js`). Developments as a growing tree around the people's emblem (`ui/baum.js`), council with vote meter, cards and decree or Machtprobe (`ui/rat.js`), chronicle (`ui/chronik.js`), destinies with milestones as symbol and progress (`ui/bestimmung.js`), probe dialog with target, every modifier, the chance per leading member and the roll (`ui/probe.js`), and event cards (`ui/ereignisse.js`).
-- Weltgeschehen (`ui/weltgeschehen.js`). Kernel results and agent steps grouped, with waiting, running, done and failed states and the judges at the end.
+- Overlays as native `<dialog>` (`ui/dialoge.js`). Developments as the paths wheel with one spoke per research path and one ring per tier (`ui/pfade.js` on `data/pfade.js`), council with vote meter, cards and decree or Machtprobe (`ui/rat.js`), chronicle (`ui/chronik.js`), destinies with milestones as symbol and progress (`ui/bestimmung.js`), probe dialog with target, every modifier, the chance per leading member and the roll (`ui/probe.js`), and event cards (`ui/ereignisse.js`).
+- Weltgeschehen (`ui/weltgeschehen.js`). Kernel results and agent steps grouped, with waiting, running, done and failed states and the judges at the end. A judge's findings show the severity that `status.json` records under its step.
 
 The playtest of 3 October 2026 shaped this surface ([playtests.md](playtests.md)). Research forms its own budget beside the slots, a new research choice replaces the previous one, the world event roll is its own step, and event cards appear one after another as centred modal cards confirmed with "Weiter", with options previewed by the kernel and fitting orders as quick reactions.
 
@@ -61,19 +63,12 @@ The playtest of 3 October 2026 shaped this surface ([playtests.md](playtests.md)
 - No standing explanatory prose, no eyebrow labels above headings and no decorative counters.
 - Text always goes through `textContent` (`js/dom.js`), so agent strings can never inject markup.
 - Accessibility. Native dialogs with focus trapping and focus return, keyboard panning of the map, the place list as alternative to the canvas, and visible focus.
-- Labels come only from the world's `labels.json`. Kernel issues are shown through the label `issue.<code>`, with a generic fallback.
+- Labels come from the board's label files and the world's label files. Kernel issues are shown through the label `issue.<code>`, with a generic fallback.
 - Acknowledged event cards are remembered per campaign and turn in `localStorage`, a convenience the board works without.
 
-## Data gaps on main
+## Open data gap
 
-The UI round of 3 October 2026 found data the kernel does not yet deliver. M1 closes them ([plan-m1.md](plan-m1.md)).
-
-- Machine-readable refusal reasons with parameters on every issue, so the board never parses English text. Event parsing still relies on English reason text.
-- Council members with location and strengths in the view.
-- Trade routes and trade orders usable from the view.
-- Revealed rival destinies in the view.
-- A preview that honours `draft.choices` and the consequences of `destiny.adopt`.
-- Status findings with severity.
+The UI round of 3 October 2026 listed data the kernel did not deliver, and M1 closed most of it ([plan-m1.md](plan-m1.md)). Issues carry machine-readable reasons, the view carries council location and strengths, trade routes and orders and revealed rival destinies, the preview honours `draft.choices` and the consequences of `destiny.adopt`, and `status.json` records judge findings with their severity. The event cards still read some facts from the English reason text of log entries, namely a council member's death and successor and the option an event decision closed with (`data/ereignisse.js`).
 
 ## M1 additions
 

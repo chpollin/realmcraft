@@ -178,7 +178,7 @@ export function marketQuote(view, env, params) {
 
 const sameOrder = (a, b) => a.type === b.type && JSON.stringify(a.params) === JSON.stringify(b.params);
 
-const modLabel = (t, label) => t(`tag.${label}`, t(label, label));
+export const modLabel = (t, label) => t(`tag.${label}`, t(label, label));
 
 /** The draft with the candidate added, or put in place of `replaceId`. */
 function draftWith(draft, cand, extra, replaceId, base) {

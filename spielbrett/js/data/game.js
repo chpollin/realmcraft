@@ -5,7 +5,7 @@
 // agents' writes (view, status, chronicle, report) back onto the board.
 
 import { buildEnv, previewDraft, bandOf, eventBand, eventBands, SUCCESS_BANDS, sameWorld, CONTENT_FILES } from './kernel.js';
-import { bandKey, LANGUAGES } from './labels.js';
+import { bandKey, LANGUAGES, signed } from './labels.js';
 import { t, setWorldLabels } from '../i18n/index.js';
 import { server, turnStem } from './server.js';
 import { adaptView, orderRows, resourceRows, messages, issueText, describeParams, seasonOf, boardPhase, volkOf, previewDeltas, blockersOf } from './adapter.js';
@@ -25,7 +25,6 @@ export const originOf = (agentOrSource) => {
 // Agent states of status.json on the board's state ids; their names are board labels (board.agent.<id>).
 const STEP_STATE = { waiting: 'wartet', running: 'arbeitet', done: 'fertig', failed: 'gescheitert' };
 const POSITIONAL = new Set(['tile', 'settlement', 'unit', 'region']);
-const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
 
 /** Whole seconds between the step timestamps of status.json, null while one is missing. */
 export function durationSeconds(startedAt, endedAt) {
@@ -41,33 +40,27 @@ export function formatDuration(sec) {
 }
 
 /**
- * Map positions and judge severities that agent proposals left in the event log.
- * Agent entries carry the proposal id in refs, and a judge's finding is logged
- * as "<severity>: <text>", the only place the severity reaches the board.
+ * Map positions that agent proposals left in the event log; agent entries
+ * carry the proposal id in refs.
  */
 export function agentEventIndex(events, positionOf) {
   const positions = new Map();
-  const findings = [];
   for (const e of events ?? []) {
     if (!String(e?.source).startsWith('agent:')) continue;
-    if (e.kind === 'ingest.finding') {
-      const m = /^(info|warn|severe): ([\s\S]*)$/.exec(e.reason ?? '');
-      if (m) findings.push({ severity: m[1], text: m[2], source: e.source });
-      continue;
-    }
     const pos = e.change && POSITIONAL.has(e.target?.kind) ? positionOf(e) : null;
     if (!pos) continue;
     for (const ref of e.refs ?? []) if (!positions.has(ref)) positions.set(ref, pos);
   }
-  return { positions, findings };
+  return { positions };
 }
 
 /**
  * Agent rows of the Weltgeschehen panel from the steps of status.json. Rivals
- * carry no content (fog of war), judges come last, and a finding carries its
- * severity when the event log has it.
+ * carry no content (fog of war) and judges come last. The severity of a
+ * judge's finding comes from the findings status.json records under its step
+ * (ui/weltgeschehen.js).
  */
-export function shapeSteps(steps, { t, peopleName = () => null, positions = new Map(), findings = [] }) {
+export function shapeSteps(steps, { t, peopleName = () => null, positions = new Map() }) {
   const rows = (steps ?? []).map((step) => {
     const judge = step.agent.startsWith('judge');
     const rival = step.agent === 'rival';
@@ -87,17 +80,12 @@ export function shapeSteps(steps, { t, peopleName = () => null, positions = new 
       abgelehnt: proposals.filter((p) => p.verdict === 'rejected').length,
       results: proposals.map((p) => {
         const cls = p.verdict === 'accepted' ? 'angenommen' : p.verdict === 'rejected' ? 'abgelehnt' : 'info';
-        const severity = p.kind === 'finding'
-          ? findings.find((f) => f.source === `agent:${step.agent}` && f.text.startsWith(p.title))?.severity ?? null
-          : null;
         return {
           cls,
-          icon: p.kind === 'finding' ? (severity === 'info' ? 'ja' : 'warnung') : cls === 'angenommen' ? 'ja' : cls === 'abgelehnt' ? 'nein' : 'dauer',
+          icon: p.kind === 'finding' ? 'warnung' : cls === 'angenommen' ? 'ja' : cls === 'abgelehnt' ? 'nein' : 'dauer',
           titel: p.title,
           proposalId: p.proposalId,
           kind: p.kind,
-          severity,
-          severityText: severity ? t(`severity.${severity}`, severity) : null,
           // Items of one proposal share its id, so only an accepted item points at the place the change took.
           pos: cls === 'angenommen' ? positions.get(p.proposalId) ?? null : null,
           budget: p.budget ? t.fmt('board.world.budget-short', { net: p.budget.net, tier: p.budget.tier }) : null,
@@ -268,14 +256,13 @@ export async function createGame(model, { cid: wanted } = {}) {
   function applyStatus() {
     const s = g.status;
     if (!s || s.turn !== g.view.turn && s.turn !== g.view.turn - 1) return;
-    // Positions and severities come from two logs that arrive after the status itself.
+    // Positions come from two logs that arrive after the status itself.
     const build = () => {
       const idx = [g.reportIdx, g.eventIdx].filter(Boolean);
       const agenten = shapeSteps(s.steps, {
         t,
         peopleName: (id) => g.view.peoples[id]?.name ?? null,
         positions: new Map(idx.flatMap((i) => [...i.positions])),
-        findings: idx.flatMap((i) => i.findings),
       });
       ensureZz();
       model.zz.agenten = [model.zz.agenten.find((a) => a.role === 'kernel') ?? kernelAgent(), ...agenten];

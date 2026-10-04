@@ -47,6 +47,6 @@ export function renderMagie(api, close) {
     ...disciplineCandidates(game.view, game.env, 'none'),
     ...game.view.peoples[game.pid].council.flatMap((m) => disciplineCandidates(game.view, game.env, 'member', m.id)),
   ];
-  if (cands.length) body.push(orderOptions(api, null, target, { given: cands.map((c) => optionRow(game.previewOption(c))), hid: 'magie-order-h' }));
+  if (cands.length) body.push(orderOptions(api, target, { given: cands.map((c) => optionRow(game.previewOption(c))), hid: 'magie-order-h' }));
   return { kopf, body };
 }

@@ -10,7 +10,7 @@ import { icon, ICONS } from '../icons.js';
 import { costChips } from './kontext.js';
 import { hintSlot } from './leiste.js';
 import { t, locale } from '../i18n/index.js';
-import { wheelOf, demoWheel } from '../data/pfade.js';
+import { wheelOf } from '../data/pfade.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const HUB = 74;
@@ -171,13 +171,13 @@ function drawWheel(w, people) {
   const pts = w.points;
   const hub = s('g', {
     class: `pf-nabe${ui.path === null && ui.ref === null ? ' is-sel' : ''}`, tabindex: '0', role: 'button', 'data-nabe': '',
-    'aria-label': pts ? t.fmt('board.paths.points', { n: pts.total }) : t('board.paths.title'),
+    'aria-label': t.fmt('board.paths.points', { n: pts.total }),
     'aria-pressed': ui.path === null && ui.ref === null ? 'true' : 'false',
   },
   s('circle', { r: HUB + 8, class: 'pf-fokus' }),
   s('circle', { r: HUB, class: 'pf-nabe-scheibe' }),
   s('g', { transform: 'translate(0 -22)' }, glyph('wissen', 28)),
-  s('text', { y: 26, class: 'pf-punkte' }, document.createTextNode(pts ? signed(pts.total) : people)));
+  s('text', { y: 26, class: 'pf-punkte' }, document.createTextNode(signed(pts.total))));
 
   return s('svg', { class: 'pf-rad', viewBox: '-600 -560 1200 1120', role: 'group', 'aria-label': t.fmt('board.paths.wheel', { name: people }) },
     sectors, rings, labels, knots, hub);
@@ -248,13 +248,13 @@ function pathPanel(api, w, p) {
     ...groups.map(([key, list]) => el('section', { class: 'pf-gruppe' },
       el('h4', { text: t(key) }),
       el('ul', { class: 'plain' }, ...list.map((n) => el('li', {}, nodeButton(n)))))),
-    w.real && p.open ? directForm(api, w, p) : null);
+    p.open ? directForm(api, w, p) : null);
 }
 
 /** research.direct on this path: the request the research agent reads between turns, with up to three of the path's tags. */
 function directForm(api, w, p) {
   const chosen = new Set(w.direct?.pfad === p.id ? w.direct.tags ?? [] : []);
-  const note = el('textarea', { class: 'pf-notiz', rows: '2', maxlength: '200', 'aria-label': t('board.tree.note') });
+  const note = el('textarea', { class: 'pf-notiz', rows: '2', maxlength: '200', 'aria-label': t('board.paths.note') });
   if (w.direct?.pfad === p.id && w.direct.note) note.value = w.direct.note;
   const cand = () => ({ type: 'research.direct', params: { pfad: p.id, ...(chosen.size ? { tags: [...chosen] } : {}), ...(note.value.trim() ? { note: note.value.trim() } : {}) } });
   const slot = el('div', {});
@@ -282,18 +282,11 @@ function directForm(api, w, p) {
 
 function nodePanel(api, w, n) {
   const p = w.paths.find((x) => x.id === n.pfad);
-  const real = w.real;
   let action = null;
-  if (real && n.state !== 'known') action = orderButton(api, { type: 'research.assign', params: { development: n.ref } }, t(n.state === 'research' ? 'board.tree.prioritise' : 'board.tree.research'), { data: 'forschen' });
-  else if (real && n.kind === 'institution' && n.state === 'known') {
+  if (n.state !== 'known') action = orderButton(api, { type: 'research.assign', params: { development: n.ref } }, t(n.state === 'research' ? 'board.paths.prioritise' : 'board.paths.assign'), { data: 'forschen' });
+  else if (n.kind === 'institution') {
     const instituted = api.game.view.peoples[api.game.pid].developments.instituted.includes(n.ref);
     if (!instituted) action = orderButton(api, { type: 'institute', params: { development: n.ref } }, t('order.institute'), { primary: false });
-  } else if (!real && n.state === 'candidate') {
-    const queued = api.model.orders.some((o) => o.quelle === `forschung-${n.ref}`);
-    action = el('button', {
-      class: queued ? 'btn btn-quiet' : 'btn btn-primary', type: 'button', disabled: queued || api.model.phase === 'A',
-      onclick: () => api.addOrder({ id: `f-${n.ref}`, quelle: `forschung-${n.ref}`, titel: t.fmt('board.tree.research-title', { name: n.name }), ziel: t('ui.forschung'), kosten: n.resources, art: 'haupt' }),
-    }, icon(queued ? 'ja' : 'wissen', { size: 18 }), t('board.tree.research'));
   }
   return el('div', { class: 'pf-seite', style: { '--pf': `var(--pfad-${n.pfad}, var(--origin-forschung))` } },
     p ? el('button', { class: 'btn btn-klein btn-quiet pf-zurueck', type: 'button', 'data-zurueck': p.id, 'aria-label': t.fmt('board.paths.back', { name: p.name }) }, icon(p.icon, { size: 16 }), p.name) : null,
@@ -324,12 +317,12 @@ function hubPanel(api, w, people) {
   const current = w.current ? w.nodeOf(w.current) : null;
   return el('div', { class: 'pf-seite' },
     el('h3', { class: 'world pf-titel' }, icon('wissen', { size: 22 }), people),
-    pts ? el('dl', { class: 'pf-punkte-liste' },
+    el('dl', { class: 'pf-punkte-liste' },
       el('dt', { text: t('board.paths.points.base') }), el('dd', { class: 'num', text: signed(pts.base) }),
       el('dt', { text: t('board.paths.points.labour') }), el('dd', { class: 'num', text: signed(pts.labour) }),
       el('dt', { text: t('board.paths.points.knowledge') }), el('dd', { class: 'num', text: signed(pts.knowledge) }),
       pts.mods ? el('dt', { text: t('board.paths.points.mods') }) : null, pts.mods ? el('dd', { class: 'num', text: signed(pts.mods) }) : null,
-      el('dt', { class: 'pf-summe', text: t('board.paths.points.total') }), el('dd', { class: 'num pf-summe', text: signed(pts.total) })) : null,
+      el('dt', { class: 'pf-summe', text: t('board.paths.points.total') }), el('dd', { class: 'num pf-summe', text: signed(pts.total) })),
     current ? el('section', { class: 'pf-gruppe' }, el('h4', { text: t('board.paths.current') }), el('ul', { class: 'plain' }, el('li', {}, nodeButton(current)))) : null,
     el('section', { class: 'pf-gruppe' },
       el('h4', { text: t('board.paths.title') }),
@@ -354,7 +347,7 @@ function tipFor(w, target) {
     const p = w.paths.find((x) => x.id === pid);
     return p ? [el('strong', { text: p.name }), el('span', { text: [t.fmt('board.paths.tier-of', { tier: p.cap, tiers: w.tiers }), p.next && p.open ? t.plural('board.paths.next', p.next.needed, { tier: p.next.tier }) : null, p.open ? null : t('board.paths.state.closed')].filter(Boolean).join(', ') })] : null;
   }
-  if (target.dataset.nabe !== undefined && w.points) {
+  if (target.dataset.nabe !== undefined) {
     const pts = w.points;
     return [el('strong', { text: t.fmt('board.paths.points', { n: pts.total }) }), el('span', { text: [`${t('board.paths.points.base')} ${signed(pts.base)}`, `${t('board.paths.points.labour')} ${signed(pts.labour)}`, `${t('board.paths.points.knowledge')} ${signed(pts.knowledge)}`, pts.mods ? `${t('board.paths.points.mods')} ${signed(pts.mods)}` : null].filter(Boolean).join(', ') })];
   }
@@ -365,7 +358,7 @@ function tipFor(w, target) {
 
 export function renderPfade(dlg, api) {
   const { game, model } = api;
-  const w = game ? wheelOf({ view: game.view, env: game.env, t, draft: game.draft, pv: game.base }) : demoWheel(model, t);
+  const w = wheelOf({ view: game.view, env: game.env, t, draft: game.draft, pv: game.base });
   if (ui.ref && !w.nodeOf(ui.ref)) ui.ref = null;
   if (ui.path && !w.paths.some((p) => p.id === ui.path)) ui.path = null;
   const people = model.volk.name;

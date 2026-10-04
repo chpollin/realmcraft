@@ -17,8 +17,6 @@ export const ROLE_ICON = {
   herdenreiterin: 'herde', knochenruferin: 'opfer', kriegsherr: 'krieger', pfadmeister: 'bewegung', schmied: 'technik',
   vogt: 'pass', zirkelmeister: 'magie',
 };
-// Prototype members carry no role id; their symbol goes by person.
-const PERSON_ICON = { ulrun: 'herde', torhild: 'magie', garmund: 'bewegung', brandur: 'technik' };
 const STORE = 'spielbrett.ratsleiste';
 
 function readFolded() {
@@ -34,11 +32,11 @@ function storeFolded(folded) {
 }
 
 /**
- * Member rows of a real campaign: role id, task from draft.lead, and place and
+ * Member rows: role id, task from draft.lead, and place and
  * strengths from the kernel's council view (derived[pid].council): where the
  * member stands, the lead modifier a probe would take and the goal tags.
  */
-function realMembers(api) {
+function memberRows(api) {
   const { game, model } = api;
   const view = game.view;
   const people = view.peoples[game.pid];
@@ -65,20 +63,16 @@ function realMembers(api) {
   });
 }
 
-function mockMembers(api) {
-  return api.model.rat.map((a) => ({ ...a, icon: PERSON_ICON[a.id] ?? 'volk', favor: a.favor ?? [], auftrag: null, fuehrung: null }));
-}
-
 export function renderRatsleiste(api) {
   const box = document.getElementById('ratsleiste');
-  const { model, game } = api;
+  const { model } = api;
   if (!model.rat?.length) {
     box.replaceChildren();
     return;
   }
   const folded = box.dataset.zu ? box.dataset.zu === 'true' : readFolded();
   box.dataset.zu = String(folded);
-  const members = game ? realMembers(api) : mockMembers(api);
+  const members = memberRows(api);
   const toggle = el('button', {
     class: 'icon-btn rl-schalter', type: 'button', 'aria-expanded': String(!folded), 'aria-controls': 'ratsleiste-liste',
     'aria-label': t.fmt(folded ? 'board.council.unfold' : 'board.council.fold', { name: t('view.rat') }),

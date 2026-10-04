@@ -85,7 +85,6 @@ function moduleBinding(game) {
 /** The trade block of a foreign people's panel. */
 export function tradeSection(api, partner) {
   const { game } = api;
-  if (!game) return null;
   const row = routeOf(game, partner);
   const orders = tradeOrders(game);
   const handel = moduleData(game.view, game.env).handel ?? null;
@@ -119,7 +118,7 @@ function offerForm(api, partner) {
     el('div', { class: 'angebot-zeile' },
       sideMark('dauer', t('board.trade.seasons')),
       stepper(`tr-${partner}-seasons`, t('board.trade.seasons'), d.seasons, 1, SEASONS_MAX, (n) => { d.seasons = n; rerender(); })),
-    orderOptions(api, null, { kind: 'people', id: partner }, { given: [optionRow(opt)], titel: t('board.trade.offer'), hid: `angebot-${partner}-h` }));
+    orderOptions(api, { kind: 'people', id: partner }, { given: [optionRow(opt)], titel: t('board.trade.offer'), hid: `angebot-${partner}-h` }));
 }
 
 function chip(iconName, wert, text) {
@@ -135,7 +134,7 @@ function acceptList(api, offers) {
     opt.extraRows = [...bagChips(api, o.give, 1), ...bagChips(api, o.get, -1), chip('dauer', String(o.seasons), t('board.trade.seasons'))];
     return optionRow(opt);
   });
-  return orderOptions(api, null, { kind: 'people', id: offers[0].from }, { given: rows, titel: t('board.trade.offers-in'), hid: `offen-${offers[0].from}-h` });
+  return orderOptions(api, { kind: 'people', id: offers[0].from }, { given: rows, titel: t('board.trade.offers-in'), hid: `offen-${offers[0].from}-h` });
 }
 
 function contractList(api, contracts) {
@@ -149,7 +148,7 @@ function contractList(api, contracts) {
     opt.extraRows = [...bagChips(api, gives, -1), ...bagChips(api, gets, 1), chip('dauer', `${until.saison} ${until.jahr}`, t('board.trade.until'))];
     return optionRow(opt);
   });
-  return orderOptions(api, null, { kind: 'people', id: contracts[0].a === pid ? contracts[0].b : contracts[0].a }, { given: rows, titel: t('board.trade.contracts'), hid: `vertrag-${contracts[0].id}-h` });
+  return orderOptions(api, { kind: 'people', id: contracts[0].a === pid ? contracts[0].b : contracts[0].a }, { given: rows, titel: t('board.trade.contracts'), hid: `vertrag-${contracts[0].id}-h` });
 }
 
 /** Market: price per resource and one buy or sell order, quoted by the order's own kernel plan. */
@@ -173,7 +172,7 @@ function marketBlock(api, handel) {
       el('div', { class: 'angebot-zeile' },
         resSelect(api, 'markt-res', t('board.trade.market-res'), market.res, keys, (v) => { market.res = v; rerender(); }),
         stepper('markt-n', t('board.trade.market-amount'), market.amount, 1, AMOUNT_MAX, (n) => { market.amount = n; rerender(); })),
-      orderOptions(api, null, { kind: 'modul', id: 'handel' }, { given: [optionRow(opt)], titel: t('order.trade.market', 'trade.market'), hid: 'markt-order-h' })));
+      orderOptions(api, { kind: 'modul', id: 'handel' }, { given: [optionRow(opt)], titel: t('order.trade.market', 'trade.market'), hid: 'markt-order-h' })));
 }
 
 export function renderHandel(api, close) {

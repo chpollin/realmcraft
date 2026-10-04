@@ -7,7 +7,7 @@ import { el } from '../dom.js';
 import { icon } from '../icons.js';
 import { t } from '../i18n/index.js';
 import { bandOf, eventBand, tune, BANDS } from '../data/kernel.js';
-import { bandKey } from '../data/labels.js';
+import { bandKey, signed } from '../data/labels.js';
 import { registry } from '../../../engine/core/orders.js';
 import { dialogHead } from './dialoge.js';
 
@@ -55,8 +55,6 @@ export function rulesData(regeln, orders = registry()) {
   };
 }
 
-const sign = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
-
 function section(id, iconName, title, ...body) {
   return el('section', { class: 'regel', 'aria-labelledby': id },
     el('h3', { id }, icon(iconName, { size: 18 }), title), ...body);
@@ -93,7 +91,7 @@ function render(dlg, data) {
   const usedBands = BANDS.filter((b) => data.margins.some((m) => m.band === b) || data.naturals.some((n) => n.band === b));
   const probes = section('regel-probe', 'wuerfel', t('shell.rules.probes'),
     el('p', { class: 'regel-formel', text: t('shell.rules.probe.formula') }),
-    strip(data.margins.map((m) => el('li', { class: `chance-feld ${BAND_CLASS[m.band]}`, title: bandName(m.band) }, el('span', { class: 'num', text: sign(m.margin) }), el('span', { class: 'sr-only', text: bandName(m.band) }))),
+    strip(data.margins.map((m) => el('li', { class: `chance-feld ${BAND_CLASS[m.band]}`, title: bandName(m.band) }, el('span', { class: 'num', text: signed(m.margin) }), el('span', { class: 'sr-only', text: bandName(m.band) }))),
       legendOf(usedBands.map((b) => [BAND_CLASS[b], bandName(b)]))),
     el('ul', { class: 'regel-chips plain' }, ...data.naturals.map((n) => chip(t.fmt('shell.rules.natural', { roll: n.roll, band: bandName(n.band) }), icon('wuerfel', { size: 14 })))));
 

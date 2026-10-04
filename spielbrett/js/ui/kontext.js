@@ -6,7 +6,7 @@
 
 import { el, signed } from '../dom.js';
 import { icon } from '../icons.js';
-import { tileInfo, objectsAt, peopleName } from '../model.js';
+import { tileInfo, objectsAt, peopleName, relationOf } from '../data/adapter.js';
 import { budgetState, hintSlot, slotOf, slotName, SLOT_ICON } from './leiste.js';
 import { withTip } from './tip.js';
 import { portrait } from './portrait.js';
@@ -27,13 +27,13 @@ const MODULE_ICON = { lebensweise: 'lager', handel: 'handel', militaer: 'krieger
 
 /**
  * Module bar on the map: one button per module the people has active, opening
- * its view in the selection panel. Without a real campaign it stays empty.
+ * its view in the selection panel.
  */
 function renderModulLeiste(api) {
   const bar = document.getElementById('module');
   if (!bar) return;
   const { model, game } = api;
-  const active = game ? new Set(game.view.derived?.[game.pid]?.modules ?? []) : new Set();
+  const active = new Set(game.view.derived?.[game.pid]?.modules ?? []);
   const ids = Object.keys(MODULE_ICON).filter((id) => active.has(id));
   bar.hidden = !ids.length;
   const open = model.panel === 'kontext' && model.selection?.kind === 'modul' ? model.selection.id : null;
@@ -98,7 +98,6 @@ export function costChips(api, kosten, { size = 15 } = {}) {
 export function terrainFacts(api, q, r, { region = true } = {}) {
   const { model } = api;
   const { tile, def, regionName: rn, regionId } = tileInfo(model, q, r);
-  const frost = model.frostRegions.has(regionId);
   const costs = model.pack.terrains.map((x) => `${x.name} ${typeof x.moveCost === 'number' ? x.moveCost : t('board.terrain.impassable')}`);
   const road = model.roadTiles.has(`${q},${r}`);
   const level = model.roads ? roadLevelAt(model, `${q},${r}`) : 0;
@@ -112,7 +111,6 @@ export function terrainFacts(api, q, r, { region = true } = {}) {
     road && level ? fact('handel', t.fmt('board.road.level', { n: level }), t('board.road.label'), [el('span', { text: t('board.road.tip') })]) : null,
     def?.sightModifier ? fact('sicht', signed(def.sightModifier), t('board.terrain.sight'), [el('span', { text: t('board.terrain.sight-tip') })]) : null,
     tile.river ? fact('quelle', t('board.terrain.stream'), t('board.terrain.water'), null, { cls: 'is-wasser' }) : null,
-    frost ? fact('frost', t('board.terrain.frost'), t('board.terrain.weather'), [el('span', { text: t('board.terrain.frost-by') })], { cls: 'is-wasser' }) : null,
   );
 }
 
@@ -141,35 +139,10 @@ export function resourceIcon(k) {
   return 'ort';
 }
 
-function previewOf(opt, target) {
-  const deltas = {};
-  for (const k of opt.kosten ?? []) deltas[k.key] = (deltas[k.key] ?? 0) - k.menge;
-  if (opt.gibt) deltas[opt.gibt.key] = (deltas[opt.gibt.key] ?? 0) + opt.gibt.menge;
-  return { deltas, tiles: target.q !== undefined ? [{ q: target.q, r: target.r }] : [] };
-}
-
-/** Prototype options from the fixture catalogue, in the shape the list renders. */
-function mockOptions(api, catalogKeys, target) {
-  const { model } = api;
-  const { used, max } = budgetState(model);
-  return [catalogKeys].flat().flatMap((k) => model.S.befehlskatalog[k] ?? []).map((opt) => {
-    const queued = model.orders.some((o) => o.quelle === opt.id && o.zielId === target.id);
-    const missing = (opt.kosten ?? []).filter((k) => api.available(k.key) < k.menge);
-    const over = opt.art in used && used[opt.art] >= max[opt.art];
-    const mods = opt.probe ? [...opt.probe.modifikatoren, ...(over ? [{ wert: -1, grund: t('board.option.overstretch') }] : [])] : null;
-    return {
-      opt, titel: opt.titel, art: opt.art, kosten: opt.kosten, folge: opt.folge, queued, over, mods,
-      probe: opt.probe ? { ziel: opt.probe.ziel } : null,
-      grund: missing.length ? t.fmt('board.option.missing', { list: missing.map((k) => `${k.menge - api.available(k.key)} ${api.resourceName(k.key)}`).join(t('board.and')) }) : null,
-      preview: previewOf(opt, target),
-    };
-  });
-}
-
 /** A previewed kernel option (game.previewOption, game.optionsFor) as a row of the order list. */
 export function optionRow(opt) {
   return {
-    opt, titel: opt.titel, art: opt.art, kosten: opt.kosten, folge: opt.folge, queued: opt.queued, over: false,
+    opt, titel: opt.titel, art: opt.art, kosten: opt.kosten, folge: opt.folge, queued: opt.queued,
     mods: opt.probe ? opt.probe.modifikatoren : null,
     probe: opt.probe ? { ziel: opt.probe.ziel, chance: opt.probe.chance } : null,
     grund: opt.grund,
@@ -181,7 +154,7 @@ export function optionRow(opt) {
   };
 }
 
-/** Kernel options of a real campaign: availability, costs, probe and preview come from preview(). */
+/** Kernel options of a selection: availability, costs, probe and preview come from preview(). */
 export function realOptions(api, target) {
   return api.game.optionsFor(target).map(optionRow);
 }
@@ -200,17 +173,17 @@ function previewHandlers(api, opt, pv, art, ersetzt, enabled) {
   return { onpointerenter: on, onpointerleave: off, onfocus: on, onblur: off };
 }
 
-export function orderOptions(api, catalogKeys, target, { given = null, titel = t('board.option.heading'), hid = 'bo-h', iconName = null } = {}) {
+export function orderOptions(api, target, { given = null, titel = t('board.option.heading'), hid = 'bo-h', iconName = null } = {}) {
   const { model } = api;
-  const list = given ?? (model.real ? realOptions(api, target) : mockOptions(api, catalogKeys, target));
-  if ((model.real || given) && !list.length) return null;
+  const list = given ?? realOptions(api, target);
+  if (!list.length) return null;
   const { used, max } = budgetState(model);
   const locked = model.phase === 'A';
   return el('section', { 'aria-labelledby': hid, class: 'befehle-sektion' },
     el('h3', { id: hid, class: iconName ? 'mit-symbol' : null }, iconName ? icon(iconName, { size: 16 }) : null, titel),
     locked ? el('p', { class: 'bo-gesperrt' }, icon('schloss', { size: 16 }), t('board.option.locked')) : null,
     el('ul', { class: 'befehlsliste plain' }, ...list.map((o) => {
-      const { opt, queued, over, mods, grund } = o;
+      const { opt, queued, mods, grund } = o;
       const disabled = locked || Boolean(grund) || queued;
       const sum = mods ? mods.reduce((a, m) => a + m.wert, 0) : 0;
       const pv = o.preview;
@@ -219,17 +192,16 @@ export function orderOptions(api, catalogKeys, target, { given = null, titel = t
         class: 'befehl-option',
         type: 'button',
         'aria-disabled': disabled ? 'true' : 'false',
-        'aria-label': [o.titel, o.folge, slotName(slot), over && !queued ? t('board.option.overstretch') : null, grund].filter(Boolean).join(', '),
+        'aria-label': [o.titel, o.folge, slotName(slot), grund].filter(Boolean).join(', '),
         'data-order': opt.type ?? opt.id,
         'data-slot': slot,
         'data-fk': `bo:${opt.id ?? opt.type}`,
-        onclick: () => { if (!disabled) api.chooseOrder(opt, target, mods); },
+        onclick: () => { if (!disabled) api.addCandidate(opt); },
         ...previewHandlers(api, opt, pv, slot, o.ersetzt?.id, () => !disabled),
       },
       el('span', { class: `bo-art ${slot}`, 'aria-hidden': 'true' }, icon(SLOT_ICON[slot], { size: 18 })),
       el('span', { class: 'bo-titel', text: o.titel }),
       el('span', { class: 'bo-marken' },
-        over && !queued && !locked ? el('span', { class: 'bo-ueber', 'aria-hidden': 'true' }, icon('ueberdehnung', { size: 16 })) : null,
         costChips(api, o.kosten),
         o.probe ? el('span', { class: 'probe-tag', 'aria-label': t.fmt(o.probe.chance != null ? 'board.option.probe-chance' : 'board.option.probe', { target: o.probe.ziel, mod: signed(sum), chance: o.probe.chance }) }, icon('wuerfel', { size: 15 }), `${o.probe.ziel}`, el('span', { class: 'probe-mod', text: signed(sum) }), o.probe.chance != null ? el('span', { class: 'probe-chance', text: `${o.probe.chance} %` }) : null) : null),
       el('span', { class: 'bo-folge', text: o.folge }),
@@ -242,12 +214,11 @@ export function orderOptions(api, catalogKeys, target, { given = null, titel = t
         class: 'btn btn-klein bo-tausch',
         type: 'button',
         'data-ersetzen': opt.type,
-        onclick: () => api.chooseOrder(o.ersatz, target, o.ersatz.probe?.modifikatoren ?? null),
+        onclick: () => api.addCandidate(o.ersatz),
         ...previewHandlers(api, o.ersatz, o.ersatz.preview, slot, o.ersatz.ersetzt?.id, () => true),
       }, icon('praxis', { size: 15 }), t.fmt('board.option.replace', { title: o.ersatz.ersetzt.titel })) : null;
       const detail = [
         el('span', { class: 'tip-zeile' }, el('span', {}, icon(SLOT_ICON[slot], { size: 14 }), ` ${slotName(slot)}`), el('span', { text: slot in used ? t.fmt('board.option.slots-taken', { used: used[slot], max: max[slot] }) : t(slot === 'forschung' ? 'board.option.once-per-season' : 'board.option.no-action') })),
-        over ? el('span', { class: 'tip-zeile' }, el('span', {}, icon('ueberdehnung', { size: 14 }), ` ${t('board.option.overstretch')}`), el('span', { class: 'down', text: t('board.option.overstretch-effect') })) : null,
         ...(o.probe ? [
           el('span', { class: 'tip-zeile' }, el('span', { text: t('board.probe.target') }), el('span', { text: String(o.probe.ziel) })),
           ...mods.map((m) => el('span', { class: 'tip-zeile' }, el('span', { text: m.grund }), el('span', { class: m.wert > 0 ? 'up' : 'down', text: signed(m.wert) }))),
@@ -311,8 +282,8 @@ function strengthPips(n) {
 /** Facts of a foreign people: stance, relation, its destiny when the kernel has revealed it. */
 function peopleFacts(api, riv) {
   const { game } = api;
-  const revealed = game?.view.derived?.[game.pid]?.rivals?.find((r) => r.people === riv.id)?.destiny ?? null;
-  const rel = game ? game.view.relations[[game.pid, riv.id].sort().join('|')] : null;
+  const revealed = game.view.derived?.[game.pid]?.rivals?.find((r) => r.people === riv.id)?.destiny ?? null;
+  const rel = relationOf(game.view, game.pid, riv.id);
   const destinyName = revealed?.name ?? riv.bestimmung.name ?? t('board.people.unknown');
   const steps = revealed?.milestones ?? [];
   const destinyBtn = el('button', { class: `fakt${revealed ? '' : ' is-text'}`, type: 'button', 'data-rival-destiny': revealed ? revealed.ref : '', 'aria-label': [t('view.bestimmung'), destinyName, revealed ? t.fmt('board.of', { done: steps.filter((m) => m.reached).length, total: steps.length }) : null].filter(Boolean).join(', ') },
@@ -328,7 +299,7 @@ function peopleFacts(api, riv) {
 /** Own units and settlements of the people are drawn with their reach and sight on the map while selected. */
 function markReach(api, sel) {
   const { model, game } = api;
-  const own = game && sel?.kind === 'unit' ? game.view.peoples[game.pid].units.find((u) => u.id === sel.id) : null;
+  const own = sel?.kind === 'unit' ? game.view.peoples[game.pid].units.find((u) => u.id === sel.id) : null;
   const next = own ? unitReach(game.view, game.env, game.world, own.id) : null;
   if ((next?.id ?? null) === (model.unitReach?.id ?? null) && (!next || next.tile === model.unitReach.tile)) return;
   model.unitReach = next;
@@ -366,14 +337,14 @@ export function renderKontext(api) {
     const isUnit = u.objekt === 'unit';
     body.push(facts(
       withTip(el('button', { class: 'fakt', type: 'button', 'aria-label': t.fmt('board.unit.strength-of', { n: u.staerke }) }, icon('schild', { size: 17 }), strengthPips(u.staerke)), [el('strong', { text: t.fmt('board.unit.strength', { n: u.staerke }) })], null),
-      isUnit && model.real ? null : fact('praxis', u.zustand, t('board.unit.state'), null, { cls: 'is-text' }),
+      isUnit ? null : fact('praxis', u.zustand, t('board.unit.state'), null, { cls: 'is-text' }),
       own ? null : fact(u.volk === 'schaedelklan' ? 'raeuber' : 'haendler', peopleName(model, u.volk), t('board.unit.people'), null, { onclick: () => api.select({ kind: 'people', id: u.volk, q: u.q, r: u.r }), cls: 'is-link' }),
     ));
-    if (model.real && isUnit) body.push(unitFacts(api, u));
-    if (model.real && !own) body.push(attackForecastFacts(api, `${u.q},${u.r}`));
-    body.push(orderOptions(api, own ? u.art : u.volk === 'talbund' ? ['handel', 'fremd'] : 'fremd', { kind: 'unit', id: u.id, name: u.name, q: u.q, r: u.r }));
-    if (model.real && own && isUnit) body.push(threatsNear(api, u));
-    if (model.real && own && u.objekt === 'settlement') body.push(labour(api));
+    if (isUnit) body.push(unitFacts(api, u));
+    if (!own) body.push(attackForecastFacts(api, `${u.q},${u.r}`));
+    body.push(orderOptions(api, { kind: 'unit', id: u.id, name: u.name, q: u.q, r: u.r }));
+    if (own && isUnit) body.push(threatsNear(api, u));
+    if (own && u.objekt === 'settlement') body.push(labour(api));
     body.push(terrainFacts(api, u.q, u.r));
     body.push(onTile(api, u.q, u.r, u.id));
   } else if (sel.kind === 'place') {
@@ -384,9 +355,9 @@ export function renderKontext(api) {
     }
     kopf = header(p.name, `${artName(p.art)}${p.volk && p.volk !== 'spieler' ? `, ${peopleName(model, p.volk)}` : ''}`, icon(p.art, { size: 22 }), p.volk, close);
     body.push(el('p', { class: 'beschreibung', text: p.beschreibung }));
-    if (model.real && p.volk && p.volk !== 'spieler' && p.objekt === 'settlement') body.push(attackForecastFacts(api, `${p.q},${p.r}`));
-    body.push(orderOptions(api, 'ort', { kind: 'place', id: p.id, name: p.name, q: p.q, r: p.r }));
-    if (model.real && p.volk === 'spieler' && p.objekt === 'settlement') body.push(labour(api));
+    if (p.volk && p.volk !== 'spieler' && p.objekt === 'settlement') body.push(attackForecastFacts(api, `${p.q},${p.r}`));
+    body.push(orderOptions(api, { kind: 'place', id: p.id, name: p.name, q: p.q, r: p.r }));
+    if (p.volk === 'spieler' && p.objekt === 'settlement') body.push(labour(api));
     body.push(terrainFacts(api, p.q, p.r));
     body.push(deposits(api, p.q, p.r));
     body.push(onTile(api, p.q, p.r, p.id));
@@ -402,17 +373,14 @@ export function renderKontext(api) {
     }
     kopf = header(riv.name, riv.anfuehrer ? `${riv.anfuehrer.name}, ${riv.anfuehrer.rolle}` : t(`board.stance.${riv.haltung}`, riv.haltung), portrait(riv.anfuehrer?.id, riv.anfuehrer?.name ?? riv.name, { size: 44 }), `${riv.id} mit-portraet`, close);
     body.push(el('p', { class: 'beschreibung', text: riv.beschreibung }));
-    body.push(model.real ? peopleFacts(api, riv) : facts(
-      fact(riv.haltung === 'feindlich' ? 'warnung' : 'angebot', t(`board.stance.${riv.haltung}`, riv.haltung), t('board.people.stance'), null, { cls: riv.haltung === 'feindlich' ? 'is-gefahr' : 'is-wasser' }),
-      fact('bestimmung', riv.bestimmung.name ?? t('board.people.unknown'), t('view.bestimmung'), null, { onclick: () => api.openDialog('bestimmung'), cls: 'is-link' }),
-    ));
-    if (model.real) body.push(tradeSection(api, riv.id));
+    body.push(peopleFacts(api, riv));
+    body.push(tradeSection(api, riv.id));
     const units = model.units.filter((u) => u.volk === riv.id && model.known[`${u.q},${u.r}`]);
     if (units.length) {
       body.push(el('ul', { class: 'liste-objekte plain', 'aria-label': t('board.people.sighted') }, ...units.map((u) => el('li', {},
         el('button', { class: 'objekt-btn', type: 'button', onclick: () => api.select({ kind: 'unit', id: u.id, q: u.q, r: u.r }, { fly: true }) }, icon(u.art, { size: 18 }), u.name, el('span', { class: 'meta', text: artName(u.art) }))))));
     }
-    body.push(orderOptions(api, riv.id === 'talbund' ? ['handel', 'fremd'] : 'fremd', { kind: 'people', id: riv.id, name: riv.name }));
+    body.push(orderOptions(api, { kind: 'people', id: riv.id, name: riv.name }));
   } else {
     // An empty tile opens its province, with the tile and its orders as one section of it.
     const { regionId } = tileInfo(model, sel.q, sel.r);
