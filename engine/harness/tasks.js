@@ -33,8 +33,6 @@ import { pathOfTags, pathsOf, pathsView } from '../core/pfade.js';
 
 const stem = (turn) => `T${String(turn).padStart(4, '0')}`;
 const ALL_PRIMITIVES = [...new Set([...STANDING_OPS, ...ONCE_OPS])];
-// Used when a world's regeln.json sets no tuning.limits.
-const DEFAULT_LIMITS = Object.freeze({ candidatesPerTurn: 3, aboveTier: 1, openCandidates: 6, moduleActivations: 1 });
 
 const alive = (state, pid) => state.peoples[pid].population.core > 0 && state.map.settlements.some((s) => s.people === pid);
 
@@ -256,8 +254,8 @@ function limitsFor(env, items, extra = {}) {
 function researchTask(state, env, library, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
-  const lim = { ...DEFAULT_LIMITS, ...(env.regeln.tuning?.limits ?? {}) };
-  const maxTier = env.regeln.tuning?.maxTier ?? TIERS.length;
+  const lim = env.regeln.tuning.limits;
+  const { maxTier } = env.regeln.tuning;
   const open = openTier(people, { state: view, regeln: env.regeln, library, turn: state.turn });
   const reach = Math.min(maxTier, open + lim.aboveTier);
   return envelope(state, 'research', pid, {
@@ -293,7 +291,7 @@ function researchTask(state, env, library, pid, notes) {
 function rivalTask(state, env, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
-  const profile = env.regeln.aiProfiles?.find((a) => a.id === people.agentProfile) ?? null;
+  const profile = env.regeln.aiProfiles.find((a) => a.id === people.agentProfile) ?? null;
   const cap = slotCapacity(orderContext(view, env, pid));
   return envelope(state, 'rival', pid, {
     read: viewReads(state, pid),
@@ -327,7 +325,7 @@ function councilTask(state, env, pid, notes) {
       language: settingsOf(state).language,
       council: people.council,
       seats: kern(people).seats,
-      newMemberLoyalty: env.regeln.tuning?.newMemberLoyalty ?? 0,
+      newMemberLoyalty: env.regeln.tuning.newMemberLoyalty,
       names: namesFor(view, env, pid),
       findings: findingsFor(notes, 'council'),
     },

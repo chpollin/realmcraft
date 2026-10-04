@@ -26,7 +26,6 @@ import { appendToLibrary, createLibrary, refOf } from '../content/library.js';
 import { validateProposal } from '../content/validate.js';
 
 const LIMITS = { chronicleTurns: RULES.chronicleTurns, chronicleMax: RULES.chronicleMax };
-const MAX_CANDIDATES = 6;
 const MAX_POOL = 200;
 const INGESTED_TURNS = 8;
 const TEXT_TYPES = new Set(['narrative', 'voice', 'stance', 'memory', 'finding', 'image']);
@@ -129,7 +128,8 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         const ref = refOf(item.data);
         const dev = p.developments;
         if (dev.known.some((k) => k.ref === ref) || dev.candidates.some((c) => c.ref === ref)) return bad('duplicate', '/data', `${ref} is already known or offered to ${pid}`, { reason: 'already-known', ref, people: named });
-        if (dev.candidates.length >= MAX_CANDIDATES) return bad('limit', '', `${pid} already has ${MAX_CANDIDATES} candidates`, { reason: 'candidates-full', people: named, max: MAX_CANDIDATES });
+        const max = env.regeln.tuning.limits.openCandidates;
+        if (dev.candidates.length >= max) return bad('limit', '', `${pid} already has ${max} candidates`, { reason: 'candidates-full', people: named, max });
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
         const token = item.data.origin.token;
@@ -176,7 +176,7 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
         const at = seats.findIndex((s) => s.role === item.seat) >= 0 ? seats.findIndex((s) => s.role === item.seat) : seats.findIndex((s) => s.role === item.data.role);
         if (at < 0) return bad('target', '/seat', `${pid} has no open seat "${item.seat}"`, { reason: 'no-open-seat', people: named, seat: String(item.seat ?? '') });
         if (p.council.some((m) => m.id === item.data.id)) return bad('duplicate', '/data/id', `council member ${item.data.id} exists`, { reason: 'member-exists', member: String(item.data.id) });
-        const member = { ...item.data, loyalty: env.regeln.tuning?.newMemberLoyalty ?? 0, hollow: false, leader: false, at: null };
+        const member = { ...item.data, loyalty: env.regeln.tuning.newMemberLoyalty, hollow: false, leader: false, at: null };
         p.council.push(member);
         noteChange(tc, 'ingest.person', { kind: 'member', id: member.id }, 'council', null, member, `${member.name} takes the open seat ${seats[at].role}`, { ...meta, people: pid });
         setKern(tc, pid, 'seats', seats.filter((_, i) => i !== at), `seat ${seats[at].role} filled`, meta);

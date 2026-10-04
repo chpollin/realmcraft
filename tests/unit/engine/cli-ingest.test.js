@@ -6,6 +6,8 @@ import { validate } from '../../../engine/content/schema.js';
 import { stateHash, open, emptyDraft } from '../../../engine/core/turn.js';
 import { buildJudgeTask, buildTasks } from '../../../engine/harness/tasks.js';
 import { ingestProposal } from '../../../engine/harness/ingest.js';
+import { makeEnv } from '../../../engine/core/env.js';
+import { resolveRef } from '../../../engine/content/library.js';
 import { agentEntwicklung, freshCampaign, hochland, proposalFor, taskOf, withPractice } from '../../fixtures/engine/k1/harness.js';
 
 const { env, library } = hochland();
@@ -97,12 +99,30 @@ describe('ingestProposal, research', () => {
     assert.deepEqual(r.state.peoples[player].tokens, []);
   });
 
-  it('keeps at most six candidates', () => {
+  const withCandidates = (n) => {
     const full = structuredClone(state);
-    full.peoples[player].developments.candidates = Array.from({ length: 6 }, (_, i) => ({ ref: `x${i}pfad@1`, offeredAt: 0, expiresAt: 4, origin: 'pool' }));
-    const r = ingest(full, entwicklungProposal(), research);
+    full.peoples[player].developments.candidates = Array.from({ length: n }, (_, i) => ({ ref: `x${i}pfad@1`, offeredAt: 0, expiresAt: 4, origin: 'pool' }));
+    return full;
+  };
+
+  it('keeps at most the world\'s open candidates', () => {
+    const r = ingest(withCandidates(env.regeln.tuning.limits.openCandidates), entwicklungProposal(), research);
     assert.equal(r.verdict, 'rejected');
     assert.ok(r.issues.some((i) => i.code === 'limit'));
+  });
+
+  it('takes the cap from the world, so a world with eight open candidates admits a seventh', () => {
+    const pack = (f) => JSON.parse(readFileSync(new URL(`../../../welten/hochland/${f}`, import.meta.url), 'utf8'));
+    const regeln = pack('regeln.json');
+    regeln.tuning.limits.openCandidates = 8;
+    const content = Object.fromEntries(['entwicklungen', 'ereignisse', 'bestimmungen'].map((k) => [k, pack(`content/${k}.json`)]));
+    const wide = makeEnv({ welt: pack('welt.json'), regeln, labels: pack('labels.json'), content, resolve: (ref) => resolveRef(library, ref) });
+    const full = withCandidates(6);
+    const task = taskOf(buildTasks(full, wide, { library }), 'research', player);
+    assert.equal(task.limits.openPool, 8);
+    const r = ingestProposal(full, wide, proposalFor(task, [{ type: 'entwicklung', data: agentEntwicklung(wide, task.respondAs.proposalId, 'karawanenpfad') }]), { task, library });
+    assert.equal(r.verdict, 'accepted', JSON.stringify(r.issues));
+    assert.equal(r.state.peoples[player].developments.candidates.length, 7);
   });
 });
 
