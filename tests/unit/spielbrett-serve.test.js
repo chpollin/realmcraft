@@ -3,64 +3,24 @@
 // port is free and never one of the operator ports (4173/4185/4186/4190).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
-import { createServer, request } from 'node:http';
+import { execFileSync } from 'node:child_process';
+import { request } from 'node:http';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { REPO as ROOT, http, startServer } from '../lib/server.mjs';
 
-const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CID = 't1';
 const PLAYER = 'bergnomaden';
 const PROBE = 'T0:bergnomaden:event';
-let proc;
+let server;
 let port;
 let tempRoot;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.once('error', reject);
-    srv.listen(0, '127.0.0.1', () => {
-      const { port: p } = srv.address();
-      srv.close(() => resolve(p));
-    });
-  });
-}
-
 // Raw path without URL normalisation, so %5C and %2f arrive as written.
-function http(method, path, { headers = {}, body } = {}) {
-  return new Promise((resolve, reject) => {
-    const req = request(
-      { host: '127.0.0.1', port, path, method, headers: { Host: `localhost:${port}`, ...headers } },
-      (res) => {
-        const chunks = [];
-        res.on('data', (c) => chunks.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          let json = null;
-          try {
-            json = JSON.parse(text);
-          } catch {
-            // not JSON
-          }
-          resolve({ status: res.statusCode, headers: res.headers, text, json });
-        });
-      },
-    );
-    req.on('error', reject);
-    if (body !== undefined) req.write(body);
-    req.end();
-  });
-}
-
-const get = (path, headers) => http('GET', path, { headers });
-const post = (path, payload, headers = {}) =>
-  http('POST', path, {
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: typeof payload === 'string' ? payload : JSON.stringify(payload),
-  });
+const get = (path, headers) => http(port, 'GET', path, { headers });
+const post = (path, body, headers = {}) =>
+  http(port, 'POST', path, { headers: { 'Content-Type': 'application/json', ...headers }, body });
 
 const cli = (...args) =>
   execFileSync(process.execPath, ['engine/cli.mjs', ...args, '--json'], {
@@ -86,22 +46,12 @@ before(async () => {
   tempRoot = mkdtempSync(join(tmpdir(), 'rc-spielbrett-'));
   cli('new', 'hochland', '--seed', '7', '--id', CID);
   cli('open', '--campaign', CID);
-  port = await freePort();
-  proc = spawn(process.execPath, ['serve.mjs'], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: tempRoot },
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    proc.once('exit', (code) => reject(new Error(`serve.mjs exited (${code})`)));
-    proc.stdout.on('data', (d) => {
-      if (String(d).includes('dev server')) resolve();
-    });
-  });
+  server = await startServer(tempRoot);
+  port = server.port;
 });
 
-after(() => {
-  proc?.kill();
+after(async () => {
+  await server?.stop();
   if (tempRoot) rmSync(tempRoot, { recursive: true, force: true });
 });
 

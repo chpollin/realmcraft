@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { REPO, http, startServer } from './helpers.mjs';
+import { REPO, http, startServer } from '../../lib/server.mjs';
 
 const CID = 'spiel-1';
 let root;
@@ -61,8 +61,8 @@ before(async () => {
   server = await startServer(root);
 });
 
-after(() => {
-  server?.stop();
+after(async () => {
+  await server?.stop();
   if (root) rmSync(root, { recursive: true, force: true });
 });
 

@@ -27,12 +27,11 @@ npm run check               # syntax of every tracked JS module, schema conforma
 npm run test:unit           # node --test "tests/unit/**/*.test.js"
 npm run test:acceptance     # node --test "tests/acceptance/**/*.test.js"
 npm run test:e2e            # Playwright, project e2e
-npm run test:visual         # Playwright, project visual (legacy dashboard)
 npm run test:fuzz           # long sweep of tests/unit/sim/fuzz-*.test.js, node tools/sim/fuzz.mjs --runs <n> --seeds 1,2,3
 npm run sim                 # headless campaigns under the fallback policy, invariants and balance report
 ```
 
-`npm test` is the quality gate before a commit. Without the bundled Chromium the browser tests run in the installed Chrome with `PLAYWRIGHT_CHANNEL=chrome`. Playwright's own web server uses port 4391 (`playwright.config.mjs`) and never reuses a running server. The board specs that need a campaign start their own `serve.mjs` on a port given by `PORT` with a temporary `REALMCRAFT_ROOT`. The ports 4173, 4185, 4186, 4187 and 4190 belong to the owner's running servers and are never used by tests. `test-results/` and `playwright-report/` are ignored artifacts and are deleted after a run.
+`npm test` is the quality gate before a commit. Without the bundled Chromium the browser tests run in the installed Chrome with `PLAYWRIGHT_CHANNEL=chrome`. Playwright starts no web server of its own. Every board spec and every server unit test starts its own `serve.mjs` with a temporary `REALMCRAFT_ROOT` through `tests/lib/server.mjs`, on a free port, or for the board specs on `SPEC_PORT` when a run is limited to assigned ports. A pinned port is shared by the spec files, so such a run needs `--workers=1`. The ports 4173, 4185, 4186, 4187 and 4190 belong to the owner's running servers and are never used by tests. `test-results/` and `playwright-report/` are ignored artifacts and are deleted after a run.
 
 ## Layers
 
@@ -42,10 +41,9 @@ npm run sim                 # headless campaigns under the fallback policy, inva
 | Unit, world | hex geometry, generator order independence, paths, start placement, vision, RNG | `tests/unit/world-*.test.js` |
 | Unit, fuzz | random drafts of player and AI peoples over seasons in a row (no crash, valid integer state, determinism, fog), validator and budget over mutated content, and the smallest reproduction of every finding in `fuzz-findings.test.js`. `FUZZ_SEED` also picks the campaign seeds, `FUZZ_RUNS` scales the cases | `tests/unit/sim/` |
 | Unit, harness | hooks fed with hook inputs (path filter, denials, Windows paths, pre-check) and the dry run of `/zug` in a temporary root | `tests/unit/harness-hooks.test.js`, `tests/unit/harness-dryrun.test.js` |
-| Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/serve.test.js` |
+| Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/serve.test.js`, `tests/unit/server/`, with the shared server helper `tests/lib/server.mjs` |
 | Acceptance | black-box tests of the kernel written from the specification without knowledge of the implementation, driving only `node engine/cli.mjs` and checking its files with Ajv | `tests/acceptance/` |
 | End to end | the board against a real campaign (load, preview, roll, seal) and the blocker flow from the playtest | `tests/e2e/spielbrett-real.spec.js`, `tests/e2e/spielbrett-blocker.spec.js` |
-| Legacy | dashboard, Nachtmeer and strategy prototype tests, visual baselines of the dashboard | other files in `tests/unit/`, `tests/e2e/`, `tests/visual/` |
 
 The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The kernel lanes do not change these tests, a changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
 
@@ -84,4 +82,3 @@ Run these with `REALMCRAFT_ROOT` set to a temporary folder or with `--root <dir>
 - No balance simulation over many years with AI profiles on different paths.
 - No measurement of live agent proposal acceptance.
 - No browser end-to-end test of a full turn including live agents.
-- The legacy dashboard e2e and visual tests are obsolete and wait for the removal of the legacy code.

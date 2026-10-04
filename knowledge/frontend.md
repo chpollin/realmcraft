@@ -36,7 +36,7 @@ The game board (Spielbrett) under `spielbrett/` is the map-first browser surface
 | `js/data/ereignisse.js` | event cards after a turn change from the projected log, open decisions and library cards |
 | `js/data/labels.js` | label lookup over the world's `labels.json` |
 
-The server releases only fog-safe files ([architecture.md](architecture.md)), which are `GET /campaigns/index.json`, `/campaigns/<cid>/view/<player>.json`, `/campaigns/<cid>/view/<player>/events/T<turn>.json`, `/campaigns/<cid>/status.json`, narrative files and `/campaigns/<cid>/log/T<turn>.json` as a player-filtered summary. `GET /api/campaigns/<cid>/content` returns the library items the player's view references, `/draft` the stored draft and `/chronik` the chronicle files. Server-sent events on `/events` announce `view`, `status`, `chronik` and `report` changes with `{ campaign, file }`.
+The server releases only fog-safe campaign files ([architecture.md](architecture.md), trust boundaries). The route table at the head of `serve.mjs` is the reference for every endpoint the board calls and for the server-sent events on `/events`.
 
 ## Surface
 
@@ -78,7 +78,3 @@ The UI round of 3 October 2026 found data the kernel does not yet deliver. M1 cl
 ## M1 additions
 
 M1 adds a start screen with new game, continue, settings and rules, an Escape menu in game, English as default UI language with German selectable and labels per language, synthesised Web Audio with volumes and reduced motion, polished event cards, victory and defeat screens with a campaign summary and the research paths view ([decisions.md](decisions.md), D16 to D21). Their contracts are in [plan-m1.md](plan-m1.md).
-
-## Legacy dashboard
-
-`index.html`, `anleitung.html`, `js/` and `css/` at the repository root are the savegame dashboard of the former chat game-master procedure, with its contract in `docs/Frontend-Contract.md` and its visual tests under `tests/visual/`. It is not part of the new game and waits for removal ([decisions.md](decisions.md), D1).

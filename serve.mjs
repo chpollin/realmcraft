@@ -1,5 +1,5 @@
 // Zero-dependency dev server of RealmCraft: static files, the campaign bridge
-// of the browser board (spielbrett/) and Playwright's webServer.
+// of the browser board (spielbrett/).
 //   node serve.mjs            -> http://localhost:4173
 //   PORT=8080 node serve.mjs  -> http://localhost:8080
 // Campaigns are read from <REALMCRAFT_ROOT>/campaigns (default: this folder).
@@ -12,7 +12,7 @@ import { handleActivate, handleCreate } from './server/newgame.mjs';
 import { handleLoad, handleSaveCreate, handleSaveList } from './server/saves.mjs';
 import { handleDraft, handleSeal } from './server/turn.mjs';
 import { handleEvents, watchCampaigns } from './server/sse.mjs';
-import { handleEnvJs, handleStatic } from './server/static.mjs';
+import { handleStatic } from './server/static.mjs';
 import { handleWorlds } from './server/worlds.mjs';
 
 /**
@@ -69,8 +69,8 @@ import { handleWorlds } from './server/worlds.mjs';
  *   POST /api/seal    { campaign }          kernel seal, the CLI JSON as is
  *   GET  /events                            SSE: hello, then view | status | chronik |
  *                                           report with data { campaign, file }
- *   GET  /env.js                            window.__RC_ENV__ with the local Gemini key
- *   *    everything else                    static file below the repository root
+ *   *    everything else                    static file: the root index.html or a file below
+ *                                           spielbrett/, engine/, welten/ or fonts/, else 404
  *
  * POST bodies pass server/http.mjs readPostJson: loopback peer, same-origin
  * fetch metadata and Origin, application/json, at most 64 KiB, a JSON object.
@@ -85,7 +85,6 @@ const ROUTES = [
   { path: /^\/api\/draft$/, on: { POST: handleDraft } },
   { path: /^\/api\/seal$/, on: { POST: handleSeal } },
   { path: /^\/events$/, any: handleEvents },
-  { path: /^\/env\.js$/, any: handleEnvJs },
 ];
 
 async function route(req, res, pathname) {

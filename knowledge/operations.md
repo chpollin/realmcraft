@@ -27,7 +27,7 @@ PORT=4200 node serve.mjs      # another port (Git Bash)
 $env:PORT=4200; node serve.mjs   # PowerShell
 ```
 
-The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`, the prototype at `/spielbrett/?demo`. The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It reloads open pages when code changes and pushes campaign changes over server-sent events.
+The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`, the prototype at `/spielbrett/?demo`. The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It pushes campaign changes over server-sent events. Code changes reach an open page only after a reload in the browser.
 
 ## Start a game master session
 
@@ -89,7 +89,7 @@ node engine/cli.mjs saves --campaign <cid> --json                          # man
 node engine/cli.mjs load --slot save-37 --campaign <cid> --json            # -> autosave names the replaced files
 ```
 
-A load restores the save in place and keeps the files it replaces as `autosave-<rev>`, so loading that slot undoes the load. A save made under another world package restores into the drift state and needs `repin` before the next transition. The board reaches the same commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load` ([data-contracts.md](data-contracts.md)). Saves stay under `campaigns/<cid>/saves/` and are deleted with the campaign folder. Agents never read them.
+A load restores the save in place and keeps the files it replaces as `autosave-<rev>`, so loading that slot undoes the load. A save made under another world package restores into the drift state and needs `repin` before the next transition. The dev server exposes the same commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load` ([data-contracts.md](data-contracts.md)), which the board does not call yet. Saves stay under `campaigns/<cid>/saves/` and are deleted with the campaign folder. Agents never read them.
 
 ## Recovery
 
@@ -111,6 +111,6 @@ A load restores the save in place and keeps the files it replaces as `autosave-<
 
 ## Boundaries
 
-- `.env` holds the image key of the legacy dashboard. It never enters campaign files, knowledge or commits, and agents never read it.
+- `.env` holds the image key of the portrait generator `tools/portraits/generate.mjs`, and the dev server never serves it. It never enters campaign files, knowledge or commits, and agents never read it.
 - `campaigns/` is private and ignored by git. Back up a campaign by copying its whole folder while no transition runs.
 - The ports of the owner's running servers are not used by tests or development sessions.
