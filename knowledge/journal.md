@@ -112,3 +112,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner selection of calm, mysterious narration with dry humour, followed by delegation of the starting concept and setup.
 - Target. [new-game-design.md](new-game-design.md) and [the prototype setup snapshot](../snapshots/initialization-2026-10-15.md).
 - Result. Added a provisional delegated-start path and recorded the fictional setup separately from kernel state. The observer distinguishes authorized defaults from adopted world preferences. The next observation concerns the first player action, so effectiveness remains unassessed.
+
+### 2026-10-15 integrated synthetic initialization walkthroughs and independent reviews
+
+- Source. Owner request for generated answers, subagents and iterative evaluation, followed by start_simulation, start_boundary_review and initialization_observer outputs inspected by the main agent.
+- Target. [new-game-design.md](new-game-design.md) and [the source transcripts](../research-artefacts/initialization/synthetic-iterations-2026-10-15.md).
+- Result. Revised the method toward an editable draft, explicit change effects, reversible preview and separate start. Recorded failures involving unchosen ships, an unchosen community decision, a missing control comparison and unresolved scarcity. Simulated answers remain generated research material; human acceptance and browser behavior remain untested.

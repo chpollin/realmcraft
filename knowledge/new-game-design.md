@@ -43,17 +43,33 @@ The source is the owner conversation of October 15, 2026. Quotations below are s
 | The owner likes the Dune 2 reference and expressly rejects copying it. | The specific effects of that reference still need to be identified before deriving a style. |
 | The owner asks for three worlds, then questions their slop and clichés. | None of those worlds has been selected. Their names, peoples and laws remain assistant proposals. |
 
-## Conversation method to test
+## Draft-led conversation to test
 
-Ask one question, wait for an answer and choose the follow-up from that answer. Offer concrete alternatives that the player can combine, replace or leave open. On October 15 the owner rejected the bare question about desired activity because it offered too little to react to, and requested choices concerning the character of the world, colours, gods, belief and social concepts. This observation revises the earlier open-question proposal. The next simulation begins with examples of the desired atmosphere. Its effectiveness remains to be tested.
+The owner chose to test a proposed whole-world draft after asking for a clearer overview of creation and the effects of decisions. The earlier activity question, scene choices and mood menu remain exploratory predecessors. The current proposal begins with a compact explanation of what the player is doing and how creation leads to play.
 
-A candidate sequence begins with the desired atmosphere, then explores a concrete place or situation and the activity the player wants. From there it can explore an unusual capability, its prerequisites, limits, failure modes and observable consequences. Relationships, everyday life and competing interests help develop a community. Role, stakes, presentation and a playable opening follow where the answers support them. The sequence is provisional and may change with the player's starting idea.
+1. Propose a compact editable draft from the player's stated interests, with assistant defaults identified as proposals. World, community, extraordinary capabilities and player agency are the core fields. Show further details where requested.
+2. Accept free changes or concrete alternatives. State what changed, preserve unrelated choices and distinguish added suggestions from the player's actual choices. Propagate changes into the next preview.
+3. Offer a clearly named action to view a first-scene preview using the current draft. Preview is reversible. It can combine review and navigation, while the actual start remains a separate explicit action.
+4. Begin the chat trial only on an explicit start choice. Show the first action's outcome and resulting state. A browser campaign requires its own supported creation flow and verified mechanics.
 
-Philosophical questions guide the facilitator's follow-ups. They concern what exists, how knowledge is established, who can act, who controls access and what obligations arise. Their player-facing wording should use situations that the player can imagine. A philosophical checklist has not been tested as an enjoyable onboarding experience.
+This is a revised design hypothesis. Generated walkthroughs show its wording and structural failure cases. Human comprehension, enjoyment and reading burden remain untested.
 
-The facilitator proposes consequences explicitly. A proposed consequence becomes part of the world when the player adopts it. An unanswered proposal remains open. At draft review, the player can revise earlier choices and inspect unresolved points. Any mechanical capability must be checked against implemented support before a browser campaign is promised.
+Ask follow-up questions where a decision affects the draft. Concrete alternatives can be combined or replaced. A philosophical question should be phrased through a situation the player can imagine. The authoring dimensions include atmosphere, moral character, colour, gods, belief, social organization, capabilities and their limits. A compassionate world can be serious, so those dimensions remain independently editable. Images may help communicate appearance, and the narrator's delivery has its own selected character.
 
-The owner requests coverage of moral character, seriousness, colour, gods, belief and social organization, and permits images when they help communicate feeling and appearance. These are authoring dimensions. No particular religion, social order or visual treatment follows from listing them. A compassionate world may also be serious, so these dimensions should remain separately editable.
+## Findings from synthetic walkthroughs
+
+The owner requested generated player responses and iterative subagent review. The [source transcripts and review dispositions](../research-artefacts/initialization/synthetic-iterations-2026-10-15.md) preserve the scripted scenarios. Their responses establish no owner preferences or human usability result. The iterations build on prior findings and use a harder final case, so they are not a controlled comparison.
+
+The textual review yields these correction requirements for the next prototype.
+
+- A request to travel leaves the travel form open. Mark a boat or wagon as an author suggestion until the player selects it or delegates the detail. Iteration 1 silently promoted ships into fact.
+- A revision can change a community's residence while preserving mobile workshops. Remove superseded assumptions from the preview. A personal character can remain open while the player explicitly chooses community-level control for a chat trial.
+- Describe an extraordinary capability's technical status before promising it in a real campaign. The free creation flow and the fictional abilities in these transcripts are still chat prototypes.
+- When wishes are in tension, explain possible scopes and ask for the intended relationship. Unlimited personal power and societal scarcity can coexist, but the reason scarcity persists remains a separate worldbuilding question in the final walkthrough.
+- State what a proposed trial can reveal and what it leaves uncertain. Report the comparisons and independent observations the player requested. An unexplained observation is insufficient to claim a material effect.
+- Narrate the consequences of the chosen action and leave further player-controlled decisions open. A test order does not also authorize a community policy decision. Autonomous participants need established scope for their own actions.
+
+The current review does not establish an accepted visual style, narrator audio quality or a completed browser implementation. The owner's confirmation of the next concrete prototype remains the acceptance step.
 
 ## Delegated setup
 

@@ -60,6 +60,8 @@ The schema version of these documents is the `version` field of this index, and 
 
 ## Outside this folder
 
+The [synthetic initialization walkthroughs](../research-artefacts/initialization/synthetic-iterations-2026-10-15.md) under research-artefacts/ hold generated conversation data and review evidence. Their maintained design implications are in [new-game-design.md](new-game-design.md).
+
 The earlier games, the old savegame dashboard, their documents, their example saves and the memory of the former game-master campaigns are removed from `main` and live in the local branch `archiv/vor-neuaufbau` and in the git history. The saved workflow `.claude/workflows/realmcraft-refactor-verify.js` carries the next development step named in [handoff.md](handoff.md). The Obsidian vault holds the project overview and the owner's design notes under `Project Overview RealmCraft`.
 
 ## License
