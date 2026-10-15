@@ -74,6 +74,18 @@ The council starts compact when the viewer has not stored an explicit preference
 
 This pass retains the map-first composition, current world tokens, all resource values, keyboard equivalents and the existing language preference. It establishes an interaction hierarchy; the owner has not accepted a new artistic treatment. Map texture, world-specific portraits and the wider community-first composition remain design explorations.
 
+## Community prototype
+
+The October 15 owner request adds an optional code-drawn community view beside the existing world map. The task is to find the own community's work areas, inspect the current allocation and edit it with the existing kernel preview. The map remains the default. The view buttons and the address parameter `ansicht=gemeinschaft` expose the two views, and browser Back/Forward restores the chosen view.
+
+The resource and destiny bar, council, module controls, order slots, world-event roll, blockers and end-turn action remain shared. Community buttons for food, material and research open the actual home context and focus its corresponding labour control. Management opens the home heading. Escape returns focus to the selected community button. The scene is decorative canvas with native HTML controls as its interaction equivalent; the skip link targets those controls in community mode. A narrow layout uses a two-column work-area dock and the existing bottom sheet. The council stays available through its top-bar button there, while the portrait rail is hidden to avoid covering the dock.
+
+`js/community/scene.js` is a deterministic Canvas 2D illustration with reusable terrain, tents or cottages, work areas and figures. `js/community/view.js` arranges the canvas and HTML controls around the actual council and context bounds. The Hochland calendar, home kind, labour assignment and herds come from the player's projection or draft. The scene is an authored Hochland illustration, not a spatial building inventory or a complete rendering vocabulary for arbitrary worlds. Decorative passers-by do not represent extra clans. Work figures and visible herds are bounded representations, while the controls retain the exact assignment values.
+
+A labelled season preview changes only the illustration and can return to the campaign season. The real season and all resources remain in the shared top bar. No image model, raster scene, dependency or client API call is used. Motion stops in reduced-motion mode and while the view or document is hidden. The hidden map retains its camera and dimensions and is not centred by community selection.
+
+This is an executable visual and interaction experiment. Seasonal graphic treatment is distinct from new seasonal rules. Scene growth, world-specific architectural grammars and new institution mechanics remain unimplemented. The drawing follows the existing Hochland token direction; artistic acceptance remains open.
+
 ## Planning safeguards
 
 The labour picker offers the canonical food and material resources and research. Existing assignment keys remain visible so an older allocation can be corrected. A research assignment uses the kernel key `research`; `wissen` remains a stock resource. Labour step controls retain keyboard focus after preview and save refreshes.

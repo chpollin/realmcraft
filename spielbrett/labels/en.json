@@ -671,6 +671,17 @@
     "board.seal.roll": "{probe}: roll {value}",
     "board.seal.back": "Keep planning",
     "board.seal.confirm": "End turn now",
-    "board.orders.plan": "Plan an action"
+    "board.orders.plan": "Plan an action",
+    "board.community.views": "Game view",
+    "board.community.view.gemeinschaft": "Community",
+    "board.community.view.welt": "World map",
+    "board.community.food": "Assign food workers",
+    "board.community.material": "Assign material workers",
+    "board.community.research": "Assign research workers",
+    "board.community.home": "Manage community",
+    "board.community.manage-short": "Manage",
+    "board.community.season": "Season preview",
+    "board.community.season-current": "Current season",
+    "board.community.visual-only": "Only the illustration changes."
   }
 }

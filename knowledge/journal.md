@@ -124,3 +124,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner screenshot and request to improve the actual UI, followed by browser inspection and independent source review.
 - Target. Shared home selection, empty-order action, council default and loyalty badge, pending-roll turn styling, responsive camera and [frontend.md](frontend.md), [playtests.md](playtests.md).
 - Result. Planning opens the own camp or settlement with context focus. The review exposed the settled labour-warning fallback, which now uses the same route. Selected home remains visible across the narrow breakpoint. Final project and browser suites pass. Wide and narrow states were visually inspected; actual 200-percent zoom remains unverified. The map-first composition and current world tokens are retained.
+
+### 2026-10-15 added an executable community-view experiment
+
+- Source. Owner requests for code-generated runtime graphics and working UI prototypes after comparing community-first concepts.
+- Target. Community scene and view, shared board navigation, hidden-map camera lifecycle, [frontend.md](frontend.md#community-prototype) and [new-game-design.md](new-game-design.md).
+- Result. An optional community view uses real work assignments and existing context editing, with reversible visual season preview. Independent source review found hidden-map camera loss and narrow council overlap; regression cases cover both corrected paths. Final project and browser suites pass. Wide, winter and narrow labour states were visually inspected; actual 200-percent browser zoom remains unverified. This experiment does not add game mechanics or accept an art style.

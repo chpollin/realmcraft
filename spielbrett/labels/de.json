@@ -671,6 +671,17 @@
     "board.seal.roll": "{probe}: Wurf {value}",
     "board.seal.back": "Weiter planen",
     "board.seal.confirm": "Zug jetzt beenden",
-    "board.orders.plan": "Aktion planen"
+    "board.orders.plan": "Aktion planen",
+    "board.community.views": "Spielansicht",
+    "board.community.view.gemeinschaft": "Gemeinschaft",
+    "board.community.view.welt": "Weltkarte",
+    "board.community.food": "Nahrung zuweisen",
+    "board.community.material": "Material zuweisen",
+    "board.community.research": "Forschung zuweisen",
+    "board.community.home": "Gemeinschaft verwalten",
+    "board.community.manage-short": "Verwalten",
+    "board.community.season": "Saisonvorschau",
+    "board.community.season-current": "Aktuelle Saison",
+    "board.community.visual-only": "Nur die Darstellung ändert sich."
   }
 }

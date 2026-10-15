@@ -1,0 +1,91 @@
+@layer layout {
+  .ansichten {
+    position: absolute;
+    z-index: 7;
+    inset-block-start: var(--space-3);
+    inset-inline-start: var(--space-4);
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--radius-m);
+    background: var(--night-1);
+  }
+  .ansicht-wahl {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: 2.75rem;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-s);
+    color: var(--ink-dim);
+  }
+  .ansicht-wahl[aria-pressed="true"] { background: var(--night-3); color: var(--ember); }
+  .brett[data-ansicht="welt"] .ebenen { inset-block-start: 4.5rem; }
+  .brett[data-ansicht="welt"] .ratsleiste { inset-block-start: 7.5rem; }
+  .gemeinschaft { position: absolute; inset: 0; overflow: hidden; background: var(--community-ground); }
+  .gemeinschaft[hidden], #karte[hidden], .ansichten[hidden] { display: none; }
+  #gemeinschaft-bild { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
+  .brett[data-ansicht="gemeinschaft"] > :is(.ebenen, .zoom, .minimap, .vignette, .ortsliste) { display: none; }
+  .gemeinschaft-ort {
+    position: absolute;
+    inset-inline-start: var(--spot-x);
+    inset-block-start: var(--spot-y);
+    translate: -50% -50%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--night-1);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+    white-space: nowrap;
+  }
+  .gemeinschaft-ort:hover, .gemeinschaft-ort[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ember), var(--shadow-float); }
+  .gemeinschaft-ort > .icon { color: var(--ember); }
+  .gemeinschaft-zahl { padding-inline-start: var(--space-2); color: var(--ink); font-weight: 700; }
+  .gemeinschaft-saison {
+    position: absolute;
+    inset-inline-start: var(--space-4);
+    inset-block-end: var(--space-4);
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--night-1);
+    color: var(--ink-dim);
+    font-size: var(--step--1);
+  }
+  .gemeinschaft-saison select {
+    min-block-size: 2.75rem;
+    max-inline-size: 100%;
+    padding-inline: var(--space-2);
+    border: 1px solid var(--ink-faint);
+    border-radius: var(--radius-s);
+    background: var(--night-2);
+    color: var(--ink);
+    font: inherit;
+  }
+  .gemeinschaft-saison p { max-inline-size: 24ch; }
+  @media (max-width: 760px) {
+    .ansichten { inset-inline-start: var(--space-2); inset-block-start: var(--space-2); }
+    .ansicht-wahl { padding-inline: var(--space-2); font-size: var(--step--1); }
+    .brett[data-ansicht="welt"] .ebenen { inset-block-start: 4rem; }
+    /* The top-bar council button retains access without covering scene controls. */
+    .brett[data-ansicht="gemeinschaft"] .ratsleiste { display: none; }
+    .gemeinschaft-orte {
+      position: absolute;
+      inset-block-start: 4.25rem;
+      inset-inline: var(--space-2);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .gemeinschaft-ort { position: static; translate: none; min-inline-size: 0; justify-content: start; padding-inline: var(--space-2); font-size: var(--step--1); white-space: normal; }
+    .gemeinschaft-zahl { margin-inline-start: auto; }
+    .gemeinschaft-saison { inset-inline: var(--space-2); inset-block-end: var(--space-2); grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+    .gemeinschaft-saison p { grid-column: 1 / -1; max-inline-size: none; }
+    .brett.has-panel .gemeinschaft-saison { display: none; }
+  }
+}

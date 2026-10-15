@@ -4,6 +4,7 @@
 
 import { MapView } from './map/renderer.js';
 import { Minimap } from './map/minimap.js';
+import { CommunityView } from './community/view.js';
 import { el, prefersReducedMotion } from './dom.js';
 import { icon } from './icons.js';
 import { renderTopbar, renderResources, renderOrders, renderMessages, renderEndTurn, renderBlocker } from './ui/leiste.js';
@@ -38,6 +39,7 @@ export function startBoard(model, game) {
   const isNarrow = () => window.matchMedia('(max-width: 760px)').matches;
   const home = () => model.home ?? model.units.find((u) => u.art === 'lager' && u.volk === 'spieler');
   let minimap;
+  let community;
 
   function mapInsets() {
     const rect = canvas.getBoundingClientRect();
@@ -54,7 +56,7 @@ export function startBoard(model, game) {
   }
 
   function centreSelection(sel) {
-    if (!sel || !Number.isFinite(sel.q) || !Number.isFinite(sel.r)) return;
+    if (community?.mode === 'gemeinschaft' || !sel || !Number.isFinite(sel.q) || !Number.isFinite(sel.r)) return;
     const i = mapInsets();
     api.view.flyTo(sel.q, sel.r, { offsetX: (i.right - i.left) / 2, offsetY: (i.bottom - i.top) / 2 });
   }
@@ -307,6 +309,7 @@ export function startBoard(model, game) {
   function refreshPanels() {
     renderKontext(api);
     renderWeltgeschehen(api);
+    community?.refresh();
     document.getElementById('brett').classList.toggle('has-panel', Boolean(model.panel && (model.panel === 'welt' || model.selection)));
   }
 
@@ -400,6 +403,7 @@ export function startBoard(model, game) {
       renderEndTurn(api);
       renderKontext(api);
       renderRatsleiste(api);
+      community?.refresh();
       for (const name of ['rat', 'entwicklungen', 'bestimmung']) {
         const d = document.getElementById(`dlg-${name}`);
         if (d.open) api.rerenderDialog(name);
@@ -479,7 +483,8 @@ export function startBoard(model, game) {
       }
       if (model.panel) {
         api.setPanel(null);
-        canvas.focus();
+        if (community?.mode === 'gemeinschaft') community.focus();
+        else canvas.focus();
         return;
       }
       // Nothing left to close: Escape opens the game menu (ui/menu.js sets the hook).
@@ -525,6 +530,8 @@ export function startBoard(model, game) {
     minimap.draw();
     api.announce(t('board.announce.language'));
   });
+
+  community = new CommunityView(api);
 
   /* First render */
 

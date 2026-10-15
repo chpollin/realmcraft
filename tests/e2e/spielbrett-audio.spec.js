@@ -92,7 +92,7 @@ test('the ambience starts with the first gesture in the mood of the campaign wor
   await instrument(page);
   await openBoard(page);
   // A map click is one click tone, everything beyond it is ambience.
-  await page.locator('#karte').click({ position: { x: 20, y: 20 } });
+  await page.locator('#karte').click({ position: { x: 400, y: 200 } });
   await expect.poll(() => sources(page)).toBeGreaterThan(4);
   // The hochland drone sits on D2 (MIDI 38), not on the default root.
   const freqs = await page.evaluate(() => window.__audioProbe.oscillators.map((o) => o.frequency.value));

@@ -28,6 +28,8 @@ The October 15 conversation establishes these requirements.
 
 The extent of supported mechanics and changes to the interface structure remains an open product decision. The existing kernel executes implemented primitives and modules, as described in [game-design.md](game-design.md). Free prose alone cannot add executable rules.
 
+The owner subsequently constrained runtime game graphics to code-generated scenes. Image generation may support icons or design elements, but a world must not depend on generating a new raster scene for each change. The community-first composition is the preferred current exploration. The executable Hochland experiment and its limits are described in [frontend.md](frontend.md#community-prototype). This preference does not establish acceptance of the current drawing style or a visual grammar for every possible world.
+
 ## Evidence from the design conversation
 
 The source is the owner conversation of October 15, 2026. Quotations below are short source excerpts. Interpretations are stated separately.

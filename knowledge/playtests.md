@@ -84,6 +84,24 @@ Browser regressions exercise entry visibility at 390, 1440 and 2192 px, pointer 
 
 Manual review inspected the live hochland-3 at wide and narrow viewport overrides, including scrolling to the research row. The embedded browser retained its existing zoom; the wide override of 1440 by 900 corresponded to a measured CSS viewport of 1920 by 1200. The entry and outstanding-roll end-turn text contrasts were calculated from their rendered foreground and background colours and exceed the normal-text criterion. The entry target meets the larger touch target size. The new focus ring and reduced-motion path were exercised by the keyboard regressions. Actual 200-percent browser zoom remains unverified because the embedded browser did not change zoom in response to its shortcuts. The independent review covered source and regression design, and the main agent performed visual inspection. Artistic acceptance remains with the owner.
 
+## Community-view experiment, October 15
+
+The complete project and browser suites passed on the final code. One concurrent run timed out waiting for a new campaign phase notification; the separate complete browser rerun passed without a server change.
+
+The owner asked for executable prototypes after restricting runtime scenes to code-generated graphics. The optional community view exercises an actual Hochland campaign with existing labour controls, kernel previews and turn controls. World navigation remains available and the map stays the default. The buildings and landscape are an authored illustration, not a complete spatial inventory. No image model or runtime scene asset was used.
+
+Independent source review found that hidden-map resize could destroy the return camera and that the narrow council rail overlapped work-area buttons. The shared map renderer now skips hidden resize, community selection leaves its camera alone, and the narrow community layout retains council access through the top-bar button. Browser regressions exercise the actual map return and home click, hit-test work-area and council controls and activate them by ordinary pointer gestures. A fixed coordinate in the audio regression was moved outside the new view navigation; its audio assertions remain unchanged.
+
+| Criterion | Evidence and limit |
+|---|---|
+| Rules and state | Browser cases compare stored drafts across navigation and season preview, edit actual labour, inspect the existing kernel delta and reload the stored assignment. Nomadic and settled homes are exercised. |
+| Keyboard | View switching and work-area activation use Enter; context focus and Escape return to the visible community control are asserted. Native HTML buttons are the canvas interaction equivalent. |
+| Responsive layout | Tests exercise 1440 and 390 CSS px. Manual screenshots inspect wide, narrow and scrolled labour states. The embedded browser's existing zoom means a 1440 by 900 override measures 1920 by 1200 CSS px; the 390 override measures 520 CSS px across. |
+| Motion | The viewer's actual audio settings key is used for reduced motion. An interaction test compares rendered stills, resumes motion through settings, observes changed pixels and freezes it again without changing the draft. |
+| Targets and contrast | New controls reuse the existing solid night and ink/ember tokens. DOM measurement confirms 44 px view and work-area targets. No new text colour pair is introduced. A full accessibility audit was not performed. |
+| Zoom | The embedded browser did not change its measured viewport or device-pixel ratio after the zoom shortcut. Actual 200-percent browser zoom remains unverified. |
+| Review and acceptance | Independent review covered source and regression design. The main agent inspected actual wide, winter and narrow screenshots. Artistic and gameplay acceptance remain with the owner. |
+
 ## Findings of the live judges
 
 The judges of the first live turns reported findings that count as M1 input beside the entries above.

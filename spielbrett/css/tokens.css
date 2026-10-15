@@ -79,6 +79,8 @@
   --accepted: oklch(0.80 0.12 150);
   --rejected: oklch(0.74 0.14 32);
 
+  --community-ground: oklch(0.59 0.058 110);
+
   /* Terrain (pack token names). Mid tones on purpose, so icons, labels and the
      ember accent stay readable on top of every terrain. */
   --terrain-water: oklch(0.43 0.065 238);

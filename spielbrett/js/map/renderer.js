@@ -154,6 +154,8 @@ export class MapView {
   resize() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
+    // A hidden alternate view must retain its camera and backing dimensions.
+    if (!rect.width || !rect.height) return;
     this.w = Math.max(1, rect.width);
     this.h = Math.max(1, rect.height);
     this.dpr = dpr;
