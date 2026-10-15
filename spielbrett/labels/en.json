@@ -670,6 +670,7 @@
     "board.seal.withdrawn": "These withdrawn rolls no longer affect the turn.",
     "board.seal.roll": "{probe}: roll {value}",
     "board.seal.back": "Keep planning",
-    "board.seal.confirm": "End turn now"
+    "board.seal.confirm": "End turn now",
+    "board.orders.plan": "Plan an action"
   }
 }

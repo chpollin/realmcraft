@@ -56,6 +56,22 @@
   .rl-text { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px var(--space-2); min-inline-size: 0; }
   .rl-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rl-loyal { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); }
+  .rl-loyal-badge {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    min-inline-size: 1.5rem;
+    padding: 1px 3px;
+    border-radius: var(--radius-s);
+    background: var(--night-1);
+    color: var(--ink-dim);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    pointer-events: none;
+  }
+  .rl-loyal-badge.up { color: var(--up); }
+  .rl-loyal-badge.down { color: var(--down); }
   .rl-loyal.up { color: var(--up); }
   .rl-loyal.down { color: var(--down); }
   .rl-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; }

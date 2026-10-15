@@ -54,6 +54,7 @@ export function startBoard(model, game) {
   }
 
   function centreSelection(sel) {
+    if (!sel || !Number.isFinite(sel.q) || !Number.isFinite(sel.r)) return;
     const i = mapInsets();
     api.view.flyTo(sel.q, sel.r, { offsetX: (i.right - i.left) / 2, offsetY: (i.bottom - i.top) / 2 });
   }
@@ -62,6 +63,14 @@ export function startBoard(model, game) {
     model,
     game,
     view: null,
+
+    openHome() {
+      const c = home();
+      if (!c) return;
+      const kind = model.units.some((u) => u.id === c.id) ? 'unit' : 'place';
+      api.select({ kind, id: c.id, q: c.q, r: c.r }, { fly: true });
+      requestAnimationFrame(() => document.getElementById('kontext-titel')?.focus({ preventScroll: true }));
+    },
 
     available(k) {
       const r = resourceByKey(model, k);
@@ -146,9 +155,7 @@ export function startBoard(model, game) {
     meldungAktion(m) {
       if (m.id === 'weltgeschehen') return api.setPanel('welt');
       if (m.dialog) return api.openDialog(m.dialog);
-      const camp = home();
-      if (!camp) return undefined;
-      return api.select({ kind: 'unit', id: camp.id, q: camp.q, r: camp.r }, { fly: true });
+      return api.openHome();
     },
 
     openDialog(name, ctx) {
@@ -352,7 +359,7 @@ export function startBoard(model, game) {
     el('button', { class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.out', onclick: () => api.view.zoomAt(0.8) }, icon('minus', { size: 18 })),
     el('button', {
       class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.home',
-      onclick: () => { const c = home(); if (c) api.view.flyTo(c.q, c.r, { zoom: 1.15 }); },
+      onclick: () => api.openHome(),
     }, icon('ziel', { size: 18 })),
     el('button', { class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.fit', 'data-t-title': 'board.zoom.fit', onclick: () => api.view.fitKnown() }, icon('gelaende', { size: 18 })),
     el('button', {
@@ -364,6 +371,15 @@ export function startBoard(model, game) {
       },
     }, icon('liste', { size: 18 })),
   );
+
+  let narrowLayout = isNarrow();
+  new ResizeObserver(() => {
+    const next = isNarrow();
+    if (next !== narrowLayout && model.selection) {
+      requestAnimationFrame(() => centreSelection(model.selection));
+    }
+    narrowLayout = next;
+  }).observe(canvas);
 
   /* Turn */
 

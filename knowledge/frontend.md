@@ -66,6 +66,14 @@ The playtest of 3 October 2026 shaped this surface ([playtests.md](playtests.md)
 - Labels come from the board's label files and the world's label files. Kernel issues are shown through the label `issue.<code>`, with a generic fallback.
 - Acknowledged event cards are remembered per campaign and turn in `localStorage`, a convenience the board works without.
 
+## Planning entry and hierarchy
+
+The first planning task is to find the own community, inspect its available actions and assign labour. An empty order area offers a labelled planning action that opens the own camp or settlement context. The home map control follows the same selection path and moves focus to the context heading. Neither action changes the draft or spends a turn. Labour-warning navigation uses the same home selection path for camps and settled communities. Crossing into or out of the narrow layout keeps a selected location centred in the map area left free by the panel. A missing home retains the neutral empty state, and resolution has no planning shortcut.
+
+The council starts compact when the viewer has not stored an explicit preference. Every member remains available, with a visible signed loyalty badge and a full card on activation. Expanding preserves the existing detail view. A previous expanded or collapsed choice remains effective. A turn with outstanding rolls remains actionable but uses a subdued surface, keeping attention on planning and the actual outstanding roll. The ready end-turn action retains the warm accent.
+
+This pass retains the map-first composition, current world tokens, all resource values, keyboard equivalents and the existing language preference. It establishes an interaction hierarchy; the owner has not accepted a new artistic treatment. Map texture, world-specific portraits and the wider community-first composition remain design explorations.
+
 ## Planning safeguards
 
 The labour picker offers the canonical food and material resources and research. Existing assignment keys remain visible so an older allocation can be corrected. A research assignment uses the kernel key `research`; `wissen` remains a stock resource. Labour step controls retain keyboard focus after preview and save refreshes.

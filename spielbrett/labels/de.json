@@ -670,6 +670,7 @@
     "board.seal.withdrawn": "Diese zurückgenommenen Würfe wirken nicht mehr auf den Zug.",
     "board.seal.roll": "{probe}: Wurf {value}",
     "board.seal.back": "Weiter planen",
-    "board.seal.confirm": "Zug jetzt beenden"
+    "board.seal.confirm": "Zug jetzt beenden",
+    "board.orders.plan": "Aktion planen"
   }
 }

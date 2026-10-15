@@ -118,3 +118,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner request for generated answers, subagents and iterative evaluation, followed by start_simulation, start_boundary_review and initialization_observer outputs inspected by the main agent.
 - Target. [new-game-design.md](new-game-design.md) and [the source transcripts](../research-artefacts/initialization/synthetic-iterations-2026-10-15.md).
 - Result. Revised the method toward an editable draft, explicit change effects, reversible preview and separate start. Recorded failures involving unchosen ships, an unchosen community decision, a missing control comparison and unresolved scarcity. Simulated answers remain generated research material; human acceptance and browser behavior remain untested.
+
+### 2026-10-15 corrected planning entry and board hierarchy
+
+- Source. Owner screenshot and request to improve the actual UI, followed by browser inspection and independent source review.
+- Target. Shared home selection, empty-order action, council default and loyalty badge, pending-roll turn styling, responsive camera and [frontend.md](frontend.md), [playtests.md](playtests.md).
+- Result. Planning opens the own camp or settlement with context focus. The review exposed the settled labour-warning fallback, which now uses the same route. Selected home remains visible across the narrow breakpoint. Final project and browser suites pass. Wide and narrow states were visually inspected; actual 200-percent zoom remains unverified. The map-first composition and current world tokens are retained.

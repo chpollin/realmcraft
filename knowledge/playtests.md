@@ -74,6 +74,16 @@ The first entries concern the UI prototype under `spielbrett/` with prepared gam
 | 35 | Operation | sealing | turn 1 was sealed with no orders after the two rolled orders had been withdrawn, the board did not say so | done in the October 15 usability pass. Empty turns and withdrawn rolls require an explicit review before sealing |
 | 36 | Mechanics | labour | a clan assigned to Wissen worked for nothing: the board writes the labour key wissen, research counts only research, the kernel accepted the unknown key | done for the picker. It offers canonical food/material and research, preserves older assignment rows for correction and previews the actual research gain |
 
+## Planning entry and hierarchy, October 15
+
+The owner screenshot of hochland-3 showed a dominant expanded council, an empty order strip and a bright end-turn action with an outstanding roll. Browser inspection confirmed that the home map button moved the camera without opening actions or labour.
+
+The pass adds an actionable empty order state, routes home and labour-warning navigation into actual camp or settlement selection, starts the council compact while preserving an explicit viewer preference and keeps signed loyalty visible. Outstanding-roll end-turn styling is subdued. No game rule or campaign draft is changed by these navigation actions.
+
+Browser regressions exercise entry visibility at 390, 1440 and 2192 px, pointer and keyboard activation, heading focus, Escape focus return, unchanged stored draft, settled-community labour warnings, council preference persistence and selected-home visibility after a narrow-layout transition. The labour-warning regression failed before the shared home routing correction and passed afterwards. The complete browser and project suites passed on the final code.
+
+Manual review inspected the live hochland-3 at wide and narrow viewport overrides, including scrolling to the research row. The embedded browser retained its existing zoom; the wide override of 1440 by 900 corresponded to a measured CSS viewport of 1920 by 1200. The entry and outstanding-roll end-turn text contrasts were calculated from their rendered foreground and background colours and exceed the normal-text criterion. The entry target meets the larger touch target size. The new focus ring and reduced-motion path were exercised by the keyboard regressions. Actual 200-percent browser zoom remains unverified because the embedded browser did not change zoom in response to its shortcuts. The independent review covered source and regression design, and the main agent performed visual inspection. Artistic acceptance remains with the owner.
+
 ## Findings of the live judges
 
 The judges of the first live turns reported findings that count as M1 input beside the entries above.

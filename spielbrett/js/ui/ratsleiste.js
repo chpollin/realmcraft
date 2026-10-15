@@ -23,8 +23,8 @@ function readFolded() {
   try {
     const v = localStorage.getItem(STORE);
     if (v !== null) return v === 'zu';
-  } catch { /* storage blocked: fall back to the width rule */ }
-  return window.matchMedia('(max-width: 1200px)').matches;
+  } catch { /* storage blocked: use the compact default */ }
+  return true;
 }
 
 function storeFolded(folded) {
@@ -76,6 +76,7 @@ export function renderRatsleiste(api) {
   const toggle = el('button', {
     class: 'icon-btn rl-schalter', type: 'button', 'aria-expanded': String(!folded), 'aria-controls': 'ratsleiste-liste',
     'aria-label': t.fmt(folded ? 'board.council.unfold' : 'board.council.fold', { name: t('view.rat') }),
+    title: t.fmt(folded ? 'board.council.unfold' : 'board.council.fold', { name: t('view.rat') }),
     onclick: () => {
       box.dataset.zu = String(!folded);
       storeFolded(!folded);
@@ -102,6 +103,7 @@ export function renderRatsleiste(api) {
       },
     },
     el('span', { class: 'rl-bild' }, portrait(a.id, a.name, { size: 40 }), el('span', { class: 'rl-rolle', 'aria-hidden': 'true' }, icon(a.icon, { size: 13 }))),
+    folded ? el('span', { class: `rl-loyal-badge num ${a.loyalitaet > 0 ? 'up' : a.loyalitaet < 0 ? 'down' : ''}`, 'aria-hidden': 'true', text: signed(a.loyalitaet) }) : null,
     folded ? null : el('span', { class: 'rl-text' },
       el('span', { class: 'rl-name', text: a.name.split(' ')[0] }),
       el('span', { class: `rl-loyal num ${a.loyalitaet > 0 ? 'up' : a.loyalitaet < 0 ? 'down' : ''}`, text: signed(a.loyalitaet) }),
