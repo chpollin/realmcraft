@@ -102,6 +102,14 @@ Independent source review found that hidden-map resize could destroy the return 
 | Zoom | The embedded browser did not change its measured viewport or device-pixel ratio after the zoom shortcut. Actual 200-percent browser zoom remains unverified. |
 | Review and acceptance | Independent review covered source and regression design. The main agent inspected actual wide, winter and narrow screenshots. Artistic and gameplay acceptance remain with the owner. |
 
+## Clarifying community controls, October 15
+
+The owner interpreted the visual season preview as a gameplay choice and asked whether the work-area values were stocks or mechanics. The owner also identified the duplicate management and planning entries and asked whether the illustration belonged to the freely authored world.
+
+Normal play now uses the campaign season without a season selector. The visual override is available only through an explicit debug URL. Work areas show the clan unit with the assignment count; stock values remain in the top bar. The home entry uses the camp or settlement kind, and the redundant empty-order planning shortcut is omitted only in community mode. Accessible names include the visible kind or assignment and unit. Browser cases assert the normal/debug distinction, retained map planning shortcut, real assignment editing and keyboard/hit-test paths. Wide and narrow screenshots with a scrolled work panel were visually inspected.
+
+The illustration belongs to the selected existing campaign. The actual Hochland campaign and its named save were read through the CLI to answer the owner's question. The community prototype did not instantiate the free worldbuilding draft. The basic distinction remains important for the future initialization preview.
+
 ## Findings of the live judges
 
 The judges of the first live turns reported findings that count as M1 input beside the entries above.

@@ -215,7 +215,7 @@ export function renderOrders(api, { freshId } = {}) {
   };
   const event = eventChip(api);
   if (!model.orders.length) {
-    const canPlan = model.phase !== 'A' && model.home && api.game.view.status !== 'ended';
+    const canPlan = model.surface !== 'gemeinschaft' && model.phase !== 'A' && model.home && api.game.view.status !== 'ended';
     const empty = canPlan
       ? el('li', { class: 'befehle-einstieg', 'data-order-id': 'plan' },
         el('button', { class: 'befehl-planen', type: 'button', 'data-plan-home': '', 'aria-label': t('board.orders.plan'), onclick: () => api.openHome() },

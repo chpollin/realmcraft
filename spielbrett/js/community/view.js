@@ -1,6 +1,7 @@
 import { el, prefersReducedMotion } from '../dom.js';
 import { icon } from '../icons.js';
 import { t } from '../i18n/index.js';
+import { renderOrders } from '../ui/leiste.js';
 import { calendarOf } from '../data/kernel.js';
 import { RULES } from '../../../engine/core/rules.js';
 import { COMMUNITY_SIZE, COMMUNITY_ANCHORS, drawCommunity } from './scene.js';
@@ -36,12 +37,15 @@ export class CommunityView {
         'aria-controls': 'kontext', onclick: () => this.openSpot(spot.id),
       }, icon(SPOTS[spot.id], { size: 20 }),
       el('span', { class: 'gemeinschaft-ort-name' }),
-      spot.id !== 'home' ? el('span', { class: 'gemeinschaft-zahl num', 'data-community-count': true }) : null);
+      spot.id !== 'home' ? el('span', { class: 'gemeinschaft-arbeit' },
+        el('span', { class: 'gemeinschaft-einheit' }),
+        el('span', { class: 'gemeinschaft-zahl num', 'data-community-count': true })) : null);
       this.buttons.set(spot.id, btn);
       document.getElementById('gemeinschaft-orte').append(btn);
     }
     this.seasonSelect = document.getElementById('gemeinschaft-saison');
     this.seasonSelect.addEventListener('change', () => {
+      if (!this.debug) return;
       this.season = this.seasonSelect.value;
       this.refresh();
     });
@@ -57,12 +61,16 @@ export class CommunityView {
   }
 
   readMode() {
-    this.setMode(new URLSearchParams(location.search).get('ansicht') === 'gemeinschaft' ? 'gemeinschaft' : 'welt', false);
+    const params = new URLSearchParams(location.search);
+    this.debug = params.get('debug') === '1';
+    if (!this.debug) this.season = '';
+    this.setMode(params.get('ansicht') === 'gemeinschaft' ? 'gemeinschaft' : 'welt', false);
   }
 
   setMode(mode, navigate = true) {
     if (!this.api.model.home) mode = 'welt';
     this.mode = mode;
+    this.api.model.surface = mode;
     if (navigate) {
       const url = new URL(location.href);
       if (mode === 'gemeinschaft') url.searchParams.set('ansicht', mode);
@@ -76,6 +84,7 @@ export class CommunityView {
     document.querySelector('.skip').href = mode === 'gemeinschaft' ? '#gemeinschaft-orte' : '#ortsliste';
     for (const btn of this.nav.querySelectorAll('button')) btn.setAttribute('aria-pressed', String(btn.dataset.ansicht === mode));
     this.refresh();
+    renderOrders(this.api);
     if (mode === 'welt') this.api.view.changed();
   }
 
@@ -103,7 +112,8 @@ export class CommunityView {
     const assign = game.draft.assign ?? people.population.assigned ?? {};
     const calendar = calendarOf(game.env.regeln, game.view.turn);
     const actual = Object.keys(SEASON_KEYS).find((id) => SEASON_KEYS[id] === calendar.season) ?? (calendar.winter ? 'winter' : 'spring');
-    const season = this.season || actual;
+    const season = this.debug && this.season ? this.season : actual;
+    this.seasonSelect.parentElement.hidden = !this.debug;
     this.state = {
       season: SEASONS.includes(season) ? season : 'spring',
       settled: model.home?.kind !== 'lager', clans: people.population.core,
@@ -114,11 +124,17 @@ export class CommunityView {
     this.root.dataset.season = this.state.season;
     this.root.dataset.settled = String(this.state.settled);
     for (const [id, btn] of this.buttons) {
-      btn.querySelector('.gemeinschaft-ort-name').textContent = id === 'home' ? t('board.community.manage-short') : id === 'research' ? t('ui.forschung') : this.api.resourceName(id === 'food' ? RULES.food : RULES.material);
-      btn.setAttribute('aria-label', t('board.community.' + id));
+      btn.querySelector('.gemeinschaft-ort-name').textContent = id === 'home' ? t('settlement.' + model.home?.kind, t('board.community.manage-short')) : id === 'research' ? t('ui.forschung') : this.api.resourceName(id === 'food' ? RULES.food : RULES.material);
+      const name = btn.querySelector('.gemeinschaft-ort-name').textContent;
+      btn.setAttribute('aria-label', id === 'home'
+        ? name + ', ' + t('board.community.home')
+        : t('board.community.' + id) + ', ' + t('population.core') + ' ' + this.state.labour[id]);
       btn.setAttribute('aria-pressed', String(model.panel === 'kontext' && model.selection?.id === model.home?.id && this.selected === id));
       const count = btn.querySelector('[data-community-count]');
-      if (count) count.textContent = String(this.state.labour[id]);
+      if (count) {
+        count.textContent = String(this.state.labour[id]);
+        btn.querySelector('.gemeinschaft-einheit').textContent = t('population.core');
+      }
     }
     for (const btn of this.nav.querySelectorAll('button')) btn.querySelector('span').textContent = t('board.community.view.' + btn.dataset.ansicht);
     document.getElementById('gemeinschaft-saison-label').textContent = t('board.community.season');

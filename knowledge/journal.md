@@ -130,3 +130,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner requests for code-generated runtime graphics and working UI prototypes after comparing community-first concepts.
 - Target. Community scene and view, shared board navigation, hidden-map camera lifecycle, [frontend.md](frontend.md#community-prototype) and [new-game-design.md](new-game-design.md).
 - Result. An optional community view uses real work assignments and existing context editing, with reversible visual season preview. Independent source review found hidden-map camera loss and narrow council overlap; regression cases cover both corrected paths. Final project and browser suites pass. Wide, winter and narrow labour states were visually inspected; actual 200-percent browser zoom remains unverified. This experiment does not add game mechanics or accept an art style.
+
+### 2026-10-15 separated development preview from community play
+
+- Source. Owner correction that the season should not be selectable in play, unclear work-area values and duplicate planning entry.
+- Target. Community view and styles, shared empty-order entry, browser regressions and [frontend.md](frontend.md#community-prototype).
+- Result. Normal play follows the campaign season. Visual preview requires explicit debug mode. Work-area counts identify clans; the home entry names its kind; community mode omits the duplicate planning shortcut. CLI reads establish that the selected campaign and save are the fresh Hochland game, not an instantiated free-world draft. Final project and browser suites pass; wide and narrow controls were visually inspected.

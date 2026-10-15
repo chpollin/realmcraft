@@ -23,7 +23,7 @@
   .brett[data-ansicht="welt"] .ebenen { inset-block-start: 4.5rem; }
   .brett[data-ansicht="welt"] .ratsleiste { inset-block-start: 7.5rem; }
   .gemeinschaft { position: absolute; inset: 0; overflow: hidden; background: var(--community-ground); }
-  .gemeinschaft[hidden], #karte[hidden], .ansichten[hidden] { display: none; }
+  .gemeinschaft[hidden], .gemeinschaft-saison[hidden], #karte[hidden], .ansichten[hidden] { display: none; }
   #gemeinschaft-bild { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
   .brett[data-ansicht="gemeinschaft"] > :is(.ebenen, .zoom, .minimap, .vignette, .ortsliste) { display: none; }
   .gemeinschaft-ort {
@@ -31,10 +31,11 @@
     inset-inline-start: var(--spot-x);
     inset-block-start: var(--spot-y);
     translate: -50% -50%;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
     align-items: center;
-    gap: var(--space-2);
-    min-block-size: 2.75rem;
+    column-gap: var(--space-2);
+    min-block-size: 3.25rem;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-s);
     background: var(--night-1);
@@ -43,8 +44,11 @@
     white-space: nowrap;
   }
   .gemeinschaft-ort:hover, .gemeinschaft-ort[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ember), var(--shadow-float); }
-  .gemeinschaft-ort > .icon { color: var(--ember); }
-  .gemeinschaft-zahl { padding-inline-start: var(--space-2); color: var(--ink); font-weight: 700; }
+  .gemeinschaft-ort > .icon { color: var(--ember); grid-row: 1 / span 2; }
+  .gemeinschaft-ort-name, .gemeinschaft-arbeit { grid-column: 2; }
+  .gemeinschaft-arbeit { display: flex; gap: var(--space-1); color: var(--ink-dim); font-size: var(--step--1); line-height: 1.25; }
+  .gemeinschaft-zahl { font-weight: 600; }
+  .gemeinschaft-ort[data-community-spot="home"] > .icon { grid-row: 1; }
   .gemeinschaft-saison {
     position: absolute;
     inset-inline-start: var(--space-4);
@@ -83,7 +87,7 @@
       gap: var(--space-2);
     }
     .gemeinschaft-ort { position: static; translate: none; min-inline-size: 0; justify-content: start; padding-inline: var(--space-2); font-size: var(--step--1); white-space: normal; }
-    .gemeinschaft-zahl { margin-inline-start: auto; }
+    .gemeinschaft-arbeit { font-size: 0.75rem; }
     .gemeinschaft-saison { inset-inline: var(--space-2); inset-block-end: var(--space-2); grid-template-columns: auto minmax(0, 1fr); align-items: center; }
     .gemeinschaft-saison p { grid-column: 1 / -1; max-inline-size: none; }
     .brett.has-panel .gemeinschaft-saison { display: none; }

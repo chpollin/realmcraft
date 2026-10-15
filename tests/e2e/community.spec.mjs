@@ -28,8 +28,8 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('realmcraft.audio', JSON.stringify({ reduced: true }));
   });
 });
-async function open(page, id = 'nomads', community = true) {
-  await page.goto(base + '/spielbrett/?campaign=' + id + (community ? '&ansicht=gemeinschaft' : ''));
+async function open(page, id = 'nomads', community = true, debug = false) {
+  await page.goto(base + '/spielbrett/?campaign=' + id + (community ? '&ansicht=gemeinschaft' : '') + (debug ? '&debug=1' : ''));
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
 }
 async function draft(page, id = 'nomads') {
@@ -74,7 +74,9 @@ for (const width of [1440, 390]) {
     await expect(page.locator('#karte')).toBeHidden();
     expect(new URL(page.url()).searchParams.get('ansicht')).toBe('gemeinschaft');
     for (const kind of ['food', 'material', 'research', 'home']) await expect(spot(page, kind)).toBeInViewport();
-    await expect(page.locator('#gemeinschaft-saison')).toBeInViewport();
+    await expect(page.locator('#gemeinschaft-saison')).toBeHidden();
+    await expect(page.locator('[data-plan-home]')).toHaveCount(0);
+    await expect(spot(page, 'food').locator('.gemeinschaft-einheit')).toHaveText('Sippen');
     await expectNoOverflow(page);
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
@@ -84,6 +86,7 @@ for (const width of [1440, 390]) {
     await expect(world).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#gemeinschaft')).toBeHidden();
     await expect(page.locator('#karte')).toBeVisible();
+    await expect(page.locator('[data-plan-home]')).toHaveCount(1);
     await expectNoOverflow(page);
     expect(await draft(page)).toEqual(before);
     expect(errors).toEqual([]);
@@ -144,8 +147,9 @@ for (const width of [1440, 390]) {
   });
 }
 
-test('season preview changes only the scene and can return to the campaign season', async ({ page }) => {
-  await open(page);
+test('explicit debug season preview changes only the scene and can return to the campaign season', async ({ page }) => {
+  await open(page, 'nomads', true, true);
+  await expect(page.locator('#gemeinschaft-saison')).toBeVisible();
   const before = await draft(page);
   const time = await page.locator('#zeit').textContent();
   const current = await page.locator('#gemeinschaft').getAttribute('data-season');
@@ -173,7 +177,8 @@ for (const id of ['nomads', 'settled']) {
       const board = window.spielbrett;
       return board.game.view.map.settlements.find((place) => place.id === board.model.home.id);
     });
-    await page.getByRole('button', { name: 'Gemeinschaft verwalten', exact: true }).click();
+    await expect(spot(page, 'home')).toHaveAccessibleName(new RegExp(home.kind === 'lager' ? 'Lager' : 'Dorf'));
+    await spot(page, 'home').click();
     await expect(page.locator('#kontext-titel')).toHaveText(home.name);
     await expect(page.locator('#kontext-titel')).toBeFocused();
     await expect(page.locator('[data-arbeit="research"]')).toBeVisible();
