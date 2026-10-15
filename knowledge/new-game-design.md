@@ -45,13 +45,15 @@ The source is the owner conversation of October 15, 2026. Quotations below are s
 
 ## Conversation method to test
 
-Ask one question, wait for an answer and choose the follow-up from that answer. The first question concerns an activity or influence the player wants. An answer may be a fragment, a rejection or uncertainty. Examples can be offered when they help, with their origin as assistant suggestions made explicit.
+Ask one question, wait for an answer and choose the follow-up from that answer. Offer concrete alternatives that the player can combine, replace or leave open. On October 15 the owner rejected the bare question about desired activity because it offered too little to react to, and requested choices concerning the character of the world, colours, gods, belief and social concepts. This observation revises the earlier open-question proposal. The next simulation begins with examples of the desired atmosphere. Its effectiveness remains to be tested.
 
-A candidate sequence begins with desired activity, then locates it in a concrete situation. From there it can explore an unusual capability, its prerequisites, limits, failure modes and observable consequences. Relationships, everyday life and competing interests help develop a community. Role, stakes, presentation and a playable opening follow where the answers support them. The sequence is provisional and may change with the player's starting idea.
+A candidate sequence begins with the desired atmosphere, then explores a concrete place or situation and the activity the player wants. From there it can explore an unusual capability, its prerequisites, limits, failure modes and observable consequences. Relationships, everyday life and competing interests help develop a community. Role, stakes, presentation and a playable opening follow where the answers support them. The sequence is provisional and may change with the player's starting idea.
 
 Philosophical questions guide the facilitator's follow-ups. They concern what exists, how knowledge is established, who can act, who controls access and what obligations arise. Their player-facing wording should use situations that the player can imagine. A philosophical checklist has not been tested as an enjoyable onboarding experience.
 
 The facilitator proposes consequences explicitly. A proposed consequence becomes part of the world when the player adopts it. An unanswered proposal remains open. At draft review, the player can revise earlier choices and inspect unresolved points. Any mechanical capability must be checked against implemented support before a browser campaign is promised.
+
+The owner requests coverage of moral character, seriousness, colour, gods, belief and social organization, and permits images when they help communicate feeling and appearance. These are authoring dimensions. No particular religion, social order or visual treatment follows from listing them. A compassionate world may also be serious, so these dimensions should remain separately editable.
 
 ## Observation and curation
 
@@ -64,7 +66,7 @@ Keep the following evidence distinctions throughout the simulation.
 
 After a substantive exchange, note which question was asked, what it elicited, what remains unclear and whether the next question follows from the answer. Ask for clarification where the interpretation would materially shape the draft. Process notes should be brief enough to preserve the flow of play.
 
-The earlier exchange supports a specific observation. The assistant repeatedly supplied extensive explanations and finished world sketches before a short adaptive question sequence was completed. This suggests that answering one concrete question at a time may better fit the owner's request. Its effectiveness remains untested.
+The earlier exchange supports a specific observation. The assistant repeatedly supplied extensive explanations and finished world sketches before a short adaptive question sequence was completed. This suggests that shorter exchanges may better fit the owner's request. The first bare activity question was subsequently rejected for offering too little. Short exchanges therefore need substantive examples or alternatives. Their effectiveness remains untested.
 
 The assistant's critique of its sketches supplies provisional review criteria. A people needs social practices beyond an invented name and profession. Extraordinary effects need intelligible causal limits. Generated dilemmas need relationships and context. Test these criteria against later drafts and the owner's responses before treating them as accepted design principles.
 

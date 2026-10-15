@@ -94,3 +94,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner conversation requesting free world creation, editable drafts, campaign-dependent presentation and an observed chat initialization.
 - Target. [new-game-design.md](new-game-design.md), [vision.md](vision.md) and [INDEX.md](INDEX.md).
 - Result. Separated owner requirements, exploratory preferences, assistant-created worlds and untested conversation hypotheses. The proposed short-question method remains a design experiment. Inspection of server/newgame.mjs confirms that browser creation still uses world templates. The new chat simulation begins with no selected world sketch or accepted visual style.
+
+### 2026-10-15 corrected the first initialization question after owner feedback
+
+- Source. The owner rejected the bare activity question and requested concrete worldbuilding choices, including atmosphere, colour, beliefs and social organization. Images are permitted where useful.
+- Target. [new-game-design.md](new-game-design.md).
+- Result. Revised the proposed conversation to offer combinable alternatives and begin with atmosphere. The next chat simulation will test this revised wording. No fictional world details were adopted through this correction.
