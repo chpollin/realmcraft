@@ -18,6 +18,7 @@ export class Minimap {
     const go = (e) => {
       const rect = canvas.getBoundingClientRect();
       const w = this.toWorld(e.clientX - rect.left, e.clientY - rect.top);
+      view.followFit = false;
       view.tween = null;
       view.cam.x = w.x;
       view.cam.y = w.y;

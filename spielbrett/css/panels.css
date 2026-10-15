@@ -25,7 +25,7 @@
     align-items: center;
     padding: var(--space-5) 3rem var(--space-3) var(--space-5);
   }
-  .panel-kopf h2 { font-family: var(--font-world); font-size: 1.3rem; font-weight: 600; line-height: 1.2; text-wrap: pretty; }
+  .panel-kopf h2 { min-inline-size: 0; overflow-wrap: anywhere; font-family: var(--font-world); font-size: 1.3rem; font-weight: 600; line-height: 1.2; text-wrap: pretty; }
   .panel-kopf .unter { grid-column: 2; color: var(--ink-dim); font-size: var(--step--1); }
   .panel-kopf .icon-btn { position: absolute; inset-block-start: var(--space-3); inset-inline-end: var(--space-2); }
   .panel-siegel {
@@ -190,6 +190,6 @@
     animation-name: sheet-in;
   }
   @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
-  .panel-kopf { padding: var(--space-3) var(--space-2) var(--space-2) var(--space-4); }
+  .panel-kopf { padding: var(--space-3) 3rem var(--space-2) var(--space-4); }
   .panel-body { padding: 0 var(--space-4) var(--space-4); gap: var(--space-4); }
 }

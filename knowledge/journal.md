@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [decisions, playtests, handoff, plan-m1]
@@ -82,3 +82,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Decided. Core and content resolved the unwired label-key option in opposite directions. The merge keeps the refusal at `validate`, `new` and `repin` and takes the keys from `kernelLabelKeys()` in `engine/content/validate.js` (probe bands, loyalty bands, order types), since the view keys left with the view descriptors and stay covered by the Hochland content test. Server and tests lanes both built the shared server starter, the server lane's `tests/lib/server.mjs` stays and refuses a pinned owner port.
 - Verified. Check, unit, acceptance and the board end-to-end specs green on the merged `main`. The golden replays of every lane, run against the pre-merge `main` and the merged `main`, give identical hashes once the intended changes are normalised (no `rolls.json`, no `rolls` anchor in journal entries, no budget alias `N`, no null severity on finding rows, no `upkeepRisk`, harvest `clans`). The stored draft, the journal input and the round reports list the player's rolls in a different key order, with equal content. The live campaign `hochland-1` repinned without change, and its preview answers exit 3 for the unrolled event probe of the turn.
 - Open. The session ended in a controlled way during the UI phase, so UI optimisation, verification and close did not run. Their next step and the findings of the UI design audit wait in [handoff.md](handoff.md). `bestimmung.js` and `tools/sim/simulate.js` keep their own alive checks, the saved workflow still names `views.js` in its core lane description, the module spec keeps fixed waits until the board exposes a settled event queue, the swap button of an order option has no browser test, and some dead board CSS and labels outside the accepted candidates remain.
+
+### 2026-10-15 corrected board planning and map usability
+
+- Source. Owner request for a fresh optimized playtest and the UI audit of October 4 in [handoff.md](handoff.md).
+- Target. Board camera, planning controls and their browser regressions, [frontend.md](frontend.md) and [playtests.md](playtests.md).
+- Result. Known-world fit, readable province names, scoped shortcuts, a canonical research labour row, dismissible in-viewport blockers, retained control focus and explicit empty-turn/withdrawn-roll review. Existing campaign state and world rules remain compatible. Conceptual directions discussed in the chat remain proposals.

@@ -142,6 +142,8 @@ test('after sealing, the world events panel keeps the resolution phase in the ne
   await expect(page.locator('#dlg-probe .pe-urteil')).toBeVisible();
   const seal = page.waitForResponse((r) => r.url().endsWith('/api/seal'));
   await page.locator('#dlg-probe .probe-aktionen button:not([hidden])').click();
+  await expect(page.locator('#dlg-zug')).toBeVisible();
+  await page.locator('#zug-bestaetigen').click();
   expect((await (await seal).json()).ok).toBe(true);
   const phase = (labels) => labels['board.phase.resolving'].replace('{phase}', labels['phase.resolving']);
   await expect(page.locator('#weltgeschehen .phase')).toHaveText(phase(en));

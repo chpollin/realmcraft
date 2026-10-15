@@ -39,6 +39,7 @@ export class MapView {
     this.hooks = hooks;
     const c = hexToPixel(model.start.q, model.start.r, BASE);
     this.cam = { x: c.x, y: c.y, z: 1.45 };
+    this.followFit = true;
     this.tween = null;
     this.selectT0 = 0;
     this.running = false;
@@ -91,14 +92,30 @@ export class MapView {
     return { minX, minY, maxX, maxY };
   }
 
+  /** Fit known tiles into the map area left free by the board controls. */
+  fitKnown() {
+    const b = this.bounds();
+    if (!Number.isFinite(b.minX)) return;
+    const { left = 24, right = 24, top = 24, bottom = 24 } = this.hooks.insets?.() ?? {};
+    const width = Math.max(1, this.w - left - right);
+    const height = Math.max(1, this.h - top - bottom);
+    const z = Math.min(ZOOM_MAX, width / (b.maxX - b.minX + BASE * 2.8), height / (b.maxY - b.minY + BASE * 2.8));
+    this.fitZoom = z;
+    this.followFit = true;
+    this.tween = null;
+    this.cam = { x: (b.minX + b.maxX) / 2 + (right - left) / (2 * z), y: (b.minY + b.maxY) / 2 + (bottom - top) / (2 * z), z };
+    this.changed();
+  }
+
   clamp() {
     const b = this.bounds();
-    this.cam.z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, this.cam.z));
+    this.cam.z = Math.min(ZOOM_MAX, Math.max(Math.min(ZOOM_MIN, this.fitZoom ?? ZOOM_MIN), this.cam.z));
     this.cam.x = Math.min(b.maxX, Math.max(b.minX, this.cam.x));
     this.cam.y = Math.min(b.maxY, Math.max(b.minY, this.cam.y));
   }
 
   panBy(dx, dy) {
+    this.followFit = false;
     this.tween = null;
     this.cam.x += dx / this.cam.z;
     this.cam.y += dy / this.cam.z;
@@ -107,9 +124,10 @@ export class MapView {
   }
 
   zoomAt(factor, sx = this.w / 2, sy = this.h / 2) {
+    this.followFit = false;
     this.tween = null;
     const before = this.screenToWorld(sx, sy);
-    this.cam.z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, this.cam.z * factor));
+    this.cam.z = Math.min(ZOOM_MAX, Math.max(Math.min(ZOOM_MIN, this.fitZoom ?? ZOOM_MIN), this.cam.z * factor));
     const after = this.screenToWorld(sx, sy);
     this.cam.x += before.x - after.x;
     this.cam.y += before.y - after.y;
@@ -118,10 +136,11 @@ export class MapView {
   }
 
   /** Glide to a hex. The selection panel covers the right side on wide screens, so callers may pass an offset. */
-  flyTo(q, r, { zoom, offsetX = 0 } = {}) {
+  flyTo(q, r, { zoom, offsetX = 0, offsetY = 0 } = {}) {
+    this.followFit = false;
     const p = hexToPixel(q, r, BASE);
     const z = zoom ?? this.cam.z;
-    const target = { x: p.x + offsetX / z, y: p.y, z };
+    const target = { x: p.x + offsetX / z, y: p.y + offsetY / z, z };
     if (prefersReducedMotion()) {
       Object.assign(this.cam, target);
       this.clamp();
@@ -144,6 +163,7 @@ export class MapView {
     this.terrainCanvas.height = this.canvas.height;
     this.fogCanvas.width = Math.ceil(this.w / 5);
     this.fogCanvas.height = Math.ceil(this.h / 5);
+    if (this.followFit) this.fitKnown();
     this.changed();
   }
 
@@ -550,21 +570,25 @@ export class MapView {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const px = Math.round(Math.min(26, Math.max(14, s * 0.55)));
-    ctx.font = `italic ${px}px ${this.fontWorld}`;
-    if ('letterSpacing' in ctx) ctx.letterSpacing = `${(px * 0.14).toFixed(1)}px`;
+    ctx.font = `500 ${px}px ${this.fontUi}`;
     const marks = [...model.units, ...model.places]
       .filter((o) => model.known[hexKey(o.q, o.r)])
       .map((o) => this.hexScreen(o.q, o.r));
     const w2 = (t) => ctx.measureText(t).width / 2 + s * 0.3;
+    const placed = [];
     for (const [id, a] of acc) {
       const name = regionName(model, id);
       if (!name) continue;
-      const x = a.x / a.n;
-      // Try the centroid, then rows above and below, so the name never sits on a symbol.
       const half = w2(name);
-      const clear = (y) => marks.every((m) => Math.abs(m.y - y) > s * 0.95 || Math.abs(m.x - x) > half);
+      if (half * 2 > this.w - 16) continue;
+      const x = Math.max(half + 8, Math.min(this.w - half - 8, a.x / a.n));
+      // Keep names clear of symbols, viewport edges and previously placed names.
+      const clear = (y) => y > px && y < this.h - px
+        && marks.every((m) => Math.abs(m.y - y) > s * 0.95 || Math.abs(m.x - x) > half)
+        && placed.every((p) => Math.abs(p.y - y) > px * 1.5 || Math.abs(p.x - x) > p.half + half);
       const y = [0.15, -1.35, 1.65, -2.85, 3.15].map((d) => a.y / a.n + s * d).find(clear);
       if (y === undefined) continue;
+      placed.push({ x, y, half });
       const lit = id === hovered;
       // A controlled province carries its owner's flag before the name.
       const owner = this.ownership().get(this.regions().get(id)?.anchor.k);

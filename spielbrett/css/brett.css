@@ -59,6 +59,7 @@
   }
   .res:hover { background: var(--hover-wash); }
   .res > .icon:first-child { color: var(--ink-dim); }
+  .res-name { display: none; font-size: var(--step--1); }
   .res-wert { font-weight: 600; font-variant-numeric: tabular-nums; min-inline-size: 1.4ch; text-align: end; }
   .trend { color: var(--ink-faint); }
   .trend.up { color: var(--up); }
@@ -132,7 +133,7 @@
   .brett { position: relative; overflow: hidden; min-block-size: 0; }
   #karte { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; cursor: grab; touch-action: none; }
   #karte.is-panning { cursor: grabbing; }
-  #karte:focus-visible { outline: none; }
+  #karte:focus-visible { outline: 2px solid var(--ember); outline-offset: -3px; }
   .vignette {
     position: absolute;
     inset: 0;
@@ -255,8 +256,10 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    block-size: 2.5rem;
-    padding-inline: var(--space-3) var(--space-1);
+    min-block-size: 2.75rem;
+    flex: none;
+    max-inline-size: min(26rem, 85vw);
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
     border-radius: var(--radius-s);
     background: var(--night-2);
     white-space: nowrap;
@@ -266,6 +269,7 @@
   .befehl-art { inline-size: 7px; block-size: 7px; rotate: 45deg; border-radius: 1px; background: var(--ember); }
   .befehl-art.neben { background: transparent; border: 1.5px solid var(--ember); }
   .befehl-art.frei { background: var(--ink-faint); }
+  .befehl-text { min-inline-size: 0; white-space: normal; overflow-wrap: anywhere; }
   .befehl-titel { font-weight: 600; }
   .befehl-ziel { color: var(--ink-subtle); font-size: var(--step--1); }
   .befehl-wurf { font-size: var(--step--1); font-weight: 600; }
@@ -310,6 +314,8 @@
     white-space: nowrap;
     transition: box-shadow var(--dur-2), transform var(--dur-1) var(--ease-out), background var(--dur-2);
   }
+  .zug-beenden.has-problems { background: var(--night-3); color: var(--ink); box-shadow: inset 0 0 0 1px var(--down); }
+  .zug-beenden.has-problems > .icon, .zug-beenden.has-problems .zb-sub { color: var(--down); }
   .zug-beenden:hover { box-shadow: 0 0 0 6px var(--ember-glow), 0 0 32px var(--ember-glow); }
   .zug-beenden:active { transform: scale(0.97); }
   .zb-titel { font-weight: 700; font-size: 1.0625rem; }
@@ -372,7 +378,6 @@
 }
 
 @media (max-width: 1800px) {
-  .befehl-ziel { display: none; }
   .meldung-titel { display: none; }
   .meldung { padding-inline: 0.7rem; }
 }
@@ -425,4 +430,35 @@
   .zug-beenden { order: 3; min-block-size: 2.75rem; padding-inline: var(--space-4) var(--space-3); }
   .chronikband { inline-size: calc(100% - 1rem); inset-block-end: var(--space-2); padding: var(--space-3) var(--space-4); }
   .brett.has-panel .chronikband { display: none; }
+}
+
+@layer components {
+  .befehle { min-inline-size: 0; flex: 1 1 auto; }
+  .blocker-knopf { min-block-size: 2rem; }
+  .blocker-liste { overscroll-behavior: contain; overflow-wrap: anywhere; }
+  .blocker-kopf { display: flex; justify-content: end; position: sticky; inset-block-start: calc(-1 * var(--space-3)); padding-block: var(--space-1); background: var(--night-2); }
+  .befehl-wurf.offen { min-inline-size: 2rem; min-block-size: 2rem; justify-content: center; }
+}
+
+@media (min-width: 1600px) {
+  .res { display: grid; grid-template-columns: auto auto auto; column-gap: 0.3rem; row-gap: 0; block-size: auto; }
+  .res-name { display: block; grid-column: 1 / -1; grid-row: 1; color: var(--ink-dim); text-align: center; }
+  .res > .icon:first-child { grid-column: 1; grid-row: 2; }
+  .res-wert { grid-column: 2; grid-row: 2; }
+  .res > .trend { grid-column: 3; grid-row: 2; }
+  .res > .delta { grid-column: 4; grid-row: 2; }
+}
+
+@media (max-width: 760px) {
+  .zugleiste .zug-bereich { flex-direction: column; align-items: stretch; gap: var(--space-1); }
+  .zugleiste .budget { flex-wrap: wrap; }
+  .zugleiste .befehle { inline-size: 100%; }
+  .zugleiste > .blocker { position: static; order: 2; flex: 1 1 auto; }
+  .zugleiste .blocker-liste { inset-inline: var(--space-2); inset-block-end: calc(100% + var(--space-2)); inline-size: auto; max-block-size: min(60vh, 28rem); }
+  .zugleiste .blocker-knoepfe { flex-direction: row; flex-wrap: wrap; }
+  .zug-beenden { max-inline-size: 100%; white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zug-beenden[aria-disabled="true"] .icon { animation: none; }
 }

@@ -9,6 +9,7 @@ import { currentResearch } from '../data/pfade.js';
 
 const TREND = { 1: ['trendAuf', 'up', 'rising'], 0: ['trendGleich', '', 'steady'], [-1]: ['trendAb', 'down', 'falling'] };
 const BUDGET = { haupt: 1, neben: 2 };
+const blockerStates = new WeakMap();
 
 export function renderTopbar(api) {
   const { model } = api;
@@ -51,6 +52,7 @@ export function renderResources(api, { bump = [] } = {}) {
         'aria-label': [`${r.name} ${free}`, reserved ? t.fmt('board.res.reserved', { n: reserved }) : null, tWord].filter(Boolean).join(', '),
       },
       icon(r.key, { size: 18 }),
+      el('span', { class: 'res-name', text: r.name }),
       el('span', { class: `res-wert${bump.includes(r.key) ? ' bump' : ''}`, text: String(free) }),
       icon(tIcon, { size: 14, cls: `trend ${tCls}` }),
       d ? el('span', { class: `delta ${d > 0 ? 'up' : 'down'}`, 'aria-label': t.fmt('board.res.preview', { delta: signed(d) }), text: signed(d) }) : null);
@@ -200,9 +202,21 @@ export function renderOrders(api, { freshId } = {}) {
   const { model } = api;
   renderBudget(api);
   const ol = document.getElementById('befehle');
+  const active = document.activeElement;
+  const focusedOrder = ol.contains(active) ? active.closest('[data-order-id]') : null;
+  const focusId = focusedOrder?.dataset.orderId;
+  const focusLabel = active?.getAttribute('aria-label');
+  const focusIndex = focusedOrder ? [...ol.children].indexOf(focusedOrder) : -1;
+  const restoreFocus = () => {
+    if (!focusedOrder) return;
+    const row = [...ol.children].find((x) => x.dataset.orderId === focusId) ?? ol.children[Math.min(focusIndex, ol.children.length - 1)];
+    const controls = [...(row?.querySelectorAll('button, [tabindex]') ?? [])];
+    (controls.find((x) => x.getAttribute('aria-label') === focusLabel) ?? controls[0] ?? document.getElementById('zug-beenden')).focus();
+  };
   const event = eventChip(api);
   if (!model.orders.length) {
     ol.replaceChildren(...[event, el('li', { class: 'befehle-leer', text: t(model.phase === 'A' ? 'board.orders.running' : 'board.orders.none') })].filter(Boolean));
+    restoreFocus();
     return;
   }
   const locked = model.phase === 'A';
@@ -210,7 +224,7 @@ export function renderOrders(api, { freshId } = {}) {
     ...(event ? [event] : []),
     ...model.orders.map((o) => el('li', { class: `befehl${o.id === freshId ? ' is-new' : ''}${o.issues?.length ? ' is-problem' : ''}`, 'data-order-id': o.id },
       icon(SLOT_ICON[slotOf(o)] ?? 'enthaltung', { size: 16, cls: `befehl-art ${o.art}`, label: slotName(slotOf(o)) }),
-      el('span', {},
+      el('span', { class: 'befehl-text' },
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',
         el('span', { class: 'befehl-ziel', text: o.ziel })),
       o.wurf ? withTip(el('span', { class: `befehl-wurf ${o.wurf.stale ? 'veraltet' : o.wurf.gut ? 'gut' : 'schlecht'}`, tabindex: '0', 'aria-label': o.wurf.kurz }, icon('wuerfel', { size: 14 }), icon(o.wurf.stale ? 'warnung' : o.wurf.gut ? 'ja' : 'nein', { size: 14 })), [el('span', { text: o.wurf.kurz })], null, { up: true }) : null,
@@ -222,6 +236,7 @@ export function renderOrders(api, { freshId } = {}) {
       locked ? null : el('button', { class: 'icon-btn', type: 'button', 'aria-label': t.fmt('board.orders.withdraw', { title: o.titel }), onclick: () => api.removeOrder(o.id) }, icon('schliessen', { size: 16 })),
     )),
   );
+  restoreFocus();
 }
 
 export function renderMessages(api, { freshId } = {}) {
@@ -252,17 +267,22 @@ export function renderEndTurn(api) {
   const next = model.naechsteZeit;
   // The agents' round keeps planning open but the turn closed until the kernel opens it.
   const waiting = !busy && model.kernPhase === 'agents';
-  const rolls = !busy && !waiting ? model.offeneWuerfe?.length ?? 0 : 0;
+  const blockers = !busy && !waiting ? api.game.blockers() : { probleme: [], wuerfe: [] };
+  const problems = blockers.probleme.length;
+  const rolls = blockers.wuerfe.length;
+  const pending = [problems ? t.plural('board.problems', problems) : null, rolls ? t.plural('board.rolls-open', rolls) : null].filter(Boolean).join(', ');
   const nextTime = t.fmt('board.time', { season: next.saison, year: next.jahr });
   const title = t(busy ? 'board.endturn.busy' : waiting ? 'board.endturn.waiting' : 'ui.zug-beenden');
-  const sub = busy ? t('board.endturn.locked') : waiting ? t('board.endturn.after-agents') : rolls ? t.plural('board.rolls-open', rolls) : nextTime;
+  const sub = busy ? t('board.endturn.locked') : waiting ? t('board.endturn.after-agents') : pending || nextTime;
   b.replaceChildren(
     el('span', { class: 'zb-titel', text: title }),
     el('span', { class: 'zb-sub', text: sub }),
-    icon(busy || waiting ? 'kern' : rolls ? 'wuerfel' : 'pfeil', { size: 22 }),
+    icon(busy || waiting ? 'kern' : problems ? 'warnung' : rolls ? 'wuerfel' : 'pfeil', { size: 22 }),
   );
+  b.classList.toggle('has-problems', problems > 0);
+  b.classList.toggle('has-rolls', rolls > 0);
   b.setAttribute('aria-disabled', busy || waiting ? 'true' : 'false');
-  b.setAttribute('aria-label', busy ? t('board.endturn.busy-label') : waiting ? t('board.endturn.waiting-label') : t.fmt(rolls ? 'board.endturn.rolls-label' : 'board.endturn.label', { rolls: sub, next: nextTime }));
+  b.setAttribute('aria-label', busy ? t('board.endturn.busy-label') : waiting ? t('board.endturn.waiting-label') : t.fmt(pending ? 'board.endturn.rolls-label' : 'board.endturn.label', { rolls: pending, next: nextTime }));
   document.getElementById('zugleiste').classList.toggle('is-locked', busy);
   renderBlocker(api);
 }
@@ -275,27 +295,67 @@ export function renderEndTurn(api) {
 export function renderBlocker(api, { open } = {}) {
   const box = document.getElementById('blocker');
   const { game, model } = api;
-  if (model.phase === 'A' || model.kernPhase === 'agents') {
-    box.replaceChildren();
-    return;
+  let state = blockerStates.get(box);
+  if (!state) {
+    state = { returnTo: '#zug-beenden' };
+    blockerStates.set(box, state);
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || document.querySelector('dialog[open]') || !box.querySelector('.blocker-liste:not([hidden])')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      closeBlocker(api, true);
+    }, true);
+    document.addEventListener('pointerdown', (e) => {
+      if (!box.contains(e.target) && e.target.closest('#zug-beenden') == null && box.querySelector('.blocker-liste:not([hidden])')) closeBlocker(api);
+    });
   }
-  const { probleme, wuerfe } = game.blockers();
-  const wasOpen = box.querySelector('.blocker-liste') && !box.querySelector('.blocker-liste').hidden;
+  const active = document.activeElement;
+  const focusedItem = box.contains(active) ? active.closest('.blocker-eintrag') : null;
+  const focusIndex = focusedItem ? [...box.querySelectorAll('.blocker-eintrag')].indexOf(focusedItem) : -1;
+  const actionIndex = focusedItem ? [...focusedItem.querySelectorAll('button')].indexOf(active) : -1;
+  const toggleFocus = box.contains(active) ? active.dataset.blocker : null;
+  const closeFocus = box.contains(active) && active.hasAttribute('data-blocker-close');
+  const wasOpen = Boolean(box.querySelector('.blocker-liste:not([hidden])'));
   const isOpen = open ?? wasOpen;
+  if (isOpen && !wasOpen) state.returnTo = active === document.getElementById('zug-beenden') ? '#zug-beenden' : '#blocker [data-blocker="probleme"]';
+  const { probleme, wuerfe } = model.phase === 'A' || model.kernPhase === 'agents' ? { probleme: [], wuerfe: [] } : game.blockers();
   if (!probleme.length && !wuerfe.length) {
+    const hadFocus = box.contains(active);
     box.replaceChildren();
+    if (hadFocus) document.getElementById('zug-beenden').focus();
     return;
   }
-  const list = el('ul', { class: 'blocker-liste plain', id: 'blocker-liste', hidden: !isOpen }, ...[...probleme, ...wuerfe].map((b) => blockerItem(api, b)));
+  const list = el('ul', { class: 'blocker-liste plain', id: 'blocker-liste', role: 'list', hidden: !isOpen },
+    el('li', { class: 'blocker-kopf', role: 'presentation' },
+      el('button', { class: 'btn btn-klein', type: 'button', 'data-blocker-close': '', onclick: () => closeBlocker(api, true) }, icon('schliessen', { size: 16 }), t('board.close'))),
+    ...[...probleme, ...wuerfe].map((b) => blockerItem(api, b)));
   const toggle = probleme.length ? el('button', {
     class: 'blocker-knopf problem', type: 'button', 'aria-expanded': String(isOpen), 'aria-controls': 'blocker-liste', 'data-blocker': 'probleme',
-    onclick: () => renderBlocker(api, { open: list.hidden }),
+    onclick: () => {
+      renderBlocker(api, { open: list.hidden });
+      document.querySelector('#blocker [data-blocker="probleme"]')?.focus();
+    },
   }, icon('warnung', { size: 16 }), t.plural('board.problems', probleme.length)) : null;
   const rolls = wuerfe.length ? el('button', {
     class: 'blocker-knopf wurf', type: 'button', 'data-blocker': 'wuerfe',
     onclick: () => api.rollOwed(),
   }, icon('wuerfel', { size: 16 }), t.plural('board.rolls-open', wuerfe.length)) : null;
   box.replaceChildren(el('div', { class: 'blocker-knoepfe' }, toggle ?? '', rolls ?? ''), list);
+  if (focusedItem && isOpen) {
+    const items = [...box.querySelectorAll('.blocker-eintrag')];
+    const row = items.find((x) => x.dataset.blockerId === focusedItem.dataset.blockerId) ?? items[Math.min(focusIndex, items.length - 1)];
+    const controls = [...(row?.querySelectorAll('button') ?? [])];
+    (controls[Math.min(actionIndex, controls.length - 1)] ?? box.querySelector('[data-blocker="probleme"], [data-blocker="wuerfe"]') ?? document.getElementById('zug-beenden')).focus();
+  } else if (toggleFocus) {
+    (box.querySelector('[data-blocker="' + toggleFocus + '"]') ?? box.querySelector('[data-blocker]') ?? document.getElementById('zug-beenden')).focus();
+  } else if (closeFocus && isOpen) box.querySelector('[data-blocker-close]').focus();
+}
+
+function closeBlocker(api, restoreFocus = false) {
+  const box = document.getElementById('blocker');
+  const returnTo = blockerStates.get(box)?.returnTo ?? '#zug-beenden';
+  renderBlocker(api, { open: false });
+  if (restoreFocus) (document.querySelector(returnTo) ?? document.getElementById('zug-beenden')).focus();
 }
 
 function blockerItem(api, b) {
@@ -303,20 +363,24 @@ function blockerItem(api, b) {
   const actions = [];
   const btn = (label, iconName, onclick, data) => el('button', { class: 'btn btn-klein', type: 'button', onclick, ...(data ? { [`data-${data}`]: '' } : {}) }, icon(iconName, { size: 15 }), label);
   if (b.kind === 'befehl') {
-    if (b.tile) actions.push(btn(t('board.blocker.show'), 'ziel', () => api.jumpToTile(b.tile)));
+    if (b.tile) actions.push(btn(t('board.blocker.show'), 'ziel', () => { closeBlocker(api); api.jumpToTile(b.tile); }));
     actions.push(btn(t('board.blocker.withdraw'), 'schliessen', () => api.removeOrder(b.orderId), 'zuruecknehmen'));
   } else if (b.kind === 'slots') {
-    actions.push(btn(t('board.blocker.show'), 'ziel', () => { const o = api.model.orders.find((x) => x.art === b.slot); if (o) focusOrder(o.id); }));
+    actions.push(btn(t('board.blocker.show'), 'ziel', () => { closeBlocker(api); const o = api.model.orders.find((x) => x.art === b.slot); if (o) focusOrder(o.id); }));
   } else if (b.kind === 'arbeit') {
-    actions.push(btn(t('board.blocker.show'), 'ziel', () => api.meldungAktion({ id: 'arbeit' })));
+    actions.push(btn(t('board.blocker.show'), 'ziel', () => { closeBlocker(api); api.meldungAktion({ id: 'arbeit' }); document.getElementById('kontext-titel')?.focus(); }));
   } else if (b.kind === 'wurf-verwaist') {
     actions.push(btn(t('board.blocker.discard'), 'schliessen', () => game.dropRoll(b.probeId), 'verwerfen'));
   } else if (b.kind === 'wurf') {
     actions.push(btn(t(b.veraltet ? 'board.blocker.reroll' : 'ui.wuerfeln'), 'wuerfel', () => api.openDialog('probe', { probeId: b.probeId }), 'wuerfeln'));
   }
-  const why = b.kind === 'wurf' ? t(b.veraltet ? 'issue.roll-stale' : 'issue.roll-missing') : b.texte.join(', ');
+  const orphan = b.kind === 'wurf-verwaist';
+  const roll = orphan ? game.draft.rolls?.[b.probeId] : null;
+  const title = orphan ? t('issue.roll-orphan') : b.titel;
+  const target = orphan ? roll ? `${t('board.probe.roll')} ${roll.value}` : '' : b.ziel;
+  const why = orphan ? '' : b.kind === 'wurf' ? t(b.veraltet ? 'issue.roll-stale' : 'issue.roll-missing') : b.texte.join(', ');
   return el('li', { class: `blocker-eintrag be-${b.kind}`, 'data-blocker-id': b.id },
-    el('span', { class: 'be-titel' }, el('strong', { text: b.titel }), b.ziel ? ` ${b.ziel}` : ''),
+    el('span', { class: 'be-titel' }, el('strong', { text: title }), target ? ` ${target}` : ''),
     why ? el('span', { class: 'be-grund', text: why }) : null,
     el('span', { class: 'be-aktionen' }, ...actions));
 }

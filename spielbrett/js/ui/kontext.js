@@ -12,6 +12,7 @@ import { withTip } from './tip.js';
 import { portrait } from './portrait.js';
 import { unitReach } from '../data/options.js';
 import { t } from '../i18n/index.js';
+import { RULES } from '../../../engine/core/rules.js';
 import { province } from './provinz.js';
 import { tradeSection, renderHandel } from './handel.js';
 import { renderMilitaer, unitFacts, attackForecastFacts, threatsNear } from './militaer.js';
@@ -238,7 +239,8 @@ function labour(api) {
   const { model, game } = api;
   const people = game.view.peoples[game.pid];
   const assign = { ...(game.draft.assign ?? people.population.assigned ?? {}) };
-  const keys = [...new Set([...game.env.regeln.resources.slice(0, 3).map((r) => r.id), ...Object.keys(assign)])];
+  const resources = [RULES.food, RULES.material].filter((k) => game.env.resourceIds.includes(k));
+  const keys = [...new Set([...resources, 'research', ...Object.keys(assign)])];
   const total = Object.values(assign).reduce((a, n) => a + n, 0);
   const core = people.population.core;
   const locked = model.phase === 'A';
@@ -249,7 +251,7 @@ function labour(api) {
     api.setPreview({ deltas: game.deltasWith((dr) => ({ ...dr, assign: next })), tiles: [] });
   };
   const btn = (k, d, disabled, name) => el('button', {
-    class: 'icon-btn', type: 'button', 'aria-label': t.fmt(d > 0 ? 'board.labour.more' : 'board.labour.less', { name }), 'aria-disabled': disabled ? 'true' : 'false',
+    class: 'icon-btn', type: 'button', 'data-fk': 'labour:' + k + ':' + d, 'aria-label': t.fmt(d > 0 ? 'board.labour.more' : 'board.labour.less', { name }), 'aria-disabled': disabled ? 'true' : 'false',
     onclick: () => { if (!disabled) { api.setPreview(null); game.setAssign(step(k, d)); } },
     onpointerenter: () => { if (!disabled) hover(k, d); },
     onpointerleave: () => api.setPreview(null),

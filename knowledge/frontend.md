@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, architecture, data-contracts, playtests, testing, plan-m1]
@@ -45,11 +45,11 @@ The server releases only fog-safe campaign files ([architecture.md](architecture
 The map is the main surface. Everything else is a panel or overlay over it.
 
 - Top bar (`ui/leiste.js`). People, season, stores with changes from the preview, destiny summary and overlay shortcuts.
-- Map (`map/renderer.js`, `map/terrain.js`, `map/minimap.js`). Canvas 2D with the layers Gelände, Besitz, Bedrohung and Handel (terrain, ownership, threat, trade, with control, threat, roads and trade routes from the kernel's `mapLayers`), painted terrain marks, region borders and names at the region centre, hover and a minimap. It draws on demand and runs a frame loop only while something moves.
+- Map (`map/renderer.js`, `map/terrain.js`, `map/minimap.js`). Canvas 2D with the layers Gelände, Besitz, Bedrohung and Handel (terrain, ownership, threat, trade, with control, threat, roads and trade routes from the kernel's `mapLayers`), painted terrain marks, region borders and names at the region centre, hover and a minimap. It initially fits the known tiles into the area left free by the council and open panels. A map control restores that fit, resizing retains it until the player moves the camera, and a selected object is centred above the narrow-screen sheet. Province names use the UI face with viewport and label collision checks. It draws on demand and runs a frame loop only while something moves.
 - Council strip (`ui/ratsleiste.js`). Every member with portrait or initials, role symbol, current activity, lead effect on probes and loyalty, always visible.
 - Context panel (`ui/kontext.js`). What the selected tile, unit, place, region or people is and which orders it allows, each previewed on hover.
 - Place list (`ui/ortsliste.js`). Keyboard and screen-reader equivalent of the canvas.
-- Turn bar. Orders of the turn with slot indicator and slot icon per order, messages, the blocker summary next to "Zug beenden" with fixes in place, and the button itself.
+- Turn bar. Orders of the turn with slot indicator and slot icon per order, messages, the blocker summary next to "Zug beenden" with fixes in place, and the button itself. Problems can be dismissed by Escape, close or outside click, and repair navigation closes the list. Focus survives draft refreshes. The end-turn control lists both problems and outstanding rolls.
 - Overlays as native `<dialog>` (`ui/dialoge.js`). Developments as the paths wheel with one spoke per research path and one ring per tier (`ui/pfade.js` on `data/pfade.js`), council with vote meter, cards and decree or Machtprobe (`ui/rat.js`), chronicle (`ui/chronik.js`), destinies with milestones as symbol and progress (`ui/bestimmung.js`), probe dialog with target, every modifier, the chance per leading member and the roll (`ui/probe.js`), and event cards (`ui/ereignisse.js`).
 - Weltgeschehen (`ui/weltgeschehen.js`). Kernel results and agent steps grouped, with waiting, running, done and failed states and the judges at the end. A judge's findings show the severity that `status.json` records under its step.
 
@@ -62,9 +62,15 @@ The playtest of 3 October 2026 shaped this surface ([playtests.md](playtests.md)
 - Icons and two-stage tooltips over text (`ui/tip.js`). Hover or focus shows name and value, a click, Enter or Space pins the detail with calculation and origin, Escape closes it.
 - No standing explanatory prose, no eyebrow labels above headings and no decorative counters.
 - Text always goes through `textContent` (`js/dom.js`), so agent strings can never inject markup.
-- Accessibility. Native dialogs with focus trapping and focus return, keyboard panning of the map, the place list as alternative to the canvas, and visible focus.
+- Accessibility. Native dialogs with focus trapping and focus return, keyboard panning of the map, the place list as alternative to the canvas, and visible focus. Single-key overview shortcuts work from the map or page background and leave dialogs and focused controls intact.
 - Labels come from the board's label files and the world's label files. Kernel issues are shown through the label `issue.<code>`, with a generic fallback.
 - Acknowledged event cards are remembered per campaign and turn in `localStorage`, a convenience the board works without.
+
+## Planning safeguards
+
+The labour picker offers the canonical food and material resources and research. Existing assignment keys remain visible so an older allocation can be corrected. A research assignment uses the kernel key `research`; `wissen` remains a stock resource. Labour step controls retain keyboard focus after preview and save refreshes.
+
+A turn with no orders or with withdrawn rolls opens a review before sealing. The review names the withdrawn rolls, offers a return to planning and requires a separate confirmation. Confirmation is bound to the reviewed draft, so a changed draft is checked again. All campaign writes still pass through the server and kernel.
 
 ## Open data gap
 

@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [frontend, game-design, decisions, plan-m1, journal]
@@ -59,20 +59,20 @@ The first entries concern the UI prototype under `spielbrett/` with prepared gam
 
 | No | Category | Place | Request | State |
 |---|---|---|---|---|
-| 23 | Design | map | the map fills a small part of the screen, most of it is empty | open, UI round. Default view fits the known world to the viewport |
-| 24 | Design | map | region names collide and the letter-spaced italic face is hard to read | open, UI round. Centroid placement with collision avoidance, readable face, halo |
-| 25 | Design | top bar | the game title is clipped at the top edge, resources show icon and number only, milestones appear as unexplained diamonds | open, UI round |
-| 26 | Operation | turn panel | the bottom bar is overloaded, order and blocker chips are truncated, a scrollbar appears, overflowing main orders look like extra slots | open, UI round. A turn panel with order cards, one expandable blocker list with in-place fixes, overflow read as swap |
+| 23 | Design | map | the map fills a small part of the screen, most of it is empty | done in the October 15 usability pass. Known tiles fit between board controls; a fit control restores the view |
+| 24 | Design | map | region names collide and the letter-spaced italic face is hard to read | done in the October 15 usability pass. Upright UI face, viewport checks and label collision avoidance |
+| 25 | Design | top bar | the game title is clipped at the top edge, resources show icon and number only, milestones appear as unexplained diamonds | partly done. Resource names appear on wide screens; compact and milestone explanations remain open |
+| 26 | Operation | turn panel | the bottom bar is overloaded, order and blocker chips are truncated, a scrollbar appears, overflowing main orders look like extra slots | partly done. Order names and targets wrap, mobile order reel uses the full width, problem list stays in the viewport and retains focus. Slot-overflow presentation remains open |
 | 27 | Design | council | chips do not say whether they are strengths, tasks or places, loyalty has no symbol, the header is an unlabeled icon | open, UI round |
 | 28 | Design | map | border colours, the dots under the settlement and the river course carry no visible meaning | open, UI round. Legend or tooltip for every map mark |
 | 29 | Operation | options | the language switch belongs in an options menu with language, audio and reduced motion | partly done by the shell lane, open in the UI round |
 | 30 | Operation | main menu | a main menu at game start with Continue, New game, Load, Options and Quit | partly done by the shell lane (start screen, Escape menu), Load and Quit open in the UI round |
 | 31 | Operation | saving | the player must be able to save a game under a name and load it later, from the main menu and the in-game menu | kernel, CLI and server done (named saves, crash-safe load with automatic save first). Menu entries open in the UI round |
-| 32 | Operation | overlays | the owner could not leave the developments overlay | not reproducible in a fresh browser; likely a tab loaded before a server restart. Open in the UI round: every overlay closable under all conditions, the board offers a reload when its modules changed |
+| 32 | Operation | overlays | the owner could not leave the developments overlay | partly done. Overview shortcuts leave open dialogs and focused controls intact; stale-module reload remains open |
 | 33 | Content | paths view | tag names of the own-direction panel appear in English while the world is German; nodes and labels overlap; the tree fills a third of the view | open, UI round (paths wheel of the frontend lane replaces the old tree) |
 | 34 | Mechanics | paths | owner confirmation: predefined paths plus an own branch described in a prompt is right | confirmed (D16). Owner idea as decision candidate: configure the set of paths anew for every game at game creation, kept fair by the budget |
-| 35 | Operation | sealing | turn 1 was sealed with no orders after the two rolled orders had been withdrawn, the board did not say so | open, UI round. Warn before sealing an empty turn and name withdrawn rolls |
-| 36 | Mechanics | labour | a clan assigned to Wissen worked for nothing: the board writes the labour key wissen, research counts only research, the kernel accepted the unknown key | in work by the kernel-fix lane: valid labour keys in one place, unknown keys refused, migration |
+| 35 | Operation | sealing | turn 1 was sealed with no orders after the two rolled orders had been withdrawn, the board did not say so | done in the October 15 usability pass. Empty turns and withdrawn rolls require an explicit review before sealing |
+| 36 | Mechanics | labour | a clan assigned to Wissen worked for nothing: the board writes the labour key wissen, research counts only research, the kernel accepted the unknown key | done for the picker. It offers canonical food/material and research, preserves older assignment rows for correction and previews the actual research gain |
 
 ## Findings of the live judges
 

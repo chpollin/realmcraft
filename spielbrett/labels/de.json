@@ -663,6 +663,13 @@
     "shell.start.settings": "Einstellungen",
     "ui.ertrag": "Ertrag",
     "ui.unterhalt": "Unterhalt",
-    "ui.verbrauch": "Verbrauch"
+    "ui.verbrauch": "Verbrauch",
+    "board.zoom.fit": "Bekannte Welt einpassen",
+    "board.seal.review": "Zug prüfen",
+    "board.seal.empty": "Für diesen Zug sind keine Befehle vorgemerkt. Versorgung und Jahreszeit werden trotzdem berechnet.",
+    "board.seal.withdrawn": "Diese zurückgenommenen Würfe wirken nicht mehr auf den Zug.",
+    "board.seal.roll": "{probe}: Wurf {value}",
+    "board.seal.back": "Weiter planen",
+    "board.seal.confirm": "Zug jetzt beenden"
   }
 }

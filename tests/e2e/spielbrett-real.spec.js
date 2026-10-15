@@ -61,7 +61,8 @@ async function openBoard(page) {
 /** The camp sits under the canvas centre at start: the camera opens on the home settlement. */
 async function clickCamp(page) {
   const box = await page.locator('#karte').boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  const home = await page.evaluate(() => { const a = window.spielbrett; return a.view.hexScreen(a.model.home.q, a.model.home.r); });
+  await page.mouse.click(box.x + home.x, box.y + home.y);
   await expect(page.locator('#kontext')).toBeVisible();
 }
 

@@ -663,6 +663,13 @@
     "shell.start.settings": "Settings",
     "ui.ertrag": "Yield",
     "ui.unterhalt": "Upkeep",
-    "ui.verbrauch": "Consumption"
+    "ui.verbrauch": "Consumption",
+    "board.zoom.fit": "Fit known world",
+    "board.seal.review": "Review turn",
+    "board.seal.empty": "No orders are planned for this turn. Upkeep and the season will still be resolved.",
+    "board.seal.withdrawn": "These withdrawn rolls no longer affect the turn.",
+    "board.seal.roll": "{probe}: roll {value}",
+    "board.seal.back": "Keep planning",
+    "board.seal.confirm": "End turn now"
   }
 }

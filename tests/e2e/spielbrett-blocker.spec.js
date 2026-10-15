@@ -172,6 +172,8 @@ test('a broken stored draft names its blockers, they are fixed in place and the 
   // Now the turn ends.
   const seal = page.waitForResponse((r) => r.url().endsWith('/api/seal'));
   await page.locator('#zug-beenden').click();
+  await expect(page.locator('#dlg-zug')).toBeVisible();
+  await page.locator('#zug-bestaetigen').click();
   expect((await (await seal).json()).ok).toBe(true);
   await expect(page.locator('#zugleiste')).toHaveClass(/is-locked/);
   expect(errors).toEqual([]);

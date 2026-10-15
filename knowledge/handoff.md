@@ -8,7 +8,7 @@ method:
   url: https://lisa.gerda-henkel-stiftung.de/digitale_geschichte_pollin
 status: active
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 ---
 
 # Handoff
@@ -47,28 +47,20 @@ This process inbox holds only open hand-over points. Before using a point, check
 - Source. UI audit agent of `realmcraft-refactor-verify`, read-only on `main` at `61c4948` (before the refactor wave), fixture campaigns in a temp root, screenshots at 390, 1280, 1920 and 2560 px in English and German, contrast and Tab order measured by script.
 - Target. The UI optimisation lane, [frontend.md](frontend.md), [playtests.md](playtests.md).
 - Context. Wave 2 resolved the refused-order reason, research in progress in paths view and turn bar, German tag names in the German paths view and the map strip at phone width. The rest of the turn-1 audit above and of playtest entries 23 to 36 is still present. The refactor wave removed the `?demo` mode, so recheck each item on the current `main`. The items below stand in order of impact on play.
-- Next action. Resolve every item in the UI lane, move the result into the playtest table, then remove this point and the turn-1 audit point.
+- Next action. Resolve the remaining items below, move results into the playtest table, then remove this point and the turn-1 audit point. The October 15 usability pass integrated the camera fit, labour picker, empty-turn review, blocker dismissal, narrow-screen selection, province labels and scoped shortcuts ([frontend.md](frontend.md), [playtests.md](playtests.md)).
 
-1. Problem list at 390 px opens off-screen, Escape opens the game menu instead of closing it. Needs a bottom sheet in the viewport, Escape and a close button, focus back to End turn.
-2. Labour rows in `labour()` (`spielbrett/js/ui/kontext.js`) are built from the first three resources, so they offer Knowledge (`wissen`, which yields nothing) and never Research. Fix together with kernel defect 1 below.
-3. Sealing a turn with no orders or after withdrawn rolls gives no warning, `draft.withdrawn` is never shown (entry 35).
-4. Turn bar truncates order chips at every width, shows no order chips at 390 px, counts problems three times and shows overflow as an extra red slot instead of a swap (entry 26).
-5. End turn looks ready while problems block it and its label counts only rolls.
-6. The camera centres on the camp at fixed zoom instead of fitting the known tiles between the panels (entry 23).
+4. The turn bar still repeats the problem count and shows slot overflow as an extra red slot instead of a swap (entry 26).
 7. Type and controls keep their 1280 px sizes at 2560 px, dialogs stay small.
 8. Agents' round shows two contradictory states, judge findings with severity reach the player view, durations read 0 s.
 9. Tooltips stack, open on dialog focus and cover controls, and are clipped at 390 px.
-10. At 390 px the selected camp sits under the bottom sheet and the panel title runs under the close button.
 11. Paths wheel labels overlap at 1280 and 1920 px and shrink to about 7 px at 390 px. Needs collision-free labels and a list below about 600 px (entry 33).
 12. Effect chips in council questions are empty arrows with the raw key `flag.set` as accessible name, event effects are icons only, which breaks D15.
 13. German world content in the English UI carries `lang="en"`. Content language policy still open.
 14. Top bar hides the people name and path, council and chronicle labels below 1920 px, milestone diamonds lack a reading, resources overflow at 390 px without a cue (entry 25).
 15. Council strip chips mix lead modifier, favoured and opposed topics by small glyphs, loyalty has no symbol, the header toggle has no tooltip (entry 27).
 16. Camp dots, region flags, border lines and the ownership colour have no tooltip or legend (entry 28).
-17. Region names are letter-spaced italic and run off the edge at 390 px (entry 24).
-18. Shortcuts E, R, C, B fire inside open dialogs and from focused buttons, because the handler in `board.js` checks shortcuts before open dialogs.
 19. Save and Load are missing from start screen and game menu although kernel and server support named saves (entries 30, 31).
-20. Tab order jumps across regions and reaches the hidden place-list button, the canvas has no visible focus ring.
+20. Tab order jumps across regions and reaches the hidden place-list button.
 21. Proposals messages use the trade glyph and show only an icon.
 22. Place list opens far from its trigger over the council strip, with an empty Places heading and the camp listed as a unit.
 23. Threat and Trade layers have no empty-state cue.

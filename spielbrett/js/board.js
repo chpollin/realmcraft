@@ -21,6 +21,7 @@ import { closePinnedTip } from './ui/tip.js';
 import { issueText, objectsAt, resourceByKey } from './data/adapter.js';
 import { t, onLanguage, applyStatic } from './i18n/index.js';
 import { getAudio } from './audio/index.js';
+import { dialogHead } from './ui/dialoge.js';
 
 const DIALOGS = {
   entwicklungen: renderPfade,
@@ -37,6 +38,25 @@ export function startBoard(model, game) {
   const isNarrow = () => window.matchMedia('(max-width: 760px)').matches;
   const home = () => model.home ?? model.units.find((u) => u.art === 'lager' && u.volk === 'spieler');
   let minimap;
+
+  function mapInsets() {
+    const rect = canvas.getBoundingClientRect();
+    const insets = { left: 24, right: 56, top: 68, bottom: 24 };
+    const council = document.getElementById('ratsleiste');
+    if (!isNarrow() && council?.getClientRects().length) insets.left = Math.max(24, council.getBoundingClientRect().right - rect.left + 20);
+    const panel = document.querySelector('.seitenpanel:not([hidden])');
+    if (panel?.getClientRects().length) {
+      const box = panel.getBoundingClientRect();
+      if (isNarrow()) insets.bottom = Math.max(24, rect.bottom - box.top + 20);
+      else insets.right = Math.max(56, rect.right - box.left + 20);
+    }
+    return insets;
+  }
+
+  function centreSelection(sel) {
+    const i = mapInsets();
+    api.view.flyTo(sel.q, sel.r, { offsetX: (i.right - i.left) / 2, offsetY: (i.bottom - i.top) / 2 });
+  }
 
   const api = {
     model,
@@ -59,8 +79,8 @@ export function startBoard(model, game) {
       if (!sel && model.panel === 'kontext') model.panel = null;
       if (sel) {
         api.view.markSelected();
-        // On wide screens the panel covers the right edge; centre the target in the free part.
-        if (fly) api.view.flyTo(sel.q, sel.r, { offsetX: isNarrow() ? 0 : 180 });
+        // Render first so the actual panel size defines the free map area.
+        if (fly || isNarrow()) requestAnimationFrame(() => centreSelection(sel));
       } else {
         api.view.changed();
       }
@@ -100,7 +120,10 @@ export function startBoard(model, game) {
       const o = model.orders.find((x) => x.id === id);
       game.removeOrder(id);
       if (o) api.announce(t.fmt('board.announce.removed', { title: o.titel }));
-      document.getElementById('befehle').querySelector('button')?.focus() ?? document.getElementById('zug-beenden').focus();
+      if (document.activeElement === document.body) {
+        const next = document.getElementById('befehle').querySelector('button') ?? document.getElementById('zug-beenden');
+        next.focus();
+      }
     },
 
     /** Takes every owed roll in turn without ending the turn afterwards. */
@@ -135,6 +158,7 @@ export function startBoard(model, game) {
         dlg.close();
         return;
       }
+      closePinnedTip();
       DIALOGS[name](dlg, api, ctx);
       dlg.showModal();
       // Start on the title so the reader meets the content first, not the close button.
@@ -219,7 +243,7 @@ export function startBoard(model, game) {
      * "Zug beenden": owed rolls are taken one by one in the
      * probe dialog, then the draft is sealed through the server.
      */
-    async endTurn() {
+    async endTurn({ confirmedDraft } = {}) {
       // Problems first: rolling for a draft that cannot be sealed would only end in the same refusal.
       const { probleme } = game.blockers();
       if (probleme.length) {
@@ -238,6 +262,22 @@ export function startBoard(model, game) {
         getAudio()?.play('warning');
         api.announce(t.fmt('board.announce.cannot-end', { reason: can.reason }));
         document.getElementById('zug-beenden').dataset.grund = can.reason;
+        return;
+      }
+      const withdrawn = game.draft.withdrawn ?? [];
+      if ((!game.draft.orders.length || withdrawn.length) && confirmedDraft !== game.draft) {
+        const dlg = document.getElementById('dlg-zug');
+        const draft = game.draft;
+        dlg.replaceChildren(
+          dialogHead(dlg, t('board.seal.review'), 'warnung'),
+          el('div', { class: 'overlay-body' },
+            !draft.orders.length ? el('p', { text: t('board.seal.empty') }) : null,
+            withdrawn.length ? el('p', { text: t('board.seal.withdrawn') }) : null,
+            withdrawn.length ? el('ul', {}, ...withdrawn.map((r) => el('li', { text: t.fmt('board.seal.roll', { probe: r.probe, value: r.value }) }))) : null,
+            el('button', { class: 'btn', type: 'button', onclick: () => dlg.close(), text: t('board.seal.back') }),
+            el('button', { class: 'btn btn-primary', type: 'button', id: 'zug-bestaetigen', text: t('board.seal.confirm'), onclick: () => { dlg.close(); api.endTurn({ confirmedDraft: draft }); } })));
+        dlg.showModal();
+        dlg.querySelector('.overlay-body button').focus();
         return;
       }
       for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -275,6 +315,7 @@ export function startBoard(model, game) {
 
   api.view = new MapView(canvas, model, {
     onSelect: selectHex,
+    insets: mapInsets,
     onCamera: () => minimap?.draw(),
   });
   minimap = new Minimap(document.getElementById('minimap'), api.view, model);
@@ -313,6 +354,7 @@ export function startBoard(model, game) {
       class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.home',
       onclick: () => { const c = home(); if (c) api.view.flyTo(c.q, c.r, { zoom: 1.15 }); },
     }, icon('ziel', { size: 18 })),
+    el('button', { class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.fit', 'data-t-title': 'board.zoom.fit', onclick: () => api.view.fitKnown() }, icon('gelaende', { size: 18 })),
     el('button', {
       class: 'icon-btn', type: 'button', 'data-t-aria-label': 'board.zoom.list', 'aria-pressed': 'false', 'aria-controls': 'ortsliste',
       onclick: (e) => {
@@ -380,12 +422,13 @@ export function startBoard(model, game) {
 
   const PAN = 90;
   document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
     const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
     if (typing) return;
     const k = e.key.toLowerCase();
-    if (SHORTCUTS[k]) {
+    if (document.querySelector('dialog[open]')) return;
+    if (SHORTCUTS[k] && (t === document.body || t === canvas)) {
       e.preventDefault();
       api.openDialog(SHORTCUTS[k]);
       return;
@@ -434,6 +477,7 @@ export function startBoard(model, game) {
 
   for (const d of document.querySelectorAll('dialog')) {
     d.addEventListener('close', () => {
+      closePinnedTip();
       api.setPreview(null);
       for (const b of document.querySelectorAll('[data-dialog]')) b.setAttribute('aria-expanded', 'false');
     });
@@ -478,6 +522,7 @@ export function startBoard(model, game) {
   if (model.zz) model.panel = 'welt';
   refreshPanels();
   api.setPhase(model.phase);
+  api.view.fitKnown();
   minimap.draw();
   document.documentElement.dataset.ready = 'true';
   document.documentElement.dataset.campaign = game.cid;

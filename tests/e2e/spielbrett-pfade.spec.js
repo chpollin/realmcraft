@@ -180,6 +180,8 @@ test('research gathers its points across the season boundary the kernel resolves
   const research = view.peoples[PID].developments.research.find((r) => r.ref === chosen);
   expect(research.progress).toBeGreaterThan(0);
   await expect.poll(() => page.evaluate(() => window.spielbrett.game.view.turn), { timeout: 15_000 }).toBe(1);
+  await dismissEvents(page);
+  await page.locator('#karte').focus();
   await page.keyboard.press('e');
   const node = wheel(page).locator(`.pf-knoten[data-ref="${chosen}"]`);
   await expect(node).toHaveClass(/s-research/);
