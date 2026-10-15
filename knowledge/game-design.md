@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [vision, rules-kernel, decisions, playtests, plan-m1, world-packages]
@@ -17,7 +17,7 @@ related: [vision, rules-kernel, decisions, playtests, plan-m1, world-packages]
 
 # Game Design
 
-How a season of RealmCraft plays, what the player decides and why the mechanics look the way they do. The binding rules and formulas are in [rules-kernel.md](rules-kernel.md), the intentions in [vision.md](vision.md). Where M1 changes the design, the change is named and specified in [plan-m1.md](plan-m1.md).
+A season of RealmCraft combines clan assignment, orders, research and council decisions. The binding rules and formulas are in [rules-kernel.md](rules-kernel.md), the intentions in [vision.md](vision.md), the browser interaction in [frontend.md](frontend.md) and open development in [plan.md](plan.md). [plan-m1.md](plan-m1.md) preserves the M1 contracts.
 
 ## Consequences before the decision
 
@@ -28,14 +28,20 @@ Every decision shows its consequences where they act before it is fixed ([decisi
 A turn is one season and passes three phases.
 
 1. Planning. The player assigns clans to work, chooses one main action and the minor actions the slots allow, sets the research target and uses free actions such as talks or a first Machtprobe. For every probe the board shows target, every modifier with its source and the probability, then the player rolls 1d10 on the board. The player also rolls the world event of the own people, whose band is thereby fixed before resolution.
-2. Resolution. "End turn" seals the orders. The world agent writes an event card for each people's band, the validator checks it, and the kernel resolves the season in a fixed order ([rules-kernel.md](rules-kernel.md), section 4).
+2. Resolution. "End turn" seals the orders. The world agent writes an event card for each people's band, the validator checks it, and the kernel resolves the season in a fixed order ([rules-kernel.md](rules-kernel.md), section 14).
 3. Agents. Research, council, rivals and chronicler work in parallel while the player plans the next season. Their accepted proposals appear as new candidates, council voices, destiny offers and chronicle. The rival agents deliver the AI peoples' orders for the next season.
 
 Every change carries its origin (kernel, agent or player) with a reason. The board shows for every value where it comes from and lists the changes of the season.
 
 ## Game master, turn workers and judges
 
-The game master is the Claude Code main session ([decisions.md](decisions.md), D12 and D14). It starts the turn with `/zug`, dispatches the tasks in parallel, keeps the overall narrative, decides conflicts between proposals and releases the turn. The turn workers run on the faster model, the world agent as the only blocking step, council, rivals, research and chronicler in parallel afterwards. After the turn the judges run in the background on the stronger model. The coherence judge finds contradictions with chronicle, world and characters, the balance judge finds runaway peoples, dominant paths and extreme stocks, and the narrative judge checks arc, dropped threads and destinies every fourth turn or at a chapter change and condenses the campaign memory. Judges set no values. Light findings are meant to flow into the next tasks (not yet wired), severe findings (real rule contradictions) are put to the player before the next turn ([agents-harness.md](agents-harness.md)).
+The game master is the Claude Code main session ([decisions.md](decisions.md), D12 and D14). It starts the turn with `/zug`, dispatches the tasks in parallel, keeps the overall narrative, decides conflicts between proposals and releases the turn. The turn workers run on the faster model, the world agent as the only blocking step, council, rivals, research and chronicler in parallel afterwards. After the turn the judges run in the background on the stronger model. The coherence judge finds contradictions with chronicle, world and characters, the balance judge finds runaway peoples, dominant paths and extreme stocks, and the narrative judge checks arc, dropped threads and destinies every fourth turn or at a chapter change and condenses the campaign memory. Judges set no values. Accepted light findings flow into the next tasks of the roles they name for two turns. Severe findings (real rule contradictions) are put to the player before the next turn ([agents-harness.md](agents-harness.md)).
+
+## Planning surfaces
+
+The world map and the optional community surface operate on the same campaign draft. Empty main and minor action slots open choices of that kind with targets and the shared kernel preview. Occupied slots focus their queued order. Community hotspots lead to food, material or research clan assignment at the actual home. Their counts show assigned clans. Resource stocks remain in the top bar. The scene uses code-generated graphics and the campaign season. A separate season preview is available only with the debug query flag.
+
+Free intentions in prose, editable world creation and spoken narration remain the proposed extensions in [new-game-design.md](new-game-design.md). The current action picker selects implemented orders and targets.
 
 ## People and council
 
@@ -95,7 +101,7 @@ Every people has a destiny with three or four milestones ([decisions.md](decisio
 
 A people that changes its direction can adopt a new destiny once its practice has left the old one for four seasons. Research proposes destinies that fit the new practice, and without agents they come from the world package. Adoption costs standing and the loyalty of those attached to the old destiny. The destinies of rivals are hidden until revealed.
 
-A people collapses when it has no settlement left or too few clans. The game mode is competition. An open chronicle without victory may follow later. M1 adds victory and defeat screens with a campaign summary ([decisions.md](decisions.md), D21).
+A people collapses when it has no settlement left or too few clans. The game mode is competition. An open chronicle without victory may follow later. The board shows victory and defeat screens with a campaign summary ([decisions.md](decisions.md), D21).
 
 ## Fairness and protection against value drift
 

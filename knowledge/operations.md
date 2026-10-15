@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [agents-harness, architecture, world-packages, testing]
@@ -27,7 +27,7 @@ PORT=4200 node serve.mjs      # another port (Git Bash)
 $env:PORT=4200; node serve.mjs   # PowerShell
 ```
 
-The board is at `http://localhost:<port>/spielbrett/`, a specific campaign at `/spielbrett/?campaign=<cid>`. Fixture campaigns for looking at the board without a live game come from `node tests/fixtures/spielbrett/build-module.mjs --keep`, which prints the temporary root it wrote. `REALMCRAFT_ROOT=<root> PORT=<port> node serve.mjs` then serves them at `?campaign=module` and `?campaign=agenten` ([frontend.md](frontend.md)). The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It pushes campaign changes over server-sent events. Code changes reach an open page only after a reload in the browser.
+The start screen is at `http://localhost:<port>/spielbrett/`. It offers New game and the campaign list for continuing. A specific campaign opens at `/spielbrett/?campaign=<cid>`, with the optional code-drawn community surface at `&ansicht=gemeinschaft`. The World and Community controls switch surfaces without creating or advancing a campaign. The season preview requires `&debug=1` and changes the illustration only. Fixture campaigns for looking at the board without a live game come from `node tests/fixtures/spielbrett/build-module.mjs --keep`, which prints the temporary root it wrote. `REALMCRAFT_ROOT=<root> PORT=<port> node serve.mjs` then serves them at `?campaign=module` and `?campaign=agenten` ([frontend.md](frontend.md)). The server binds to 127.0.0.1 unless `HOST` says otherwise and serves campaigns from `<REALMCRAFT_ROOT or repository>/campaigns/`. It pushes campaign changes over server-sent events. Code changes reach an open page only after a reload in the browser.
 
 ## Start a game master session
 
@@ -45,11 +45,11 @@ From the terminal the CLI creates a campaign directly.
 node engine/cli.mjs new hochland --seed 48213 --as bergnomaden --id hochland-2 --json
 ```
 
-`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. From M1 the start screen of the board creates a game through the server ([decisions.md](decisions.md), D18).
+`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. The start screen also creates a game through the server ([decisions.md](decisions.md), D18). It selects existing package templates, rivals, difficulty, narrative language and seed. Free world and people descriptions with an editable generated draft remain the design requirement in [new-game-design.md](new-game-design.md).
 
 ## Play a turn
 
-1. Plan in the board. Assign clans, choose orders and research, talk to the council, roll the probes of the own people and the world event roll. The blocker summary next to "Zug beenden" names everything that still prevents sealing.
+1. Plan in the board. Assign clans, choose orders and research, talk to the council, roll the probes of the own people and the world event roll. Empty main and minor action slots open choices of the corresponding kind, then a target and the shared kernel preview. Occupied slots focus the queued order. In the community surface, food, material and research hotspots open clan assignment at the actual home. Their counts are assigned clans, while stocks remain in the top bar. The blocker summary next to "Zug beenden" names everything that still prevents sealing.
 2. Click "Zug beenden". The server runs `seal`, and the campaign is in `resolving`.
 3. Type `/zug` in Claude Code. The game master presents leftover severe judge findings, runs the world agent, resolves the season, runs research, council, rivals and chronicler in parallel, ingests their proposals, opens the next planning and starts the judges in the background ([agents-harness.md](agents-harness.md)).
 4. Plan the next turn while the phase B agents still work. Their accepted proposals appear on the board.
@@ -107,7 +107,7 @@ A load restores the save in place and keeps the files it replaces as `autosave-<
 | exit 4 with `tamper` on `load` | the save differs from its manifest or journal | load another slot. The campaign is unchanged |
 | an agent hangs | a phase B step does not end | `node tools/harness/status-note.mjs step <agent>-<people or all> failed --summary "<reason>" --campaign <cid>` and continue, the kernel uses the fallback |
 | the board shows an outdated agent status | status and files disagree | `node tools/harness/status-note.mjs sync --campaign <cid>` |
-| a lock file remains after a crash | `.campaign.lock` or another `.<name>.lock` in the campaign folder nothing. A lock whose process is gone or which is older than its stale limit is broken by the next writer, an empty or unreadable lock after 2 seconds |
+| a lock file remains after a crash | `.campaign.lock` or another `.<name>.lock` remains in the campaign folder | the next writer breaks a lock whose process is gone or whose age exceeds its stale limit. An empty or unreadable lock has the shorter stale limit in `engine/harness/io.js` |
 
 ## Boundaries
 

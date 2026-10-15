@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [INDEX, game-design, rules-kernel, world-packages]
@@ -17,7 +17,7 @@ related: [INDEX, game-design, rules-kernel, world-packages]
 
 # Glossary
 
-German project terms with their id in code where one exists and an English explanation. German terms keep their German ids in code and data, mechanical building blocks carry English ids. Visible texts come from the `labels.json` of the world package, so the label of a term can differ by world.
+German project terms with their id in code where one exists and an English explanation. German terms keep their German ids in code and data, mechanical building blocks carry English ids. Visible texts come from the world package's label files for the selected language, so the label of a term can differ by world.
 
 ## Game and people
 
@@ -107,6 +107,6 @@ German project terms with their id in code where one exists and an English expla
 | Spielrichter | `judge-coherence`, `judge-balance`, `judge-narrative` | Judges that check coherence, balance and narrative arc after the turn |
 | Befund, Korrektur | items `finding`, `correction` | Finding and correction of a judge |
 | Regelkern | `engine/` | The rules kernel |
-| Spielbrett | `spielbrett/` | The map-first game board in the browser |
-| Weltgeschehen | view `weltgeschehen` | Panel of kernel results, agent steps and judge findings |
+| Spielbrett | `spielbrett/` | The browser board with a world map and an optional community surface, sharing the campaign draft and kernel preview |
+| Weltgeschehen | view `weltgeschehen` | Panel of kernel results, agent steps and player-visible judge findings. Actual kernel results expand, while an empty round shows a status message |
 | Spieltest | `docs/spieltests` in the history, now [playtests.md](playtests.md) | Playtest by the owner |

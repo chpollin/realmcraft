@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [vision, game-design, rules-kernel, agents-harness, plan-m1, journal]
@@ -43,7 +43,7 @@ Standing fundamental decisions of the rebuild with date, decision, reason, conse
 - Date 2026-10-03.
 - Decision. One turn-based game replaces Winter, Nachtmeer, the real-time plan and the chat game-master procedure. One turn is one season. The old games stay in the local branch `archiv/vor-neuaufbau` and are removed from `main` once the game is playable.
 - Reason. Four game forms with their own rules, saves and surfaces shared little code. The campaigns showed that rules grow during play, but without a frame they drift and text contradicts number. A kernel with checkable rules keeps the growth and removes the drift. The season as turn comes from all campaigns and carries winter pressure and life rolls.
-- Consequence. The hybrid Markdown save, `js/parse.js` and the game-master role of `CLAUDE.md` are dropped. The removal of the legacy code is open.
+- Consequence. The hybrid Markdown save, `js/parse.js` and the game-master role of `CLAUDE.md` are dropped. The legacy dashboard and its `js/` and `docs/` trees have been removed from `main`. The root page redirects to `spielbrett/`.
 - Revisit when the owner's acceptance fails in principle.
 
 ### D2 Generated, growing hex world
@@ -205,7 +205,7 @@ The owner settled the open questions for M1 as follows. Each can be revised by t
 ### D23 Knowledge base as project specification
 
 - Date 2026-10-03, revises E1.
-- Decision. `knowledge/` holds the specification and architecture of the project as a Promptotyping knowledge base in English. The memory of the former game-master campaigns is removed from `main` and stays in the branch `archiv/vor-neuaufbau`. `docs/` is dissolved into `knowledge/` except for legacy documents that legacy code still references.
+- Decision. `knowledge/` holds the specification and architecture of the project as a Promptotyping knowledge base in English. The memory of the former game-master campaigns is removed from `main` and stays in the branch `archiv/vor-neuaufbau`. `docs/` is dissolved into `knowledge/`. Earlier wording remains in git history.
 - Reason. The owner wants one place that holds the whole specification, and the old campaigns are no longer played.
 
 ### D24 Named saves inside the campaign

@@ -27,12 +27,12 @@ The owner's intention combines goals that depend on each other.
 2. Mechanics follow the direction. A trading people gets trade mechanics, a people that discovers magic gets a magic economy. The rules grow with the people, and nobody invents a rule during play.
 3. A fair frame. Whatever a people gains it pays for. AI peoples play by the same rules, with the same view and the same budget.
 4. An agent harness. Language models propose content and the kernel checks and books every proposal. No agent sets a value.
-5. The map first. The surface is a growing hex map on which the people moves, settles, explores and fights. Council, research and chronicle are panels over the map.
+5. Spatial and community play. The world map carries movement, settlement, exploration and conflict. The optional community surface makes clan assignment and home management directly accessible. Both use the same campaign and planning controls ([frontend.md](frontend.md)).
 6. Consequences before the decision. Every decision shows its consequences where they act before it is fixed, computed by the same kernel function that later resolves the turn ([decisions.md](decisions.md), D15).
 
 ## Campaign authoring direction
 
-On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. A broader creation flow and alternative layouts remain under design.
+On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. The optional community layout is implemented as a Hochland experiment. Its drawing style remains subject to owner review. The broader creation flow remains under design.
 
 ## Shape of the game
 
@@ -61,7 +61,7 @@ The owner accepts the game by playing a campaign in the browser with live agents
 7. Rivals act visibly and with a recognisable stance, while their stocks and plans stay hidden.
 8. A failing agent is marked and the turn continues.
 9. The destiny is visible with milestones, a switch is possible, and victory and collapse are reachable in a test campaign.
-10. World events show the judges' findings, and a severe finding is put to the player before the next turn.
+10. World events show the player-visible judges' findings, and a severe finding is put to the player before the next turn.
 11. The waiting time of a turn lies with the world agent, while council, rivals, research and chronicler work as the owner plans.
 
 Technical tests, observed operation and the owner's design and domain acceptance are reported separately ([testing.md](testing.md)).

@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, agents-harness, frontend, testing, operations]
@@ -17,7 +17,7 @@ related: [rules-kernel, data-contracts, agents-harness, frontend, testing, opera
 
 # Architecture
 
-RealmCraft is plain ES modules without a build step on Node 21 or later. Four parts cooperate around one campaign folder, namely the deterministic rules kernel with its CLI, the world packages, the agent harness in Claude Code and the map-first game board served by a small Node server. The only writer of campaign state is `engine/cli.mjs`.
+RealmCraft is plain ES modules without a build step on Node 21 or later. Four parts cooperate around one campaign folder, namely the deterministic rules kernel with its CLI, the world packages, the agent harness in Claude Code and the game board, with a world map and an optional code-drawn community surface, served by a small Node server. The only writer of campaign state is `engine/cli.mjs`.
 
 ## Components
 
@@ -33,7 +33,7 @@ RealmCraft is plain ES modules without a build step on Node 21 or later. Four pa
 | CLI | `engine/cli.mjs` | The only writer of `campaigns/<cid>/`, with journal, campaign lock, replay and named saves |
 | World packages | `welten/<id>/` | Generator, rules, labels, style and content of a world ([world-packages.md](world-packages.md)) |
 | Agent harness | `.claude/agents/`, `.claude/commands/`, `tools/hooks/`, `tools/harness/`, `.claude/settings.json` | Subagents, `/zug` and `/partie`, guard and status hooks, helpers ([agents-harness.md](agents-harness.md)) |
-| Game board | `spielbrett/` | Map-first browser surface that runs the kernel's preview on the player's projection ([frontend.md](frontend.md)) |
+| Game board | `spielbrett/` | World-map and community surfaces sharing the player projection, draft, kernel preview and order controls ([frontend.md](frontend.md)) |
 | Dev server | `serve.mjs`, `server/` | Static files of the board, fog-safe campaign files, endpoints for new game, draft, seal, save and load, server-sent events. The route table in `serve.mjs` is the endpoint reference |
 | Tests | `tests/` | Unit, acceptance and end-to-end tests ([testing.md](testing.md)) |
 
@@ -58,6 +58,10 @@ report                                                                  tasks fo
 ```
 
 The server never computes game logic. A draft change becomes a CLI `preview --draft` call that also stores the draft, and "end turn" becomes `seal`. CLI calls of one campaign are queued in the server and serialised by the campaign lock in the CLI.
+
+The community scene under `spielbrett/js/community/` is drawn with Canvas code. Its labour and home controls route to the existing context panel. `data/planning.js` derives concrete main or minor options from known targets in the player projection and passes them through `game.previewOption()`. `ui/planen.js` groups these options and reuses the context order controls. Neither surface creates rules or reveals unknown map data.
+
+The running browser has synthesized Web Audio cues and ambience. It has no integrated speech narrator or LLM conversation service. Free-description campaign authoring and an in-game intentions conversation remain requirements in [new-game-design.md](new-game-design.md). The current creation endpoint accepts existing package and template ids ([operations.md](operations.md)).
 
 ## Trust boundaries
 

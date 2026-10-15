@@ -1,6 +1,6 @@
 # Plan M1, complete playable game
 
-Binding plan and contract of milestone M1. Lanes build against the contracts below. A lane that needs to depart from a contract says so to the integrator before it builds, and the integrator records the change here. Orientation for the game itself lives in `docs/Spieldesign.md`, `docs/Regelkern.md`, `docs/Agentenvertrag.md` and `docs/Harness.md`.
+Milestone contract used for the M1 build. The build lanes and first refactor wave are integrated. Their ownership, ports and merge sequence below document that execution and are not a command to repeat it. Current work is in [plan.md](plan.md). Game rules and architecture are maintained in [game-design.md](game-design.md), [rules-kernel.md](rules-kernel.md) and [agents-harness.md](agents-harness.md).
 
 ## Goal
 
@@ -17,12 +17,24 @@ M1 turns the existing kernel, harness and board into one game a player can start
 7. The campaign ends in a victory or a collapse screen built from the kernel result, with a summary of the campaign.
 8. The UI runs in English by default and in German when chosen in the settings. The narrative language is a campaign setting.
 9. Audio plays ambience, UI feedback, dice and stingers, synthesized in the browser, with mute, volumes and reduced intensity under reduced motion.
-10. Playtest entries 1 to 22 in `docs/spieltests/2026-10-03-spielbrett.md` are implemented or answered with a recorded decision.
+10. Playtest entries 1 to 22 in [playtests.md](playtests.md) are implemented or answered with a recorded decision.
 11. All gates below are green on main after the last merge.
+
+## Evidence after reconciliation
+
+| Criteria | Current evidence and limit |
+|---|---|
+| 1 and 2, create and continue | Template-based creation and continuation have browser coverage. Free realm authoring is separate planned work. Compatibility uses temporary fixture campaigns; the documentation pass did not repin owner campaigns. |
+| 3, complete harness turn | Scripted CLI acceptance and board agent fixtures exist. A full multi-turn browser run with live agents remains open. |
+| 4 and 5, paths and modules | Kernel, CLI and browser cases exercise the implemented paths and module controls. Remaining usability and effective agent-cost context work are in plan.md. |
+| 6, localized refusals | Codes and parameters exist and order refusals use localized labels. Some event facts still depend on English log text, as documented in frontend.md. |
+| 7 through 9, outcomes, languages and audio | Browser cases cover end screens, UI language changes and synthesized audio. World-prose language and spoken narration remain separate limits. |
+| 10, owner feedback | playtests.md records implemented and partial responses. Technical coverage does not establish the owner's acceptance of the final design. |
+| 11, gates | Recent implementation gates passed. testing.md defines reruns for the actual change; no test count or blanket completion claim replaces those gates. |
 
 ## Owner decisions for M1
 
-Settled by the owner on 2026-10-03 with the direction to implement the game to completion. Each decision is revisable by the owner. Lane D carries them into `docs/Entscheidungen.md` as numbered decisions.
+Settled by the owner on 2026-10-03 with the direction to implement the game to completion. Each decision is revisable by the owner. They are recorded in [decisions.md](decisions.md) as D16 through D21.
 
 | Id | Decision | Rationale |
 |---|---|---|
@@ -42,11 +54,11 @@ A lane writes only into the paths it owns. A file named as shared takes additive
 | Lane | Task | Owns |
 |---|---|---|
 | R | Removal of the old games and the old dashboard, their tests and tools. R checks with a search that no remaining file imports what it removes, and keeps image generation that the board or harness still uses. R never touches `savegame.json`, `schwarzkaemme/`, `examples/` or `knowledge/`. | root `index.html`, `js/`, `css/`, `anleitung.html`, `schema/`, `spiel/`, `design/`, `harness/`, old tests under `tests/unit`, `tests/e2e`, `tests/visual` that only cover removed code, `tools/` except `tools/harness` and `tools/hooks`, `package.json` scripts, `playwright.config.mjs`, `tools/check.mjs` |
-| S | `serve.mjs` split into server modules, the endpoints below, removal of the old dashboard routes. S defines the HTTP API and documents it in `docs/` through lane D or in its own module header. | `serve.mjs`, `server/`, `tools/harness/`, `tests/unit/serve.test.js`, `tests/unit/spielbrett-serve.test.js`, new `tests/unit/server/` |
+| S | `serve.mjs` split into server modules, the endpoints below, removal of the old dashboard routes. S defines the HTTP API and documents it in `knowledge/` through lane D or in its own module header. | `serve.mjs`, `server/`, `tools/harness/`, `tests/unit/serve.test.js`, `tests/unit/spielbrett-serve.test.js`, new `tests/unit/server/` |
 | I | i18n layer in the board with English as default and German, English labels for the world. I defines the label layout. | `spielbrett/js/data/labels.js`, new `spielbrett/js/i18n/`, new `spielbrett/labels/`, new `welten/hochland/labels.en.json`, `tests/unit/spielbrett-i18n*.test.js` |
 | A | Web Audio module. A defines the audio API. | new `spielbrett/js/audio/`, `tests/unit/spielbrett-audio*.test.js` |
 | B | Balance simulation and fuzzing over seeded campaigns with the fallback AI, in process. Read-only on `engine/`. | new `tools/sim/`, new `tests/unit/sim/` |
-| D | Knowledge base, README, CLAUDE.md, decisions, contract changes, playtest table. | `knowledge/` except this plan, `docs/`, `README.md`, `CLAUDE.md` |
+| D | Knowledge base, README, CLAUDE.md, decisions, contract changes, playtest table. | `knowledge/` except this plan, `README.md`, `CLAUDE.md` |
 | K1 | Kernel paths model and the migration of existing campaigns. Starts after the commit of this plan. | see kernel ownership below |
 | K2 | Kernel data gaps for the board, machine-readable issues, new game options. Starts after the commit of this plan. | see kernel ownership below |
 

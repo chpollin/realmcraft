@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, game-design, glossary]
@@ -54,9 +54,9 @@ Hochland is a highland of lakes, moor, meadow, heath, forest, alpine pasture, mo
 
 The content implements the developments of the worked path in [game-design.md](game-design.md). The start endowment holds the ways of life `nomadisch` and the institution `sippenrat`. The pool holds, among others, the way of life `sesshaft`, the techniques `filzjurten`, `saumpfad`, `strassenbau`, `salpetersieden` and `pulverwall`, the buildings `hochweide-terrassen`, `markt-am-pass` and `steinmauer`, the units `speertraeger` and `bergschuetzen`, the disciplines `rauchschau`, `bannfeuer` and `blutritus`, and the institutions `geleitrecht`, `schuldknechtschaft` and `schwarzer-zirkel`. The destinies besides the start destinies are `herr-der-paesse`, `uneinnehmbare-feste`, `herrschaft-der-schauenden`, `hegemonie` and `bund-der-taeler`.
 
-## Paths from M1
+## Research paths
 
-M1 adds an optional `pfade` block to `regeln.json` with the paths of the world, their tags, an opening condition per path, the number of completed achievements that unlocks each path tier and a fallback path. A world without the block has no paths and researches as before. Hochland ships the six paths `nahrung`, `gemeinschaft`, `militaer`, `werk`, `erkenntnis` and `magie`, of which only `magie` waits for a practice condition, with `gemeinschaft` as fallback. The contract, the tag lists and the path tier rule are in [plan-m1.md](plan-m1.md). World labels gain a key `pfad.<id>` per path and English label files beside the German ones ([decisions.md](decisions.md), D16 and D17).
+The optional `pfade` block in `regeln.json` defines the paths of the world, their tags, an opening condition per path, the number of completed achievements that unlocks each path tier and a fallback path. A world without the block has no paths and researches as before. Hochland ships the six paths `nahrung`, `gemeinschaft`, `militaer`, `werk`, `erkenntnis` and `magie`, of which only `magie` waits for a practice condition, with `gemeinschaft` as fallback. The implemented path rules are in [rules-kernel.md](rules-kernel.md#8-economy-and-research) and `engine/core/pfade.js`. [plan-m1.md](plan-m1.md) preserves the M1 contract. World labels supply a key `pfad.<id>` per path and an English label file beside the German one ([decisions.md](decisions.md), D16 and D17).
 
 ## Balance of M1
 

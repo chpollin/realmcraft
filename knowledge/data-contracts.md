@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, architecture, agents-harness, world-packages, testing]
@@ -50,9 +50,9 @@ Files without a schema of their own are `world.lock.json`, `log/journal.json` (h
 
 The state holds references to world content and the mutable part of the map. Generated tiles are a function of `map.seed` and the pinned package and are never stored.
 
-- Envelope. `format`, `version`, `rulesVersion`, `campaign { id, world { id, version, hash }, player }`, `rev`, `turn`, `phase` (`planning`, `resolving`, `agents`), `rng { algo: sfc32, s }`, `status` (`playing` or `ended`) and `result`.
+- Envelope. `format`, `version`, `rulesVersion`, `campaign { id, world { id, version, hash }, player }`, `rev`, `turn`, `phase` (`planning`, `resolving`, `agents`), `rng { algo: sfc32, s }`, `status` (`playing` or `ended`) and `result`. Optional `settings { difficulty, language }` carries the campaign difficulty and narrative language, with defaults from `settingsOf()` for older campaigns.
 - `map`. `seed`, `packId`, `control` by region id (`cq:cr:i`), `settlements` with tile, region, kind and buildings, `known` per people and tile (`seen` or `visible`) and `features` per tile, at most one each.
-- `peoples`. One entry per people with exactly the same shape, consisting of `controller`, `agentProfile`, `identity` (nature pair, orientation, appearance), `lebensweise`, `population { core, growth, assigned }`, `resources`, `standing` (0..3), `developments { known, research, candidates, requests, instituted }`, `units`, `council`, `practice.ledger`, `tokens`, `statuses`, `meters` (with the required core meter `zustimmung` in −5..5), `shortfall`, `bestimmung` and module slices under `modules`.
+- `peoples`. One entry per people with exactly the same shape, consisting of `controller`, `agentProfile`, `identity` (nature pair, orientation, appearance), `lebensweise`, `population { core, growth, assigned }`, `resources`, `standing` (0..3), `developments { known, research, candidates, requests, instituted }`, `units`, `council`, `practice.ledger`, `tokens`, `statuses`, `meters` (with the required core meter `zustimmung` in −5..5), `shortfall`, `bestimmung`, optional `pfade { opened }` for latched path openings, and module slices under `modules`.
 - `relations` by the two people ids in alphabetical order joined by `|`, with `value` (−3..3), `atWar`, `since` and `contact`.
 - `modules` (global module slices), `eventPool`, `eventDraws` (per people `{ turn, roll, band, roller, card }`), `pendingChoices` (`{ id, people, event, offeredAt, deadline, options }`), `ingested` (proposal id to hash), `chronicle` (log entries of the last turns), `sealed` (people id to hash of the sealed draft, set by `seal` and removed by `apply`) and `derived` (per people values such as stock caps, recomputed on every write and outside the state hash).
 
@@ -156,11 +156,14 @@ The CLI answers `save` with `{ save: manifest }`, `saves` with `{ saves: [manife
 
 The dev server relays these commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load`, whose answers carry the CLI fields above plus `ok`, `exit` and `issues`. The route table in `serve.mjs` is the endpoint reference ([architecture.md](architecture.md)). Bodies are JSON objects of at most 1 KB without other fields. Errors answer `{ error, issues }` with 400 for an invalid field, 404 for an unknown campaign or slot, 409 for the phase, a running turn or a held lock, and 413 for a larger body.
 
+## Issues
+
+Issues carry machine-readable `params`, with `params.reason` for a concrete refusal under a generic code. `engine/core/issues.js` normalizes flat parameter values, and the board resolves `issue.<code>.<reason>` before `issue.<code>`. English `message` remains available to logs and agents.
+
 ## Gaps known on main
 
 - `engine/schemas/world.js` does not yet accept `tuning.collapseCore`, so no world can set it and the kernel default applies.
-- Issues carry an English message but no machine-readable reason key with parameters. The board maps issue codes to labels `issue.<code>`.
 - Trade ids reveal a global sequence counter.
 - The journal chain is tamper-evident only, `replay` is the full proof.
 
-M1 closes several of these gaps in additive steps ([plan-m1.md](plan-m1.md)).
+Further work is routed through [plan.md](plan.md).

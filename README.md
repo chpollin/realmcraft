@@ -1,16 +1,22 @@
 # RealmCraft
 
-RealmCraft is a turn-based open-world strategy game in the browser. You lead a people through the seasons of a generated hex world that grows as you explore it. There is no fixed technology tree. Research runs along paths per domain (food, community, military, craft, knowledge, magic), and the achievements on these paths grow out of what your people actually does: language-model agents propose achievements, events, council voices, rival moves and a chronicle, and a deterministic rules kernel checks every proposal against a power budget before it counts. Every decision shows its consequences before you make it, and victory comes from fulfilling your people's destiny.
+RealmCraft is a turn-based open-world strategy game in the browser. You lead a people through the seasons of a generated hex world that grows as you explore it. There is no fixed technology tree. Research runs along paths per domain (food, community, military, craft, knowledge, magic), and the achievements on these paths grow out of what your people actually does: language-model agents propose achievements, events, council voices, rival moves and a chronicle, and a deterministic rules kernel checks every proposal against a power budget before it counts. Planning uses kernel previews, and victory comes from fulfilling your people's destiny.
 
-The specification and architecture live in [knowledge/](knowledge/INDEX.md).
+The specification and architecture live in [knowledge/](knowledge/INDEX.md). Current implementation limits and remaining work are in the [development plan](knowledge/plan.md).
 
 ## How it works
 
 - A deterministic rules kernel under `engine/` computes every value. `engine/cli.mjs` is the only writer of campaign state, and a journal hash chain makes edits outside the kernel detectable.
 - World packages under `welten/` hold generator, rules, paths, labels in German and English, and content. Hochland is the first world.
-- The game board under `spielbrett/` is a map-first browser client with start screen, game menu, settings, rules reference, paths wheel, module views for trade, military, magic and lifestyle, event cards, synthesized audio and an English or German interface. It runs the kernel's preview on your people's view.
+- The game board under `spielbrett/` has a world map, an optional code-drawn community view for Hochland, a start screen, game menu, settings, rules reference, paths wheel, module views, event cards, synthesized audio and an English or German interface. Empty main/minor action slots open matching actions and targets; occupied slots open their planned order. Costs, availability and consequences come from the kernel preview.
 - The development server `serve.mjs` with the modules under `server/` serves the board, pushes live updates and offers campaign creation, saving and loading.
 - Claude Code is the game master. The command `/zug` runs a turn with subagents for world, research, council, rivals and chronicle, and judges check coherence, balance and narrative in the background.
+
+## Current scope
+
+A new campaign starts from an installed world package and a people template. The optional community view uses actual labour assignments and the campaign season; its visual season override is development-only. Open a campaign with `?campaign=<id>&ansicht=gemeinschaft` to try it. The map remains the default view.
+
+Free world description, an editable generated creation draft, free intentions in an in-game chat and spoken narration are planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available through the CLI and server; save/load menu entries are not yet implemented. Agent rounds still use Claude Code, as described below. The board has no background agent service.
 
 ## Requirements
 
@@ -54,7 +60,7 @@ Details in [knowledge/testing.md](knowledge/testing.md).
 - `welten/` world packages.
 - `spielbrett/` game board.
 - `serve.mjs`, `server/` development server with the campaign bridge.
-- `.claude/` subagents, the commands `/zug` and `/partie`, hook settings and saved workflows.
+- `.claude/` subagents, the commands `/zug` and `/partie`, hook settings.
 - `tools/hooks/`, `tools/harness/` hooks and helpers of the agent harness. `tools/sim/` balance simulation and fuzzing, `tools/portraits/` portrait generation.
 - `tests/` unit, acceptance and end-to-end tests.
 - `knowledge/` specification, architecture, decisions, playtests, handoff and journal.

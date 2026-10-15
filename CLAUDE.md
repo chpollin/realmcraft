@@ -1,13 +1,13 @@
 # CLAUDE.md, RealmCraft
 
-RealmCraft is a turn-based open-world strategy game with a deterministic rules kernel, world packages, an agent harness in Claude Code and a map-first browser board. The knowledge base starts at [knowledge/INDEX.md](knowledge/INDEX.md). Read it, then [knowledge/handoff.md](knowledge/handoff.md), then the document of the task. Code, schemas and tests are the source of truth for every number, and a knowledge document that disagrees with them is corrected.
+RealmCraft is a turn-based open-world strategy game with a deterministic rules kernel, world packages, an agent harness in Claude Code and a map-first browser board. The knowledge base starts at [knowledge/INDEX.md](knowledge/INDEX.md). Read it, then [knowledge/plan.md](knowledge/plan.md) and any incoming material in [knowledge/handoff.md](knowledge/handoff.md), then the document of the task. Code, schemas and tests are the source of truth for every number, and a knowledge document that disagrees with them is corrected.
 
 ## Roles
 
 A session in this repository is either game master or developer.
 
 - Game master. Runs a campaign through `/partie` and `/zug` ([knowledge/agents-harness.md](knowledge/agents-harness.md), [knowledge/operations.md](knowledge/operations.md)). Acts only through `node engine/cli.mjs` and the helpers under `tools/harness/`. Never rolls for the player, never recommends an action, reports in German with numbers only from the kernel's answers.
-- Developer. Builds kernel, content, harness and board on the owner's tasks, following [knowledge/rules-kernel.md](knowledge/rules-kernel.md), [knowledge/data-contracts.md](knowledge/data-contracts.md), [knowledge/frontend.md](knowledge/frontend.md) and the milestone plan [knowledge/plan-m1.md](knowledge/plan-m1.md).
+- Developer. Builds kernel, content, harness and board on the owner's tasks, following [knowledge/rules-kernel.md](knowledge/rules-kernel.md), [knowledge/data-contracts.md](knowledge/data-contracts.md), [knowledge/frontend.md](knowledge/frontend.md) and the current [development plan](knowledge/plan.md). The [M1 contract](knowledge/plan-m1.md) records the historical build and its evidence limits.
 
 ## File ownership
 
@@ -32,4 +32,8 @@ A session in this repository is either game master or developer.
 
 ## Continuing development
 
-The open work of the current milestone stands in [knowledge/handoff.md](knowledge/handoff.md). The next step is the saved workflow `realmcraft-refactor-verify` in `.claude/workflows/`: area audits, a refactor proven by a golden replay, the UI optimisation round on the owner's playtest entries, a full game loop in the browser and a check of every acceptance criterion and documented claim. Before a merge into `main` while the owner plays, check the phase of the live campaign with `node engine/cli.mjs status`; merge only in phase `planning` and run `repin` when the world package changed.
+Current implementation limits and accepted work live in [knowledge/plan.md](knowledge/plan.md). Choose a bounded task there or follow the owner's current instruction. Verify an old playtest finding against current code before fixing it. The M1 build and first refactor wave are integrated; do not rerun their audit/refactor/merge lanes. The obsolete complete workflow has been retired.
+
+Keep implemented features distinct from proposals. Browser creation currently uses world packages and people templates; free realm authoring, an in-game intention interface, named-save menu entries, a background agent service and spoken narration are not implemented. The optional community illustration is authored for Hochland. Read [knowledge/new-game-design.md](knowledge/new-game-design.md) and [knowledge/frontend.md](knowledge/frontend.md) before extending those flows.
+
+Before an authorized merge while the owner plays, read the live campaign phase through the CLI. Merge only in planning and repin only when the world package changed. Pushes, merges, tags and releases require the owner's instruction; this documentation does not authorize them.

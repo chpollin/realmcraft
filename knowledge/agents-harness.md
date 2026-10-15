@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, data-contracts, rules-kernel, operations, decisions]
@@ -98,7 +98,7 @@ The player clicks "end turn" in the board, which seals the turn, and types `/zug
 6. Judges. Coherence and balance judges run every turn, the narrative judge when the turn is divisible by four or the player announces a chapter change. `/zug` does not wait for them, the next `/zug` handles their proposals. `run-marker.mjs end` closes the run.
 7. Report. A short German report of at most eight sentences, with numbers only from the kernel's answers and no recommendation.
 
-A new campaign starts in turn 0 in phase `agents`, so the first `/zug` runs only phase B and releases the planning of turn 0. A new game is created in the browser, where the server calls `new`, or through `/partie neu` with the options of `new` (rivals, difficulty, language). `/partie` lists campaigns, shows the state of an existing one and offers to run the first turn of a new one by the procedure of `/zug` ([operations.md](operations.md)). The game master speaks to the player in the narrative language the status names (`settings.language`). Both commands carry `disable-model-invocation`, so a development session never starts them on its own. A listening mode in which `/partie` watches the phase and runs the turn without typing `/zug` is planned and not built.
+A new campaign starts in turn 0 in phase `agents`, so the first `/zug` runs only phase B and releases the planning of turn 0. A new game is created in the browser, where the server calls `new`, or through `/partie neu` with the options of `new` (rivals, difficulty, language). `/partie` lists campaigns, shows the state of an existing one and offers to run the first turn of a new one by the procedure of `/zug` ([operations.md](operations.md)). The game master speaks to the player in the narrative language the status names (`settings.language`). Both commands carry `disable-model-invocation`, so a development session never starts them on its own. The browser also records the chosen campaign through `POST /api/campaigns/<cid>/activate`, so `/zug` can use that selection. An in-game LLM conversation and a listening mode in which `/partie` watches the phase and runs the turn without typing `/zug` remain unimplemented.
 
 ## Hooks
 
@@ -118,9 +118,9 @@ The shell guard of the main session is a heuristic over the command text and doe
 
 ## Helpers
 
-The helpers under `tools/harness/` write only the run marker and the status view, both through the lock and atomic rename of `engine/harness/io.js`.
+The helpers under `tools/harness/` write the selected-campaign record, run marker and status view through the lock and atomic rename of `engine/harness/io.js`.
 
-- `active-campaign.mjs` names the campaign a run works on, from an active run marker, else the newest playing campaign of `campaigns/index.json`, else the only campaign folder.
+- `active-campaign.mjs` names the campaign a run works on, from an active run marker, then the explicitly selected campaign, else the newest playing campaign of `campaigns/index.json`, else the only campaign folder.
 - `run-marker.mjs start|end|show` writes `campaigns/<cid>/run.json`.
 - `status-note.mjs init|plan|step|sync` starts the turn status, records open tasks as waiting steps, sets single steps (for example a hanging agent to failed) and reconciles with the files.
 - `reconcile.mjs` is that reconciliation. The phase follows `state.json`, a step is done once the proposal of its task exists, and a step without proposal failed once the kernel phase has moved past its task. Judges run through planning and never fail here.
@@ -142,7 +142,11 @@ A failed agent never stops the turn. Without a proposal, with an invalid one or 
 
 Exit 4 at `seal`, `apply` or `open` means wrong phase or a foreign change. The game master repeats nothing, reads the state with `status` and reports it. A proposal that arrives after the next `seal` is stale and refused. Without the hooks `/zug` still works, but the pre-check at writing, the write guard and the automatic status steps are missing, while `ingest` still validates every proposal.
 
+## Development and observed operation
+
+Open development is routed through [plan.md](plan.md). A bounded documentation or UI task does not restart the completed rebuild or call live turn agents. Tests with recorded proposals establish deterministic harness behavior, while a sustained campaign with real agents and owner acceptance remain separate checks ([testing.md](testing.md)).
+
 ## Known findings from live turns
 
 - A rival guessed order parameters and its orders were refused, which led to the order catalogue with valid targets in the rival task ([playtests.md](playtests.md), entry 22).
-- The chronicler claimed a migration that did not happen, names drifted between turns (Rauchschau and Psilschau), and stances were overwritten instead of continued. M1 answers them with `context.resolved` and the ref check of the proposal hook, the canonical `names` in every prose task, and the earlier `stances` in the rival task, and the coherence judge looks for all three.
+- The chronicler claimed a migration that did not happen, names drifted between turns (Rauchschau and Psilschau), and stances were overwritten instead of continued. The harness addresses them with `context.resolved` and the ref check of the proposal hook, the canonical `names` in every prose task, and the earlier `stances` in the rival task, and the coherence judge looks for all three.

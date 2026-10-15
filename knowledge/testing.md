@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, rules-kernel, agents-harness, frontend, operations]
@@ -29,6 +29,7 @@ npm run test:acceptance     # node --test "tests/acceptance/**/*.test.js"
 npm run test:e2e            # Playwright, project e2e
 npm run test:fuzz           # long sweep of tests/unit/sim/fuzz-*.test.js, node tools/sim/fuzz.mjs --runs <n> --seeds 1,2,3
 npm run sim                 # headless campaigns under the fallback policy, invariants and balance report
+npm run sim:balance         # configured multi-seed, multi-season balance sweep
 ```
 
 `npm test` is the quality gate before a commit. Without the bundled Chromium the browser tests run in the installed Chrome with `PLAYWRIGHT_CHANNEL=chrome`. The Playwright config starts no server. Every board spec and every server unit test starts its own `serve.mjs` with a temporary `REALMCRAFT_ROOT` through `startServer` in `tests/lib/server.mjs`, on a free port or, in the specs, on the port given by `SPEC_PORT`. A run limited to one assigned port sets `SPEC_PORT` together with `--workers=1`, since the specs of one run would otherwise compete for that port. The ports 4173, 4185, 4186, 4187 and 4190 belong to the owner's running servers, `startServer` refuses them and no test uses them. `test-results/` and `playwright-report/` are ignored artifacts and are deleted after a run.
@@ -43,7 +44,7 @@ npm run sim                 # headless campaigns under the fallback policy, inva
 | Unit, harness | hooks fed with hook inputs (path filter, denials, Windows paths, pre-check) and the dry run of `/zug` in a temporary root | `tests/unit/harness-hooks.test.js`, `tests/unit/harness-dryrun.test.js` |
 | Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge, the API, saves, static files and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/server/` |
 | Acceptance | black-box tests of the kernel written from the specification without knowledge of the implementation, driving only `node engine/cli.mjs` and checking its files with Ajv | `tests/acceptance/` |
-| End to end | the board against real campaigns. Load, preview, roll and seal, the blocker flow from the playtest, the paths wheel with council strip and destinies, the module views with event cards, provinces, attack, trade and the agent round, the game shell with start screen, menu and end screens, the language switch, and the synthesized audio | `tests/e2e/` |
+| End to end | the board against real campaigns. Load, preview, roll and seal, the blocker flow from the playtest, the paths wheel with council strip and destinies, the module views with event cards, provinces, attack, trade and the agent round, the game shell with start screen, menu and end screens, the language switch, synthesized audio, community labour and navigation, typed action-slot planning and kernel-result disclosure | `tests/e2e/` |
 
 The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The harness reads every value under the one field name the CLI emits, so a renamed field fails the suite instead of passing through a fallback. A changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
 
@@ -78,9 +79,16 @@ Run these with `REALMCRAFT_ROOT` set to a temporary folder or with `--root <dir>
 - Integrity. A state, sealed draft or library changed outside the kernel is refused with `tamper`, an interrupted commit rolls forward, and campaigns written before an additive change stay loadable.
 - Validator. The corpus pins issue codes and hand-computed budgets of its cases independently of the implementation.
 
+## Simulation and agent evidence
+
+`tools/sim/run.mjs` drives campaigns with the deterministic fallback policy, rotates player templates and accepts a player-profile override. Its seed and season options support longer balance sweeps. Reports describe that policy and the world pool. They do not measure live LLM decisions or establish the balance of agent-generated content.
+
+`tools/harness/acceptance.mjs` reads campaign verdicts and reports acceptance by agent and item type, with refusal reasons. A new live measurement requires an explicit run on the relevant campaign and turns. The existence of the helper establishes no current acceptance rate.
+
+The browser regressions `community.spec.mjs`, `action-slots.spec.mjs` and `world-results.spec.mjs` cover responsive and keyboard navigation, reuse of the stored draft and kernel preview, disabled action slots during resolution, and disclosure only for actual kernel results. They run against temporary campaigns.
+
 ## Gaps
 
-- No balance simulation over many years with AI profiles on different paths.
-- No measurement of live agent proposal acceptance.
+- Live-agent balance and proposal quality over a sustained campaign still require observed play.
 - No browser end-to-end test of a full turn including live agents.
 - The module spec still waits a fixed time before it looks for event cards in the agent-round campaign and after a reload, because the board exposes no signal that its card queue has settled.

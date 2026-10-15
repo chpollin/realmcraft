@@ -81,6 +81,12 @@ The facilitator selects collaboration with intelligences because the owner expli
 
 The initial prototype state and observation cutoff are recorded in [the dated setup snapshot](../snapshots/initialization-2026-10-15.md). Canonical kernel campaigns remain subject to CLI-only writes.
 
+## Free intentions during play
+
+The owner also requests decisions beyond the predefined order list and considers direct conversation with the harness as the means of expressing them. The current board offers implemented orders, research direction and council controls. Its action-slot picker groups existing main or minor orders and targets and reuses the kernel preview. It supplies no LLM conversation.
+
+The proposed extension translates a freely described intention into a reviewable supported action, asks for missing details and shows kernel-derived costs and consequences before confirmation. An intention outside the primitive set remains a design or development request until a supported implementation exists. Whether the external harness remains open or a background service is integrated into the game is an implementation decision still to be made.
+
 ## Spoken narrator
 
 During the full-start simulation the owner requested that the offered scenes be read by a compelling storyteller and that the same experience be available in the game. None of the offered starting scenes had been selected when this request arrived. Spoken delivery is therefore a new presentation requirement, while its effect on world selection remains untested.

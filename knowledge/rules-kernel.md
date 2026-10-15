@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, data-contracts, world-packages, architecture, agents-harness, glossary]
@@ -54,7 +54,7 @@ The base slots are `tuning.slots` of the world (Hochland one main and two minor 
 | Type | Owner | Slot | Probe | Effect |
 |---|---|---|---|---|
 | `research.assign` | core | free, once per draft | none | puts an open candidate or a running project first on the research list |
-| `research.direct` | core | free | none | research request with one to three tags and a note |
+| `research.direct` | core | free | none | research request with an open path and/or one to three tags and a note |
 | `build` | core | main | target 5, tag `bau` | a known building is built in an own settlement on a fitting terrain, within `spec.perRegion` |
 | `found` | core | main | none | new settlement of the way of life, costs `RULES.foundCost` |
 | `institute` | core | main | none, council | an institution takes effect from the next turn |
@@ -129,7 +129,7 @@ The open tier of a people is the highest tier of `TIERS` whose gate is met by kn
 
 The practice ledger keeps, per turn, the tags of executed orders weighted by slot (main 2, minor 1) plus 1 for a successful probe, for the last eight turns. Its three strongest tags are the practice tags. Without agents `open` offers world pool developments whose practice tags and tags overlap the practice tags, whose prerequisites hold and whose tier is open, ranked by overlap and id, within `tuning.limits`. Agent candidates use the same limits. Diffusion between peoples, planned in the first design, is not implemented.
 
-From M1 research is organised in six paths with tiers and research points from Wissen ([decisions.md](decisions.md), D16). The binding rules of the paths model are fixed in [plan-m1.md](plan-m1.md).
+Worlds with `regeln.pfade` organise achievements in paths. `engine/core/pfade.js` derives path membership, latched openings, path tiers and the cap combining the path tier with the people gate. A research request may name an open path. The research step latches a conditional path when its practice threshold is reached or an active known achievement opens it. Pool offers respect open paths and their caps. Research and candidates present before the path gate remain valid. Hochland supplies six paths ([world-packages.md](world-packages.md), [decisions.md](decisions.md), D16).
 
 ## 9 Developments and primitives
 
@@ -221,4 +221,4 @@ Exit codes are 0 ok, 1 internal error, 2 rejected or invalid, 3 missing input, 4
 
 ## 18 Issues
 
-Issues are plain data `{ code, severity, path, message }` from `engine/core/issues.js`, shared by kernel, validator and schema interpreter. Module codes carry their module id as prefix. Errors block `seal` and `apply`, warnings inform the board. Kernel codes include `finished`, `phase`, `stale`, `format`, `unknown_order`, `locked_order`, `slots`, `cost`, `labour`, `target`, `duplicate`, `restricted`, `council_rejected`, `roll_missing`, `roll_stale`, `view_stale` and `tamper` as errors and `free_slots`, `shortfall`, `softcap`, `upkeep_risk` and `idle_labour` as warnings. CLI codes carry the prefix `cli.`. M1 adds machine-readable reason keys with parameters to every issue, so the board never parses English text ([plan-m1.md](plan-m1.md)).
+Issues are plain data `{ code, severity, path, message, params?, refs? }` from `engine/core/issues.js`, shared by kernel, validator and schema interpreter. Module codes carry their module id as prefix. Errors block `seal` and `apply`, warnings inform the board. Kernel codes include `finished`, `phase`, `stale`, `format`, `unknown_order`, `locked_order`, `slots`, `cost`, `labour`, `target`, `duplicate`, `restricted`, `council_rejected`, `roll_missing`, `roll_stale`, `view_stale` and `tamper` as errors and `free_slots`, `shortfall`, `softcap`, `upkeep_risk` and `idle_labour` as warnings. CLI codes carry the prefix `cli.`. The board uses `code` and flat `params` to resolve labels, with a kebab-case `params.reason` for a concrete refusal under a generic code. English `message` is retained for logs and agents. `engine/core/issues.js` defines and normalizes the issue shape.

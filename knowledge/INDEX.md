@@ -13,7 +13,7 @@ created: 2026-10-03
 updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
-related: [vision, glossary, plan-m1, journal, handoff]
+related: [vision, glossary, plan, plan-m1, journal, handoff]
 ---
 
 # Index
@@ -22,7 +22,7 @@ RealmCraft is a turn-based open-world strategy game in the browser. A determinis
 
 ## Reading order
 
-A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md). Running a game starts with [operations.md](operations.md).
+A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [plan.md](plan.md) and any incoming material in [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md). Running a game starts with [operations.md](operations.md).
 
 ## Documents
 
@@ -42,7 +42,8 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [playtests.md](playtests.md) | What the owner reported in playtests and what became of each entry | Specification input |
 | [glossary.md](glossary.md) | What the German project terms mean | Navigation |
 | [operations.md](operations.md) | How to start the server, play a turn, create a game, repin and recover | Action |
-| [plan-m1.md](plan-m1.md) | The binding plan and contracts of milestone M1, written by the contracts agent | Planning |
+| [plan.md](plan.md) | Current kernel corrections, product integrations, UI review and verification work | Planning |
+| [plan-m1.md](plan-m1.md) | The M1 milestone contract, historical build lanes and current evidence limits | Milestone contract |
 | [journal.md](journal.md) | How the project got here | Provenance |
 | [handoff.md](handoff.md) | Which hand-over points wait for integration | Handoff |
 
@@ -62,7 +63,7 @@ The schema version of these documents is the `version` field of this index, and 
 
 The [synthetic initialization walkthroughs](../research-artefacts/initialization/synthetic-iterations-2026-10-15.md) under research-artefacts/ hold generated conversation data and review evidence. Their maintained design implications are in [new-game-design.md](new-game-design.md).
 
-The earlier games, the old savegame dashboard, their documents, their example saves and the memory of the former game-master campaigns are removed from `main` and live in the local branch `archiv/vor-neuaufbau` and in the git history. The saved workflow `.claude/workflows/realmcraft-refactor-verify.js` carries the next development step named in [handoff.md](handoff.md). The Obsidian vault holds the project overview and the owner's design notes under `Project Overview RealmCraft`.
+The earlier games, the old savegame dashboard, their documents, their example saves and the memory of the former game-master campaigns are removed from `main` and live in the local branch `archiv/vor-neuaufbau` and in the git history. The old complete refactor workflow is retired; current development follows [plan.md](plan.md). The Obsidian vault holds the project overview and the owner's design notes under `Project Overview RealmCraft`.
 
 ## License
 

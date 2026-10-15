@@ -102,7 +102,7 @@ The UI round of 3 October 2026 listed data the kernel did not deliver, and M1 cl
 
 ## M1 additions
 
-M1 adds a start screen with new game, continue, settings and rules, an Escape menu in game, English as default UI language with German selectable and labels per language, synthesised Web Audio with volumes and reduced motion, polished event cards, victory and defeat screens with a campaign summary and the research paths view ([decisions.md](decisions.md), D16 to D21). Their contracts are in [plan-m1.md](plan-m1.md).
+The board provides a start screen with new game, continue, settings and rules, an Escape menu, English and German UI labels, synthesized Web Audio with volumes and reduced motion, event cards, end screens and the research paths view ([decisions.md](decisions.md), D16 to D21). [plan-m1.md](plan-m1.md) retains their milestone contract and evidence limits; [plan.md](plan.md) routes current work.
 
 ## Product integration boundaries
 
