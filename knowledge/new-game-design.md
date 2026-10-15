@@ -55,6 +55,14 @@ The facilitator proposes consequences explicitly. A proposed consequence becomes
 
 The owner requests coverage of moral character, seriousness, colour, gods, belief and social organization, and permits images when they help communicate feeling and appearance. These are authoring dimensions. No particular religion, social order or visual treatment follows from listing them. A compassionate world may also be serious, so these dimensions should remain separately editable.
 
+## Spoken narrator
+
+During the full-start simulation the owner requested that the offered scenes be read by a compelling storyteller and that the same experience be available in the game. None of the offered starting scenes had been selected when this request arrived. Spoken delivery is therefore a new presentation requirement, while its effect on world selection remains untested.
+
+The narrator should have a recognizable delivery and accompany campaign creation. The narrator's gender, timbre, fictional identity and relation to the world remain open. A calm, attentive delivery is an assistant proposal for an initial script. The existing choices and transcripts should remain available, with playback, interruption, replay and voice volume controls. These interaction details are proposed acceptance criteria.
+
+Inspection of the board audio module found synthesized Web Audio cues and ambience, with no speech synthesis integration. The current tool inventory exposed no speech generation tool. A local System.Speech check exposed only an English desktop voice, so no German audio preview was produced. Narration quality and playback behavior have not been tested. Provider selection and implementation remain open.
+
 ## Observation and curation
 
 Keep the following evidence distinctions throughout the simulation.

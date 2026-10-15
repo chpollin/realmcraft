@@ -100,3 +100,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. The owner rejected the bare activity question and requested concrete worldbuilding choices, including atmosphere, colour, beliefs and social organization. Images are permitted where useful.
 - Target. [new-game-design.md](new-game-design.md).
 - Result. Revised the proposed conversation to offer combinable alternatives and begin with atmosphere. The next chat simulation will test this revised wording. No fictional world details were adopted through this correction.
+
+### 2026-10-15 integrated spoken narrator requirement from the start simulation
+
+- Source. Owner request to hear the offered scenes from a storyteller and retain that feature in the game.
+- Target. [new-game-design.md](new-game-design.md).
+- Result. Recorded narration as a presentation requirement with voice characteristics and proposed playback controls still open. Board inspection confirmed synthesized cues and ambience only. The local voice check found only an English desktop voice, so no German recording or in-game narration was delivered.
