@@ -106,3 +106,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner request to hear the offered scenes from a storyteller and retain that feature in the game.
 - Target. [new-game-design.md](new-game-design.md).
 - Result. Recorded narration as a presentation requirement with voice characteristics and proposed playback controls still open. Board inspection confirmed synthesized cues and ambience only. The local voice check found only an English desktop voice, so no German recording or in-game narration was delivered.
+
+### 2026-10-15 integrated delegated setup and confirmed narrator delivery
+
+- Source. Owner selection of calm, mysterious narration with dry humour, followed by delegation of the starting concept and setup.
+- Target. [new-game-design.md](new-game-design.md) and [the prototype setup snapshot](../snapshots/initialization-2026-10-15.md).
+- Result. Added a provisional delegated-start path and recorded the fictional setup separately from kernel state. The observer distinguishes authorized defaults from adopted world preferences. The next observation concerns the first player action, so effectiveness remains unassessed.

@@ -55,11 +55,19 @@ The facilitator proposes consequences explicitly. A proposed consequence becomes
 
 The owner requests coverage of moral character, seriousness, colour, gods, belief and social organization, and permits images when they help communicate feeling and appearance. These are authoring dimensions. No particular religion, social order or visual treatment follows from listing them. A compassionate world may also be serious, so these dimensions should remain separately editable.
 
+## Delegated setup
+
+After the scene cards were formalized, the owner asked the facilitator to choose what fits best and set up a new game. This authorizes provisional defaults for the current chat prototype. It does not establish agreement with every fictional detail or a general preference for automatic creation.
+
+The facilitator selects collaboration with intelligences because the owner explicitly expressed interest in data work and orchestration. Show the selected basis and a compact editable setup, then move to a first playable situation. Further authoring questions can arise from play. Whether this produces a better start remains a hypothesis until the player acts and reviews the experience.
+
+The initial prototype state and observation cutoff are recorded in [the dated setup snapshot](../snapshots/initialization-2026-10-15.md). Canonical kernel campaigns remain subject to CLI-only writes.
+
 ## Spoken narrator
 
 During the full-start simulation the owner requested that the offered scenes be read by a compelling storyteller and that the same experience be available in the game. None of the offered starting scenes had been selected when this request arrived. Spoken delivery is therefore a new presentation requirement, while its effect on world selection remains untested.
 
-The narrator should have a recognizable delivery and accompany campaign creation. The narrator's gender, timbre, fictional identity and relation to the world remain open. A calm, attentive delivery is an assistant proposal for an initial script. The existing choices and transcripts should remain available, with playback, interruption, replay and voice volume controls. These interaction details are proposed acceptance criteria.
+The narrator should have a recognizable delivery and accompany campaign creation. The owner selected calm, mysterious delivery with some dry humour. Gender, timbre, fictional identity and relation to the world remain open. This establishes a narration preference, while the emotional character of the world remains editable. The existing choices and transcripts should remain available, with playback, interruption, replay and voice volume controls. These interaction details are proposed acceptance criteria.
 
 Inspection of the board audio module found synthesized Web Audio cues and ambience, with no speech synthesis integration. The current tool inventory exposed no speech generation tool. A local System.Speech check exposed only an English desktop voice, so no German audio preview was produced. Narration quality and playback behavior have not been tested. Provider selection and implementation remain open.
 
