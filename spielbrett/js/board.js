@@ -18,6 +18,7 @@ import { renderRat } from './ui/rat.js';
 import { renderChronik } from './ui/chronik.js';
 import { renderBestimmung } from './ui/bestimmung.js';
 import { renderProbe } from './ui/probe.js';
+import { renderPlanen } from './ui/planen.js';
 import { closePinnedTip } from './ui/tip.js';
 import { issueText, objectsAt, resourceByKey } from './data/adapter.js';
 import { t, onLanguage, applyStatic } from './i18n/index.js';
@@ -30,6 +31,7 @@ const DIALOGS = {
   chronik: renderChronik,
   bestimmung: renderBestimmung,
   probe: renderProbe,
+  planen: renderPlanen,
 };
 const SHORTCUTS = { e: 'entwicklungen', r: 'rat', c: 'chronik', b: 'bestimmung' };
 const LAYERS = ['gelaende', 'besitz', 'bedrohung', 'handel'];
@@ -177,11 +179,17 @@ export function startBoard(model, game) {
 
     rerenderDialog(name) {
       const dlg = document.getElementById(`dlg-${name}`);
-      const focusedText = document.activeElement?.textContent;
+      const active = dlg.contains(document.activeElement) ? document.activeElement : null;
+      const selector = active?.id ? `#${CSS.escape(active.id)}`
+        : active?.dataset.planType ? `[data-plan-type="${CSS.escape(active.dataset.planType)}"]` : null;
+      const focusedText = active?.textContent;
+      const scroll = dlg.querySelector('.overlay-body')?.scrollTop ?? 0;
       DIALOGS[name](dlg, api);
-      // Keep keyboard focus on the equivalent control after a re-render.
-      const again = [...dlg.querySelectorAll('button')].find((b) => b.textContent === focusedText);
-      (again ?? dlg.querySelector('.overlay-kopf .icon-btn'))?.focus();
+      const again = (selector ? dlg.querySelector(selector) : null)
+        ?? [...dlg.querySelectorAll('button')].find((b) => b.textContent === focusedText);
+      (again ?? dlg.querySelector('h2'))?.focus({ preventScroll: true });
+      const body = dlg.querySelector('.overlay-body');
+      if (body) body.scrollTop = scroll;
     },
 
     /** Shows a decision's consequences where they land, before it is committed. */
@@ -198,6 +206,8 @@ export function startBoard(model, game) {
       renderOrders(api);
       renderEndTurn(api);
       renderKontext(api);
+      const planner = document.getElementById('dlg-planen');
+      if (planner.open) api.rerenderDialog('planen');
       if (p !== 'A') document.getElementById('zeit').textContent = t.fmt('board.time', { season: model.zeit.saison, year: model.zeit.jahr });
     },
 
@@ -404,7 +414,7 @@ export function startBoard(model, game) {
       renderKontext(api);
       renderRatsleiste(api);
       community?.refresh();
-      for (const name of ['rat', 'entwicklungen', 'bestimmung']) {
+      for (const name of ['rat', 'entwicklungen', 'bestimmung', 'planen']) {
         const d = document.getElementById(`dlg-${name}`);
         if (d.open) api.rerenderDialog(name);
       }
@@ -498,6 +508,15 @@ export function startBoard(model, game) {
 
   for (const d of document.querySelectorAll('dialog')) {
     d.addEventListener('close', () => {
+      if (d.id === 'dlg-planen') {
+        const returnSlot = d.dataset.returnSlot;
+        const restore = () => {
+          if (!document.querySelector('dialog[open]')) document.querySelector(`#budget [data-slot-key="${returnSlot}"]`)?.focus({ preventScroll: true });
+        };
+        const next = document.querySelector('dialog[open]');
+        if (next) next.addEventListener('close', restore, { once: true });
+        else restore();
+      }
       closePinnedTip();
       api.setPreview(null);
       for (const b of document.querySelectorAll('[data-dialog]')) b.setAttribute('aria-expanded', 'false');

@@ -20,8 +20,11 @@ export const ICONS = {
   bewegung: 'M5.6 9a2.4 3.6 0 1 0 4.8 0 2.4 3.6 0 1 0-4.8 0z M6.5 15.4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0z M13.6 11.6a2.4 3.6 0 1 0 4.8 0 2.4 3.6 0 1 0-4.8 0z M14.5 18a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0z',
   sicht: 'M2.8 13.5s3.4-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.4 5.5-9.2 5.5-9.2-5.5-9.2-5.5z M12 15.8a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z M12 2.8v2.4 M5.2 5l1.5 1.7 M18.8 5l-1.5 1.7',
   kosten: 'M8.6 6.6h6.8l-1.6 2.6c3 1.4 5 4.4 5 7.4 0 2.6-2.2 3.9-6.8 3.9s-6.8-1.3-6.8-3.9c0-3 2-6 5-7.4z M9.6 3.8h4.8',
-  haupt: 'M12 3.5l8.5 8.5-8.5 8.5L3.5 12z M12 8.2l3.8 3.8-3.8 3.8L8.2 12z',
-  neben: 'M12 3.5l8.5 8.5-8.5 8.5L3.5 12z',
+  haupt: 'M6 21V3.5 M6 4h12l-2.5 4L18 12H6 M3.5 21h5',
+  neben: 'M4 18v-5a5 5 0 0 1 5-5h11 M15 3l5 5-5 5 M4 21h.01',
+  kompass: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0z M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z M12 3V1.5',
+  weg: 'M4 21l5-7-2-5 7-6 M13 21l5-7-2-5 5-6 M7 18l9-1 M8 11l9-1 M11 6l7-1',
+  rueckzug: 'M20 18v-5a5 5 0 0 0-5-5H4 M9 3 4 8l5 5',
   preis: 'M7.4 9.2h9.2l2.8 10.8H4.6z M9.8 9.2a2.2 2.2 0 1 1 4.4 0',
   ueberdehnung: 'M3.5 17.5a8.5 8.5 0 0 1 17 0 M12 17.5l4.6-5.6 M6.2 13l1.2.8 M12 9v1.5 M17.8 13l-1.2.8',
   schild: 'M12 3.5l7 2.6v5.6c0 4.4-2.9 7.6-7 8.8-4.1-1.2-7-4.4-7-8.8V6.1z',
@@ -151,3 +154,12 @@ export function iconPath(name) {
   }
   return p;
 }
+
+// Concrete order glyphs keep a queued action recognisable in the compact turn bar.
+const ORDER_ICONS = {
+  explore: 'kompass', migrate: 'bewegung', found: 'siedlung', build: 'bauwerk',
+  adopt: 'lager', institute: 'institution', 'destiny.adopt': 'bestimmung',
+  attack: 'krieger', raid: 'raeuber', recruit: 'einheit', move: 'bewegung', retreat: 'rueckzug',
+  road: 'weg', 'road.pave': 'weg', 'discipline.use': 'magie', 'power.trial': 'magie',
+};
+export const orderIcon = (type) => ORDER_ICONS[type] ?? (type?.startsWith('trade.') ? 'handel' : type?.startsWith('research.') ? 'wissen' : 'haupt');

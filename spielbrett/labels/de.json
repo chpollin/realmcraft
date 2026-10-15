@@ -682,6 +682,16 @@
     "board.community.manage-short": "Verwalten",
     "board.community.season": "Saisonvorschau",
     "board.community.season-current": "Aktuelle Saison",
-    "board.community.visual-only": "Nur die Darstellung ändert sich."
+    "board.community.visual-only": "Nur die Darstellung ändert sich.",
+    "board.plan.haupt": "Hauptaktion planen",
+    "board.plan.neben": "Nebenaktion planen",
+    "board.plan.haupt.slot": "Hauptaktion planen",
+    "board.plan.neben.slot": "Nebenaktion {n} planen",
+    "board.plan.inspect": "Geplanten Befehl ansehen: {title}",
+    "board.plan.target": "Ziel wählen",
+    "board.plan.action": "Aktion wählen",
+    "board.plan.preview": "Kosten und Ausführung",
+    "board.plan.empty": "Zurzeit ist keine passende Aktion verfügbar.",
+    "board.world.no-results": "Noch keine Zugergebnisse vorhanden."
   }
 }

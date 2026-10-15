@@ -27,7 +27,7 @@ export function renderWeltgeschehen(api) {
   const rows = zz.agenten;
   const kern = rows.find((a) => a.role === 'kernel');
   const others = rows.filter((a) => a !== kern);
-  panel.replaceChildren(
+  const children = [
     el('div', { class: 'panel-kopf' },
       el('div', { class: 'panel-siegel' }, icon('welt', { size: 22 })),
       el('h2', { id: 'wg-titel', text: t('view.weltgeschehen') }),
@@ -40,7 +40,8 @@ export function renderWeltgeschehen(api) {
       kern ? kernGroup(api, zz, kern) : null,
       others.length ? el('section', { 'aria-labelledby': 'wg-agenten' },
         el('h3', { id: 'wg-agenten', text: t('board.world.agents') }),
-        el('ol', { class: 'agenten plain' }, ...others.map((a) => agentItem(api, a)))) : null));
+        el('ol', { class: 'agenten plain' }, ...others.map((a) => agentItem(api, a)))) : null)];
+  panel.replaceChildren(...children.filter(Boolean));
   const body = panel.querySelector('.panel-body');
   body.scrollTop = scroll;
   if (focusKey) body.parentElement.querySelector(`[data-fk="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: true });
@@ -116,8 +117,24 @@ function statusMark(a) {
 
 const sigil = (a) => el('span', { class: 'agent-siegel' }, icon(a.role === 'judge' ? 'schild' : a.id, { size: 18 }));
 
-/** Kernel results in a native disclosure; the open state survives the panel's re-rendering. */
+/** Only actual results expand; an empty kernel status stays readable without a disclosure. */
 function kernGroup(api, zz, a) {
+  if (!a.results.length) {
+    return el('section', {
+      class: `agent wg-kern-empty is-${STATE_CLASS[a.status] ?? 'waiting'}`,
+      style: { '--origin': 'var(--origin-kern)' },
+      'data-agent': a.step ?? a.id,
+      'aria-labelledby': 'wg-kern-empty-title',
+      'data-fk': 'kern',
+      tabindex: '-1',
+    },
+    sigil(a),
+    el('h3', { class: 'agent-kopf', id: 'wg-kern-empty-title' },
+      el('span', { class: 'agent-name', text: t('board.world.kernel-results') }),
+      a.status === 'fertig' ? null : statusMark(a)),
+    el('span', { class: 'agent-taetigkeit', text: a.taetigkeit || t('board.world.no-results') }),
+    a.status === 'gescheitert' ? retryHint() : null);
+  }
   const details = el('details', {
     class: `agent wg-kern is-${STATE_CLASS[a.status] ?? 'waiting'}`,
     open: zz.kernOffen !== false,

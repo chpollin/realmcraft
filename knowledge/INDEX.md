@@ -36,7 +36,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [data-contracts.md](data-contracts.md) | Which files and schemas carry state, content, tasks and proposals, and how they evolve | Specification |
 | [world-packages.md](world-packages.md) | What a world package contains and how Hochland is built | Domain knowledge |
 | [agents-harness.md](agents-harness.md) | Which agents take part in a turn, what they may read and write and how `/zug` runs | Action |
-| [frontend.md](frontend.md) | How the game board is built, which data it reads and which UI rules bind it | Design |
+| [frontend.md](frontend.md) | How the game board, action planning and community view use kernel data and which UI rules bind them | Design |
 | [testing.md](testing.md) | What the tests guarantee, how to run them and where the gaps are | Quality assurance |
 | [decisions.md](decisions.md) | Which fundamental decisions stand, why, and when to revisit them | Decision record |
 | [playtests.md](playtests.md) | What the owner reported in playtests and what became of each entry | Specification input |

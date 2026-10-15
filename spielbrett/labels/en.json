@@ -682,6 +682,16 @@
     "board.community.manage-short": "Manage",
     "board.community.season": "Season preview",
     "board.community.season-current": "Current season",
-    "board.community.visual-only": "Only the illustration changes."
+    "board.community.visual-only": "Only the illustration changes.",
+    "board.plan.haupt": "Plan main action",
+    "board.plan.neben": "Plan minor action",
+    "board.plan.haupt.slot": "Plan main action",
+    "board.plan.neben.slot": "Plan minor action {n}",
+    "board.plan.inspect": "View planned order: {title}",
+    "board.plan.target": "Choose target",
+    "board.plan.action": "Choose action",
+    "board.plan.preview": "Costs and execution",
+    "board.plan.empty": "No matching action is available right now.",
+    "board.world.no-results": "No turn results yet."
   }
 }

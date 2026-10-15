@@ -2,7 +2,7 @@
 // (orders of this turn, messages, end turn).
 
 import { el, signed } from '../dom.js';
-import { icon } from '../icons.js';
+import { icon, orderIcon } from '../icons.js';
 import { withTip } from './tip.js';
 import { t } from '../i18n/index.js';
 import { currentResearch } from '../data/pfade.js';
@@ -128,24 +128,31 @@ function slotGroup(api, art, used, max) {
   const orders = model.orders.filter((o) => o.art === art);
   const n = Math.max(used, max);
   const target = hint?.art === art && !hint.ersetzt && used < max ? used : -1;
+  const locked = model.phase === 'A' || api.game.view.status === 'ended';
   const boxes = Array.from({ length: n }, (_, i) => {
     const o = orders[i];
-    const cls = ['slot', art, i < used ? 'on' : '', i >= max ? 'over' : '', i === target ? 'is-ziel' : '',
-      hint?.art === art && used >= max ? 'is-voll' : '', o && hint?.ersetzt === o.id ? 'is-ersetzt' : ''].filter(Boolean).join(' ');
-    if (!o) return el('span', { class: cls, 'aria-hidden': 'true' }, icon(SLOT_ICON[art], { size: 20 }));
-    return withTip(el('button', { class: cls, type: 'button', 'aria-label': `${o.titel} ${o.ziel ?? ''}`.trim(), onclick: () => focusOrder(o.id) }, icon(SLOT_ICON[art], { size: 20 })),
-      [el('strong', { text: o.titel }), o.ziel ? ` ${o.ziel}` : ''], null, { up: true });
+    const cls = ['slot', art, i < used ? 'on' : 'is-empty', i >= max ? 'over' : '', i === target ? 'is-ziel' : '', hint?.art === art && used >= max ? 'is-voll' : '', o && hint?.ersetzt === o.id ? 'is-ersetzt' : ''].filter(Boolean).join(' ');
+    const label = o ? t.fmt('board.plan.inspect', { title: [o.titel, o.ziel].filter(Boolean).join(', ') })
+      : t.fmt(`board.plan.${art}.slot`, { n: i + 1 });
+    const btn = el('button', {
+      class: cls, type: 'button', 'data-slot-key': `${art}:${i}`, 'data-slot-index': i,
+      'data-plan-slot': o ? null : art, 'data-order-focus': o?.id,
+      'aria-label': label, 'aria-haspopup': o ? null : 'dialog', 'aria-controls': o ? 'befehle' : 'dlg-planen',
+      disabled: !o && (locked || i < used),
+      onclick: () => {
+        if (o) return focusOrder(o.id);
+        const dlg = document.getElementById('dlg-planen');
+        dlg.dataset.returnSlot = `${art}:${i}`;
+        api.openDialog('planen', { art });
+      },
+    }, icon(o ? orderIcon(o.type) : 'plus', { size: 24 }),
+    o ? el('span', { class: 'slot-check', 'aria-hidden': 'true' }, icon('ja', { size: 10 })) : null);
+    return withTip(btn, [el('strong', { text: label })], null, { up: true });
   });
   return el('div', { class: `slot-gruppe${used > max ? ' is-ueber' : ''}`, role: 'group', 'aria-label': t.fmt(`board.slots.${art}.group`, { used, max }), 'data-slots': art },
-    el('span', { class: 'slot-name', 'aria-hidden': 'true', text: t(`board.slots.${art}.short`) }),
+    el('span', { class: 'slot-name', 'aria-hidden': 'true' }, icon(SLOT_ICON[art], { size: 12 }), t(`board.slots.${art}.short`)),
     el('span', { class: 'slot-boxen' }, ...boxes));
 }
-
-/**
- * Research of the season: its own budget beside the action slots, never one
- * of them. The research points of the season, the project that takes them
- * and how far it gets, all from the kernel's rule (data/pfade.js).
- */
 function researchBudget(api) {
   const { game, model } = api;
   const now = currentResearch({ view: game.view, env: game.env, draft: game.draft, pv: game.base });
@@ -175,11 +182,14 @@ function researchBudget(api) {
 
 export function renderBudget(api) {
   const { used, max } = budgetState(api.model);
-  document.getElementById('budget').replaceChildren(
+  const budget = document.getElementById('budget');
+  const focused = budget.contains(document.activeElement) ? document.activeElement.dataset.slotKey : null;
+  budget.replaceChildren(
     slotGroup(api, 'haupt', used.haupt, max.haupt),
     slotGroup(api, 'neben', used.neben, max.neben),
     researchBudget(api),
   );
+  if (focused) budget.querySelector(`[data-slot-key="${focused}"]`)?.focus({ preventScroll: true });
 }
 
 /** The world event of the season as a step of its own in the turn bar, rolled like any probe. */

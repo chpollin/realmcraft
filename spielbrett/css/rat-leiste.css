@@ -94,23 +94,28 @@
   .rl-chip.auftrag { color: var(--ink); }
   .rl-chip.gegen { color: var(--ink-subtle); }
 
-  /* Slot indicator, bottom left of the turn bar: one box per action, filled when taken. */
+  /* Action slots open planning or the queued order; research keeps its own budget. */
   .budget { display: flex; flex-direction: row; align-items: center; gap: var(--space-4); }
   .budget > .has-tip { display: inline-flex; }
   .slot-gruppe { display: grid; justify-items: start; gap: 2px; }
-  .slot-name { font-size: 0.75rem; font-weight: 600; color: var(--ink-subtle); }
+  .slot-name { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--ink-subtle); }
   .slot-boxen { display: flex; gap: var(--space-1); }
   .slot-boxen > .has-tip { display: inline-flex; }
   .slot {
+    position: relative;
     display: grid;
     place-items: center;
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
     border-radius: var(--radius-s);
     border: 1.5px dashed var(--ink-faint);
     color: var(--ink-faint);
     transition: background var(--dur-1), border-color var(--dur-1), box-shadow var(--dur-2);
   }
+  .slot.is-empty { color: var(--ink-dim); border-color: var(--ink-subtle); background: var(--night-2); }
+  .slot.is-empty:hover:not(:disabled) { color: var(--ember); border-color: var(--ember); border-style: solid; }
+  .slot:disabled { cursor: default; opacity: 0.45; }
+  .slot-check { position: absolute; inset-inline-end: 1px; inset-block-end: 1px; display: grid; place-items: center; inline-size: 13px; block-size: 13px; border-radius: 50%; background: var(--ember); color: var(--night-1); }
   .slot.on { border: 1.5px solid var(--ember); background: oklch(from var(--ember) l c h / 0.16); color: var(--ember); }
   .slot.on.neben { background: transparent; }
   .slot.over { border-color: var(--down); background: oklch(from var(--down) l c h / 0.2); color: var(--down); }
@@ -119,7 +124,7 @@
   .slot.is-ersetzt { border-color: var(--down); color: var(--down); background: repeating-linear-gradient(135deg, transparent 0 5px, oklch(from var(--down) l c h / 0.22) 5px 7px); }
   @keyframes slot-ziel { to { box-shadow: 0 0 0 7px var(--ember-glow); } }
   .slot-gruppe.is-ueber .slot-name { color: var(--down); }
-  button.slot:hover { background: oklch(from var(--ember) l c h / 0.28); }
+  button.slot:hover:not(:disabled) { background: oklch(from var(--ember) l c h / 0.28); }
   button.slot:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
   /* Research: a budget of its own, styled apart from the action slots. */
@@ -229,8 +234,8 @@
   .ratsleiste { inset-block-start: 3.25rem; inset-inline-start: var(--space-2); max-block-size: calc(100% - 3.25rem - 7rem); }
   .ratsleiste[data-zu="false"] .rl-karte { inline-size: 12.5rem; }
   .budget { display: flex; gap: var(--space-2); }
-  .slot { inline-size: 2rem; block-size: 2rem; }
-  .slot-name { display: none; }
+  .slot { inline-size: 2.5rem; block-size: 2.5rem; }
+  .slot-name { font-size: 0.6875rem; }
   .forschung-budget { margin: 0; max-inline-size: 8rem; block-size: 2rem; }
   .brett.has-panel .ratsleiste { display: none; }
 }

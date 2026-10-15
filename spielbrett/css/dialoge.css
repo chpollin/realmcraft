@@ -182,3 +182,30 @@
   dialog.overlay-voll { block-size: calc(100dvh - var(--leiste-h, 5.5rem)); margin-block-start: var(--leiste-h, 5.5rem); }
   .chronik-eintrag { grid-template-columns: 1fr; gap: var(--space-1); }
 }
+
+@layer overlays {
+  .plan-layout { display: grid; grid-template-columns: minmax(11rem, 0.8fr) minmax(0, 1.2fr); gap: var(--space-6); }
+  .plan-actions { display: grid; align-content: start; gap: var(--space-2); }
+  .plan-action, .plan-route { display: flex; align-items: center; gap: var(--space-3); text-align: start; padding: var(--space-3); border-radius: var(--radius-s); }
+  .plan-action { border: 1px solid transparent; background: var(--night-2); min-block-size: 3.75rem; }
+  .plan-action > span { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+  .plan-action > .icon:first-child { color: var(--ember); flex-shrink: 0; }
+  .plan-action.is-unavailable > .icon:first-child { color: var(--ink-dim); }
+  .plan-action[aria-pressed="true"] { border-color: var(--ember); background: oklch(from var(--ember) l c h / 0.1); }
+  .plan-action:hover, .plan-route:hover { background: var(--night-3); }
+  .plan-action:focus-visible, .plan-route:focus-visible, #plan-ziel:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .plan-detail { min-inline-size: 0; }
+  .plan-heading { font-size: var(--step-1); margin-block-end: var(--space-4); }
+  .plan-detail label { display: block; color: var(--ink-dim); margin-block-end: var(--space-2); }
+  #plan-ziel { inline-size: 100%; min-block-size: 2.75rem; margin-block-end: var(--space-4); background: var(--night-2); color: var(--ink); padding: var(--space-2); border: 1px solid var(--ink-faint); border-radius: var(--radius-s); }
+  #plan-option .befehle-sektion { margin: 0; }
+  .plan-routes { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-4); border-block-start: 1px solid var(--ink-faint); padding-block-start: var(--space-3); }
+  .plan-routes:empty { display: none; }
+  .plan-route { flex-wrap: wrap; }
+}
+@media (max-width: 760px) {
+  .plan-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .plan-actions { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); }
+  .plan-action { gap: var(--space-2); padding: var(--space-2); }
+  .plan-action:not(.is-unavailable) > .icon:last-child { display: none; }
+}
