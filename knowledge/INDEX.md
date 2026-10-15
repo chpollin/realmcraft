@@ -10,7 +10,7 @@ status: complete
 language: en
 version: 1.0
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [vision, glossary, plan-m1, journal, handoff]
@@ -22,13 +22,14 @@ RealmCraft is a turn-based open-world strategy game in the browser. A determinis
 
 ## Reading order
 
-A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md). Running a game starts with [operations.md](operations.md).
+A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md). Running a game starts with [operations.md](operations.md).
 
 ## Documents
 
 | Document | Question it answers | Kind |
 |---|---|---|
 | [vision.md](vision.md) | What RealmCraft is, for whom, and which intentions bind it | Charter |
+| [new-game-design.md](new-game-design.md) | How free world description becomes an editable campaign draft, and what the chat simulation establishes | Design draft |
 | [game-design.md](game-design.md) | How a season plays, what the player decides and why the mechanics look the way they do | Specification |
 | [rules-kernel.md](rules-kernel.md) | Which rules the kernel executes, in which order, with which formulas | Specification |
 | [architecture.md](architecture.md) | Which components exist, how data flows between them and where the trust boundaries lie | Architecture |

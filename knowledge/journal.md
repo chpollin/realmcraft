@@ -88,3 +88,9 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. Owner request for a fresh optimized playtest and the UI audit of October 4 in [handoff.md](handoff.md).
 - Target. Board camera, planning controls and their browser regressions, [frontend.md](frontend.md) and [playtests.md](playtests.md).
 - Result. Known-world fit, readable province names, scoped shortcuts, a canonical research labour row, dismissible in-viewport blockers, retained control focus and explicit empty-turn/withdrawn-roll review. Existing campaign state and world rules remain compatible. Conceptual directions discussed in the chat remain proposals.
+
+### 2026-10-15 integrated campaign-authoring requirements and corrected proposal status
+
+- Source. Owner conversation requesting free world creation, editable drafts, campaign-dependent presentation and an observed chat initialization.
+- Target. [new-game-design.md](new-game-design.md), [vision.md](vision.md) and [INDEX.md](INDEX.md).
+- Result. Separated owner requirements, exploratory preferences, assistant-created worlds and untested conversation hypotheses. The proposed short-question method remains a design experiment. Inspection of server/newgame.mjs confirms that browser creation still uses world templates. The new chat simulation begins with no selected world sketch or accepted visual style.

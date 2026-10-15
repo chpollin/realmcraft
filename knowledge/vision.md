@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-15
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, decisions, architecture, plan-m1]
@@ -29,6 +29,10 @@ The owner's intention combines goals that depend on each other.
 4. An agent harness. Language models propose content and the kernel checks and books every proposal. No agent sets a value.
 5. The map first. The surface is a growing hex map on which the people moves, settles, explores and fights. Council, research and chronicle are panels over the map.
 6. Consequences before the decision. Every decision shows its consequences where they act before it is fixed, computed by the same kernel function that later resolves the turn ([decisions.md](decisions.md), D15).
+
+## Campaign authoring direction
+
+On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. A broader creation flow and alternative layouts remain under design.
 
 ## Shape of the game
 
