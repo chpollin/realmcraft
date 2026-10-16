@@ -241,3 +241,54 @@ test('an earlier reserved start with a changed compiler stays safely uncreated',
   assert.ok(!existsSync(join(root, 'campaigns', id)));
   assert.deepEqual(snapshot(root), before);
 });
+
+test('a confirmed library reset invalidates legacy ready and reserved attempts without writes', async () => {
+  const receipt = json(join(root, 'authoring/receipts', started.request.startKey + '.json'));
+  const reservedKey = randomUUID();
+  const legacy = { ...receipt };
+  delete legacy.generation;
+  writeFileSync(join(root, 'authoring/receipts', started.request.startKey + '.json'), JSON.stringify(legacy));
+  writeFileSync(join(root, 'authoring/receipts', reservedKey + '.json'), JSON.stringify({ ...legacy, startKey: reservedKey, id: 'realm-' + reservedKey.replaceAll('-', ''), state: 'reserved' }));
+  const indexPath = join(root, 'campaigns/index.json');
+  writeFileSync(indexPath, JSON.stringify({ ...json(indexPath), generation: randomUUID().replaceAll('-', '') }));
+  const before = snapshot(root);
+  for (const startKey of [started.request.startKey, reservedKey]) {
+    const refused = await post('/api/realms/start', { ...started.request, startKey });
+    assert.equal(refused.status, 409, refused.text);
+    assert.equal(refused.json.issues[0].params.reason, 'library-reset');
+    assert.deepEqual(snapshot(root), before);
+  }
+});
+
+test('an offline reset clears campaigns and snapshots, keeps packages and blocks old start retries', async () => {
+  const request = { ...started.request, startKey: randomUUID() };
+  const made = await post('/api/realms/start', request);
+  assert.equal(made.status, 201, made.text);
+  const ready = json(join(root, 'authoring/receipts', request.startKey + '.json'));
+  const reservedKey = randomUUID();
+  writeFileSync(join(root, 'authoring/receipts', reservedKey + '.json'), JSON.stringify({ ...ready, startKey: reservedKey, id: 'realm-' + reservedKey.replaceAll('-', ''), state: 'reserved' }));
+  cli('save', '--campaign', made.json.id, '--name', 'Vor dem Reset');
+  const packages = snapshot(join(root, 'welten'));
+  await server.stop();
+  const reset = cli('reset', '--all', '--offline');
+  assert.ok(reset.deleted.includes(made.json.id));
+  assert.notEqual(reset.generation, ready.generation);
+  assert.deepEqual(json(join(root, 'campaigns/index.json')).campaigns, []);
+  server = await startServer(root);
+  const afterReset = snapshot(root);
+  for (const startKey of [request.startKey, reservedKey]) {
+    const refused = await post('/api/realms/start', { ...request, startKey });
+    assert.equal(refused.status, 409, refused.text);
+    assert.equal(refused.json.issues[0].params.reason, 'library-reset');
+    assert.deepEqual(snapshot(root), afterReset);
+  }
+  assert.deepEqual((await get('/api/campaigns')).json, []);
+  assert.deepEqual(snapshot(join(root, 'welten')), packages);
+  const fresh = { ...request, startKey: randomUUID() };
+  const created = await post('/api/realms/start', fresh);
+  assert.equal(created.status, 201, created.text);
+  assert.notEqual(created.json.id, made.json.id);
+  assert.equal(json(join(root, 'authoring/receipts', fresh.startKey + '.json')).generation, reset.generation);
+  assert.equal(cli('status', '--campaign', created.json.id).phase, 'planning');
+  assert.equal(json(join(root, 'campaigns/index.json')).generation, reset.generation);
+});

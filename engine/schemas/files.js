@@ -72,7 +72,9 @@ export const FILE_DEFS = Object.freeze({
       status: { enum: ['playing', 'ended'] },
       updatedAt: ref('isoTime'),
     }), 200),
-  }),
+    generation: nullable(str('^[0-9a-f]{32}$')),
+    resetPending: arr(ref('id'), 200),
+  }, ['generation', 'resetPending']),
 });
 
 export const report = bundle('report/1', FILE_DEFS.report, ...DEFS, FILE_DEFS);

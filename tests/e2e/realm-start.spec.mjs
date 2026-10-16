@@ -472,3 +472,135 @@ test('an activation failure keeps the created realm recoverable and retry activa
   expect(await campaigns(page)).toEqual([...before, result.id].sort());
   expect(await page.evaluate(() => sessionStorage.getItem('realmcraft.creation.v1'))).toBeNull();
 });
+
+
+for (const generation of [null, '0123456789abcdef0123456789abcdef']) {
+  test('an unfinished draft survives an empty library with ' + (generation ? 'the same generation' : 'a legacy index'), async ({ page }) => {
+    await page.route('**/api/campaigns', (route) => route.fulfill({ json: [] }));
+    await page.route('**/campaigns/index.json', (route) => route.fulfill({ json: {
+      format: 'realmcraft-campaigns', version: 1, campaigns: [], ...(generation ? { generation } : {}),
+    } }));
+    await enter(page);
+    await draft(page);
+    await edit(page);
+    await preview(page);
+    const cached = await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')));
+    // Old tabs did not store a generation; their drafts belong to a legacy index.
+    if (!generation) await page.evaluate(() => {
+      const cached = JSON.parse(sessionStorage.getItem('realmcraft.creation.v1'));
+      delete cached.generation;
+      sessionStorage.setItem('realmcraft.creation.v1', JSON.stringify(cached));
+    });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#start-continue')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'edit');
+    await expect(page.locator('#realm-world-name')).toHaveValue(EDITED.world.name);
+    await expect(page.locator('#realm-people-description')).toHaveValue(EDITED.people.description);
+    await preview(page);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')))).toMatchObject({
+      generation, startKey: cached.startKey, fingerprint: cached.fingerprint,
+    });
+  });
+}
+
+test('a confirmed new library generation clears its old creation attempt and starts a fresh realm', async ({ page }) => {
+  let generation = '0123456789abcdef0123456789abcdef';
+  await page.route('**/api/campaigns', (route) => route.fulfill({ json: [] }));
+  await page.route('**/campaigns/index.json', (route) => route.fulfill({ json: { format: 'realmcraft-campaigns', version: 1, campaigns: [], generation } }));
+  await enter(page);
+  await draft(page);
+  await edit(page);
+  await preview(page);
+  const previous = await page.evaluate(() => {
+    const cached = JSON.parse(sessionStorage.getItem('realmcraft.creation.v1'));
+    cached.attempted = true;
+    sessionStorage.setItem('realmcraft.creation.v1', JSON.stringify(cached));
+    localStorage.setItem('realmcraft.audio', JSON.stringify({ master: 0.2, ui: 0.4, stingers: 0.3, muted: true, reduced: true }));
+    localStorage.setItem('spielbrett.ratsleiste', 'auf');
+    return cached;
+  });
+  const preferences = await page.evaluate(() => Object.fromEntries(['realmcraft.settings', 'realmcraft.audio', 'spielbrett.ratsleiste'].map((key) => [key, localStorage.getItem(key)])));
+  generation = 'fedcba9876543210fedcba9876543210';
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'brief');
+  await expect(page.locator('#realm-world-brief')).toHaveValue('');
+  await expect(page.locator('#realm-people-brief')).toHaveValue('');
+  expect(await page.evaluate(() => sessionStorage.getItem('realmcraft.creation.v1'))).toBeNull();
+  expect(await page.evaluate(() => Object.fromEntries(['realmcraft.settings', 'realmcraft.audio', 'spielbrett.ratsleiste'].map((key) => [key, localStorage.getItem(key)])))).toEqual(preferences);
+  await draft(page);
+  await edit(page);
+  await preview(page);
+  const fresh = await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')));
+  expect(fresh.generation).toBe(generation);
+  expect(fresh.attempted).toBe(false);
+  expect(fresh.startKey).not.toBe(previous.startKey);
+  await page.unroute('**/api/campaigns');
+  await page.unroute('**/campaigns/index.json');
+  const created = await start(page);
+  expect((await currentRealm(page)).id).toBe(created.id);
+});
+
+for (const unavailable of ['failed', 'malformed-token', '404', 'malformed-envelope']) {
+  test('an unavailable index (' + unavailable + ') preserves the cached draft and attempt', async ({ page }) => {
+    const generation = '0123456789abcdef0123456789abcdef';
+    let indexMode = 'valid';
+    await page.route('**/api/campaigns', (route) => route.fulfill({ json: [] }));
+    await page.route('**/campaigns/index.json', (route) => {
+      if (indexMode === 'failed') return route.abort('failed');
+      if (indexMode === '404') return route.fulfill({ status: 404, json: { error: 'temporarily unavailable' } });
+      if (indexMode === 'malformed-envelope') return route.fulfill({ json: { campaigns: [] } });
+      return route.fulfill({ json: { format: 'realmcraft-campaigns', version: 1, campaigns: [], generation: indexMode === 'malformed-token' ? 'broken-token' : generation } });
+    });
+    await enter(page);
+    await draft(page);
+    await edit(page);
+    await preview(page);
+    const cached = await page.evaluate(() => {
+      const cached = JSON.parse(sessionStorage.getItem('realmcraft.creation.v1'));
+      cached.attempted = true;
+      sessionStorage.setItem('realmcraft.creation.v1', JSON.stringify(cached));
+      return cached;
+    });
+    indexMode = unavailable;
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'edit');
+    await expect(page.locator('#realm-world-name')).toHaveValue(EDITED.world.name);
+    await preview(page);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')))).toMatchObject({
+      generation, attempted: true, startKey: cached.startKey, fingerprint: cached.fingerprint,
+    });
+    indexMode = 'valid';
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'edit');
+    await expect(page.locator('#realm-world-name')).toHaveValue(EDITED.world.name);
+  });
+}
+
+
+test('a draft begun before the index is readable survives its first confirmed generation', async ({ page }) => {
+  const generation = '0123456789abcdef0123456789abcdef';
+  let readable = false;
+  await page.route('**/api/campaigns', (route) => route.fulfill({ json: [] }));
+  await page.route('**/campaigns/index.json', (route) => readable
+    ? route.fulfill({ json: { format: 'realmcraft-campaigns', version: 1, campaigns: [], generation } })
+    : route.abort('failed'));
+  await enter(page);
+  await draft(page);
+  await edit(page);
+  await preview(page);
+  const cached = await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')));
+  readable = true;
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'edit');
+  await expect(page.locator('#realm-world-name')).toHaveValue(EDITED.world.name);
+  await expect(page.locator('#realm-people-description')).toHaveValue(EDITED.people.description);
+  await preview(page);
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')))).toMatchObject({
+    generation, startKey: cached.startKey, fingerprint: cached.fingerprint,
+  });
+});

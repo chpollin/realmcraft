@@ -8,13 +8,23 @@ import { normalizeCreation } from '../../../engine/creation/realm.js';
 import { landscapeArt, svgNode } from './realm-art.js';
 
 const STORAGE = 'realmcraft.creation.v1';
+const validGeneration = (value) => value === null || (typeof value === 'string' && /^[0-9a-f]{32}$/.test(value));
 const TAGS = ['erkundung', 'bau', 'verhandlung', 'angriff'];
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
 
-export function createRealmStart() {
+export function createRealmStart({ generation } = {}) {
   const root = el('div', { id: 'realm-flow', class: 'realm-flow' });
   let cached;
   try { cached = JSON.parse(sessionStorage.getItem(STORAGE)); } catch { /* Optional per-tab recovery. */ }
+  const cachedGeneration = cached?.generation ?? null;
+  const observed = validGeneration(generation);
+  // A confirmed library reset invalidates old attempts. Failed reads and empty
+  // campaign lists do not establish a reset and must preserve unfinished work.
+  if (observed && validGeneration(cachedGeneration) && generation !== cachedGeneration) {
+    cached = null;
+    try { sessionStorage.removeItem(STORAGE); } catch { /* Recovery storage is optional. */ }
+  }
+  const cacheGeneration = observed ? generation : cached && validGeneration(cachedGeneration) ? cachedGeneration : 'unknown';
   const recovered = normalizeCreation(cached?.draft);
   const draft = recovered.issues.length ? null : recovered.draft;
   const st = {
@@ -34,7 +44,7 @@ export function createRealmStart() {
   }, true);
   // Storage is a convenience. Every cached draft is validated again by the server.
   function persist() {
-    try { if (st.completed) { sessionStorage.removeItem(STORAGE); return; } sessionStorage.setItem(STORAGE, JSON.stringify({ brief: st.brief, draft: st.draft, startKey: st.startKey, fingerprint: st.fingerprint, attempted: st.attempted })); } catch { /* The current form still works without storage. */ }
+    try { if (st.completed) { sessionStorage.removeItem(STORAGE); return; } sessionStorage.setItem(STORAGE, JSON.stringify({ generation: cacheGeneration, brief: st.brief, draft: st.draft, startKey: st.startKey, fingerprint: st.fingerprint, attempted: st.attempted })); } catch { /* The current form still works without storage. */ }
   }
   function changed() { st.attempted = false; st.preview = null; st.fingerprint = null; st.startKey = null; st.created = null; persist(); refreshFolio(); }
   function edit(group, key, value) { st.draft[group][key] = value; changed(); }

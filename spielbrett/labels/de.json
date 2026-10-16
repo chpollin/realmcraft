@@ -409,6 +409,7 @@
     "issue.duplicate.order-id": "Befehlskennung doppelt vergeben",
     "issue.finished": "Die Partie ist beendet",
     "issue.format": "Der Entwurf ist fehlerhaft",
+    "issue.format.library-reset": "Die Spielstände wurden zurückgesetzt. Lade das Startmenü neu, um einen neuen Realm anzulegen.",
     "issue.format.not-object": "Der Entwurf ist fehlerhaft",
     "issue.format.reserved-name": "Ein reservierter Name dient als Kennung",
     "issue.format.wrong-people": "Der Entwurf gehört zu einem anderen Volk",

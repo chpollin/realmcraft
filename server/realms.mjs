@@ -10,7 +10,7 @@ import { canon } from '../engine/core/canon.js';
 import { createCampaign, emptyDraft, open, preview } from '../engine/core/turn.js';
 import { projectFor } from '../engine/core/project.js';
 import { parseKey, tileAt } from '../engine/world/index.js';
-import { renameWithRetry, withLock, writeJsonAtomic } from '../engine/harness/io.js';
+import { readJson, renameWithRetry, withLock, writeJsonAtomic } from '../engine/harness/io.js';
 import { CAMPAIGN_ROOT, CAMPAIGNS_DIR, ROOT } from './config.mjs';
 import { readPostJson, sendIssues, sendJson, serverIssue } from './http.mjs';
 import { parseCli, runCli } from './kernel.mjs';
@@ -142,6 +142,13 @@ function installPack(pack) {
   });
 }
 
+// The offline reset rotates this token so retries cannot recreate deleted games.
+function libraryGeneration() {
+  const generation = readJson(join(CAMPAIGNS_DIR, 'index.json'), { fallback: null })?.generation ?? null;
+  if (generation !== null && (typeof generation !== 'string' || !/^[0-9a-f]{32}$/.test(generation))) throw new Error('Invalid campaign library generation');
+  return generation;
+}
+
 function receiptFor(key, plan) {
   const dir = ownedDirectory('authoring', 'receipts');
   const path = join(dir, key + '.json');
@@ -152,11 +159,12 @@ function receiptFor(key, plan) {
       if (existing.format !== 'realmcraft-start' || existing.version !== 1 || existing.startKey !== key || existing.fingerprint !== plan.fingerprint || existing.draftHash !== hashValue(plan.draft) || existing.id !== 'realm-' + key.replaceAll('-', '') || existing.world !== plan.pack.welt.id || !['reserved', 'ready'].includes(existing.state)) {
         return failure(409, [bad('/startKey', 'start-key-conflict')]);
       }
+      if ((existing.generation ?? null) !== libraryGeneration()) return failure(409, [bad('/startKey', 'library-reset')]);
       return { path, receipt: existing };
     }
     const receipt = {
       format: 'realmcraft-start', version: 1, startKey: key, fingerprint: plan.fingerprint,
-      draftHash: hashValue(plan.draft), id: 'realm-' + key.replaceAll('-', ''), world: plan.pack.welt.id, state: 'reserved',
+      generation: libraryGeneration(), draftHash: hashValue(plan.draft), id: 'realm-' + key.replaceAll('-', ''), world: plan.pack.welt.id, state: 'reserved',
     };
     writeJsonAtomic(path, receipt);
     return { path, receipt };
@@ -202,6 +210,7 @@ async function recoverReadyStart(key, draft, fingerprint) {
     || typeof receipt.world !== 'string' || !/^realm-[0-9a-f]{16}$/.test(receipt.world) || !['reserved', 'ready'].includes(receipt.state)) {
     return failure(409, [bad('/startKey', 'start-key-conflict')]);
   }
+  if ((receipt.generation ?? null) !== libraryGeneration()) return failure(409, [bad('/startKey', 'library-reset')]);
   if (receipt.state !== 'ready') return null;
   const lockPath = join(CAMPAIGNS_DIR, receipt.id, 'world.lock.json');
   if (!existsSync(lockPath) || !inside(root, realpathSync(lockPath))) return failure(409, [bad('/startKey', 'campaign-not-readable')]);

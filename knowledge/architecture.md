@@ -30,7 +30,7 @@ RealmCraft is plain ES modules without a build step on Node 21 or later. Four pa
 | Schemas | `engine/schemas/` | Data contracts of every file, the primitive set and the budget tables ([data-contracts.md](data-contracts.md)) |
 | Harness IO | `engine/harness/` | Atomic file IO with locks, task building, ingest of proposals, `status.json` (Node only) |
 | Fallback AI | `engine/ai/fallback.js` | Deterministic draft for an AI people without a valid agent draft, computed on its projection |
-| CLI | `engine/cli.mjs` | The only writer of `campaigns/<cid>/`, with journal, campaign lock, replay and named saves |
+| CLI | `engine/cli.mjs` | The only writer of `campaigns/<cid>/`, with journal, campaign lock, replay, named saves and explicit offline library reset |
 | World packages | `welten/<id>/` | Generator, rules, labels, style and content of a world ([world-packages.md](world-packages.md)) |
 | Agent harness | `.claude/agents/`, `.claude/commands/`, `tools/hooks/`, `tools/harness/`, `.claude/settings.json` | Subagents, `/zug` and `/partie`, guard and status hooks, helpers ([agents-harness.md](agents-harness.md)) |
 | Game board | `spielbrett/` | World-map and community surfaces sharing the player projection, draft, kernel preview and order controls ([frontend.md](frontend.md)) |

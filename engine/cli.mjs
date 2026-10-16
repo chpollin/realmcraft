@@ -13,6 +13,7 @@
 //   replay [--to <turn>]              schema <name>
 //   repin                             pin the campaign to the current world package
 //   save --name <label>               saves                 load --slot <slot>
+//   reset --all --offline              removes runtime campaigns and their saves
 //
 // Exit codes: 0 ok, 1 internal error (an exception the kernel did not turn
 // into an issue; the output carries its stack as cli.error), 2 rejected or
@@ -80,9 +81,10 @@ import {
 import { followState, initTurnStatus, recordFinding, recordVerdict } from './harness/status.js';
 import { buildJudgeTask, buildTasks } from './harness/tasks.js';
 import { changesState, ingestProposal } from './harness/ingest.js';
+import { ResetError, resetCampaigns } from './harness/reset.js';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const BOOLEAN_FLAGS = new Set(['json']);
+const BOOLEAN_FLAGS = new Set(['json', 'all', 'offline']);
 const PACK_FILES = ['welt', 'regeln', 'labels', 'style'];
 const CONTENT = ['entwicklungen', 'ereignisse', 'bestimmungen'];
 // Same pattern the dev server accepts; it keeps a campaign id from naming a
@@ -1399,6 +1401,19 @@ function cmdLoad(c, a) {
   }, { allowDrift: true });
 }
 
+function cmdReset(a) {
+  if (a.positional.length || a.flags.all !== true || a.flags.offline !== true || Object.keys(a.flags).some((key) => !['all', 'offline', 'json'].includes(key))) {
+    return fail(2, [cliIssue('format', '/reset', 'usage: reset --all --offline (stop the server and all harness writers first)', { reason: 'reset-confirmation' })]);
+  }
+  try {
+    const data = resetCampaigns(rootOf());
+    return ok(data, 'removed runtime campaigns and their saves; start a new realm');
+  } catch (error) {
+    if (error instanceof ResetError) return { ...fail(error.exit, error.issues), data: error.data };
+    throw error;
+  }
+}
+
 // --- main --------------------------------------------------------------------
 
 const NEEDS_CAMPAIGN = new Set(['status', 'preview', 'roll', 'seal', 'apply', 'open', 'tasks', 'ingest', 'replay', 'repin', 'save', 'saves', 'load']);
@@ -1424,6 +1439,7 @@ function run(argv) {
   const cmd = a.positional.shift();
   switch (cmd) {
     case 'new': return cmdNew(a);
+    case 'reset': return cmdReset(a);
     case 'validate': return cmdValidate(a);
     case 'budget': return cmdBudget(a);
     case 'schema': return cmdSchema(a);

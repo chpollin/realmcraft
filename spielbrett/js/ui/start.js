@@ -61,9 +61,10 @@ export async function startScreen() {
   const root = document.getElementById('start');
   document.documentElement.dataset.shell = 'start';
   root.hidden = false;
-  const [worlds, campaigns] = await Promise.all([
+  const [worlds, campaigns, index] = await Promise.all([
     server.worlds().catch(() => []),
     server.campaigns().catch(() => []),
+    server.index().catch(() => undefined),
   ]);
   const st = {
     worlds,
@@ -77,7 +78,9 @@ export async function startScreen() {
     issues: [],
   };
 
-  const realm = createRealmStart();
+  const generation = index?.format === 'realmcraft-campaigns' && index.version === 1 && Array.isArray(index.campaigns)
+    ? index.generation ?? null : undefined;
+  const realm = createRealmStart({ generation });
 
   async function loadWorld(world) {
     st.world = world;

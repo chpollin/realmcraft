@@ -409,6 +409,7 @@
     "issue.duplicate.order-id": "Order id used twice",
     "issue.finished": "The game is over",
     "issue.format": "The draft is malformed",
+    "issue.format.library-reset": "Saved games were reset. Reload the start menu to create a new realm.",
     "issue.format.not-object": "The draft is malformed",
     "issue.format.reserved-name": "A reserved name is used as an id",
     "issue.format.wrong-people": "The draft belongs to another people",

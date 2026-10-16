@@ -104,6 +104,20 @@ The board serializes draft writes and flushes the latest local plan before creat
 
 A load whose response is lost or invalid remains locked because the server may already have restored the snapshot. The dialog offers a canonical reload before further planning. An explicit server refusal keeps the local draft available for correction and retry.
 
+## Reset runtime games
+
+Stop the dev server and every harness writer before resetting the runtime game library. This maintenance operation permanently removes current campaigns together with their named saves, automatic backups, drafts and staged restores.
+
+```sh
+node engine/cli.mjs reset --all --offline --json
+```
+
+Both flags are required. The CLI validates all resolved paths and campaign layouts before deletion, refuses symbolic links, junctions, unknown storage entries, held locks and active or unreadable run markers, then publishes an empty index with a new library generation and clears the active selection. Existing world packages and authoring receipts remain. Legacy owner material outside campaigns, including savegame.json, schwarzkaemme/ and design/, is outside this command.
+
+Restart the server and reload the start menu afterward. A confirmed generation change clears the old per-tab Realm draft and start attempt while retaining language, audio and accessibility preferences. Old ready or reserved start receipts cannot recreate games from the earlier generation. A missing notification or failed index read does not discard an unfinished draft.
+
+The command is offline maintenance. Its locks do not make deletion safe against arbitrary live campaign writers. A filesystem failure can leave some directories in place after invalidation. The refusal reports deleted, remaining and any published generation so the remaining storage can be inspected before repeating the reset. Validated pending ids remain in index.resetPending until completion, so a repeat can finish a campaign directory whose state files were already removed. Unlisted unknown directories still refuse the operation. Removal across several directories is not atomic.
+
 ## Recovery
 
 | Symptom | Meaning | Action |
