@@ -69,6 +69,8 @@ export const ICONS = {
   institution: 'M3.5 20h17 M5.5 20v-8 M9.8 20v-8 M14.2 20v-8 M18.5 20v-8 M3.5 10 12 4.5l8.5 5.5z',
 
   // Interface
+  speichern: 'M5 3.5h12l3.5 3.5v13H4V3.5z M8 3.5v6h8v-6 M8 20v-7h8v7 M13.5 5.5v2',
+  laden: 'M3 8h7l2 2h9l-3 10H3z M3 8V5h7l2 3 M14 3v10 M11 10l3 3 3-3',
   schliessen: 'M6.5 6.5l11 11 M17.5 6.5l-11 11',
   ja: 'M5 12.5l4.5 4.5L19 7.5',
   nein: 'M6.5 6.5l11 11 M17.5 6.5l-11 11',

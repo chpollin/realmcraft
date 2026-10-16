@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, rules-kernel, agents-harness, frontend, operations]
@@ -44,7 +44,7 @@ npm run sim:balance         # configured multi-seed, multi-season balance sweep
 | Unit, harness | hooks fed with hook inputs (path filter, denials, Windows paths, pre-check) and the dry run of `/zug` in a temporary root | `tests/unit/harness-hooks.test.js`, `tests/unit/harness-dryrun.test.js` |
 | Unit, board and server | adapter, blockers, event cards, Weltgeschehen, the campaign bridge, the API, saves, static files and access protection of `serve.mjs` against real server processes | `tests/unit/spielbrett-*.test.js`, `tests/unit/server/` |
 | Acceptance | black-box tests of the kernel written from the specification without knowledge of the implementation, driving only `node engine/cli.mjs` and checking its files with Ajv | `tests/acceptance/` |
-| End to end | the board against real campaigns. Load, preview, roll and seal, the blocker flow from the playtest, the paths wheel with council strip and destinies, the module views with event cards, provinces, attack, trade and the agent round, the game shell with start screen, menu and end screens, the language switch, synthesized audio, community labour and navigation, typed action-slot planning and kernel-result disclosure | `tests/e2e/` |
+| End to end | the board against real campaigns. Load, preview, roll and seal, the blocker flow from the playtest, the paths wheel with council strip and destinies, the module views with event cards, provinces, attack, trade and the agent round, the game shell with start screen, menu and end screens, the language switch, synthesized audio, community labour and navigation, typed action-slot planning, kernel-result disclosure and named save/load recovery | `tests/e2e/` |
 
 The acceptance groups cover lifecycle, determinism with replay, probes, the economy over many seasons with the fallback policy, agents and ingest, fog, phases, destiny with victory and collapse, and the event log. Each acceptance file opens with the assumptions it adds to those of `tests/acceptance/lib/harness.js`. The harness reads every value under the one field name the CLI emits, so a renamed field fails the suite instead of passing through a fallback. A changed CLI contract is reconciled in the harness file or in the assumption block of the affected test.
 
@@ -86,6 +86,8 @@ Run these with `REALMCRAFT_ROOT` set to a temporary folder or with `--root <dir>
 `tools/harness/acceptance.mjs` reads campaign verdicts and reports acceptance by agent and item type, with refusal reasons. A new live measurement requires an explicit run on the relevant campaign and turns. The existence of the helper establishes no current acceptance rate.
 
 The browser regressions `community.spec.mjs`, `action-slots.spec.mjs` and `world-results.spec.mjs` cover responsive and keyboard navigation, reuse of the stored draft and kernel preview, disabled action slots during resolution, and disclosure only for actual kernel results. They run against temporary campaigns.
+
+The draft-persistence checks exercise serial writes, edits arriving during a write, refusal/retry and exclusion of stale writes after restoration. The `saves.spec.mjs` browser regression uses temporary campaigns for pending and in-flight drafts, same-season restore, recoverable automatic backups, menu navigation, cancellation, failures, phase/run guards, ended-game recovery, lost or malformed load responses and start-screen access. These checks exercise the actual snapshot API without changing the owner’s games. Wide and phone-width snapshot lists with long names were visually inspected. Actual 200-percent browser zoom remains unverified in this pass.
 
 ## Gaps
 

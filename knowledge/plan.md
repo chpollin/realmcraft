@@ -9,13 +9,13 @@ method:
 status: active
 language: en
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-16
 related: [vision, new-game-design, frontend, testing, playtests, plan-m1, journal, handoff]
 ---
 
 # Development plan
 
-The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has template-based campaign creation, map and optional community views, direct main/minor planning, research, council, module views, audio cues and a rules reference. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
+The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has template-based campaign creation, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
 
 ## Continuation
 
@@ -37,7 +37,7 @@ Continue from the relevant section below with one bounded task and its acceptanc
 | UI corrections | Reproduce a current task with a relevant dense or narrow fixture | The specific interaction works by pointer and keyboard, with inspected screenshots and retained draft state |
 | Realm creation | Define the creation-draft contract and supported mechanical vocabulary from new-game-design.md | A reversible editable preview creates a separate valid campaign only after explicit Start |
 | Intentions and agent integration | Define the intention-to-order contract and service boundary before execution | Costs and consequences are reviewed before commitment; a real harness run can resume and return to planning |
-| Save menus and narration | Reuse the save API; settle the voice implementation before adding narration | Save/load recovery and playback controls work in their actual user flows, with narration quality heard and accepted separately |
+| Narration | Settle the voice implementation | Playback controls work in their actual user flows, with narration quality heard and accepted separately |
 | Sustained play | The relevant flow is implemented and runnable | Observed multi-turn evidence, remaining findings and human acceptance are recorded without turning scripted tests into live-agent claims |
 
 These dependencies constrain individual implementations. They do not assign deadlines or authorize every task at once. The owner's current assignment selects the bounded work.
@@ -60,7 +60,6 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 - Implement free realm creation through an overview, concrete offers, an editable creation draft, validation, a reversible first-scene preview and explicit campaign creation. [new-game-design.md](new-game-design.md) carries the requirements and observed chat trials. Fictional chat drafts have not been instantiated by the current template form.
 - Translate free player intentions into existing executable orders, or ask for a missing target or unsupported mechanic. Show the actual kernel costs and consequences before confirmation. An in-game intention interface and a background agent service are not built.
-- Expose named save/load in start and in-game menus, reusing the existing server/CLI support, including pre-load autosave and planning-phase restrictions. A browser game exit is navigation, not authority to close the browser application.
 - Continue work on the distinction between labour, resource stocks, research points, main/minor actions and free actions. Keep shared order and preview paths rather than introducing competing draft editors.
 - Extend the code-drawn community view from the authored Hochland scene to actual building/institution changes and a tested rendering vocabulary for authored worlds. The current scene does not represent a complete spatial inventory.
 - Add spoken narration and playback controls for the owner's calm, mysterious narrator with dry humour. Existing synthesized ambience and cues do not supply narration. A voice/provider choice and audio-quality acceptance remain open.

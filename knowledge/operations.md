@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [agents-harness, architecture, world-packages, testing]
@@ -89,7 +89,14 @@ node engine/cli.mjs saves --campaign <cid> --json                          # man
 node engine/cli.mjs load --slot save-37 --campaign <cid> --json            # -> autosave names the replaced files
 ```
 
-A load restores the save in place and keeps the files it replaces as `autosave-<rev>`, so loading that slot undoes the load. A save made under another world package restores into the drift state and needs `repin` before the next transition. The dev server exposes the same commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load` ([data-contracts.md](data-contracts.md)), which the board does not call yet. Saves stay under `campaigns/<cid>/saves/` and are deleted with the campaign folder. Agents never read them.
+A load restores the save in place and keeps the files it replaces as `autosave-<rev>`, so loading that slot undoes the load. A save made under another world package restores into the drift state and needs `repin` before the next transition. The dev server exposes the same commands through `GET` and `POST /api/campaigns/<cid>/saves` and `POST /api/campaigns/<cid>/load` ([data-contracts.md](data-contracts.md)). The board uses them from Save and Load in the game menu and from Saved games beside a campaign on the start screen. Saves stay under `campaigns/<cid>/saves/` and are deleted with the campaign folder. Agents never read them.
+
+The save dialog takes a name and lists the resulting snapshot with its season and date. Loading requires a separate confirmation and then reloads the canonical board, preserving the chosen map/community surface and UI language. Automatic backups appear in the same list and can undo a load. Save is available only while playing in planning; Load also accepts ended campaigns. A running harness turn remains a server-side refusal.
+
+The board serializes draft writes and flushes the latest local plan before creating a snapshot, restoring one or leaving through the game menu. A failed draft write stops the operation and retains local changes for retry. While a successful load replaces the state, the old page cannot send another draft write. Closing or refreshing a page with an unsaved draft triggers the browser’s standard warning where supported.
+
+
+A load whose response is lost or invalid remains locked because the server may already have restored the snapshot. The dialog offers a canonical reload before further planning. An explicit server refusal keeps the local draft available for correction and retry.
 
 ## Recovery
 

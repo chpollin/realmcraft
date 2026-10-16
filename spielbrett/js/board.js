@@ -522,7 +522,7 @@ export function startBoard(model, game) {
       for (const b of document.querySelectorAll('[data-dialog]')) b.setAttribute('aria-expanded', 'false');
     });
     // Click on the backdrop closes, a click inside does not.
-    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+    d.addEventListener('click', (e) => { if (e.target === d && d.getAttribute('aria-busy') !== 'true' && d.dataset.closeBlocked !== 'true') d.close(); });
   }
 
   // The paths overlay starts below the top bar; its height changes when the bar wraps.

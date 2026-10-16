@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [decisions, playtests, handoff, plan-m1]
@@ -17,7 +17,7 @@ related: [decisions, playtests, handoff, plan-m1]
 
 # Journal
 
-The curated backward-looking provenance index of the project. Current specification and rules live in the declarative documents, future work in [plan-m1.md](plan-m1.md), open inputs in [handoff.md](handoff.md). Earlier wordings are kept by git.
+The curated backward-looking provenance index of the project. Current specification and rules live in the declarative documents, future work in [plan.md](plan.md), open inputs in [handoff.md](handoff.md). Earlier wordings are kept by git.
 
 ## Entries
 
@@ -149,3 +149,10 @@ The curated backward-looking provenance index of the project. Current specificat
 - Target. README, CLAUDE.md, INDEX, the current development plan, milestone evidence, domain and operations documents, owner-feedback states and historical UI observations. The Vault Project Overview and ACTIVE-WORK carry project navigation and remaining work rather than duplicate technical contracts.
 - Result. Integrated the incoming material into plan.md, playtests.md and the responsible domain documents, leaving the handoff inbox empty. Retired the obsolete executable complete refactor workflow, whose audit/refactor/merge phases were already integrated; its source remains in Git history. Corrected claims that paths, audio, menus, issue parameters, judge feedback or legacy replay still awaited implementation. Preserved the actual kernel/input gaps, status projection review, product integrations, uncertain UI observations and human acceptance. The old UI audits retain their dates and no longer act as current implementation instructions. Historical journal citations and the earlier Vault design notes remain provenance.
 - Verification. Project syntax, unit and acceptance gates pass after reconciliation. All local Markdown file targets and heading fragments in README, CLAUDE.md and knowledge resolve. Independent source review found no lost open requirement. The Vault field, overview and link checks pass. Browser implementation was unchanged in this documentation pass, so its preceding full browser result remains the latest browser evidence. No live-agent run, campaign transition, push or merge was performed.
+
+### 2026-10-16 named saves in the game shell
+
+- Source. The owner requested a complete save/load menu with automatic recovery, preserved planning, documentation and a commit. The existing CLI and HTTP routes already supplied named snapshots and a pre-load backup.
+- Target. The shared save dialog, game/start menu entry points and serial draft persistence, with their contracts in [frontend.md](frontend.md), [operations.md](operations.md), [testing.md](testing.md) and [plan.md](plan.md).
+- Result. Named saves drain pending and in-flight draft writes. Loading asks for confirmation, retains the displaced plan as an automatic backup and blocks old-page writes until canonical reload. Network or invalid-response uncertainty keeps the page locked for reconciliation. Explicit refusals and failed draft writes preserve local planning for retry. The start screen also exposes recovery for ended campaigns. No owner campaign or world package was changed.
+- Verification. The project syntax, unit and acceptance gates and the full browser suite passed. Focused browser cases additionally exercised malformed-response reconciliation and ended-game recovery. Wide and phone-width states with long names were visually inspected, and keyboard access was exercised. Actual 200-percent browser zoom remains unverified because the available browser control did not establish that zoom level.

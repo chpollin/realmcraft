@@ -19,7 +19,8 @@ const post = async (url, body) => {
   } catch (err) {
     return { ok: false, exit: -1, status: 0, issues: [{ code: 'server', severity: 'error', path: '', message: String(err?.message ?? err) }] };
   }
-  const data = await res.json().catch(() => ({}));
+  const parsed = await res.json().catch(() => null);
+  const data = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   if (!res.ok) {
     const issues = Array.isArray(data.issues) && data.issues.length ? data.issues : [{ code: 'server', severity: 'error', path: '', message: data.error ?? `HTTP ${res.status}` }];
     return { ok: false, exit: -1, status: res.status, issues };
@@ -44,6 +45,9 @@ export const server = {
   seal: (cid) => post('/api/seal', { campaign: cid }),
   worlds: () => json('/api/worlds'),
   campaigns: () => json('/api/campaigns'),
+  saves: (cid) => json(`${a(cid)}/saves`),
+  saveGame: (cid, label) => post(`${a(cid)}/saves`, { label }),
+  loadGame: (cid, slot) => post(`${a(cid)}/load`, { slot }),
   /** New game through the kernel CLI: { id } or { ok: false, issues }. */
   create: (body) => post('/api/campaigns', body),
   /** Records the campaign as the one /zug plays next. */

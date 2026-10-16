@@ -16,7 +16,7 @@ The specification and architecture live in [knowledge/](knowledge/INDEX.md). Cur
 
 A new campaign starts from an installed world package and a people template. The optional community view uses actual labour assignments and the campaign season; its visual season override is development-only. Open a campaign with `?campaign=<id>&ansicht=gemeinschaft` to try it. The map remains the default view.
 
-Free world description, an editable generated creation draft, free intentions in an in-game chat and spoken narration are planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available through the CLI and server; save/load menu entries are not yet implemented. Agent rounds still use Claude Code, as described below. The board has no background agent service.
+Free world description, an editable generated creation draft, free intentions in an in-game chat and spoken narration are planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available in the game menu. The start screen opens each campaign’s saved games, including automatic backups. Agent rounds still use Claude Code, as described below. The board has no background agent service.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ Open `http://localhost:4173/`. The start screen offers a new game, the campaigns
 3. Type `/zug` to run the first agent round, then plan in the browser.
 4. Roll your probes on the board, end the turn on the board and type `/zug`. The game master resolves the season and the agents work while you plan the next one.
 
-A game can be saved under a name and loaded again in the planning phase (`node engine/cli.mjs save --name <label> --campaign <cid>`, `saves`, `load --slot <slot>`); loading first saves the current state automatically. Without agents a campaign also runs from the CLI alone, with pool content and a fallback policy for the rivals. The runbook is [knowledge/operations.md](knowledge/operations.md).
+Use Save or Load in the game menu, or Saved games beside a campaign on the start screen. Pending orders and labour changes are flushed before saving or loading. Loading asks for confirmation and first retains the current plan as an automatic backup. A completed game can also load an earlier save. The same commands remain available in the planning phase (`node engine/cli.mjs save --name <label> --campaign <cid>`, `saves`, `load --slot <slot>`); loading first saves the current state automatically. Without agents a campaign also runs from the CLI alone, with pool content and a fallback policy for the rivals. The runbook is [knowledge/operations.md](knowledge/operations.md).
 
 ## Tests
 

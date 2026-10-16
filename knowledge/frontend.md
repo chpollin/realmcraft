@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, architecture, data-contracts, playtests, testing, plan-m1]
@@ -106,6 +106,16 @@ The board provides a start screen with new game, continue, settings and rules, a
 
 ## Product integration boundaries
 
-The new-game form still creates a campaign from a world package and a people template. Free description, an editable generated creation draft and its reversible first-scene preview remain the requirements in [new-game-design.md](new-game-design.md), not capabilities of the current form. Save/load endpoints exist, but the board menu and client do not expose named saves. Free player intentions have no in-game translation interface, and the agent round still uses the external harness described in [agents-harness.md](agents-harness.md).
+The new-game form still creates a campaign from a world package and a people template. Free description, an editable generated creation draft and its reversible first-scene preview remain the requirements in [new-game-design.md](new-game-design.md), not capabilities of the current form. The board menu and start-screen campaign rows expose the existing save/load endpoints through the shared snapshot dialog described below. Free player intentions have no in-game translation interface, and the agent round still uses the external harness described in [agents-harness.md](agents-harness.md).
 
 The Rules dialog is a generated read-only reference. Viewer settings currently cover language, audio and reduced motion. Campaign-rule editing and a broader mechanics configuration remain product scope decisions. Audio supplies synthesized ambience and cues; spoken narration is not integrated. The community prototype's visual limits are stated above. A source review of old handoff items must be reproduced against current code before treating them as unfinished work.
+
+## Save menu interaction
+
+The player names a snapshot of the current plan or selects an earlier snapshot to restore. The board menu exposes Save and Load. Each campaign on the start screen has a separate saved-games action, including ended campaigns. The dialog keeps the campaign name, snapshot name, season/year and saved date visible. Automatic backups are identified by their recovery purpose. A load confirmation names its snapshot and explains that the displaced state is retained as an automatic backup. Cancelling returns to the unchanged list.
+
+The existing native-dialog surface, design tokens and icon family remain. The save form is a labelled input and submit button; comparable snapshots form a compact list whose actions wrap below their metadata on narrow screens. Loading, empty, success, blocked and failure states remain visible. Closing returns focus to the initiating control. No new display preferences or game rules are introduced.
+
+Before a named save, load or menu navigation, the board must drain pending draft writes and persist the latest edit. A failed flush keeps the draft and prevents that operation. Loading excludes further writes until a canonical page reload, including restoration within the same season. Server/CLI phase checks, running-turn locks, validation and pre-load backup remain authoritative.
+
+A load whose response is lost or invalid remains locked because the server may already have restored the snapshot. The dialog offers a canonical reload before further planning. An explicit server refusal keeps the local draft available for correction and retry.

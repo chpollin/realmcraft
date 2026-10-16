@@ -13,6 +13,7 @@ import { issueText } from '../data/adapter.js';
 import { getAudio } from '../audio/index.js';
 import { openEinstellungen } from './einstellungen.js';
 import { openRegeln } from './regeln.js';
+import { openSaves } from './saves.js';
 
 const SEED_MAX = 0xffffffff;
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
@@ -223,7 +224,7 @@ export async function startScreen() {
       const ended = c.status === 'ended';
       const won = ended && c.outcome?.won === true;
       const when = c.updatedAt ? new Date(c.updatedAt) : null;
-      return el('li', {}, el('button', {
+      return el('li', { class: 'kampagnen-zeile' }, el('button', {
         class: 'kampagne', type: 'button', id: `k-${c.id}`, 'data-campaign': c.id,
         onclick: async () => {
           await server.activate(c.id).catch(() => null);
@@ -239,7 +240,14 @@ export async function startScreen() {
         el('span', { text: worldName(c.world) }),
         el('span', { text: t(`shell.difficulty.${c.difficulty}`, c.difficulty ?? '') }),
         c.language ? el('span', { class: 'k-sprache', lang: c.language, title: t(`board.lang.${c.language}`, c.language), text: c.language.toUpperCase() }) : null),
-      when && !Number.isNaN(when.getTime()) ? el('time', { class: 'k-datum', datetime: c.updatedAt, text: date.format(when) }) : null));
+      when && !Number.isNaN(when.getTime()) ? el('time', { class: 'k-datum', datetime: c.updatedAt, text: date.format(when) }) : null),
+      el('button', { class: 'btn kampagne-saves', type: 'button', id: `saves-${c.id}`, 'data-campaign-saves': c.id,
+        'aria-label': t.fmt('shell.saves.campaign', { name: c.people?.name ?? c.player }),
+        onclick: () => openSaves({ cid: c.id, name: c.people?.name ?? c.player, campaign: c, onLoaded: async () => {
+          await server.activate(c.id).catch(() => null);
+          location.search = `?campaign=${encodeURIComponent(c.id)}`;
+        } }),
+      }, icon('laden', { size: 18 }), t('shell.saves.title')));
     }))];
   }
 

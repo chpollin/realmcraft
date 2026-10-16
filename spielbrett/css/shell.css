@@ -271,3 +271,33 @@
   transition-duration: 0ms !important;
   scroll-behavior: auto !important;
 }
+
+@layer components {
+  .kampagnen-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .kampagnen-zeile .kampagne { flex: 1 1 26rem; min-inline-size: 0; }
+  .kampagne-saves { margin-inline-start: auto; }
+}
+
+@layer overlays {
+  .saves, .save-form { display: grid; gap: var(--space-3); }
+  .save-form { margin-block-end: var(--space-3); }
+  .save-form label, .save-name { font-weight: 600; overflow-wrap: anywhere; }
+  .save-form input {
+    flex: 1 1 14rem; min-inline-size: 0; min-block-size: 2.75rem;
+    padding-inline: var(--space-3); border: 1px solid var(--ink-faint);
+    border-radius: var(--radius-s); background: var(--night-0);
+  }
+  .save-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .save-list { display: grid; }
+  .save-list li {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+    padding-block: var(--space-3); border-block-end: 1px solid var(--night-3);
+  }
+  .save-description { flex: 1 1 18rem; min-inline-size: 0; display: grid; gap: var(--space-1); }
+  .save-meta { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); color: var(--ink-dim); font-size: var(--step--1); }
+  .save-warning { color: var(--down); overflow-wrap: anywhere; }
+  .save-warning .btn { margin-block-start: var(--space-2); }
+  .save-notice { color: var(--up); }
+  #dlg-spielstaende .overlay-kopf h2 { overflow-wrap: anywhere; }
+  #dlg-spielstaende .btn { min-block-size: 2.75rem; }
+}

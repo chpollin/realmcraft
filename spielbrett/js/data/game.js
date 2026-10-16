@@ -11,6 +11,7 @@ import { server, turnStem } from './server.js';
 import { adaptView, orderRows, resourceRows, messages, issueText, describeParams, seasonOf, boardPhase, volkOf, previewDeltas, blockersOf } from './adapter.js';
 import { draftFor, withOrder, withoutOrder, withReplacedOrder, withoutRoll, withRoll, withMandate, withChoice, withAssign, openRolls } from './draft.js';
 import { optionsFor, previewOption } from './options.js';
+import { createDraftPersistence } from './draft-persistence.js';
 
 const SAVE_DELAY = 250;
 // Agents of status.json and sources of log entries on the origin tokens the board colours by.
@@ -219,31 +220,42 @@ export async function createGame(model, { cid: wanted } = {}) {
     return { icon: 'pfeil', wert: '', text: e.op };
   }
 
-  let saveTimer = 0;
-  function scheduleSave() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(save, SAVE_DELAY);
-  }
+  const persistence = createDraftPersistence({
+    read: () => g.draft,
+    delay: SAVE_DELAY,
+    async write(draft) {
+      g.saving = server.saveDraft(cid, pid, draft);
+      try { return await g.saving; } finally { g.saving = null; }
+    },
+    onResult(sent, res) {
+      const errors = (res.issues ?? []).filter((i) => i.severity === 'error' && i.code !== 'roll_missing');
+      g.saveError = res.stored ? null : [...new Set(errors.map((i) => issueText(i, t)))].join(', ') || t('issue.server');
+      if (sent === g.draft) {
+        refresh();
+        emit('draft');
+      }
+    },
+  });
 
-  async function save() {
-    const sent = g.draft;
-    g.saving = server.saveDraft(cid, pid, sent);
-    const res = await g.saving;
-    g.saving = null;
-    const errors = (res.issues ?? []).filter((i) => i.severity === 'error' && i.code !== 'roll_missing');
-    g.saveError = res.stored ? null : [...new Set(errors.map((i) => issueText(i, t)))].join(', ') || t('issue.server');
-    if (sent === g.draft) {
-      refresh();
-      emit('draft');
-    }
-    return res;
+  const hasUnsavedDraft = () => persistence.unsaved || Boolean(g.saveError);
+  async function withDraftBarrier(operation, options) {
+    const pending = persistence.withBarrier(operation, options);
+    emit('draft');
+    try { return await pending; } finally { emit('draft'); }
   }
+  globalThis.addEventListener?.('beforeunload', (event) => {
+    if (!hasUnsavedDraft()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
 
   function setDraft(next) {
+    if (persistence.locked) return false;
     g.draft = next;
     refresh();
     emit('draft');
-    scheduleSave();
+    persistence.schedule();
+    return true;
   }
 
   // --- report, status, chronicle -------------------------------------------------
@@ -393,7 +405,10 @@ export async function createGame(model, { cid: wanted } = {}) {
   // --- full rebuild on a new view --------------------------------------------------
 
   function rebuild({ keepDraft = true } = {}) {
-    if (!keepDraft || !g.draft || g.draft.turn !== g.view.turn) g.draft = draftFor(g.view, null);
+    if (!keepDraft || !g.draft || g.draft.turn !== g.view.turn) {
+      g.draft = draftFor(g.view, null);
+      persistence.markClean();
+    }
     const base = previewDraft(g.view, g.env, g.draft);
     Object.assign(model, adaptView({ view: g.view, env: g.env, t, world: g.world, preview: base, chronik: g.chronik }));
     model.world = g.world;
@@ -407,6 +422,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   await loadView();
   const stored = await server.draft(cid);
   g.draft = draftFor(g.view, stored?.draft ?? null);
+  persistence.markClean();
   await loadChronik();
   rebuild();
   if (g.view.phase !== 'planning') await loadStatus();
@@ -451,6 +467,9 @@ export async function createGame(model, { cid: wanted } = {}) {
   const leadCache = { draft: null, view: null, out: {} };
 
   Object.assign(g, {
+    hasUnsavedDraft,
+    flushDraft: () => persistence.flush(),
+    withDraftBarrier,
     onUpdate(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     optionsFor: (target) => optionsFor(ctx(), target),
     // An option that replaces another order keeps doing so through every re-preview (probe dialog).
@@ -462,6 +481,7 @@ export async function createGame(model, { cid: wanted } = {}) {
      * enters the draft; the refusal comes back as { grund }.
      */
     addOption(opt, { roll = null, extra = {} } = {}) {
+      if (persistence.locked) return { grund: t('board.endturn.locked') };
       const { replace, ...ext } = { ...(opt.extra ?? {}), ...extra };
       const check = previewOption(ctx(), { type: opt.type, params: opt.params }, { ...ext, ...(replace ? { replace } : {}) });
       if (check.grund) return { grund: check.grund };
@@ -473,7 +493,7 @@ export async function createGame(model, { cid: wanted } = {}) {
       setDraft(next);
       return { id: next.orders.at(-1).id };
     },
-    dropRoll(probeId) { setDraft(withoutRoll(g.draft, probeId)); },
+    dropRoll(probeId) { return setDraft(withoutRoll(g.draft, probeId)); },
     /**
      * Change of the probe modifier when a member leads, per member id, from the
      * kernel preview: measured on the first probe of the draft, else on
@@ -512,12 +532,12 @@ export async function createGame(model, { cid: wanted } = {}) {
     blockers: () => blockersOf(g.view, g.env, t, g.draft, g.base, g.world),
     removeOrder(id) {
       const row = model.orders.find((o) => o.id === id);
-      setDraft(withoutOrder(g.draft, id, row?.probe ?? null));
+      return setDraft(withoutOrder(g.draft, id, row?.probe ?? null));
     },
-    roll(probeId, value, fingerprint) { setDraft(withRoll(g.draft, probeId, value, fingerprint)); },
-    setMandate(orderId, on) { setDraft(withMandate(g.draft, orderId, on)); },
-    setChoice(choiceId, option) { setDraft(withChoice(g.draft, choiceId, option)); },
-    setAssign(assign) { setDraft(withAssign(g.draft, assign)); },
+    roll(probeId, value, fingerprint) { return setDraft(withRoll(g.draft, probeId, value, fingerprint)); },
+    setMandate(orderId, on) { return setDraft(withMandate(g.draft, orderId, on)); },
+    setChoice(choiceId, option) { return setDraft(withChoice(g.draft, choiceId, option)); },
+    setAssign(assign) { return setDraft(withAssign(g.draft, assign)); },
     /** Preview of the draft with a change, for hover previews outside the order list. */
     previewWith: (change) => previewDraft(g.view, g.env, change(g.draft)),
     /** Store changes at season end that a change of the draft would cause (D15). */
@@ -535,6 +555,7 @@ export async function createGame(model, { cid: wanted } = {}) {
       });
     },
     canSeal() {
+      if (persistence.locked) return { ok: false, reason: t('board.endturn.locked') };
       if (g.view.status === 'ended') return { ok: false, reason: t('board.end.over') };
       if (g.view.phase === 'resolving') return { ok: false, reason: t('phase.resolving') };
       if (g.view.phase === 'agents') return { ok: false, reason: t('phase.agents') };
@@ -544,21 +565,19 @@ export async function createGame(model, { cid: wanted } = {}) {
       return { ok: true };
     },
     async seal() {
-      clearTimeout(saveTimer);
-      if (g.saving) await g.saving;
-      const stored = await save();
-      if (!stored.stored) return { ok: false, issues: stored.issues };
-      const res = await server.seal(cid);
-      if (res.ok) {
-        model.zz = null;
-        ensureZz();
-        model.zz.phase = 'A';
-        model.zz.phaseTitel = phaseTitle('resolving');
-        model.zz.agenten = [{ ...kernelAgent(), status: 'arbeitet', taetigkeit: t('board.world.awaits-master') }];
-        model.phase = 'A';
-        emit('sealed', res);
-      }
-      return res;
+      return withDraftBarrier(async () => {
+        const res = await server.seal(cid);
+        if (res.ok) {
+          model.zz = null;
+          ensureZz();
+          model.zz.phase = 'A';
+          model.zz.phaseTitel = phaseTitle('resolving');
+          model.zz.agenten = [{ ...kernelAgent(), status: 'arbeitet', taetigkeit: t('board.world.awaits-master') }];
+          model.phase = 'A';
+          emit('sealed', res);
+        }
+        return res;
+      });
     },
     peopleVolk: (id) => volkOf(g.view, id),
     /**
