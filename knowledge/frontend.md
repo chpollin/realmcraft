@@ -85,6 +85,8 @@ The owner rejected the flat chat-entry screen on October 16. Its oversized title
 
 The first task is to copy the starting prompt and continue in the existing chat. A grouped action area carries that control, its copy result and, when available, Start prüfen. The shared draft becomes the primary visual object after publication. The action area names an unresolved start, while the full open questions and unimplemented rules remain readable below the study. Prompt text and the independent form route stay secondary. Wide composition places the community beside the study, while narrow composition stacks without clipping prose. The study has no interactive map semantics, fabricated statistics or continuous animation. Artistic acceptance remains open.
 
+The owner subsequently asked whether the empty studio still contains redundancy and generic AI-interface decoration. Source review shows repeated copy instructions before and after success, overlapping introductory headings and prose, and a large unformed relief that conveys no confirmed choice. The non-interactive process list can resemble selectable destinations. The proposed correction is a compact pre-draft state with one copy instruction, replacement success feedback and one short process overview. The large world surface would appear after confirmed content exists. This remains a design recommendation, not an implemented correction or an accepted style. The independent form must remain distinguishable from the shared draft even if placed under secondary routes.
+
 ## Design rules
 
 - Colours and sizes are tokens on `:root` in `spielbrett/css/tokens.css`. The canvas reads them once (`map/palette.js`) and only shifts lightness, chroma or alpha of a token.

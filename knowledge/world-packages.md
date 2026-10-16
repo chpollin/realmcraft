@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, game-design, glossary]
@@ -17,7 +17,7 @@ related: [rules-kernel, data-contracts, game-design, glossary]
 
 # World Packages
 
-A world package under `welten/<id>/` carries everything that makes a world different, from generator and terrain to calendar, resources, stats, peoples, councils, tuning, AI profiles, labels, image style and the content from which the game draws developments, events and destinies ([decisions.md](decisions.md), D3). The kernel reads a package only through `engine/core/env.js`. Every file names its world id, so a file copied into the wrong package is caught. Hochland is the first and only package.
+A world package under `welten/<id>/` carries everything that makes a world different, from generator and terrain to calendar, resources, stats, peoples, councils, tuning, AI profiles, labels, image style and the content from which the game draws developments, events and destinies ([decisions.md](decisions.md), D3). The kernel reads a package only through `engine/core/env.js`. Every file names its world id, so a file copied into the wrong package is caught. Hochland is the versioned source package. Free realm starts compile supported choices into private immutable `realm-*` packages, as specified in [data-contracts.md](data-contracts.md#realm-creation).
 
 ## Files
 

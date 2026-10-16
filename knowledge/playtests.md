@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [frontend, game-design, decisions, plan-m1, journal]
@@ -253,3 +253,7 @@ Polish:
 - a11y. Tab order jumps between map controls, places list and World events. Route UI optimisation round.
 - destiny. Destiny milestone progress field reads 0 while the board shows 1 of 3. Route kernel: clarify or rename in the data contract; the board is right.
 - a11y. Raw i18n keys used as aria-labels. Route F1 shell, after a check of the data-t-aria-label resolution timing.
+
+## Chat-workshop review, October 16, 2026
+
+The owner rejected the flat text-led start screen, then asked whether the subsequent relief-based studio still has redundant and generic AI-interface elements. The implemented studio therefore remains a visual prototype awaiting review. The current repetition and the proposed compact pre-draft state are recorded in [frontend.md](frontend.md#chat-workshop-composition), with continuation in [plan.md](plan.md#current-ui-review). This feedback has not yet produced another UI change.

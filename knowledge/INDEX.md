@@ -18,7 +18,7 @@ related: [vision, glossary, plan, plan-m1, journal, handoff]
 
 # Index
 
-RealmCraft is a turn-based open-world strategy game in the browser. A deterministic rules kernel computes every value, language-model agents in Claude Code propose content that the kernel validates against a power budget, and the player plans on a map-first game board. This folder holds the specification and architecture of the project. Code, schemas and tests remain the source of truth for every number, and a document that disagrees with them is corrected.
+RealmCraft is a turn-based open-world strategy game played through an existing AI harness chat and a companion browser board. A deterministic rules kernel computes every value, language-model agents in Claude Code propose content that the kernel validates against a power budget, and the player plans on a map-first game board. This folder holds the specification and architecture of the project. Code, schemas and tests remain the source of truth for every number, and a document that disagrees with them is corrected.
 
 ## Reading order
 
@@ -29,7 +29,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | Document | Question it answers | Kind |
 |---|---|---|
 | [vision.md](vision.md) | What RealmCraft is, for whom, and which intentions bind it | Charter |
-| [new-game-design.md](new-game-design.md) | How descriptions become an editable, previewed realm, and what remains an adaptive-conversation proposal | Design |
+| [new-game-design.md](new-game-design.md) | How shared chat authoring becomes a reviewed realm start, and which conversation and capability boundaries remain | Design |
 | [game-design.md](game-design.md) | How a season plays, what the player decides and why the mechanics look the way they do | Specification |
 | [rules-kernel.md](rules-kernel.md) | Which rules the kernel executes, in which order, with which formulas | Specification |
 | [architecture.md](architecture.md) | Which components exist, how data flows between them and where the trust boundaries lie | Architecture |

@@ -1,6 +1,6 @@
 # CLAUDE.md, RealmCraft
 
-RealmCraft is a turn-based open-world strategy game with a deterministic rules kernel, world packages, an agent harness in Claude Code and a map-first browser board. The knowledge base starts at [knowledge/INDEX.md](knowledge/INDEX.md). Read it, then [knowledge/plan.md](knowledge/plan.md) and any incoming material in [knowledge/handoff.md](knowledge/handoff.md), then the document of the task. Code, schemas and tests are the source of truth for every number, and a knowledge document that disagrees with them is corrected.
+RealmCraft is a turn-based open-world strategy game played through an existing AI harness chat and a companion browser board. It has a deterministic rules kernel, world packages and gameplay workers integrated with Claude Code. The knowledge base starts at [knowledge/INDEX.md](knowledge/INDEX.md). Read it, then [knowledge/plan.md](knowledge/plan.md) and any incoming material in [knowledge/handoff.md](knowledge/handoff.md), then the document of the task. Code, schemas and tests are the source of truth for every number, and a knowledge document that disagrees with them is corrected.
 
 ## Roles
 

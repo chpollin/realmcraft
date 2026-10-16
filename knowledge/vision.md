@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, decisions, architecture, plan-m1]
@@ -17,7 +17,7 @@ related: [game-design, decisions, architecture, plan-m1]
 
 # Vision
 
-RealmCraft is a turn-based open-world strategy game in the browser in which a people develops its own way over the seasons. A deterministic rules kernel keeps every number, language-model agents in Claude Code propose events, achievements, council voices, rival moves and chronicle, and a validator with a power budget keeps their proposals fair. It is a Promptotyping research project of DHCraft and the owner's own game. Code is MIT, text CC BY 4.0.
+RealmCraft is a turn-based open-world strategy game played through an existing AI harness chat and a companion browser board, in which a people develops its own way over the seasons. A deterministic rules kernel keeps every number, language-model agents in Claude Code propose events, achievements, council voices, rival moves and chronicle, and a validator with a power budget keeps their proposals fair. It is a Promptotyping research project of DHCraft and the owner's own game. Code is MIT, text CC BY 4.0.
 
 ## Intentions
 
@@ -32,7 +32,7 @@ The owner's intention combines goals that depend on each other.
 
 ## Campaign authoring direction
 
-On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. The optional community layout is implemented as a Hochland experiment. Its drawing style remains subject to owner review. The broader creation flow remains under design.
+On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. The optional community layout is implemented as a Hochland experiment. Its drawing style remains subject to owner review. The shared chat workshop now publishes confirmed drafts and supported choices for a reversible kernel preview and explicit independent campaign start. Conversation quality, arbitrary new mechanics and world-specific rendering remain open. The visual studio is a prototype whose artistic acceptance is not established.
 
 ## Shape of the game
 

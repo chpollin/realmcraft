@@ -101,7 +101,7 @@ During the full-start simulation the owner requested that the offered scenes be 
 
 The narrator should have a recognizable delivery and accompany campaign creation. The owner selected calm, mysterious delivery with some dry humour. Gender, timbre, fictional identity and relation to the world remain open. This establishes a narration preference, while the emotional character of the world remains editable. The existing choices and transcripts should remain available, with playback, interruption, replay and voice volume controls. These interaction details are proposed acceptance criteria.
 
-Inspection of the board audio module found synthesized Web Audio cues and ambience, with no speech synthesis integration. The current tool inventory exposed no speech generation tool. A local System.Speech check exposed only an English desktop voice, so no German audio preview was produced. Narration quality and playback behavior have not been tested. Provider selection and implementation remain open.
+An earlier inspection of the board audio module found synthesized Web Audio cues and ambience, with no speech synthesis integration. Background audio was subsequently removed; the current contract retains finite feedback cues ([D25](decisions.md#d25-audio-feedback-without-background-loops)). The current tool inventory exposed no speech generation tool. A local System.Speech check exposed only an English desktop voice, so no German audio preview was produced. Narration quality and playback behavior have not been tested. Provider selection and implementation remain open.
 
 ## Observation and curation
 

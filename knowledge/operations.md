@@ -39,7 +39,9 @@ Start Claude Code in the repository on Opus. The commands set their model themse
 
 ## New game
 
-On the start screen choose New game, then describe the world and people. Create draft preserves both descriptions and adds editable neutral defaults. Edit names, landscape, way of life, strength, weakness and goal. Expand council, neighbour and further options to change those details, seed or narrative language. View preview generates the real known map, starting resources, council and goal without writing files. Back preserves the draft; editing invalidates the old preview. A per-tab session-storage copy resumes editing after reload when available.
+On the start screen choose New game and copy the starting prompt into the existing harness chat. Develop the world, community and supported choices there. Confirmed publications appear in the companion studio, with open questions and unimplemented rule ideas shown separately. Resolve those notes before Review start opens the actual known map, starting resources, council and goal. The landscape study is schematic. The [chat-led initialization procedure](#chat-led-realm-initialization) defines the helper and shared-draft boundary.
+
+The separate form action opens its own draft. Describe the world and people, create a draft with neutral editable defaults, then edit names, landscape, way of life, strength, weakness and goal. Council, neighbour, seed and narrative language remain under further options. Back preserves that draft, while editing invalidates its preview. Optional per-tab storage resumes editing after reload.
 
 Only New game start installs the immutable package under `<root>/welten/realm-<hash>/` and creates a separate `realm-<uuid>` campaign through CLI `new` and `open`. It opens directly in planning, using validated pool content. The browser selects this campaign for the external harness before navigating. A failed selection stays on the preview and offers retry. Existing campaigns and saved drafts are unchanged.
 
@@ -51,7 +53,7 @@ From the terminal the CLI creates a campaign directly.
 node engine/cli.mjs new hochland --seed 48213 --as bergnomaden --id hochland-2 --json
 ```
 
-`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. The start screen also creates a game through the server ([decisions.md](decisions.md), D18). The separate package/template option selects existing templates, rivals, difficulty, narrative language and seed. The default free realm option follows the workflow above.
+`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. The start screen also creates a game through the server ([decisions.md](decisions.md), D18). The separate package/template option selects existing templates, rivals, difficulty, narrative language and seed. The default free realm option uses the shared chat workshop above; the independent form remains an alternative.
 
 ## Play a turn
 
