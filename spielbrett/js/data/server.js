@@ -50,6 +50,9 @@ export const server = {
   loadGame: (cid, slot) => post(`${a(cid)}/load`, { slot }),
   /** New game through the kernel CLI: { id } or { ok: false, issues }. */
   create: (body) => post('/api/campaigns', body),
+  realmDraft: (brief) => post('/api/realms/draft', brief),
+  realmPreview: (draft) => post('/api/realms/preview', { draft }),
+  realmStart: (draft, fingerprint, startKey) => post('/api/realms/start', { draft, fingerprint, startKey }),
   /** Records the campaign as the one /zug plays next. */
   activate: (cid) => post(`${a(cid)}/activate`, {}),
 
@@ -60,6 +63,8 @@ export const server = {
   subscribe(cid, handler) {
     if (typeof EventSource === 'undefined') return () => {};
     const es = new EventSource('/events');
+    // Reconcile changes that happened before connection or during reconnect.
+    es.addEventListener('hello', () => handler('view', { campaign: cid }));
     for (const ev of ['view', 'status', 'chronik', 'report']) {
       es.addEventListener(ev, (e) => {
         let data = null;

@@ -106,7 +106,7 @@ The board provides a start screen with new game, continue, settings and rules, a
 
 ## Product integration boundaries
 
-The new-game form still creates a campaign from a world package and a people template. Free description, an editable generated creation draft and its reversible first-scene preview remain the requirements in [new-game-design.md](new-game-design.md), not capabilities of the current form. The board menu and start-screen campaign rows expose the existing save/load endpoints through the shared snapshot dialog described below. Free player intentions have no in-game translation interface, and the agent round still uses the external harness described in [agents-harness.md](agents-harness.md).
+New game defaults to the free realm workflow described below. The previous world-package/template form remains a separate option. Descriptions remain verbatim fiction, and executable choices are explicit. The kernel-derived map preview is reversible and creates no campaign. [new-game-design.md](new-game-design.md) distinguishes this implementation from the broader adaptive conversation. The board menu and start-screen campaign rows expose the existing save/load endpoints through the shared snapshot dialog described below. Free player intentions have no in-game translation interface, and the agent round still uses the external harness described in [agents-harness.md](agents-harness.md).
 
 The Rules dialog is a generated read-only reference. Viewer settings currently cover language, audio and reduced motion. Campaign-rule editing and a broader mechanics configuration remain product scope decisions. Audio supplies synthesized ambience and cues; spoken narration is not integrated. The community prototype's visual limits are stated above. A source review of old handoff items must be reproduced against current code before treating them as unfinished work.
 
@@ -119,3 +119,13 @@ The existing native-dialog surface, design tokens and icon family remain. The sa
 Before a named save, load or menu navigation, the board must drain pending draft writes and persist the latest edit. A failed flush keeps the draft and prevents that operation. Loading excludes further writes until a canonical page reload, including restoration within the same season. Server/CLI phase checks, running-turn locks, validation and pre-load backup remain authoritative.
 
 A load whose response is lost or invalid remains locked because the server may already have restored the snapshot. The dialog offers a canonical reload before further planning. An explicit server refusal keeps the local draft available for correction and retry.
+
+## Realm creation interaction
+
+New game defaults to a freely authored realm, with the existing package/template form retained as a separate choice. The player first describes world and people. A compact step indicator shows description, editing and preview. Creating the draft preserves the authored prose and supplies explicitly editable neutral defaults for names, landscape, way of life, strengths, neighbours, council and a supported goal. No text-model interpretation is implied.
+
+The editor keeps world and people descriptions visible alongside their names. Landscape, way of life, strengths and goal are the mechanical choices. Council and neighbour details are optional to expand. The preview shows the actual generated known map, home, starting resources, council and goal from the kernel projection. Back returns to the same draft. Only Start creates a separate campaign; editing invalidates the preview. The start attempt keeps its idempotency key for retries after a lost response. The per-tab creation draft survives reload when session storage is available.
+
+The existing no-build modules, native controls and design tokens remain. Wide layouts place related short fields in intrinsic columns; descriptions and actions wrap to one column on phones. Errors remain next to the workflow and identify the affected field where possible. Keyboard focus moves to the current step heading and survives failed requests. Authored worlds use the world map; the Hochland community illustration remains limited to its supported package.
+
+The live client reloads its canonical view after each SSE hello, including reconnects. This covers a campaign transition between the initial HTTP read and the live connection without discarding a same-turn local draft.

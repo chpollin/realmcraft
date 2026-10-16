@@ -15,7 +15,7 @@ related: [vision, new-game-design, frontend, testing, playtests, plan-m1, journa
 
 # Development plan
 
-The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has template-based campaign creation, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
+The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has free realm creation with editable drafts and pure map previews, a separate template start, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
 
 ## Continuation
 
@@ -58,7 +58,7 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 ## Product integrations
 
-- Implement free realm creation through an overview, concrete offers, an editable creation draft, validation, a reversible first-scene preview and explicit campaign creation. [new-game-design.md](new-game-design.md) carries the requirements and observed chat trials. Fictional chat drafts have not been instantiated by the current template form.
+- The free realm start is implemented through descriptions, editable neutral defaults, supported mechanics, a reversible generated-map preview and explicit independent campaign creation. [new-game-design.md](new-game-design.md) defines its contract and limits. Further adaptive questions, LLM-generated suggestions and a rendering vocabulary for authored worlds remain outside this implementation. Earlier fictional chat drafts are not imported automatically.
 - Translate free player intentions into existing executable orders, or ask for a missing target or unsupported mechanic. Show the actual kernel costs and consequences before confirmation. An in-game intention interface and a background agent service are not built.
 - Continue work on the distinction between labour, resource stocks, research points, main/minor actions and free actions. Keep shared order and preview paths rather than introducing competing draft editors.
 - Extend the code-drawn community view from the authored Hochland scene to actual building/institution changes and a tested rendering vocabulary for authored worlds. The current scene does not represent a complete spatial inventory.

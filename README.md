@@ -14,9 +14,9 @@ The specification and architecture live in [knowledge/](knowledge/INDEX.md). Cur
 
 ## Current scope
 
-A new campaign starts from an installed world package and a people template. The optional community view uses actual labour assignments and the campaign season; its visual season override is development-only. Open a campaign with `?campaign=<id>&ansicht=gemeinschaft` to try it. The map remains the default view.
+New game offers free world and people descriptions, an editable draft and a reversible map preview. Landscape, way of life, strengths, council, neighbour and goal are explicit choices. Start creates an independent package and campaign and opens planning immediately. Existing campaigns and their saved plans remain available. The package/template start remains a separate option. The optional community view uses actual labour assignments and the campaign season; its visual season override is development-only. Open a campaign with `?campaign=<id>&ansicht=gemeinschaft` to try it. The map remains the default view.
 
-Free world description, an editable generated creation draft, free intentions in an in-game chat and spoken narration are planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available in the game menu. The start screen opens each campaign’s saved games, including automatic backups. Agent rounds still use Claude Code, as described below. The board has no background agent service.
+The creation flow preserves prose and supplies neutral editable defaults; it does not interpret prose through an LLM or invent executable mechanics. Authored worlds use the world map. Free intentions in an in-game chat, world-specific community scenes and spoken narration remain planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available in the game menu. The start screen opens each campaign’s saved games, including automatic backups. Agent rounds still use Claude Code, as described below. The board has no background agent service.
 
 ## Requirements
 
@@ -38,7 +38,7 @@ Open `http://localhost:4173/`. The start screen offers a new game, the campaigns
 
 1. Start Claude Code in the repository.
 2. Create a campaign on the start screen, with `/partie neu hochland 48213 bergnomaden hochland-1`, or in the terminal with `node engine/cli.mjs new hochland --seed 48213 --as bergnomaden --id hochland-1`.
-3. Type `/zug` to run the first agent round, then plan in the browser.
+3. A freely authored realm opens planning directly with validated pool content. A package/template or CLI start first needs `/zug` to run the initial agent round.
 4. Roll your probes on the board, end the turn on the board and type `/zug`. The game master resolves the season and the agents work while you plan the next one.
 
 Use Save or Load in the game menu, or Saved games beside a campaign on the start screen. Pending orders and labour changes are flushed before saving or loading. Loading asks for confirmation and first retains the current plan as an automatic backup. A completed game can also load an earlier save. The same commands remain available in the planning phase (`node engine/cli.mjs save --name <label> --campaign <cid>`, `saves`, `load --slot <slot>`); loading first saves the current state automatically. Without agents a campaign also runs from the CLI alone, with pool content and a fallback policy for the rivals. The runbook is [knowledge/operations.md](knowledge/operations.md).
@@ -64,7 +64,7 @@ Details in [knowledge/testing.md](knowledge/testing.md).
 - `tools/hooks/`, `tools/harness/` hooks and helpers of the agent harness. `tools/sim/` balance simulation and fuzzing, `tools/portraits/` portrait generation.
 - `tests/` unit, acceptance and end-to-end tests.
 - `knowledge/` specification, architecture, decisions, playtests, handoff and journal.
-- `campaigns/` running campaigns, private and ignored by git.
+- `campaigns/` running campaigns, private and ignored by git. Authored packages under `welten/realm-*/` and start receipts under `authoring/` are private runtime data too. Back up the campaign together with its package.
 
 The earlier games and the old savegame dashboard are preserved in the git history and the local branch `archiv/vor-neuaufbau`.
 

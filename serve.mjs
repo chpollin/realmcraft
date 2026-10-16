@@ -13,7 +13,8 @@ import { handleLoad, handleSaveCreate, handleSaveList } from './server/saves.mjs
 import { handleDraft, handleSeal } from './server/turn.mjs';
 import { handleEvents, watchCampaigns } from './server/sse.mjs';
 import { handleStatic } from './server/static.mjs';
-import { handleWorlds } from './server/worlds.mjs';
+import { handleWorldFile, handleWorlds } from './server/worlds.mjs';
+import { handleRealmDraft, handleRealmPreview, handleRealmStart } from './server/realms.mjs';
 
 /**
  * Route table, matched in order on the decoded path after the Host check.
@@ -31,6 +32,12 @@ import { handleWorlds } from './server/worlds.mjs';
  *                                           people: { id, name }, turn, season, year, phase,
  *                                           status, outcome, language, difficulty, updatedAt }],
  *                                           outcome null while playing (server/campaigns.mjs)
+ *   POST /api/realms/draft                  { world, people, language?, seed? } -> { ok, draft }
+ *   POST /api/realms/preview                { draft } -> pure { ok, draft, fingerprint,
+ *                                           view, tiles, pack, forecast }
+ *   POST /api/realms/start                  { draft, fingerprint, startKey } ->
+ *                                           independent CLI new/open: 201 { ok, id, world };
+ *                                           same accepted key/draft recovers the same id
  *   POST /api/campaigns { world, seed, people, rivals?, difficulty?, language?, id? }
  *                                           new game through `cli new`: 201 { id }, 400 with
  *                                           issues for a field the package does not offer,
@@ -76,6 +83,10 @@ import { handleWorlds } from './server/worlds.mjs';
  * fetch metadata and Origin, application/json, at most 64 KiB, a JSON object.
  */
 const ROUTES = [
+  { path: /^\/api\/realms\/draft$/, on: { POST: handleRealmDraft } },
+  { path: /^\/api\/realms\/preview$/, on: { POST: handleRealmPreview } },
+  { path: /^\/api\/realms\/start$/, on: { POST: handleRealmStart } },
+  { path: /^\/welten\/([^/]+)\/(.+)$/, on: { GET: handleWorldFile } },
   { path: /^\/api\/campaigns$/, on: { GET: handleCampaignList, POST: handleCreate } },
   { path: /^\/api\/campaigns\/([^/]+)\/(content|draft|chronik)$/, on: { GET: handleCampaignApi } },
   { path: /^\/api\/campaigns\/([^/]+)\/activate$/, on: { POST: handleActivate } },

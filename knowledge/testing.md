@@ -23,7 +23,7 @@ What the tests guarantee, how to run them and where the gaps are. Technical test
 
 ```sh
 npm test                    # npm run check, then unit and acceptance tests
-npm run check               # syntax of every tracked JS module, schema conformance of tracked example saves
+npm run check               # syntax of every tracked JS module
 npm run test:unit           # node --test "tests/unit/**/*.test.js"
 npm run test:acceptance     # node --test "tests/acceptance/**/*.test.js"
 npm run test:e2e            # Playwright, project e2e
@@ -94,3 +94,11 @@ The draft-persistence checks exercise serial writes, edits arriving during a wri
 - Live-agent balance and proposal quality over a sustained campaign still require observed play.
 - No browser end-to-end test of a full turn including live agents.
 - The module spec still waits a fixed time before it looks for event cards in the agent-round campaign and after a reload, because the board exposes no signal that its card queue has settled.
+
+## Realm start coverage
+
+`realm-creation.test.js` checks the closed authored contract, verbatim prose, deterministic immutable packages and supported landscape/way/goal/language combinations against the real kernel. `realm-context.test.js` checks optional metadata validation and fiction scope in research, rival, council, world, chronicler and judge tasks, including a neighbour chosen as template player.
+
+The server Realm tests use temporary roots and verify a write-free preview, preview/start identity, explicit-start-only campaign creation, package conflicts, same-key retries, server-restart recovery and safe refusal of obsolete reserved previews. Existing campaign/save files and source packages are compared byte for byte. Browser Realm cases cover editing and back navigation, real start/reload, field errors, request failures, lost responses, activation retry, narrow keyboard operation and seed boundaries. Existing template creation stays under its previous cases. These checks do not run a real LLM or establish the artistic quality of an authored world.
+
+A deterministic fresh-game browser regression changes the fixture before the intercepted SSE connection and supplies only hello. It fails without canonical catch-up and passes with it; no view broadcast is needed.

@@ -24,7 +24,9 @@ export class CommunityView {
     this.lastFrame = 0;
     this.buttons = new Map();
     this.nav = document.getElementById('ansichten');
+    this.supported = !api.game.pack.welt.creation;
     for (const mode of ['gemeinschaft', 'welt']) {
+      if (mode === 'gemeinschaft' && !this.supported) continue;
       const btn = el('button', {
         type: 'button', class: 'ansicht-wahl', 'data-ansicht': mode,
         'aria-pressed': 'false', onclick: () => this.setMode(mode),
@@ -68,7 +70,7 @@ export class CommunityView {
   }
 
   setMode(mode, navigate = true) {
-    if (!this.api.model.home) mode = 'welt';
+    if (!this.api.model.home || !this.supported) mode = 'welt';
     this.mode = mode;
     this.api.model.surface = mode;
     if (navigate) {

@@ -28,6 +28,7 @@ async function newGame(page) {
   await page.goto(`${base}/spielbrett/`);
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await page.locator('#start-new').click();
+  await page.locator('[data-new-mode="template"]').click();
   await page.locator('#ng-seed').fill('7');
 }
 
@@ -111,3 +112,17 @@ for (const width of [1440, 390]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('SSE hello catches up a campaign changed before the live connection', async ({ page }) => {
+  const id = 'connect-catchup';
+  cli('new', 'hochland', '--seed', '7', '--as', 'bergnomaden', '--id', id);
+  let connected = false;
+  await page.route('**/events', async (route) => {
+    if (!connected) { cli('open', '--campaign', id); connected = true; }
+    await route.fulfill({ status: 200, contentType: 'text/event-stream', body: 'event: hello\ndata: connected\n\n' });
+  });
+  await page.goto(base + '/spielbrett/?campaign=' + id);
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await expect.poll(() => page.evaluate(() => window.spielbrett.model.kernPhase)).toBe('planning');
+  expect(connected).toBe(true);
+});

@@ -80,6 +80,7 @@ test('a new game starts from the start screen and reaches its first planning vie
   await expect(page.locator('#start-pane-titel')).toHaveText(en['shell.start.new']);
   await expect(page.locator('#start-continue')).toHaveAttribute('aria-disabled', 'true');
 
+  await page.locator('[data-new-mode="template"]').click();
   await page.locator('.start-voelker label[data-wert="talbund"]').click();
   await expect(page.locator('#ng-volk-talbund')).toBeChecked();
   await expect(page.locator('#ng-rivale-bergnomaden')).toBeChecked();

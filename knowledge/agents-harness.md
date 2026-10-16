@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, data-contracts, rules-kernel, operations, decisions]
@@ -40,7 +40,7 @@ The schema also knows the image agent `image` with the item `image`, which is no
 
 ## Tasks
 
-The kernel writes the phase A task at `seal`, the phase B tasks at `apply` and the judge tasks on request (`node engine/cli.mjs tasks --agent <id>`). Tasks lie under `agents/tasks/T<turn4>/<agent>-<people or all>.json` (schema `task`). A task with a people reference carries only data derived from that people's projection, so an agent never sees a stock or draft of another people. `read` lists the files the agent may read, `context` is role-specific, and `limits` carries the allowed items, primitives, tags from the world vocabulary, budget rows of the open tiers and, for rivals, the slots of the season. Every task that asks for player-facing text names the narrative language of the campaign in `context.language`.
+The kernel writes the phase A task at `seal`, the phase B tasks at `apply` and the judge tasks on request (`node engine/cli.mjs tasks --agent <id>`). Tasks lie under `agents/tasks/T<turn4>/<agent>-<people or all>.json` (schema `task`). A task with a people reference carries only data derived from that people's projection, so an agent never sees a stock or draft of another people. `read` lists the files the agent may read, `context` is role-specific, and `limits` carries the allowed items, primitives, tags from the world vocabulary, budget rows of the open tiers and, for rivals, the slots of the season. Every task that asks for player-facing text names the narrative language of the campaign in `context.language`. Authored packages also carry `context.realm`, containing verbatim world fiction and the relevant community description. World, chronicler and judge tasks additionally receive both communities. Package identities determine this scope even if a template start chooses the neighbour as player. This fiction supplies narrative context; it cannot override task limits or add rule effects.
 
 | Role | Context beyond phase and language |
 |---|---|
@@ -98,7 +98,7 @@ The player clicks "end turn" in the board, which seals the turn, and types `/zug
 6. Judges. Coherence and balance judges run every turn, the narrative judge when the turn is divisible by four or the player announces a chapter change. `/zug` does not wait for them, the next `/zug` handles their proposals. `run-marker.mjs end` closes the run.
 7. Report. A short German report of at most eight sentences, with numbers only from the kernel's answers and no recommendation.
 
-A new campaign starts in turn 0 in phase `agents`, so the first `/zug` runs only phase B and releases the planning of turn 0. A new game is created in the browser, where the server calls `new`, or through `/partie neu` with the options of `new` (rivals, difficulty, language). `/partie` lists campaigns, shows the state of an existing one and offers to run the first turn of a new one by the procedure of `/zug` ([operations.md](operations.md)). The game master speaks to the player in the narrative language the status names (`settings.language`). Both commands carry `disable-model-invocation`, so a development session never starts them on its own. The browser also records the chosen campaign through `POST /api/campaigns/<cid>/activate`, so `/zug` can use that selection. An in-game LLM conversation and a listening mode in which `/partie` watches the phase and runs the turn without typing `/zug` remain unimplemented.
+CLI and package/template campaigns start in turn 0 in phase `agents`, so the first `/zug` runs only phase B and releases planning. The free realm start deliberately calls CLI `open` after `new` and begins in planning with validated pool content. It makes no initial LLM call; subsequent agent rounds use the same harness. A new game is created in the browser, where the server calls `new`, or through `/partie neu` with the options of `new` (rivals, difficulty, language). `/partie` lists campaigns, shows the state of an existing one and offers to run the first turn of a new one by the procedure of `/zug` ([operations.md](operations.md)). The game master speaks to the player in the narrative language the status names (`settings.language`). Both commands carry `disable-model-invocation`, so a development session never starts them on its own. The browser also records the chosen campaign through `POST /api/campaigns/<cid>/activate`, so `/zug` can use that selection. An in-game LLM conversation and a listening mode in which `/partie` watches the phase and runs the turn without typing `/zug` remain unimplemented.
 
 ## Hooks
 

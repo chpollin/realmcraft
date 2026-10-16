@@ -29,3 +29,9 @@ campaigns/
 
 # Agent worktrees (Claude Code isolation)
 .claude/worktrees/
+
+# Authored worlds and start receipts are private runtime data.
+/authoring/
+/welten/realm-*/
+/welten/.realm-*/
+/welten/.realm-install.lock

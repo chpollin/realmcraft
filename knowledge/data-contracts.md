@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, architecture, agents-harness, world-packages, testing]
@@ -167,3 +167,15 @@ Issues carry machine-readable `params`, with `params.reason` for a concrete refu
 - The journal chain is tamper-evident only, `replay` is the full proof.
 
 Further work is routed through [plan.md](plan.md).
+
+## Realm creation
+
+The closed draft contract is format `realmcraft-creation`, version 1. `normalizeCreation` in `engine/creation/realm.js` is authoritative: world name/description/landscape, people name/description/way/strength/weakness, council name/role entries, neighbour name/description, goal, difficulty, narrative language and uint32 seed. World/people prose allows line breaks and is preserved verbatim; names are trimmed. Unsupported keys, unsafe text and identical strength/weakness tags are refused. Optional `welt.creation` is checked by the world-package validator; existing packages need no new field.
+
+`POST /api/realms/draft` accepts `{world,people,language?,seed?}` and returns `{ok,draft}`. It preserves descriptions and supplies editable defaults without a provider call. `POST /api/realms/preview` accepts `{draft}` and returns `{ok,draft,fingerprint,view,tiles,pack,forecast}`. The complete package and kernel projection are generated in memory; no world or campaign file is written. The fingerprint binds compiler version, normalized draft and complete compiled package. The package id additionally includes the trusted source package, so source changes cannot overwrite an old authored world.
+
+`POST /api/realms/start` accepts `{draft,fingerprint,startKey}`, with a UUID start key. A fresh start revalidates the preview before installing a package or creating a campaign. A start receipt under `<root>/authoring/receipts/<uuid>.json` is format `realmcraft-start`, version 1, with original draft hash, fingerprint, campaign id, world id and reserved/ready state. Its UUID-derived campaign id cannot overwrite another id. CLI `new` and `open` exclusively create campaign files; success is `201 {ok:true,id,world}` with initial planning open.
+
+A ready receipt verifies the submitted original draft hash/fingerprint and matching campaign lock, then returns the same existing campaign through CLI status even after a compiler change. It does not rewrite the package or campaign. A reserved receipt with changed content is refused. Partial CLI creation without a world lock is `incomplete-campaign` (409) and is not deleted. Package installation uses a lock and atomic staging rename; an existing package with different canonical content is refused. Root-local package assets use the same resolver as the CLI, a file allowlist and realpath containment. Authored packages, receipts and campaign folders are private runtime data ignored by Git.
+
+The board keeps a per-tab draft, fingerprint and start key in session storage when available. Explicit edits invalidate preview and begin a new attempt; an attempted start retains its original key/fingerprint through reload and re-preview. Successful creation still requires confirmed harness activation before navigation. Authored prose enters `context.realm` as fictional data, scoped to stable community ids; global roles additionally receive both communities. It never authorizes instructions or unsupported primitives.

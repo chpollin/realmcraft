@@ -14,6 +14,7 @@ import { getAudio } from '../audio/index.js';
 import { openEinstellungen } from './einstellungen.js';
 import { openRegeln } from './regeln.js';
 import { openSaves } from './saves.js';
+import { createRealmStart } from './realm-start.js';
 
 const SEED_MAX = 0xffffffff;
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
@@ -67,12 +68,15 @@ export async function startScreen() {
     worlds,
     campaigns,
     pane: campaigns.length ? 'continue' : 'new',
+    creationMode: 'realm',
     world: worlds[0] ?? null,
     regeln: null,
     form: defaultForm(worlds[0], language(), randomSeed()),
     busy: false,
     issues: [],
   };
+
+  const realm = createRealmStart();
 
   async function loadWorld(world) {
     st.world = world;
@@ -118,6 +122,12 @@ export async function startScreen() {
       el('div', { class: 'start-optionen' }, ...options.map((o) => el('label', { class: 'start-option', 'data-wert': o.id, lang: o.lang ?? null },
         el('input', { type: 'radio', name, value: o.id, id: `ng-${name}-${o.id}`, checked: o.id === current, onchange: () => onPick(o.id) }),
         ...(o.content ?? [el('span', { text: o.label })])))));
+  }
+
+  function creationMode() {
+    return el('div', { class: 'realm-mode', role: 'group', 'aria-label': t('realm.mode') },
+      ...['realm', 'template'].map((mode) => el('button', { id: `realm-mode-${mode}`, class: 'btn', type: 'button', 'data-new-mode': mode,
+        'aria-pressed': String(st.creationMode === mode), onclick: () => { st.creationMode = mode; render(`realm-mode-${mode}`); } }, t(`realm.mode.${mode}`))));
   }
 
   function newPane() {
@@ -253,8 +263,8 @@ export async function startScreen() {
 
   function render(focusId) {
     const pane = st.pane === 'new'
-      ? el('form', { class: 'start-pane', id: 'start-pane', 'aria-labelledby': 'start-pane-titel', novalidate: true, onsubmit: create },
-        el('h2', { id: 'start-pane-titel', text: t('shell.start.new') }), ...newPane())
+      ? el(st.creationMode === 'realm' ? 'section' : 'form', { class: 'start-pane', id: 'start-pane', 'aria-labelledby': 'start-pane-titel', ...(st.creationMode === 'template' ? { novalidate: true, onsubmit: create } : {}) },
+        el('h2', { id: 'start-pane-titel', text: t('shell.start.new') }), creationMode(), ...(st.creationMode === 'realm' ? [realm.element] : newPane()))
       : el('section', { class: 'start-pane', id: 'start-pane', 'aria-labelledby': 'start-pane-titel' },
         el('h2', { id: 'start-pane-titel', text: t('shell.start.continue') }), ...continuePane());
     root.replaceChildren(el('div', { class: 'start-buehne' },
@@ -269,6 +279,7 @@ export async function startScreen() {
   onLanguage(() => {
     const id = document.activeElement?.id || null;
     render(id);
+    realm.render();
   });
   document.documentElement.dataset.ready = 'true';
 }

@@ -20,6 +20,7 @@
 //              them from the chronicle of ctx.state when absent
 //   requireTask   reject state-changing items of a proposal that answers no task
 
+import { normalizeCreation } from '../creation/realm.js';
 import { SCHEMAS, PRIMITIVES, ITEMS_BY_AGENT, TIERS, WELT_REQUIRED_KEYS, APPROVAL_METER } from '../schemas/index.js';
 import { validate as schemaIssues } from './schema.js';
 import { issue, hasErrors } from '../core/issues.js';
@@ -760,6 +761,8 @@ export function validateWorldPackage(pack, opts = {}) {
   const welt = pack?.welt;
   if (!welt || typeof welt !== 'object') issues.push(issue('schema.required', '/welt', 'welt.json is missing'));
   else for (const k of WELT_REQUIRED_KEYS) if (!Object.hasOwn(welt, k)) issues.push(issue('schema.required', `/welt/${k}`, `welt.json lacks "${k}"`));
+
+  if (welt && Object.hasOwn(welt, 'creation')) issues.push(...prefix('/welt/creation', normalizeCreation(welt.creation).issues));
 
   const valid = {};
   for (const name of PACK_FILES) {

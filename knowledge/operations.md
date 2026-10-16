@@ -39,13 +39,19 @@ Start Claude Code in the repository on Opus. The commands set their model themse
 
 ## New game
 
+On the start screen choose New game, then describe the world and people. Create draft preserves both descriptions and adds editable neutral defaults. Edit names, landscape, way of life, strength, weakness and goal. Expand council, neighbour and further options to change those details, seed or narrative language. View preview generates the real known map, starting resources, council and goal without writing files. Back preserves the draft; editing invalidates the old preview. A per-tab session-storage copy resumes editing after reload when available.
+
+Only New game start installs the immutable package under `<root>/welten/realm-<hash>/` and creates a separate `realm-<uuid>` campaign through CLI `new` and `open`. It opens directly in planning, using validated pool content. The browser selects this campaign for the external harness before navigating. A failed selection stays on the preview and offers retry. Existing campaigns and saved drafts are unchanged.
+
+A repeated start with the same key and accepted draft returns the same campaign, including after a lost response or server restart. A completed receipt can recover that campaign after a compiler update. An interrupted CLI creation that never wrote its world lock is reported as incomplete and is never overwritten. Preserve `<root>/authoring/receipts/`, the authored package and campaign together for recovery. A save snapshot alone does not export its world package.
+
 From the terminal the CLI creates a campaign directly.
 
 ```sh
 node engine/cli.mjs new hochland --seed 48213 --as bergnomaden --id hochland-2 --json
 ```
 
-`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. The start screen also creates a game through the server ([decisions.md](decisions.md), D18). It selects existing package templates, rivals, difficulty, narrative language and seed. Free world and people descriptions with an editable generated draft remain the design requirement in [new-game-design.md](new-game-design.md).
+`--as` names the player template from `welten/<world>/regeln.json` (Bergnomaden, Schädelklan or Talbund in Hochland). Campaign ids match `^[a-z][a-z0-9-]{1,40}$`. The new campaign starts in turn 0 in phase `agents` with its first tasks written. The first `/zug` runs phase B of turn 0 and opens the planning. Without agents, `node engine/cli.mjs open --campaign <cid>` opens the planning directly. The start screen also creates a game through the server ([decisions.md](decisions.md), D18). The separate package/template option selects existing templates, rivals, difficulty, narrative language and seed. The default free realm option follows the workflow above.
 
 ## Play a turn
 

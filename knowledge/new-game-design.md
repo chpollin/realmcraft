@@ -6,16 +6,16 @@ project:
 method:
   name: Promptotyping
   url: https://lisa.gerda-henkel-stiftung.de/digitale_geschichte_pollin
-status: draft
+status: active
 language: en
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-16
 related: [vision, game-design, frontend, world-packages, journal]
 ---
 
 # New Game Design
 
-The owner requests an in-game conversation that turns a free description of a world and people into an editable campaign draft, then starts a fresh game. A chat simulation is being used to investigate that conversation. The creation flow is a design requirement. Its questions and presentation remain under exploration.
+The owner requests an in-game conversation that turns a free description of a world and people into an editable campaign draft, then starts a fresh game. A chat simulation is being used to investigate that conversation. The browser now implements free descriptions, editable neutral defaults, a reversible kernel map preview and explicit creation. Adaptive questions, LLM interpretation and the visual treatment of arbitrary worlds remain under exploration.
 
 ## Owner requirements
 
@@ -66,12 +66,12 @@ The textual review yields these correction requirements for the next prototype.
 
 - A request to travel leaves the travel form open. Mark a boat or wagon as an author suggestion until the player selects it or delegates the detail. Iteration 1 silently promoted ships into fact.
 - A revision can change a community's residence while preserving mobile workshops. Remove superseded assumptions from the preview. A personal character can remain open while the player explicitly chooses community-level control for a chat trial.
-- Describe an extraordinary capability's technical status before promising it in a real campaign. The free creation flow and the fictional abilities in these transcripts are still chat prototypes.
+- Describe an extraordinary capability's technical status before promising it in a real campaign. The fictional abilities in these transcripts remain chat prototypes; the implemented start exposes only supported mechanics.
 - When wishes are in tension, explain possible scopes and ask for the intended relationship. Unlimited personal power and societal scarcity can coexist, but the reason scarcity persists remains a separate worldbuilding question in the final walkthrough.
 - State what a proposed trial can reveal and what it leaves uncertain. Report the comparisons and independent observations the player requested. An unexplained observation is insufficient to claim a material effect.
 - Narrate the consequences of the chosen action and leave further player-controlled decisions open. A test order does not also authorize a community policy decision. Autonomous participants need established scope for their own actions.
 
-The current review does not establish an accepted visual style, narrator audio quality or a completed browser implementation. The owner's confirmation of the next concrete prototype remains the acceptance step.
+The synthetic review does not establish an accepted visual style or narrator audio quality. The browser implementation described below has its own regression evidence. The owner's confirmation of the next concrete prototype remains the acceptance step.
 
 ## Delegated setup
 
@@ -114,6 +114,8 @@ Curate repeated findings into the responsible design section and record a cohere
 
 ## Implementation boundary and review
 
-The current browser creation handler in [server/newgame.mjs](../server/newgame.mjs) validates a world package, seed, template people, rivals, difficulty and language, then invokes the kernel CLI. It does not implement the free-description conversation. This statement was checked against the handler during this documentation pass.
+The owner authorized implementation of a free realm start on October 16. The browser workflow in `spielbrett/js/ui/realm-start.js` preserves the descriptions, supplies neutral defaults and offers explicit mechanical choices. The pure compiler in `engine/creation/realm.js` produces an independent package with authored identities, a curated development pool, new event cards and supported goals. It never infers mechanics from keywords. Landscape changes the real generator; way of life, strength, weakness and goal change kernel inputs. Council names and role labels remain descriptive; positions retain their supported council behavior.
 
-Before implementation, review a completed chat draft with the player. Check that its accepted statements can be traced to the exchange, unresolved points remain visible, its first decisions are understandable and its mechanical promises have supported implementations. Evaluate the visual treatment separately through the owner's response to a concrete design. A chat simulation is evidence about the conversation, while kernel and browser behavior require their own checks.
+`POST /api/realms/draft` creates the draft, `preview` validates and opens an in-memory campaign, and `start` installs the immutable package and creates a separate campaign through the CLI. The preview shows the known map, home, resources, council and goal that the compiled start uses. It supplies no generated first-scene artwork. The interface explains this boundary before the mechanical choices. The authoring contract and retry guarantees are in [data-contracts.md](data-contracts.md#realm-creation).
+
+Existing packages and campaigns remain unchanged. Authored worlds start on the map because the Hochland community drawing has no rendering vocabulary for arbitrary fiction. Full prose is retained in the package and passed to the relevant later agent tasks. No runtime text LLM, adaptive worldbuilding interview, arbitrary capability compiler or spoken narrator is part of this implementation. Browser tests establish executable behavior; comprehension, enjoyment and artistic acceptance still require the owner's review.

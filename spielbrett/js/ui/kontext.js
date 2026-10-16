@@ -340,7 +340,7 @@ export function renderKontext(api) {
     body.push(facts(
       withTip(el('button', { class: 'fakt', type: 'button', 'aria-label': t.fmt('board.unit.strength-of', { n: u.staerke }) }, icon('schild', { size: 17 }), strengthPips(u.staerke)), [el('strong', { text: t.fmt('board.unit.strength', { n: u.staerke }) })], null),
       isUnit ? null : fact('praxis', u.zustand, t('board.unit.state'), null, { cls: 'is-text' }),
-      own ? null : fact(u.volk === 'schaedelklan' ? 'raeuber' : 'haendler', peopleName(model, u.volk), t('board.unit.people'), null, { onclick: () => api.select({ kind: 'people', id: u.volk, q: u.q, r: u.r }), cls: 'is-link' }),
+      own ? null : fact(u.volk === 'schaedelklan' ? 'raeuber' : u.volk === 'talbund' ? 'haendler' : 'volk', peopleName(model, u.volk), t('board.unit.people'), null, { onclick: () => api.select({ kind: 'people', id: u.volk, q: u.q, r: u.r }), cls: 'is-link' }),
     ));
     if (isUnit) body.push(unitFacts(api, u));
     if (!own) body.push(attackForecastFacts(api, `${u.q},${u.r}`));

@@ -207,7 +207,7 @@ function budgetRows(maxTier) {
     .map(({ tier, effectMax, netMin, netMax, priceMax }) => ({ tier, effectMax, netMin, netMax, priceMax }));
 }
 
-function envelope(state, agent, people, extra) {
+function envelope(state, env, agent, people, extra) {
   const scope = people ?? 'all';
   const proposalId = people ? `${agent}.${people}.T${state.turn}` : `${agent}.T${state.turn}`;
   return {
@@ -222,6 +222,15 @@ function envelope(state, agent, people, extra) {
       people: people ?? null,
       respondAs: { proposalId, path: `agents/proposals/${proposalId}.json` },
       ...extra,
+      ...(env.welt.creation ? { context: { ...extra.context, realm: {
+        source: 'player-authored-fiction',
+        world: { name: env.welt.creation.world.name, description: env.welt.creation.world.description },
+        community: (people ?? state.campaign.player) === 'neighbours' ? env.welt.creation.neighbour : { name: env.welt.creation.people.name, description: env.welt.creation.people.description },
+        ...(!people ? { communities: {
+          community: { name: env.welt.creation.people.name, description: env.welt.creation.people.description },
+          neighbours: env.welt.creation.neighbour,
+        } } : {}),
+      } } } : {}),
     },
   };
 }
@@ -256,7 +265,7 @@ function researchTask(state, env, library, pid, notes) {
   const { maxTier } = env.regeln.tuning;
   const open = openTier(people, { state: view, regeln: env.regeln, library, turn: state.turn });
   const reach = Math.min(maxTier, open + lim.aboveTier);
-  return envelope(state, 'research', pid, {
+  return envelope(state, env, 'research', pid, {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
@@ -291,7 +300,7 @@ function rivalTask(state, env, pid, notes) {
   const people = view.peoples[pid];
   const profile = env.regeln.aiProfiles.find((a) => a.id === people.agentProfile) ?? null;
   const cap = slotCapacity(orderContext(view, env, pid));
-  return envelope(state, 'rival', pid, {
+  return envelope(state, env, 'rival', pid, {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
@@ -316,7 +325,7 @@ function rivalTask(state, env, pid, notes) {
 function councilTask(state, env, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
-  return envelope(state, 'council', pid, {
+  return envelope(state, env, 'council', pid, {
     read: viewReads(state, pid),
     context: {
       phase: 'b',
@@ -344,7 +353,7 @@ function worldTask(state, env, notes) {
     situation[pid] = { lebensweise: p.lebensweise, resources: p.resources, meters: p.meters, standing: p.standing, population: p.population.core };
   }
   const cal = calendarOf(env.regeln, state.turn);
-  return envelope(state, 'world', null, {
+  return envelope(state, env, 'world', null, {
     read: ['state.json', 'library.json'],
     context: { phase: 'a', language: settingsOf(state).language, season: cal.season, year: cal.year, eventDraws, situation, findings: findingsFor(notes, 'world') },
     limits: limitsFor(env, ITEMS_BY_AGENT.world, { tags: tagsFor(env) }),
@@ -357,7 +366,7 @@ function chroniclerTask(state, env, notes) {
   const cal = calendarOf(env.regeln, state.turn);
   const reads = [`view/${player}.json`];
   if (state.turn > 0) reads.push(`view/${player}/events/${stem(state.turn - 1)}.json`);
-  return envelope(state, 'chronicler', null, {
+  return envelope(state, env, 'chronicler', null, {
     read: reads,
     context: {
       phase: 'b',
@@ -398,7 +407,7 @@ export function buildJudgeTask(state, env, judge) {
   if (state.turn > 0) read.push(`log/${stem(state.turn - 1)}.json`);
   read.push('library.json');
   if (judge === 'judge-narrative') read.push('narrative/gedaechtnis.md');
-  return envelope(state, judge, null, {
+  return envelope(state, env, judge, null, {
     read,
     context: { phase: 'judges', language: settingsOf(state).language },
     limits: limitsFor(env, ITEMS_BY_AGENT[judge], {

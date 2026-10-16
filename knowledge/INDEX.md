@@ -10,7 +10,7 @@ status: complete
 language: en
 version: 1.0
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [vision, glossary, plan, plan-m1, journal, handoff]
@@ -29,7 +29,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | Document | Question it answers | Kind |
 |---|---|---|
 | [vision.md](vision.md) | What RealmCraft is, for whom, and which intentions bind it | Charter |
-| [new-game-design.md](new-game-design.md) | How free world description becomes an editable campaign draft, and what the chat simulation establishes | Design draft |
+| [new-game-design.md](new-game-design.md) | How descriptions become an editable, previewed realm, and what remains an adaptive-conversation proposal | Design |
 | [game-design.md](game-design.md) | How a season plays, what the player decides and why the mechanics look the way they do | Specification |
 | [rules-kernel.md](rules-kernel.md) | Which rules the kernel executes, in which order, with which formulas | Specification |
 | [architecture.md](architecture.md) | Which components exist, how data flows between them and where the trust boundaries lie | Architecture |
