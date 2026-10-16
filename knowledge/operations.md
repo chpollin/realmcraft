@@ -39,7 +39,7 @@ Start Claude Code in the repository on Opus. The commands set their model themse
 
 ## New game
 
-On the start screen choose New game and copy the starting prompt into the existing harness chat. Develop the world, community and supported choices there. Confirmed publications appear in the companion studio, with open questions and unimplemented rule ideas shown separately. Resolve those notes before Review start opens the actual known map, starting resources, council and goal. The landscape study is schematic. The [chat-led initialization procedure](#chat-led-realm-initialization) defines the helper and shared-draft boundary.
+On the start screen choose New game and copy the starting prompt into the existing harness chat. Develop the world, community and supported choices there. Before publication, the entry stays compact with a copy button and changing status. The large companion studio appears only after a shared draft is loaded; open questions and unimplemented rule ideas remain separately visible even without a draft. Resolve those notes before Review start opens the actual known map, starting resources, council and goal. The landscape study is schematic. The [chat-led initialization procedure](#chat-led-realm-initialization) defines the helper and shared-draft boundary.
 
 The separate form action opens its own draft. Describe the world and people, create a draft with neutral editable defaults, then edit names, landscape, way of life, strength, weakness and goal. Council, neighbour, seed and narrative language remain under further options. Back preserves that draft, while editing invalidates its preview. Optional per-tab storage resumes editing after reload.
 

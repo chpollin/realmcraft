@@ -35,7 +35,7 @@ export function landscapeArt(landscape = 'highlands') {
 
 // Static relief studies communicate authoring state, not kernel geography.
 export function workshopArt(landscape) {
-  const svg = svgNode('svg', { viewBox: '0 70 760 300', class: 'realm-relief', 'aria-hidden': 'true', 'data-landscape': landscape || 'unformed' });
+  const svg = svgNode('svg', { viewBox: '0 70 760 300', class: 'realm-relief', 'aria-hidden': 'true', 'data-landscape': landscape });
   function contour(cx, cy, rx, ry, phase, lift = 0) {
     const points = Array.from({ length: 96 }, (_, i) => {
       const a = i * Math.PI / 48;
@@ -48,12 +48,6 @@ export function workshopArt(landscape) {
   svg.append(svgNode('path', { d: base, transform: 'translate(0 24)', class: 'relief-shadow' }));
   for (let i = 6; i >= 0; i--) {
     svg.append(svgNode('path', { d: base, transform: `translate(0 ${i * 3.4})`, class: i === 0 ? 'relief-base' : 'relief-edge' }));
-  }
-  if (!landscape) {
-    for (let i = 0; i < 7; i++) {
-      svg.append(svgNode('path', { d: contour(372, 228, 236 - i * 22, 88 - i * 8, 0.6 + i * 0.08, i * 4), class: 'relief-unformed' }));
-    }
-    return svg;
   }
   const forms = landscape === 'highlands'
     ? [[291, 201, 140, 61, 0.3, 12], [452, 219, 131, 59, 2, 10], [377, 263, 84, 40, 1, 7]]

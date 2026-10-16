@@ -795,12 +795,11 @@
     "realm.world-example": "For example: Rivers retain measurable traces of memory. How does this change everyday life?",
     "realm.people-example": "For example: A community shares its workshops. Who decides how its knowledge is used?",
     "realm.chat.title": "World workshop",
-    "realm.chat.overview": "Copy the starting prompt into your chat. We develop your realm there.",
+    "realm.chat.overview": "No shared draft yet.",
     "realm.chat.copy": "Copy starting prompt",
-    "realm.chat.copied": "Starting prompt copied. Paste it into your harness chat.",
+    "realm.chat.copied": "Copied. Now paste it into your chat.",
     "realm.chat.copy-fallback": "The prompt is open below for selection. Copy it into your harness chat.",
     "realm.chat.prompt": "View starting prompt",
-    "realm.chat.empty": "What world would you like to create? We develop its story and rules in conversation.",
     "realm.chat.draft": "Shared draft",
     "realm.chat.revision": "Draft, revision {rev}",
     "realm.chat.questions": "Open questions",
@@ -822,14 +821,9 @@
     "issue.stale.workshop-unresolved": "Resolve open questions and rule ideas first.",
     "issue.stale.workshop-draft-changed": "The preview belongs to a different draft. Review the current version.",
     "issue.stale.library-reset": "Saved games were reset. Reload the start menu.",
-    "realm.studio.unnamed": "A world takes shape",
-    "realm.studio.unformed": "Open forms. The world is not yet defined.",
     "realm.studio.schematic": "Landscape study. The actual game map follows under “Review start”.",
-    "realm.studio.world": "Imagine a world",
-    "realm.studio.world-hint": "Place, atmosphere and the extraordinary.",
-    "realm.studio.people": "Shape a community",
-    "realm.studio.people-hint": "People, beliefs and conflicts.",
-    "realm.studio.review": "Prepare to play",
-    "realm.studio.review-hint": "Settle the rules and review the start."
+    "realm.chat.route": "Create in chat → Review the preview → Start playing.",
+    "realm.chat.ready": "Draft ready. Review the start preview.",
+    "realm.chat.reading": "Loading the shared draft …"
   }
 }

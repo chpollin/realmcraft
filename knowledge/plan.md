@@ -68,7 +68,7 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 Reproduce a specific current case before implementing an old audit recommendation. The historical observation alone does not establish a current defect.
 
-- Review the empty chat-workshop composition against the October 16 screenshot feedback. Repeated copy instructions, overlapping introductions, the dominant unformed study and the process list remain current design concerns. [frontend.md](frontend.md#chat-workshop-composition) records the proposed compact pre-draft state and content-led studio. No further UI correction or artistic acceptance is claimed.
+- Observe the compact chat entry in actual worldbuilding. The copy action, replacement status and short process line are implemented; the large studio requires a loaded shared draft. [frontend.md](frontend.md#chat-workshop-composition) records this approved interaction change. Conversation quality and broader artistic acceptance remain open.
 
 - Check remaining tooltip edge cases and scrolling containers, additional long labels, actual browser zoom and contrast in states beyond the inspected palette pairs. Retain the tested compact research navigation, aligned visible/accessibility tier labels, focus restoration and creator validation/step-orientation fixes.
 - Clarify world-prose language within a translated interface, map symbols and empty layers, the place-list layout, council actions and the meaning of camp strength.
