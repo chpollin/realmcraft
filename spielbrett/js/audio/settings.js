@@ -6,13 +6,12 @@
 export const AUDIO_STORE = 'realmcraft.audio';
 
 /** Channel buses below master. */
-export const CHANNELS = Object.freeze(['ambience', 'ui', 'stingers']);
+export const CHANNELS = Object.freeze(['ui', 'stingers']);
 
 /**
  * @typedef {object} AudioSettings
  * @property {number} master    0..1, scales every channel
- * @property {number} ambience  0..1, drone, wind and bells of the world
- * @property {number} ui        0..1, hover, click, confirm, refusal, warning, dice
+ * @property {number} ui        0..1, click, confirm, refusal, warning, dice
  * @property {number} stingers  0..1, probe bands, event card, turn, end of game
  * @property {boolean} muted
  * @property {boolean|null} reduced  true or false overrides the viewer's
@@ -20,10 +19,10 @@ export const CHANNELS = Object.freeze(['ambience', 'ui', 'stingers']);
  */
 
 /** @type {Readonly<AudioSettings>} */
-export const DEFAULT_SETTINGS = Object.freeze({ master: 0.8, ambience: 0.5, ui: 0.6, stingers: 0.8, muted: false, reduced: null });
+export const DEFAULT_SETTINGS = Object.freeze({ master: 0.8, ui: 0.6, stingers: 0.8, muted: false, reduced: null });
 
-// Reduced intensity keeps every cue audible but quieter, the ambience more so.
-export const REDUCED_GAIN = Object.freeze({ ambience: 0.5, ui: 0.7, stingers: 0.7 });
+// Reduced intensity keeps every cue audible but quieter.
+export const REDUCED_GAIN = Object.freeze({ ui: 0.7, stingers: 0.7 });
 
 const unit = (v, fallback) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback);
 
@@ -75,7 +74,7 @@ export function saveSettings(settings, storage) {
  * Target gains of the master bus and the channel buses.
  * @param {AudioSettings} settings
  * @param {boolean} reduced
- * @returns {{ master: number, ambience: number, ui: number, stingers: number }}
+ * @returns {{ master: number, ui: number, stingers: number }}
  */
 export function gainsOf(settings, reduced) {
   const s = normalizeSettings(settings);

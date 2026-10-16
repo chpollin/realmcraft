@@ -177,7 +177,7 @@ describe('label completeness', () => {
     'board.place': ['ruine', 'schrein', 'pass', 'erzader', 'quelle', 'siedlung', 'turm', 'hoehle'],
     'board.lang': LANGUAGES,
     'shell.difficulty': ['easy', 'normal', 'hard'],
-    'shell.settings.volume': ['master', 'ambience', 'ui', 'stingers'],
+    'shell.settings.volume': ['master', 'ui', 'stingers'],
     'shell.menu': ['resume', 'settings', 'rules', 'result', 'to-start'],
     'shell.end': ['victory', 'collapse', 'rival'],
     'shell.rules.slot': ['main', 'minor', 'free', 'varies'],

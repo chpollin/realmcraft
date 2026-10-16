@@ -1,15 +1,13 @@
 // The parts of the board's audio that run without an AudioContext: viewer
 // settings with their storage fallbacks, and the mapping of clicks, probe
-// bands, game updates and worlds to cues, channels, moods and tones.
+// bands and game updates to finite cues, channels and tones.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 
 import { AUDIO_STORE, CHANNELS, DEFAULT_SETTINGS, REDUCED_GAIN, gainsOf, loadSettings, normalizeSettings, saveSettings } from '../../spielbrett/js/audio/settings.js';
 import {
-  CUES, CUE_CHANNEL, DEFAULT_MOOD, MOODS, SCALES, bandCue, bellNotes, clickCue, controlOf, endCue, moodFor, moodOf, openedCue, recipe, updateCue,
+  CUES, CUE_CHANNEL, bandCue, clickCue, controlOf, endCue, openedCue, recipe, updateCue,
 } from '../../spielbrett/js/audio/cues.js';
 import { BANDS } from '../../engine/schemas/common.js';
 
@@ -27,16 +25,25 @@ describe('settings', () => {
   test('normalize clamps volumes and drops unknown or malformed fields', () => {
     assert.deepEqual(normalizeSettings(null), { ...DEFAULT_SETTINGS });
     assert.deepEqual(normalizeSettings({ master: 2, ambience: -1, ui: 'laut', stingers: Number.NaN, muted: 'ja', reduced: 1, extra: true }),
-      { master: 1, ambience: 0, ui: DEFAULT_SETTINGS.ui, stingers: DEFAULT_SETTINGS.stingers, muted: false, reduced: null });
+      { master: 1, ui: DEFAULT_SETTINGS.ui, stingers: DEFAULT_SETTINGS.stingers, muted: false, reduced: null });
     assert.deepEqual(normalizeSettings({ master: 0.3, muted: true, reduced: false }),
       { ...DEFAULT_SETTINGS, master: 0.3, muted: true, reduced: false });
   });
 
   test('settings survive a round trip through storage', () => {
     const s = memoryStorage();
-    const mine = { master: 0.4, ambience: 0, ui: 1, stingers: 0.25, muted: true, reduced: true };
+    const mine = { master: 0.4, ui: 1, stingers: 0.25, muted: true, reduced: true };
     assert.equal(saveSettings(mine, s), true);
     assert.deepEqual(loadSettings(s), mine);
+  });
+
+  test('legacy ambience is discarded without changing retained viewer settings', () => {
+    const retained = { master: 0.7, ui: 0.35, stingers: 0.45, muted: true, reduced: false };
+    const storage = memoryStorage({ [AUDIO_STORE]: JSON.stringify({ ...retained, ambience: 1 }) });
+    assert.deepEqual(CHANNELS, ['ui', 'stingers']);
+    assert.deepEqual(loadSettings(storage), retained);
+    assert.equal(saveSettings({ ...retained, ambience: 1 }, storage), true);
+    assert.deepEqual(JSON.parse(storage.getItem(AUDIO_STORE)), retained);
   });
 
   test('blocked, missing or corrupt storage falls back to the defaults', () => {
@@ -49,8 +56,8 @@ describe('settings', () => {
   });
 
   test('mute silences the master bus, reduced intensity lowers every channel', () => {
-    const s = { ...DEFAULT_SETTINGS, master: 0.5, ambience: 1, ui: 1, stingers: 1 };
-    assert.deepEqual(gainsOf(s, false), { master: 0.5, ambience: 1, ui: 1, stingers: 1 });
+    const s = { ...DEFAULT_SETTINGS, master: 0.5, ui: 1, stingers: 1 };
+    assert.deepEqual(gainsOf(s, false), { master: 0.5, ui: 1, stingers: 1 });
     assert.equal(gainsOf({ ...s, muted: true }, false).master, 0);
     assert.deepEqual(gainsOf(s, true), { master: 0.5, ...REDUCED_GAIN });
     for (const c of CHANNELS) assert.ok(REDUCED_GAIN[c] < 1, c);
@@ -157,30 +164,5 @@ describe('tones', () => {
   test('recipe hands out copies', () => {
     recipe('confirm')[0].gain = 99;
     assert.notEqual(recipe('confirm')[0].gain, 99);
-  });
-});
-
-describe('world mood', () => {
-  test('every mood in the table names an existing world package and is valid as it stands', () => {
-    for (const [id, mood] of Object.entries(MOODS)) {
-      assert.ok(existsSync(fileURLToPath(new URL(`../../welten/${id}/style.json`, import.meta.url))), id);
-      assert.deepEqual(moodOf(mood), mood, id);
-    }
-    assert.deepEqual(moodFor('hochland'), MOODS.hochland);
-  });
-
-  test('an unknown world gets the default mood, an override wins, bad fields fall back one by one', () => {
-    assert.deepEqual(moodFor('anderswo'), { ...DEFAULT_MOOD });
-    assert.deepEqual(moodFor('constructor'), { ...DEFAULT_MOOD });
-    assert.deepEqual(moodFor(null), { ...DEFAULT_MOOD });
-    assert.deepEqual(moodFor('hochland', { root: 50, scale: 'lydian', wind: 0, bells: 3 }), { root: 50, scale: 'lydian', wind: 0, bells: 3 });
-    assert.deepEqual(moodOf({ root: 99, scale: 'toString', wind: 3, bells: 1.5 }),
-      { root: DEFAULT_MOOD.root, scale: DEFAULT_MOOD.scale, wind: 3, bells: DEFAULT_MOOD.bells });
-  });
-
-  test('bells span two octaves of the scale above the drone', () => {
-    const notes = bellNotes(MOODS.hochland);
-    assert.equal(notes.length, SCALES.dorian.length * 2);
-    assert.ok(notes.every((f, i) => i === 0 || f > notes[i - 1]));
   });
 });

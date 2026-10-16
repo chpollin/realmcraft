@@ -2,6 +2,8 @@
 
 Milestone contract used for the M1 build. The build lanes and first refactor wave are integrated. Their ownership, ports and merge sequence below document that execution and are not a command to repeat it. Current work is in [plan.md](plan.md). Game rules and architecture are maintained in [game-design.md](game-design.md), [rules-kernel.md](rules-kernel.md) and [agents-harness.md](agents-harness.md).
 
+The original background-ambience requirement and its API below were superseded on October 16, 2026 by [D25](decisions.md#d25-audio-feedback-without-background-loops). The current audio contract is in [frontend.md](frontend.md#product-integration-boundaries).
+
 ## Goal
 
 M1 turns the existing kernel, harness and board into one game a player can start, play and finish in the browser. The game stays turn-based, the kernel stays the only writer of campaign state, peoples develop without a fixed tree, and every decision shows its consequences before it is taken (D15).

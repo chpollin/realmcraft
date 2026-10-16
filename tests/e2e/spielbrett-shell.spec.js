@@ -148,7 +148,8 @@ test('settings change language, sound and motion and survive a reload', async ({
   await expect(page.locator('#start-new span')).toHaveText(de['shell.start.new']);
   await expect(dlg.locator('[data-lang="de"]')).toBeFocused();
 
-  await dlg.locator('[data-volume="ambience"]').fill('20');
+  await expect(dlg.locator('[data-volume="ambience"]')).toHaveCount(0);
+  await dlg.locator('[data-volume="ui"]').fill('20');
   await dlg.locator('#einst-stumm').click();
   await expect(dlg.locator('#einst-stumm')).toHaveAttribute('aria-checked', 'true');
   const motion = dlg.locator('#einst-bewegung');
@@ -162,9 +163,10 @@ test('settings change language, sound and motion and survive a reload', async ({
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await expect(page.locator('html')).toHaveAttribute('data-motion', reduced ? 'reduced' : 'full');
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('realmcraft.audio')));
-  expect(stored).toMatchObject({ ambience: 0.2, muted: true, reduced });
+  expect(stored).toMatchObject({ ui: 0.2, muted: true, reduced });
   await page.locator('#start-settings').click();
-  await expect(dlg.locator('[data-volume="ambience"]')).toHaveValue('20');
+  await expect(dlg.locator('[data-volume="ambience"]')).toHaveCount(0);
+  await expect(dlg.locator('[data-volume="ui"]')).toHaveValue('20');
   await expect(dlg.locator('#einst-stumm')).toHaveAttribute('aria-checked', 'true');
   await expect(dlg.locator('[data-lang="de"]')).toHaveAttribute('aria-checked', 'true');
   expect(errors).toEqual([]);

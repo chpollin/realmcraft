@@ -1,23 +1,21 @@
 // Sound of the Spielbrett, synthesized with Web Audio, no audio files. The
 // AudioContext starts on the first user gesture (autoplay policy); before that
-// every call is a silent no-op or a remembered wish, so callers never check.
+// every call is a silent no-op, so callers never check.
 //
-// Buses: ambience, ui and stingers, all into master.
+// Buses: ui and stingers, both into master.
 //
 // Usage:
 //   const audio = installAudio({ game });  // once, from main.js
 //   audio.play('confirm');
-//   audio.ambience('hochland');            // mood of a world, false stops it
 //   audio.setVolume('ui', 0.4);            // persisted per viewer
 //   getAudio()?.settings                    // from a settings dialog
 
 import { CHANNELS, DEFAULT_SETTINGS, gainsOf, loadSettings, normalizeSettings, saveSettings } from './settings.js';
-import { CUES, CUE_CHANNEL, MOODS, bandCue, bellNotes, clickCue, controlOf, endCue, hz, moodFor, openedCue, recipe, updateCue } from './cues.js';
+import { CUES, CUE_CHANNEL, bandCue, clickCue, endCue, openedCue, recipe, updateCue } from './cues.js';
 
-export { CUES, CHANNELS, DEFAULT_SETTINGS, MOODS };
+export { CUES, CHANNELS, DEFAULT_SETTINGS };
 
 const RAMP = 0.05;
-const HOVER_GAP_MS = 90;
 const VERDICT = '.pe-urteil[data-band]';
 
 function storageOrNull() {
@@ -34,10 +32,7 @@ function storageOrNull() {
  *   it from a user gesture. false where Web Audio is missing.
  * @property {(cue: string) => boolean} play  one cue of CUES on its channel;
  *   false when silent (no context yet, muted, unknown cue)
- * @property {(styleId: string|false|null, mood?: object) => void} ambience
- *   selects the ambience of a world package id (MOODS, an optional mood object
- *   overrides) and plays it once audio runs; false or null stops it
- * @property {(channel: 'master'|'ambience'|'ui'|'stingers', value: number) => void} setVolume
+ * @property {(channel: 'master'|'ui'|'stingers', value: number) => void} setVolume
  * @property {(muted: boolean) => void} setMuted
  * @property {(reduced: boolean|null) => void} setReducedMotion  overrides the
  *   viewer's prefers-reduced-motion, null follows it again
@@ -46,9 +41,9 @@ function storageOrNull() {
  * @property {(patch: object) => import('./settings.js').AudioSettings} set
  *   merges, validates, persists and applies a settings change
  * @property {(root?: Document) => () => void} bind  first-gesture start, click
- *   and hover feedback, dice landing, probe bands and event cards; returns unbind
- * @property {(game: any) => () => void} attach  ambience of the campaign's
- *   world and the turn, victory and defeat cues from game.onUpdate; returns detach
+ *   feedback, dice landing, probe bands and event cards; returns unbind
+ * @property {(game: any) => () => void} attach  turn, victory and defeat cues
+ *   from game.onUpdate; returns detach
  */
 
 /**
@@ -57,11 +52,9 @@ function storageOrNull() {
  */
 export function createAudio({ storage = storageOrNull(), media = globalThis.matchMedia?.bind(globalThis) } = {}) {
   let settings = loadSettings(storage);
-  let mood = null;
   let ctx = null;
   let bus = null;
   let noise = null;
-  let playing = null;
 
   const systemReduced = () => {
     try {
@@ -130,100 +123,9 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
 
   function play(cue) {
     if (!running() || settings.muted || !CUES.includes(cue)) return false;
-    if (cue === 'hover' && reduced()) return false;
     const t0 = ctx.currentTime + 0.01;
     for (const t of recipe(cue, reduced())) tone(t, bus[CUE_CHANNEL[cue]], t0);
     return true;
-  }
-
-  // Ambience: drone on root and fifth, wind from filtered noise, sparse bells.
-
-  function stopAmbience() {
-    if (!playing) return;
-    const { nodes, out, timer } = playing;
-    playing = null;
-    clearTimeout(timer);
-    const now = ctx.currentTime;
-    out.gain.setTargetAtTime(0, now, 0.4);
-    for (const n of nodes) n.stop(now + 2);
-    setTimeout(() => out.disconnect(), 2500);
-  }
-
-  function startAmbience() {
-    if (!ctx || playing || !mood || settings.ambience === 0) return;
-    const now = ctx.currentTime;
-    const low = reduced();
-    const out = ctx.createGain();
-    out.gain.setValueAtTime(0, now);
-    out.gain.setTargetAtTime(1, now, 1.5);
-    out.connect(bus.ambience);
-    const nodes = [];
-    const lfo = (rate, depth, param) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.frequency.value = rate;
-      g.gain.value = depth;
-      o.connect(g).connect(param);
-      o.start(now);
-      nodes.push(o);
-    };
-
-    const droneFilter = ctx.createBiquadFilter();
-    droneFilter.type = 'lowpass';
-    droneFilter.frequency.value = 380;
-    const droneGain = ctx.createGain();
-    droneGain.gain.value = low ? 0.05 : 0.09;
-    droneFilter.connect(droneGain).connect(out);
-    lfo(0.05, 120, droneFilter.frequency);
-    for (const [step, detune] of [[0, -4], [0, 4], [7, 0]]) {
-      const o = ctx.createOscillator();
-      o.type = 'triangle';
-      o.frequency.value = hz(mood.root + step);
-      o.detune.value = detune;
-      o.connect(droneFilter);
-      o.start(now);
-      nodes.push(o);
-    }
-
-    if (mood.wind > 0) {
-      const src = ctx.createBufferSource();
-      src.buffer = noiseBuffer();
-      src.loop = true;
-      const bp = ctx.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.frequency.value = 520;
-      bp.Q.value = 0.7;
-      const g = ctx.createGain();
-      g.gain.value = 0.025 * mood.wind * (low ? 0.5 : 1);
-      src.connect(bp).connect(g).connect(out);
-      lfo(0.07, 300, bp.frequency);
-      lfo(0.11, g.gain.value * 0.6, g.gain);
-      src.start(now);
-      nodes.push(src);
-    }
-
-    playing = { nodes, out, timer: 0 };
-    // Bells are motion in sound; reduced intensity leaves only drone and wind.
-    if (mood.bells > 0 && !low) {
-      const notes = bellNotes(mood);
-      const ring = () => {
-        if (!playing) return;
-        if (running()) {
-          const f = notes[Math.floor(Math.random() * notes.length)];
-          const t0 = ctx.currentTime + 0.05;
-          for (const [mult, gain, dur] of [[1, 0.05, 3], [2.76, 0.015, 1.6]]) {
-            tone({ at: 0, dur, hz: f * mult, wave: 'sine', gain, attack: 0.01 }, out, t0);
-          }
-        }
-        playing.timer = setTimeout(ring, (9 - mood.bells * 2 + Math.random() * 5) * 1000);
-      };
-      playing.timer = setTimeout(ring, 2500);
-    }
-  }
-
-  function restartAmbience() {
-    stopAmbience();
-    startAmbience();
   }
 
   function resume() {
@@ -248,24 +150,13 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
     bus = { master };
     for (const c of CHANNELS) bus[c] = gain(master);
     applyGains();
-    startAmbience();
     return true;
   }
 
-  function ambience(styleId, override) {
-    const next = styleId === false || styleId == null ? null : moodFor(styleId, override);
-    const same = next && mood && Object.keys(next).every((k) => next[k] === mood[k]);
-    if (same) return;
-    mood = next;
-    if (ctx) restartAmbience();
-  }
-
   function set(patch) {
-    const before = settings;
     settings = normalizeSettings({ ...settings, ...(patch && typeof patch === 'object' ? patch : {}) });
     saveSettings(settings, storage);
     applyGains();
-    if (ctx && (before.reduced !== settings.reduced || (before.ambience === 0) !== (settings.ambience === 0))) restartAmbience();
     return { ...settings };
   }
 
@@ -286,18 +177,6 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
       const cue = clickCue(e.target);
       if (cue) play(cue);
     }, { capture: true });
-
-    let lastControl = null;
-    let lastHover = 0;
-    on(root, 'pointerover', (e) => {
-      const c = controlOf(e.target);
-      if (c === lastControl) return;
-      lastControl = c;
-      const now = Date.now();
-      if (!c || c.id === 'karte' || now - lastHover < HOVER_GAP_MS || c.getAttribute?.('aria-disabled') === 'true') return;
-      lastHover = now;
-      play('hover');
-    });
 
     // Probe verdicts and event cards come from UI modules this one does not
     // own, so they are heard from the DOM: a verdict is .pe-urteil with
@@ -329,7 +208,7 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
       off.push(() => obs.disconnect());
     }
 
-    // A hidden tab keeps no ambience running.
+    // Hidden tabs suspend cue playback.
     on(root, 'visibilitychange', () => {
       if (!ctx) return;
       if (root.hidden) ctx.suspend().catch(() => {});
@@ -339,10 +218,7 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
     if (media) {
       try {
         const mq = media('(prefers-reduced-motion: reduce)');
-        const change = () => {
-          applyGains();
-          if (ctx && settings.reduced === null) restartAmbience();
-        };
+        const change = applyGains;
         mq.addEventListener?.('change', change);
         off.push(() => mq.removeEventListener?.('change', change));
       } catch { /* no media queries, no live switch */ }
@@ -353,7 +229,6 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
   function attach(game) {
     if (!game?.onUpdate) return () => {};
     let ended = endCue(game.view, game.pid) !== null;
-    ambience(game.pack?.welt?.id ?? null);
     return game.onUpdate((kind, detail) => {
       if (kind === 'view') {
         const end = endCue(game.view, game.pid);
@@ -371,7 +246,6 @@ export function createAudio({ storage = storageOrNull(), media = globalThis.matc
   return {
     resume,
     play,
-    ambience,
     setVolume: (channel, value) => { if (channel === 'master' || CHANNELS.includes(channel)) set({ [channel]: value }); },
     setMuted: (muted) => { set({ muted: Boolean(muted) }); },
     setReducedMotion: (value) => { set({ reduced: typeof value === 'boolean' ? value : null }); },

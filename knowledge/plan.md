@@ -62,7 +62,7 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 - Translate free player intentions into existing executable orders, or ask for a missing target or unsupported mechanic. Show the actual kernel costs and consequences before confirmation. An in-game intention interface and a background agent service are not built.
 - Continue work on the distinction between labour, resource stocks, research points, main/minor actions and free actions. Keep shared order and preview paths rather than introducing competing draft editors.
 - Extend the code-drawn community view from the authored Hochland scene to actual building/institution changes and a tested rendering vocabulary for authored worlds. The current scene does not represent a complete spatial inventory.
-- Add spoken narration and playback controls for the owner's calm, mysterious narrator with dry humour. Existing synthesized ambience and cues do not supply narration. A voice/provider choice and audio-quality acceptance remain open.
+- Add spoken narration and playback controls for the owner's calm, mysterious narrator with dry humour. Existing synthesized interaction and event cues do not supply narration. A voice/provider choice and audio-quality acceptance remain open.
 
 ## Current UI review
 

@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [rules-kernel, data-contracts, agents-harness, frontend, testing, operations]
@@ -61,7 +61,7 @@ The server never computes game logic. A draft change becomes a CLI `preview --dr
 
 The community scene under `spielbrett/js/community/` is drawn with Canvas code. Its labour and home controls route to the existing context panel. `data/planning.js` derives concrete main or minor options from known targets in the player projection and passes them through `game.previewOption()`. `ui/planen.js` groups these options and reuses the context order controls. Neither surface creates rules or reveals unknown map data.
 
-The running browser has synthesized Web Audio cues and ambience. It has no integrated speech narrator or LLM conversation service. Free-description campaign authoring and an in-game intentions conversation remain requirements in [new-game-design.md](new-game-design.md). The current creation endpoint accepts existing package and template ids ([operations.md](operations.md)).
+The running browser has finite synthesized Web Audio cues for interactions and events, without background music or ambient loops ([decisions.md](decisions.md#d25-audio-feedback-without-background-loops)). It has no integrated speech narrator or LLM conversation service. Free-description campaign authoring and an in-game intentions conversation remain requirements in [new-game-design.md](new-game-design.md). The current creation endpoint accepts existing package and template ids ([operations.md](operations.md)).
 
 ## Trust boundaries
 

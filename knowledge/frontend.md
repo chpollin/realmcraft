@@ -130,7 +130,11 @@ The board provides a start screen with new game, continue, settings and rules, a
 
 New game defaults to the free realm workflow described below. The previous world-package/template form remains a separate option. Descriptions remain verbatim fiction, and executable choices are explicit. The kernel-derived map preview is reversible and creates no campaign. [new-game-design.md](new-game-design.md) distinguishes this implementation from the broader adaptive conversation. The board menu and start-screen campaign rows expose the existing save/load endpoints through the shared snapshot dialog described below. Free player intentions have no in-game translation interface, and the agent round still uses the external harness described in [agents-harness.md](agents-harness.md).
 
-The Rules dialog is a generated read-only reference. Viewer settings currently cover language, audio and reduced motion. Campaign-rule editing and a broader mechanics configuration remain product scope decisions. Audio supplies synthesized ambience and cues; spoken narration is not integrated. The community prototype's visual limits are stated above. A source review of old handoff items must be reproduced against current code before treating them as unfinished work.
+The Rules dialog is a generated read-only reference. Viewer settings currently cover language, audio and reduced motion. Campaign-rule editing and a broader mechanics configuration remain product scope decisions.
+
+Audio supplies finite synthesized cues for control activation, refusal, warnings, dice, outcomes, events and season changes. Background music, ambient loops and passive hover sounds are removed by [D25](decisions.md#d25-audio-feedback-without-background-loops). Settings expose master, interface and event volumes plus mute. Legacy ambience values are discarded while the remaining viewer preferences are retained. Spoken narration is not integrated.
+
+The community prototype's visual limits are stated above. A source review of old handoff items must be reproduced against current code before treating them as unfinished work.
 
 ## Save menu interaction
 

@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-15
+updated: 2026-10-16
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [vision, game-design, rules-kernel, agents-harness, plan-m1, journal]
@@ -181,7 +181,7 @@ The owner settled the open questions for M1 as follows. Each can be revised by t
 ### D19 Audio
 
 - Decision. Audio is synthesised with Web Audio in the browser without audio files. It covers ambience per world style, UI feedback, dice, event and turn stingers, mute and volume, with reduced intensity when reduced motion is set.
-- Reason. Playtest entry 19.
+- Reason. Playtest entry 19. The background-ambience part is superseded by [D25](#d25-audio-feedback-without-background-loops).
 
 ### D20 Event cards
 
@@ -215,3 +215,10 @@ The owner settled the open questions for M1 as follows. Each can be revised by t
 - Reason. The owner asked for a main menu with continue, load, options and quit and for saving a game. A copy of the whole folder keeps journal, drafts and library together, so the existing integrity checks and `replay` prove a restored campaign without a second format. Allowing load after the end lets a lost game return to an earlier season.
 - Consequence. Agents never read `saves/` or the staging folder `.restore/` (guard hook). A save made under another world package restores into the drift state and waits for `repin`. A fork under a new id would need a new journal anchored on the saved state and the save's agent content in the library, which is more than the request carried.
 - Revisit when saves should leave the campaign folder, be exported, or when their disk use matters.
+
+### D25 Audio feedback without background loops
+
+- Date 2026-10-16, revises D19.
+- Decision. Remove background music and all ambient generators, their world-mood API and the ambience volume control. Keep short synthesized interaction and event cues, with master, interface and event volumes, mute and reduced intensity. Passive pointer hover stays silent.
+- Reason. The owner asked to remove background music entirely and retain useful sound in the UI. Quiet intervals leave room for the player while concrete actions and outcomes remain audible.
+- Consequence. Each sound source has a scheduled finite end. Old viewer settings discard ambience and preserve supported fields. Campaigns and saves are unaffected.

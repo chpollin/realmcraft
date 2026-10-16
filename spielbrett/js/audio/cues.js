@@ -1,10 +1,9 @@
 // What the board sounds like, as data: the cue of a click, a probe band, a
-// game update or a world, and the tones every cue is made of. Nothing here
+// game update, and the tones every cue is made of. Nothing here
 // touches an AudioContext, so the mapping runs under node:test.
 
 /** Every cue the board plays, with the channel it runs on. */
 export const CUE_CHANNEL = Object.freeze({
-  hover: 'ui',
   click: 'ui',
   confirm: 'ui',
   refuse: 'ui',
@@ -25,70 +24,7 @@ export const CUE_CHANNEL = Object.freeze({
 
 export const CUES = Object.freeze(Object.keys(CUE_CHANNEL));
 
-/** Scale ids of a mood, as semitone steps from the root. */
-export const SCALES = Object.freeze({
-  'minor-pentatonic': [0, 3, 5, 7, 10],
-  'major-pentatonic': [0, 2, 4, 7, 9],
-  dorian: [0, 2, 3, 5, 7, 9, 10],
-  aeolian: [0, 2, 3, 5, 7, 8, 10],
-  phrygian: [0, 1, 3, 5, 7, 8, 10],
-  lydian: [0, 2, 4, 6, 7, 9, 11],
-});
-
-/**
- * Mood of the ambience. root: drone pitch as a MIDI note 24..60. scale: id of
- * SCALES for the bells. wind, bells: density 0..3.
- * @typedef {{ root: number, scale: string, wind: number, bells: number }} Mood
- */
-
-/** Mood of a world without an entry in MOODS. */
-export const DEFAULT_MOOD = Object.freeze({ root: 45, scale: 'minor-pentatonic', wind: 1, bells: 1 });
-
-// Mood per world package id. The hochland of welten/hochland/style.json is a
-// barren high range of slate and lichen with herds on the high pastures: a low
-// dorian drone, strong wind, rare herd bells. Kept here until the world style
-// schema carries an audio block of its own.
-export const MOODS = Object.freeze({
-  hochland: Object.freeze({ root: 38, scale: 'dorian', wind: 2, bells: 1 }),
-});
-
 export const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
-
-const level = (v, fallback) => (Number.isInteger(v) && v >= 0 && v <= 3 ? v : fallback);
-
-/**
- * A mood checked field by field; a missing or bad value falls back to the
- * default, so a mood from a file never breaks the ambience.
- * @param {unknown} raw
- * @returns {Mood}
- */
-export function moodOf(raw) {
-  const a = raw && typeof raw === 'object' ? raw : {};
-  const d = DEFAULT_MOOD;
-  return {
-    root: Number.isInteger(a.root) && a.root >= 24 && a.root <= 60 ? a.root : d.root,
-    scale: Object.hasOwn(SCALES, a.scale) ? a.scale : d.scale,
-    wind: level(a.wind, d.wind),
-    bells: level(a.bells, d.bells),
-  };
-}
-
-/**
- * Mood of a world: an explicit mood (a style's audio block) over the table entry.
- * @param {string|null|undefined} styleId  world package id
- * @param {unknown} [override]
- * @returns {Mood}
- */
-export function moodFor(styleId, override) {
-  if (override) return moodOf(override);
-  return moodOf(typeof styleId === 'string' && Object.hasOwn(MOODS, styleId) ? MOODS[styleId] : null);
-}
-
-/** Bell pitches of a mood in Hz, two octaves of its scale above the drone. */
-export function bellNotes(mood) {
-  const steps = SCALES[mood.scale] ?? SCALES[DEFAULT_MOOD.scale];
-  return [0, 12].flatMap((oct) => steps.map((s) => hz(mood.root + 24 + oct + s)));
-}
 
 // Probe bands of the kernel (engine/schemas/common.js BANDS) and world-event
 // bands 1..5, calamity to blessing, on the five outcome cues.
@@ -204,7 +140,6 @@ const bell = (at, midi, dur, gain, flourish = false) => [
 
 /** @type {Readonly<Record<string, Tone[]>>} */
 const RECIPES = Object.freeze({
-  hover: [{ at: 0, dur: 0.04, hz: 1760, wave: 'sine', gain: 0.05 }],
   click: [{ at: 0, dur: 0.08, hz: 660, to: 700, wave: 'triangle', gain: 0.18 }],
   confirm: seq([72, 79], 0.07, 0.16, 'triangle', 0.22),
   refuse: seq([63, 58], 0.08, 0.14, 'square', 0.1, { cutoff: 900 }),

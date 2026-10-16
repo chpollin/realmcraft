@@ -90,7 +90,6 @@ export async function startScreen() {
     if (st.world !== world) return;
     st.regeln = regeln;
     if (files.length) setWorldLabels(files);
-    getAudio()?.ambience(world.id);
   }
 
   const templateOf = (id) => st.regeln?.peopleTemplates?.find((x) => x.id === id) ?? null;

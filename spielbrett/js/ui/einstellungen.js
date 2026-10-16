@@ -10,8 +10,8 @@ import { LANGUAGES } from '../data/labels.js';
 import { getAudio } from '../audio/index.js';
 import { dialogHead } from './dialoge.js';
 
-const VOLUMES = ['master', 'ambience', 'ui', 'stingers'];
-const VOLUME_ICON = { master: 'ton', ambience: 'welt', ui: 'ziel', stingers: 'meilenstein' };
+const VOLUMES = ['master', 'ui', 'stingers'];
+const VOLUME_ICON = { master: 'ton', ui: 'ziel', stingers: 'meilenstein' };
 
 /** html data-motion of a motion choice: true reduced, false full, null follows the system. */
 export const motionAttr = (reduced) => (reduced === true ? 'reduced' : reduced === false ? 'full' : null);
