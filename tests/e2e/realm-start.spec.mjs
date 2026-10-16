@@ -41,6 +41,7 @@ async function enter(page, language = 'de') {
   await page.goto(`${base}/spielbrett/`);
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await page.locator('#start-new').click();
+  if (await page.locator('#realm-open-manual').count()) await page.locator('#realm-open-manual').click();
   await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'brief');
   await expect(page.locator('[data-new-mode="realm"]')).toHaveAttribute('aria-pressed', 'true');
 }
@@ -524,10 +525,11 @@ test('a confirmed new library generation clears its old creation attempt and sta
   generation = 'fedcba9876543210fedcba9876543210';
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
-  await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'brief');
+  await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'chat');
+  expect(await page.evaluate(() => sessionStorage.getItem('realmcraft.creation.v1'))).toBeNull();
+  await page.locator('#realm-open-manual').click();
   await expect(page.locator('#realm-world-brief')).toHaveValue('');
   await expect(page.locator('#realm-people-brief')).toHaveValue('');
-  expect(await page.evaluate(() => sessionStorage.getItem('realmcraft.creation.v1'))).toBeNull();
   expect(await page.evaluate(() => Object.fromEntries(['realmcraft.settings', 'realmcraft.audio', 'spielbrett.ratsleiste'].map((key) => [key, localStorage.getItem(key)])))).toEqual(preferences);
   await draft(page);
   await edit(page);

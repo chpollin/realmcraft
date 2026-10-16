@@ -104,6 +104,22 @@ The board serializes draft writes and flushes the latest local plan before creat
 
 A load whose response is lost or invalid remains locked because the server may already have restored the snapshot. The dialog offers a canonical reload before further planning. An explicit server refusal keeps the local draft available for correction and retry.
 
+## Chat-led realm initialization
+
+Open New game and choose Copy starting prompt. Paste it into the existing AI harness chat that has repository and filesystem access. The prompt identifies the shared workshop and its runtime root. The chat develops the world, community and supported rules through concrete alternatives and publishes confirmed intermediate decisions. The browser follows that work without a reload. It cannot read the chat itself.
+
+The helper is tools/harness/realm-workshop.mjs. Its commands print structured JSON. Use the exact id, root and generation from the copied prompt.
+
+```sh
+node tools/harness/realm-workshop.mjs read --id <uuid> --root <runtime-root>
+node tools/harness/realm-workshop.mjs schema --id <uuid> --root <runtime-root>
+node tools/harness/realm-workshop.mjs publish --id <uuid> --root <runtime-root> --file <packet.json> --expect-rev <revision> --generation <token-or-legacy>
+```
+
+A publication contains draft, questions and ruleIdeas. Read schema for the existing creation draft and allowed choices. The schema output is a shape example whose placeholders must be replaced through the conversation. Read before writing, publish only confirmed changes and reread after a revision conflict. Preserve alternatives in the conversation. These writes affect private authoring data and create no campaign. Gameplay workers do not initialize a realm.
+
+The board shows open questions and rule ideas as unresolved. Clear them through a player decision before reviewing the start. Unsupported mechanics need their own implementation task. After the real preview, the player explicitly starts the reviewed snapshot in the browser. The workshop freezes while that start is pending and supports the same start key after a lost response. Completed or uncertain starts are recovered instead of republished. Manual form editing and package/template starts remain available.
+
 ## Reset runtime games
 
 Stop the dev server and every harness writer before resetting the runtime game library. This maintenance operation permanently removes current campaigns together with their named saves, automatic backups, drafts and staged restores.

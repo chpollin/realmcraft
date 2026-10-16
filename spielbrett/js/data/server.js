@@ -51,8 +51,10 @@ export const server = {
   /** New game through the kernel CLI: { id } or { ok: false, issues }. */
   create: (body) => post('/api/campaigns', body),
   realmDraft: (brief) => post('/api/realms/draft', brief),
-  realmPreview: (draft) => post('/api/realms/preview', { draft }),
-  realmStart: (draft, fingerprint, startKey) => post('/api/realms/start', { draft, fingerprint, startKey }),
+  realmPreview: (draft, workshop) => post('/api/realms/preview', { draft, ...(workshop ? { workshop } : {}) }),
+  realmStart: (draft, fingerprint, startKey, workshop) => post('/api/realms/start', { draft, fingerprint, startKey, ...(workshop ? { workshop } : {}) }),
+  createWorkshop: (id, language) => post('/api/realms/workshops', { id, language }),
+  workshop: (id) => json('/api/realms/workshops/' + encodeURIComponent(id)),
   /** Records the campaign as the one /zug plays next. */
   activate: (cid) => post(`${a(cid)}/activate`, {}),
 

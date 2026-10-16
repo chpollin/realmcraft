@@ -15,7 +15,7 @@ related: [vision, new-game-design, frontend, testing, playtests, plan-m1, journa
 
 # Development plan
 
-The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has free realm creation with editable drafts and pure map previews, a separate template start, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. The shared Weltenwerkstatt direction frames these controls, with a compact native research view on phones. Its artistic acceptance remains open. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
+The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has chat-led realm creation through a copied prompt and shared workshop, optional direct editing and pure map previews, a separate template start, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. The shared Weltenwerkstatt direction frames these controls, with a compact native research view on phones. Its artistic acceptance remains open. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
 
 ## Continuation
 
@@ -58,7 +58,7 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 ## Product integrations
 
-- The free realm start is implemented through descriptions, editable neutral defaults, supported mechanics, a reversible generated-map preview and explicit independent campaign creation. [new-game-design.md](new-game-design.md) defines its contract and limits. Further adaptive questions, LLM-generated suggestions and a rendering vocabulary for authored worlds remain outside this implementation. Earlier fictional chat drafts are not imported automatically.
+- The free realm start now uses the existing harness chat as its primary workshop. A copied prompt and versioned shared draft connect the conversation to the browser. Supported mechanics, a reversible generated-map preview and explicit independent campaign creation are implemented, with a separate manual draft retained. [new-game-design.md](new-game-design.md) defines its contract and limits. The conversation prompt requests targeted questions and concrete alternatives, but their quality still needs observed use. A standalone model service and a rendering vocabulary for authored worlds remain outside this implementation. Earlier fictional chat drafts are not imported automatically.
 - Translate free player intentions into existing executable orders, or ask for a missing target or unsupported mechanic. Show the actual kernel costs and consequences before confirmation. An in-game intention interface and a background agent service are not built.
 - Continue work on the distinction between labour, resource stocks, research points, main/minor actions and free actions. Keep shared order and preview paths rather than introducing competing draft editors.
 - Extend the code-drawn community view from the authored Hochland scene to actual building/institution changes and a tested rendering vocabulary for authored worlds. The current scene does not represent a complete spatial inventory.

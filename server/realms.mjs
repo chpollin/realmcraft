@@ -14,6 +14,7 @@ import { readJson, renameWithRetry, withLock, writeJsonAtomic } from '../engine/
 import { CAMPAIGN_ROOT, CAMPAIGNS_DIR, ROOT } from './config.mjs';
 import { readPostJson, sendIssues, sendJson, serverIssue } from './http.mjs';
 import { parseCli, runCli } from './kernel.mjs';
+import { finishWorkshopStart, reserveWorkshopStart, reviewWorkshop } from '../engine/harness/workshop.js';
 
 const FILES = {
   welt: 'welt.json', regeln: 'regeln.json', labels: 'labels.json', style: 'style.json',
@@ -90,14 +91,15 @@ export async function handleRealmDraft(req, res) {
 export async function handleRealmPreview(req, res) {
   const body = await readPostJson(req, res);
   if (!body) return;
-  const issues = fields(body, ['draft']);
+  const issues = fields(body, ['draft', 'workshop']);
   if (issues.length) return sendIssues(res, 400, issues);
   try {
+    if (body.workshop !== undefined) reviewWorkshop(CAMPAIGN_ROOT, body.workshop, body.draft);
     const plan = planRealm(body.draft);
     if (plan.issues) return sendIssues(res, 400, plan.issues);
     return sendJson(res, 200, { ok: true, ...plan });
   } catch (error) {
-    return sendIssues(res, error.issues ? 400 : 500, error.issues ?? [serverIssue('server.cli', 'Realm preview could not be prepared')]);
+    return sendIssues(res, error.status ?? (error.issues ? 400 : 500), error.issues ?? [serverIssue('server.cli', 'Realm preview could not be prepared')]);
   }
 }
 
@@ -224,7 +226,7 @@ let starting = Promise.resolve();
 export async function handleRealmStart(req, res) {
   const body = await readPostJson(req, res);
   if (!body) return;
-  const issues = fields(body, ['draft', 'fingerprint', 'startKey']);
+  const issues = fields(body, ['draft', 'fingerprint', 'startKey', 'workshop']);
   if (!body.draft || typeof body.draft !== 'object' || Array.isArray(body.draft)) issues.push(bad('/draft', 'object'));
   if (typeof body.fingerprint !== 'string' || !HASH.test(body.fingerprint)) issues.push(bad('/fingerprint', 'fingerprint'));
   if (typeof body.startKey !== 'string' || !UUID.test(body.startKey)) issues.push(bad('/startKey', 'start-key'));
@@ -233,16 +235,26 @@ export async function handleRealmStart(req, res) {
     const job = starting.then(async () => {
       const key = body.startKey.toLowerCase();
       const recovered = await recoverReadyStart(key, body.draft, body.fingerprint);
-      if (recovered) return recovered;
+      if (recovered) {
+        if (recovered.body && body.workshop !== undefined) {
+          reserveWorkshopStart(CAMPAIGN_ROOT, body.workshop, body);
+          finishWorkshopStart(CAMPAIGN_ROOT, body.workshop, { ...body, campaign: recovered.body.id });
+        }
+        return recovered;
+      }
+      if (body.workshop !== undefined) reviewWorkshop(CAMPAIGN_ROOT, body.workshop, body.draft);
       const plan = planRealm(body.draft);
       if (plan.issues) return failure(400, plan.issues);
       if (body.fingerprint !== plan.fingerprint) return failure(409, [bad('/fingerprint', 'stale-preview')]);
-      return startRealm(plan, key);
+      if (body.workshop !== undefined) reserveWorkshopStart(CAMPAIGN_ROOT, body.workshop, body);
+      const result = await startRealm(plan, key);
+      if (result.body && body.workshop !== undefined) finishWorkshopStart(CAMPAIGN_ROOT, body.workshop, { ...body, campaign: result.body.id });
+      return result;
     });
     starting = job.catch(() => {});
     const result = await job;
     return result.body ? sendJson(res, result.status, result.body) : sendIssues(res, result.status, result.issues);
   } catch (error) {
-    return sendIssues(res, error.issues ? 400 : 500, error.issues ?? [serverIssue('server.cli', 'Realm start could not be completed; retry with the same start key')]);
+    return sendIssues(res, error.status ?? (error.issues ? 400 : 500), error.issues ?? [serverIssue('server.cli', 'Realm start could not be completed; retry with the same start key')]);
   }
 }

@@ -116,10 +116,17 @@ The guard and the proposal check act only inside the project root (`REALMCRAFT_R
 
 The shell guard of the main session is a heuristic over the command text and does not catch obfuscated paths. The reliable protection is the kernel, which compares every transition with the hash chain of `log/journal.json` and refuses a state changed outside it (`tamper`).
 
+## Chat-led initialization
+
+The main existing harness chat conducts world and rule building before a campaign exists. The browser copies a workshop-specific initialization prompt, follows confirmed publications and supplies the real preview and explicit Start. The chat uses realm-workshop.mjs read, schema and publish with the expected revision and library generation, as described in [operations.md](operations.md#chat-led-realm-initialization). It does not write campaign files, roll or start automatically.
+
+The turn workers and their guarded proposal paths remain unchanged. They are not repurposed as worldbuilding agents. Unsupported mechanics stay explicit workshop ruleIdeas until resolved with the player or implemented in a separate development task. This bridge requires no additional provider service and does not automate later turn orchestration or free in-game intentions.
+
 ## Helpers
 
 The helpers under `tools/harness/` write the selected-campaign record, run marker and status view through the lock and atomic rename of `engine/harness/io.js`.
 
+- `realm-workshop.mjs read|schema|publish` connects confirmed authoring decisions from the main harness chat to the browser through private versioned workshops.
 - `active-campaign.mjs` names the campaign a run works on, from an active run marker, then the explicitly selected campaign, else the newest playing campaign of `campaigns/index.json`, else the only campaign folder.
 - `run-marker.mjs start|end|show` writes `campaigns/<cid>/run.json`.
 - `status-note.mjs init|plan|step|sync` starts the turn status, records open tasks as waiting steps, sets single steps (for example a hanging agent to failed) and reconciles with the files.

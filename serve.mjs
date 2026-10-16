@@ -15,6 +15,7 @@ import { handleEvents, watchCampaigns } from './server/sse.mjs';
 import { handleStatic } from './server/static.mjs';
 import { handleWorldFile, handleWorlds } from './server/worlds.mjs';
 import { handleRealmDraft, handleRealmPreview, handleRealmStart } from './server/realms.mjs';
+import { handleWorkshopCreate, handleWorkshopGet } from './server/workshops.mjs';
 
 /**
  * Route table, matched in order on the decoded path after the Host check.
@@ -67,6 +68,8 @@ import { handleRealmDraft, handleRealmPreview, handleRealmStart } from './server
  *                                           409 while a turn runs (cli.turn_running), outside
  *                                           planning (phase) or while the lock is held
  *                                           (cli.locked). Their bodies are at most 1 KiB.
+ *   POST /api/realms/workshops { id, language } creates or recovers a private chat workshop
+ *   GET  /api/realms/workshops/<id>          shared draft, open questions and initialization prompt
  *   GET  /api/worlds                        world packages: [{ id, name, version,
  *                                           templates: [{ id, name }], languages,
  *                                           difficulties, defaultDifficulty, seed: { min, max } }]
@@ -83,6 +86,8 @@ import { handleRealmDraft, handleRealmPreview, handleRealmStart } from './server
  * fetch metadata and Origin, application/json, at most 64 KiB, a JSON object.
  */
 const ROUTES = [
+  { path: /^\/api\/realms\/workshops$/, on: { POST: handleWorkshopCreate } },
+  { path: /^\/api\/realms\/workshops\/([^/]+)$/, on: { GET: handleWorkshopGet } },
   { path: /^\/api\/realms\/draft$/, on: { POST: handleRealmDraft } },
   { path: /^\/api\/realms\/preview$/, on: { POST: handleRealmPreview } },
   { path: /^\/api\/realms\/start$/, on: { POST: handleRealmStart } },

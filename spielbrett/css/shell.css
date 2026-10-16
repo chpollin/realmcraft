@@ -421,3 +421,25 @@
   .realm-review { gap: var(--space-6); }
   #realm-map-preview { max-block-size: 28rem; min-block-size: 15rem; }
 }
+
+
+@layer components {
+  .realm-chat-entry { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .realm-chat-entry .btn { min-block-size: 3rem; }
+  .realm-prompt { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: var(--step--1); color: var(--ink-dim); padding: var(--space-4); background: var(--night-1); border: 1px solid var(--hairline); user-select: text; }
+  .realm-shared-draft { display: grid; gap: var(--space-5); }
+  .realm-shared-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-5); }
+  .realm-shared-heading h4, .realm-open-items h4 { font-size: var(--step-1); font-weight: 600; }
+  .realm-shared-worlds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+  .realm-shared-worlds section { display: grid; gap: var(--space-3); align-content: start; }
+  .realm-shared-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--space-4); }
+  .realm-shared-facts > div { display: grid; gap: var(--space-1); }
+  .realm-shared-facts dt { color: var(--ink-dim); font-size: var(--step--1); }
+  .realm-shared-facts dd { margin: 0; }
+  .realm-open-items { display: grid; gap: var(--space-3); }
+  .realm-open-items ul { padding-inline-start: var(--space-5); display: grid; gap: var(--space-2); }
+  #realm-return-chat { justify-self: start; }
+}
+@media (max-width: 680px) {
+  .realm-shared-worlds { grid-template-columns: minmax(0, 1fr); }
+}

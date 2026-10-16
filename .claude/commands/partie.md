@@ -15,16 +15,17 @@ Ohne Argument rufst du `node tools/harness/active-campaign.mjs` auf. Steht dort 
 
 ## Neue Kampagne
 
-Ein neues Spiel entsteht auf einem von zwei Wegen.
+Der bevorzugte freie Start beginnt im bestehenden Harness-Chat mit dem kopierten Startprompt aus Neues Spiel im Browser. Lies knowledge/new-game-design.md und den Abschnitt Chat-led realm initialization in knowledge/operations.md. Das Gespräch gibt konkrete Gestaltungsangebote und veröffentlicht bestätigte Zwischenstände über tools/harness/realm-workshop.mjs. Die Regel, keine Spielaktion zu empfehlen, gilt weiter für die laufende Partie. Gestaltungsangebote in dieser Initialisierung sind erwünscht.
 
-1. Im Browser. Der Spieler startet `npm run serve`, öffnet das Spielbrett und wählt im Startbildschirm Neues Spiel mit Welt, Seed, Volk, Rivalen und Schwierigkeit. Der Server legt die Kampagne über `node engine/cli.mjs new` an, und das Spielbrett merkt sie über `POST /api/campaigns/<cid>/activate` als gewählt vor. Danach ruft der Spieler `/partie` ohne Argument oder mit der neuen Kampagnen-id auf.
-2. Hier mit `neu <welt> <seed|zufall> <volksvorlage> <kampagnen-id>` und optional `rivalen=`, `schwierigkeit=` und `sprache=`:
+Lies zuerst die im Startprompt genannte Werkstatt und ihre Paketform. Veröffentliche den vollständigen bestätigten Entwurf mit der erwarteten Revision und Bibliotheksgeneration. Offene Fragen und nicht umgesetzte Mechaniken bleiben sichtbar in questions und ruleIdeas. Schreibe keine Kampagne, würfle nicht und starte nicht automatisch. Der Spieler prüft rechts die Kernel-Vorschau und startet dort ausdrücklich. Ein freier Realm öffnet dann bereits die Planung. Die direkte Formularbearbeitung bleibt als Nebenweg verfügbar.
 
-   `node engine/cli.mjs new <welt> --seed <seed> --as <volksvorlage> --id <kampagnen-id> [--rivals <a,b>] [--difficulty <stufe>] [--lang <sprache>] --json`
+Ein Vorlagenstart bleibt im Browser unter Vorlage spielen oder mit neu <welt> <seed|zufall> <volksvorlage> <kampagnen-id> möglich. Optional gelten rivalen=, schwierigkeit= und sprache=.
 
-   Fehlt ein Pflichtteil, fragst du danach. Die Volksvorlagen stehen unter `peopleTemplates` in `welten/<welt>/regeln.json`, Rivalen sind die übrigen Vorlagen (ohne Angabe alle). Bei `zufall` ziehst du den Seed mit `node -e "console.log(Math.floor(Math.random() * 1e6))"` und nennst ihn. Die Erzählsprache ist eine Einstellung der Kampagne und bleibt fest. Exit 2 nennt ungültige Angaben, die du dem Spieler zeigst. Danach `node tools/harness/active-campaign.mjs --set <kampagnen-id>`.
+```sh
+node engine/cli.mjs new <welt> --seed <seed> --as <volksvorlage> --id <kampagnen-id> [--rivals <a,b>] [--difficulty <stufe>] [--lang <sprache>] --json
+```
 
-Eine neue Kampagne beginnt in Runde 0 in der Phase `agents`, ihre ersten Aufträge liegen bereit.
+Fehlt ein Pflichtteil des Vorlagenstarts, frage gezielt danach. Die Volksvorlagen stehen unter peopleTemplates im Weltpaket. Ohne Rivalenangabe nimmt der CLI-Start die übrigen Vorlagen. Bei zufall erzeugst du einen Seed über die vorhandene Zufallsfunktion und nennst ihn. Danach wählst du die Kampagne über tools/harness/active-campaign.mjs --set <kampagnen-id>. Ein Vorlagen-/CLI-Start beginnt in Runde 0 in agents und benötigt den folgenden ersten Zug.
 
 ## Der erste Zug
 

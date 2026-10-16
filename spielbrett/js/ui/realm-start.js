@@ -11,6 +11,9 @@ const STORAGE = 'realmcraft.creation.v1';
 const validGeneration = (value) => value === null || (typeof value === 'string' && /^[0-9a-f]{32}$/.test(value));
 const TAGS = ['erkundung', 'bau', 'verhandlung', 'angriff'];
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
+const WORKSHOP_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const copy = (value) => value == null ? value : JSON.parse(JSON.stringify(value));
+const draftFields = ['brief', 'draft', 'step', 'preview', 'error', 'issues', 'startKey', 'attempted', 'fingerprint', 'created'];
 
 export function createRealmStart({ generation } = {}) {
   const root = el('div', { id: 'realm-flow', class: 'realm-flow' });
@@ -25,6 +28,10 @@ export function createRealmStart({ generation } = {}) {
     try { sessionStorage.removeItem(STORAGE); } catch { /* Recovery storage is optional. */ }
   }
   const cacheGeneration = observed ? generation : cached && validGeneration(cachedGeneration) ? cachedGeneration : 'unknown';
+  const attempt = cached?.chatAttempt;
+  const chatAttempt = attempt && WORKSHOP_ID.test(attempt.id ?? '') && WORKSHOP_ID.test(attempt.startKey ?? '')
+    && Number.isSafeInteger(attempt.rev) && attempt.rev >= 0 && /^[0-9a-f]{16}$/.test(attempt.fingerprint ?? '')
+    && !normalizeCreation(attempt.draft).issues.length ? copy(attempt) : null;
   const recovered = normalizeCreation(cached?.draft);
   const draft = recovered.issues.length ? null : recovered.draft;
   const st = {
@@ -32,7 +39,166 @@ export function createRealmStart({ generation } = {}) {
     draft, step: draft ? 'edit' : 'brief', preview: null, busy: false, error: '', issues: [],
     startKey: typeof cached?.startKey === 'string' ? cached.startKey : null,
     attempted: cached?.attempted === true, completed: false, fingerprint: typeof cached?.fingerprint === 'string' ? cached.fingerprint : null, created: null,
+    mode: cached?.mode === 'manual' ? 'manual' : 'chat', workshopId: WORKSHOP_ID.test(cached?.workshopId ?? '') ? cached.workshopId : null,
+    workshop: null, prompt: '', notice: '', promptOpen: false, previewRev: null, chatAttempt,
   };
+  let manual = Object.fromEntries(draftFields.map((key) => [key, copy(st[key])]));
+  let active = false, disposed = false, reading = false, timer = null, readEpoch = 0;
+  if (st.mode === 'chat') Object.assign(st, { draft: null, step: 'chat', preview: null, error: '', issues: [], startKey: null, attempted: false, fingerprint: null });
+  const binding = () => st.mode === 'chat' && st.workshop ? { id: st.workshop.id, rev: st.attempted && st.chatAttempt?.id === st.workshop.id ? st.chatAttempt.rev : st.workshop.rev } : undefined;
+  const isVisible = () => active && !disposed && document.visibilityState !== 'hidden';
+  const validWorkshop = (value) => value?.format === 'realmcraft-workshop' && value.version === 1
+    && value.id === st.workshopId && validGeneration(value.generation) && Number.isSafeInteger(value.rev) && value.rev >= 0
+    && ['de', 'en'].includes(value.language) && ['draft', 'starting', 'started'].includes(value.state)
+    && (value.draft === null || !normalizeCreation(value.draft).issues.length)
+    && ['questions', 'ruleIdeas'].every((key) => Array.isArray(value[key]) && value[key].every((item) => typeof item === 'string'))
+    && (value.start === null || (WORKSHOP_ID.test(value.start?.key ?? '') && /^[0-9a-f]{16}$/.test(value.start?.fingerprint ?? '')
+      && (value.start.campaign === null || typeof value.start.campaign === 'string')));
+  function acceptWorkshop(result) {
+    const next = result?.workshop;
+    if (!validWorkshop(next) || typeof result.prompt !== 'string') throw new Error('Invalid workshop response');
+    if (st.workshop && next.rev < st.workshop.rev) return;
+    const differs = JSON.stringify(next) !== JSON.stringify(st.workshop) || result.prompt !== st.prompt;
+    if (!differs) return;
+    st.workshop = next; st.prompt = result.prompt;
+    if (st.mode === 'chat') {
+      let pending = st.chatAttempt?.id === next.id ? st.chatAttempt : null;
+      // A newer unfrozen revision proves the old CAS-bound start cannot reserve.
+      if (pending && next.state === 'draft' && next.rev > pending.rev) {
+        pending = null; st.chatAttempt = null; st.attempted = false;
+        st.error = ''; st.notice = t('realm.chat.changed');
+      }
+      const target = next.start ? next.draft : pending?.draft ?? next.draft;
+      const sameDraft = JSON.stringify(st.draft) === JSON.stringify(target);
+      // A local attempt is kept even before its POST is visible to the reader.
+      if (pending && JSON.stringify(pending.draft) !== JSON.stringify(next.draft)) st.error = t('realm.start-failed');
+      if (st.preview && st.previewRev !== next.rev) {
+        st.preview = null; st.previewRev = null; st.step = 'chat';
+        st.notice = t('realm.chat.changed');
+      }
+      st.draft = copy(target);
+      if (next.start) {
+        st.startKey = next.start.key; st.fingerprint = next.start.fingerprint;
+        st.attempted = true; st.created = next.start.campaign;
+        st.chatAttempt = { id: next.id, rev: next.rev, draft: copy(next.draft), startKey: next.start.key, fingerprint: next.start.fingerprint };
+      } else if (pending) {
+        st.startKey = pending.startKey; st.fingerprint = pending.fingerprint; st.attempted = true;
+      } else if (!sameDraft) {
+        st.startKey = null; st.fingerprint = null; st.attempted = false; st.created = null;
+      }
+    }
+    persist(); render();
+  }
+  async function refreshWorkshop() {
+    if (!isVisible() || !st.workshopId || reading || st.mode !== 'chat') return;
+    reading = true;
+    const epoch = readEpoch;
+    try {
+      const result = await server.workshop(st.workshopId);
+      if (epoch !== readEpoch || !isVisible() || st.mode !== 'chat') return;
+      acceptWorkshop(result);
+      if (st.error === t('realm.chat.refresh-failed')) { st.error = ''; render(); }
+    } catch {
+      if (epoch === readEpoch && isVisible() && st.mode === 'chat' && !st.busy) {
+        st.error = t('realm.chat.refresh-failed'); render();
+      }
+    } finally { reading = false; }
+  }
+  function watch() {
+    if (!timer && st.workshopId && !disposed) timer = setInterval(refreshWorkshop, 1500);
+  }
+  function setActive(value) {
+    if (active !== value) readEpoch++;
+    active = value;
+    if (isVisible()) { watch(); void refreshWorkshop(); }
+  }
+  function visibility() { readEpoch++; if (isVisible()) void refreshWorkshop(); }
+  document.addEventListener('visibilitychange', visibility);
+  function dispose() {
+    disposed = true; active = false; readEpoch++;
+    clearInterval(timer); timer = null;
+    document.removeEventListener('visibilitychange', visibility);
+  }
+  function mode(next) {
+    if (st.busy || next === st.mode) return;
+    readEpoch++;
+    if (st.mode === 'manual') manual = Object.fromEntries(draftFields.map((key) => [key, copy(st[key])]));
+    st.mode = next; st.notice = ''; st.error = ''; st.issues = [];
+    if (next === 'manual') Object.assign(st, copy(manual));
+    else {
+      const pending = st.chatAttempt?.id === st.workshopId ? st.chatAttempt : null;
+      Object.assign(st, { draft: copy(pending?.draft ?? st.workshop?.draft), step: 'chat', preview: null, previewRev: null, startKey: pending?.startKey ?? st.workshop?.start?.key ?? null,
+        fingerprint: pending?.fingerprint ?? st.workshop?.start?.fingerprint ?? null, attempted: Boolean(pending || st.workshop?.start), created: st.workshop?.start?.campaign ?? null });
+      void refreshWorkshop();
+    }
+    persist(); render('realm-step-title');
+  }
+  async function copyPrompt() {
+    await run(async () => {
+      if (!st.workshop) {
+        st.workshopId ??= crypto.randomUUID(); persist();
+        const result = await server.createWorkshop(st.workshopId, language());
+        if (disposed) return;
+        if (!result?.ok) return feedback(result);
+        acceptWorkshop(result); watch();
+      }
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(st.prompt);
+        if (!disposed) st.notice = t('realm.chat.copied');
+      } catch {
+        st.promptOpen = true; st.notice = t('realm.chat.copy-fallback');
+      }
+    }, 'realm-copy-prompt');
+  }
+  async function workshopPreview() {
+    if (!st.workshop?.draft || st.workshop.questions.length || st.workshop.ruleIdeas.length) return;
+    const source = binding(), draft = copy(st.draft), epoch = readEpoch;
+    await run(async () => {
+      const result = await server.realmPreview(draft, source);
+      if (disposed || epoch !== readEpoch || st.mode !== 'chat' || st.workshop?.rev !== source.rev) return;
+      if (!result?.ok) return feedback(result);
+      st.preview = result; st.previewRev = source.rev; st.step = 'preview';
+      if (!st.attempted) {
+        if (st.fingerprint !== result.fingerprint) st.startKey = crypto.randomUUID();
+        st.startKey ??= crypto.randomUUID(); st.fingerprint = result.fingerprint;
+      }
+    });
+  }
+  function workshopForm() {
+    const w = st.workshop, d = w ? st.draft : null;
+    const ready = d && !w.questions.length && !w.ruleIdeas.length;
+    const facts = d ? [
+      [t('realm.landscape'), t(`realm.landscape.${d.world.landscape}`)],
+      [t('realm.way'), t(`realm.way.${d.people.way}`)],
+      [t('realm.goal'), t(`realm.goal.${d.goal}`)],
+      [t('realm.strength'), t(`tag.${d.people.strength}`)],
+      [t('realm.weakness'), t(`tag.${d.people.weakness}`)],
+    ] : [];
+    return [
+      el('p', { class: 'realm-intro', text: t('realm.chat.overview') }),
+      el('div', { class: 'realm-chat-entry' }, button('realm-copy-prompt', t(st.busy ? 'realm.chat.loading' : 'realm.chat.copy'), copyPrompt, true)),
+      st.notice ? el('p', { id: 'realm-chat-notice', class: 'realm-note', role: 'status', text: st.notice }) : null,
+      st.prompt ? el('details', { class: 'realm-details', id: 'realm-chat-prompt', open: st.promptOpen, ontoggle: (e) => { st.promptOpen = e.currentTarget.open; } },
+        el('summary', { text: t('realm.chat.prompt') }), el('pre', { id: 'realm-prompt-text', class: 'realm-prompt', tabindex: '0', text: st.prompt })) : null,
+      d ? el('section', { id: 'realm-shared-draft', class: 'realm-shared-draft', 'aria-labelledby': 'realm-shared-title' },
+        el('div', { class: 'realm-shared-heading' }, el('h4', { id: 'realm-shared-title', text: t('realm.chat.draft') }), el('p', { class: 'realm-note', id: 'realm-workshop-revision', text: t.fmt('realm.chat.revision', { rev: w.rev }) })),
+        el('div', { class: 'realm-shared-worlds' },
+          el('section', {}, sectionTitle('welt', d.world.name), el('p', { class: 'realm-prose', text: d.world.description })),
+          el('section', {}, sectionTitle('volk', d.people.name), el('p', { class: 'realm-prose', text: d.people.description }))),
+        el('dl', { class: 'realm-shared-facts' }, ...facts.map(([name, value]) => el('div', {}, el('dt', { text: name }), el('dd', { text: value })))))
+        : el('p', { class: 'realm-note', id: 'realm-chat-empty', text: t('realm.chat.empty') }),
+      ...[['questions', 'realm.chat.questions'], ['ruleIdeas', 'realm.chat.rule-ideas']].map(([key, label]) => w?.[key]?.length ? el('section', { class: 'realm-open-items', 'data-workshop-items': key },
+        el('h4', { text: t(label) }), el('ul', {}, ...w[key].map((item) => el('li', { text: item })))) : null),
+      d && !ready ? el('p', { class: 'realm-note', text: t('realm.chat.blocked') }) : null,
+      w?.state === 'starting' ? el('p', { class: 'realm-note', text: t('realm.chat.starting') }) : null,
+      w?.state === 'started' ? el('p', { class: 'realm-note', text: t('realm.chat.started') }) : null,
+      el('div', { class: 'realm-actions' },
+        button('realm-open-manual', t('realm.chat.manual'), () => mode('manual')),
+        w && st.attempted ? button('realm-workshop-retry', t(w.state === 'started' ? 'realm.chat.resume' : 'realm.chat.retry'), start, true)
+          : ready ? button('realm-workshop-preview', t('realm.chat.preview'), workshopPreview, true) : null),
+    ].filter(Boolean);
+  }
   // Native validation must reveal required controls inside a closed disclosure.
   root.addEventListener('invalid', (event) => {
     const details = event.target.closest('details');
@@ -44,7 +210,7 @@ export function createRealmStart({ generation } = {}) {
   }, true);
   // Storage is a convenience. Every cached draft is validated again by the server.
   function persist() {
-    try { if (st.completed) { sessionStorage.removeItem(STORAGE); return; } sessionStorage.setItem(STORAGE, JSON.stringify({ generation: cacheGeneration, brief: st.brief, draft: st.draft, startKey: st.startKey, fingerprint: st.fingerprint, attempted: st.attempted })); } catch { /* The current form still works without storage. */ }
+    try { if (st.completed) { sessionStorage.removeItem(STORAGE); return; } const saved = st.mode === 'manual' ? st : manual; sessionStorage.setItem(STORAGE, JSON.stringify({ generation: cacheGeneration, mode: st.mode, workshopId: st.workshopId, chatAttempt: st.chatAttempt, brief: saved.brief, draft: saved.draft, startKey: saved.startKey, fingerprint: saved.fingerprint, attempted: saved.attempted })); } catch { /* The current form still works without storage. */ }
   }
   function changed() { st.attempted = false; st.preview = null; st.fingerprint = null; st.startKey = null; st.created = null; persist(); refreshFolio(); }
   function edit(group, key, value) { st.draft[group][key] = value; changed(); }
@@ -80,7 +246,7 @@ export function createRealmStart({ generation } = {}) {
     if (st.busy) return;
     st.busy = true; st.error = ''; st.issues = []; render();
     try { await task(); } catch { st.error = t('realm.failed'); }
-    finally { st.busy = false; persist(); render(st.error ? 'realm-error' : focus ?? 'realm-step-title'); }
+    finally { st.busy = false; if (!disposed) { persist(); render(st.error ? 'realm-error' : focus ?? 'realm-step-title'); } }
   }
   function sectionTitle(iconName, label) {
     return el('h4', { class: 'realm-section-title' }, icon(iconName, { size: 23 }), label);
@@ -201,7 +367,7 @@ export function createRealmStart({ generation } = {}) {
     const people = view.peoples[view.people];
     const labels = res.pack.labels.labels;
     const goal = res.pack.bestimmungen.items.find((item) => `${item.id}@${item.rev}` === people.bestimmung?.ref);
-    return [el('section', { id: 'realm-review', class: 'realm-review' },
+    return [st.mode === 'chat' ? el('p', { class: 'realm-note', id: 'realm-preview-revision', text: t.fmt('realm.chat.revision', { rev: st.previewRev }) }) : null, el('section', { id: 'realm-review', class: 'realm-review' },
       el('div', { class: 'realm-preview-map' },
         el('h4', { class: 'world realm-preview-world', text: d.world.name }),
         el('figure', { class: 'realm-actual-map' }, mapPreview(res), el('figcaption', { class: 'realm-note', text: t('realm.map-note') })),
@@ -215,13 +381,14 @@ export function createRealmStart({ generation } = {}) {
           el('ul', { class: 'realm-council plain', role: 'list' }, ...people.council.map((member) => el('li', {}, el('span', { class: 'realm-council-mark', 'aria-hidden': 'true', text: member.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('') }), el('div', {}, el('strong', { text: member.name }), el('span', { text: labels[`role.${member.role}`] ?? member.role })))))),
         goal ? el('section', { class: 'realm-preview-goal' }, sectionTitle('bestimmung', goal.name), el('ul', {}, ...goal.milestones.map((m) => el('li', { text: m.text })))) : null)),
       el('div', { class: 'realm-actions' },
-        button('realm-back', t('realm.back-edit'), () => go('edit')),
+        button('realm-back', t(st.mode === 'chat' ? 'realm.chat.back' : 'realm.back-edit'), () => go(st.mode === 'chat' ? 'chat' : 'edit')),
         el('button', { id: 'realm-start', class: 'btn btn-primary', type: 'button', onclick: start }, t(st.busy ? 'realm.starting' : 'realm.start'), icon('weiter', { size: 19 }))),
       st.created ? button('realm-open-created', t('realm.open-created'), start) : null,
     ];
   }
   async function submit(e) {
     e.preventDefault();
+    if (st.mode !== 'manual') return;
     if (st.step === 'brief') {
       await run(async () => {
         const result = await server.realmDraft({ ...st.brief, language: language(), seed: newSeed() });
@@ -250,9 +417,17 @@ export function createRealmStart({ generation } = {}) {
   }
   async function start() {
     await run(async () => {
-      st.attempted = true; persist();
-      const result = await server.realmStart(st.draft, st.fingerprint, st.startKey);
-      if (!result?.ok || !result.id) { feedback(result); st.error = t('realm.start-failed') + ' ' + st.error; return; }
+      const source = binding(), draft = copy(st.draft), fingerprint = st.fingerprint, key = st.startKey;
+      if (!draft || !fingerprint || !key) return;
+      st.attempted = true;
+      if (source) st.chatAttempt = { ...source, draft, fingerprint, startKey: key };
+      persist();
+      const result = await server.realmStart(draft, fingerprint, key, source);
+      if (disposed) return;
+      if (!result?.ok || !result.id) {
+        if (source && st.workshop?.state === 'draft' && st.workshop.rev > source.rev) { st.error = ''; st.notice = t('realm.chat.changed'); return; }
+        feedback(result); st.error = t('realm.start-failed') + ' ' + st.error; return;
+      }
       st.created = result.id;
       const active = await server.activate(result.id);
       if (!active?.active) { st.error = t('realm.activation-failed'); return; }
@@ -261,19 +436,22 @@ export function createRealmStart({ generation } = {}) {
     }, 'realm-start');
   }
   function render(focus) {
+    if (disposed) return;
     const detailsOpen = root.querySelector('details')?.open || st.issues.some((issue) => /\/(council|neighbour|seed)(?:\/|$)/.test(issue.path ?? ''));
     const focusId = focus ?? (root.contains(document.activeElement) ? document.activeElement.id : null);
     root.dataset.step = st.step;
+    root.dataset.mode = st.mode;
     root.setAttribute('aria-busy', String(st.busy));
     root.replaceChildren(...[
-      el('ol', { id: 'realm-steps', class: 'realm-steps plain', 'aria-label': t('realm.steps'), role: 'list' }, ...['brief', 'edit', 'preview'].map((step, index) => el('li', { 'aria-current': step === st.step ? 'step' : null, 'data-complete': ['brief', 'edit', 'preview'].indexOf(st.step) > index ? 'true' : null }, el('span', { class: 'realm-step-mark', 'aria-hidden': 'true', text: String(index + 1) }), el('span', { text: t(`realm.step.${step}`) })))),
-      el('h3', { class: 'world', id: 'realm-step-title', tabindex: '-1', text: t(`realm.title.${st.step}`) }),
+      st.mode === 'manual' ? el('ol', { id: 'realm-steps', class: 'realm-steps plain', 'aria-label': t('realm.steps'), role: 'list' }, ...['brief', 'edit', 'preview'].map((step, index) => el('li', { 'aria-current': step === st.step ? 'step' : null, 'data-complete': ['brief', 'edit', 'preview'].indexOf(st.step) > index ? 'true' : null }, el('span', { class: 'realm-step-mark', 'aria-hidden': 'true', text: String(index + 1) }), el('span', { text: t(`realm.step.${step}`) })))) : null,
+      el('h3', { class: 'world', id: 'realm-step-title', tabindex: '-1', text: t(st.step === 'chat' ? 'realm.chat.title' : `realm.title.${st.step}`) }),
       st.error ? el('p', { id: 'realm-error', role: 'alert', tabindex: '-1', class: 'save-warning', text: st.error }) : null,
-      el('form', { onsubmit: submit }, el('fieldset', { class: 'realm-body', disabled: st.busy }, ...(st.step === 'brief' ? briefForm() : st.step === 'edit' ? editForm() : previewForm())))].filter(Boolean));
-    if (detailsOpen && root.querySelector('details')) root.querySelector('details').open = true;
+      el('form', { onsubmit: submit }, el('fieldset', { class: 'realm-body', disabled: st.busy }, ...(st.step === 'chat' ? workshopForm() : st.step === 'brief' ? briefForm() : st.step === 'edit' ? editForm() : previewForm())))].filter(Boolean));
+    if (st.mode === 'manual') root.append(button('realm-return-chat', t('realm.chat.return'), () => mode('chat')));
+    if (detailsOpen && st.mode === 'manual' && root.querySelector('details')) root.querySelector('details').open = true;
     if (focusId) root.querySelector(`#${CSS.escape(focusId)}`)?.focus({ preventScroll: focus !== 'realm-error' });
     if (focus === 'realm-step-title') root.closest('.start')?.scrollTo({ top: 0, behavior: 'instant' });
   }
   render();
-  return { element: root, render };
+  return { element: root, render, setActive, dispose };
 }

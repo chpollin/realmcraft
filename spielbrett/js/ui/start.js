@@ -274,15 +274,29 @@ export async function startScreen() {
       el('header', { class: 'start-kopf' }, el('h1', { class: 'world' }, brandMark(), el('span', { text: 'RealmCraft' }))),
       nav(),
       pane));
+    realm.setActive(st.pane === 'new' && st.creationMode === 'realm');
     if (focusId) document.getElementById(focusId)?.focus();
   }
 
   await loadWorld(st.world);
   render();
-  onLanguage(() => {
+  const stopLanguage = onLanguage(() => {
     const id = document.activeElement?.id || null;
     render(id);
     realm.render();
   });
+  const pageHide = (event) => {
+    realm.setActive(false);
+    if (!event.persisted) dispose();
+  };
+  const pageShow = () => realm.setActive(st.pane === 'new' && st.creationMode === 'realm');
+  function dispose() {
+    stopLanguage(); realm.dispose();
+    window.removeEventListener('pagehide', pageHide);
+    window.removeEventListener('pageshow', pageShow);
+  }
+  window.addEventListener('pagehide', pageHide);
+  window.addEventListener('pageshow', pageShow);
   document.documentElement.dataset.ready = 'true';
+  return dispose;
 }

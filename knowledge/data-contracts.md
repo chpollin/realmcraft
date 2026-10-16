@@ -172,6 +172,14 @@ Issues carry machine-readable `params`, with `params.reason` for a concrete refu
 
 Further work is routed through [plan.md](plan.md).
 
+## Chat workshops
+
+A private file authoring/workshops/<uuid>.json connects the existing main harness chat with the browser. Its format is realmcraft-workshop, version 1. It carries id, library generation, content rev, language, state (draft, starting or started), the normalized creation draft or null, questions, ruleIdeas and a start record or null. Questions and ruleIdeas are bounded single-line strings and remain unresolved, never executable rules. The shared Node store in engine/harness/workshop.js owns validation, revision checks, path containment, locks and atomic writes.
+
+POST /api/realms/workshops accepts id and language and idempotently prepares the workshop. GET /api/realms/workshops/<uuid> returns the current workshop and copyable initialization prompt without creating files. These answers carry ok, workshop and prompt. The main harness publishes a closed draft/questions/ruleIdeas packet through the Node helper, with the expected revision and library generation. Conflicts preserve the existing file. A library reset invalidates old workshops, and the runtime authoring directory remains outside static serving and Git.
+
+Preview and Start accept an optional workshop reference containing id and rev. The server checks that its stored normalized draft matches the submitted draft and that unresolved questions/rule ideas are empty. Explicit Start reserves the reviewed key/fingerprint synchronously before asynchronous CLI creation, freezes further publication and records the successful campaign. The existing receipt still binds the immutable draft and supports retries. A browser edit or agent publication cannot silently replace a pending start.
+
 ## Realm creation
 
 The closed draft contract is format `realmcraft-creation`, version 1. `normalizeCreation` in `engine/creation/realm.js` is authoritative: world name/description/landscape, people name/description/way/strength/weakness, council name/role entries, neighbour name/description, goal, difficulty, narrative language and uint32 seed. World/people prose allows line breaks and is preserved verbatim; names are trimmed. Unsupported keys, unsafe text and identical strength/weakness tags are refused. Optional `welt.creation` is checked by the world-package validator; existing packages need no new field.
