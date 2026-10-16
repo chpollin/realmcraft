@@ -7,8 +7,8 @@
     max-inline-size: none;
     max-block-size: min(90dvh, 60rem);
     padding: 0;
-    border: 0;
-    border-radius: var(--radius-l);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-m);
     background: var(--night-1);
     color: var(--ink);
     box-shadow: var(--shadow-float);
@@ -27,7 +27,7 @@
     gap: 0 var(--space-3);
     padding: var(--space-5) var(--space-4) var(--space-3) var(--space-6);
   }
-  .overlay-kopf h2 { font-size: var(--step-3); font-weight: 600; }
+  .overlay-kopf h2 { min-inline-size: 0; overflow-wrap: anywhere; font-size: var(--step-3); font-weight: 600; }
   .overlay-kopf h2:focus { outline: none; }
   .overlay-kopf .unter { grid-column: 2; color: var(--ink-dim); }
   .overlay-kopf .icon-btn { grid-column: 3; grid-row: 1; }
@@ -52,35 +52,40 @@
 
   /* Rat */
   .rat-body { display: grid; gap: var(--space-5); }
-  .ratsfrage h3 { font-size: var(--step-3); font-weight: 600; max-inline-size: 30ch; }
+  .ratsfrage h3 { font-size: var(--step-2); font-weight: 600; max-inline-size: 30ch; }
   .rf-worum { color: var(--ink-dim); max-inline-size: 60ch; margin-block-start: var(--space-2); }
   .stimmbalken { display: flex; gap: 3px; block-size: 2rem; max-inline-size: 30rem; }
   .stimme { flex: 1; display: grid; place-items: center; border-radius: 4px; color: var(--night-0); }
-  .stimme:first-child { border-radius: 999px 4px 4px 999px; }
-  .stimme:last-child { border-radius: 4px 999px 999px 4px; }
+  .stimme:first-child, .stimme:last-child { border-radius: var(--radius-s); }
   .stimme.ja { background: var(--up); }
   .stimme.nein { background: var(--down); }
   .stimme.enthaltung { background: var(--night-4); color: var(--ink-dim); }
-  .berater { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); gap: var(--space-4); }
+  .berater { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); align-items: start; gap: var(--space-3); }
+  .berater > li { min-inline-size: 0; border: 1px solid var(--hairline); border-radius: var(--radius-s); background: var(--night-2); }
   .berater > li > .has-tip { display: flex; }
   .berater-karte {
     position: relative;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1) var(--space-4);
     inline-size: 100%;
-    padding: var(--space-5) var(--space-4) var(--space-4);
-    border-radius: var(--radius-m);
-    background: var(--night-2);
-    text-align: center;
-    transition: background var(--dur-1), transform var(--dur-2) var(--ease-out);
+    padding: var(--space-4);
+    border-radius: var(--radius-s);
+    text-align: start;
+    transition: background var(--dur-1);
   }
-  .berater-karte:hover { background: oklch(from var(--night-2) calc(l + 0.015) c h); transform: translateY(-2px); }
-  .rb-name { font-size: var(--step-1); font-weight: 600; margin-block-start: var(--space-1); }
-  .rb-rolle { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--step--1); color: var(--ink-subtle); }
-  .b-loyal { display: flex; align-items: center; gap: var(--space-2); margin-block-start: var(--space-1); }
+  .berater-karte:hover { background: var(--hover-wash); }
+  .berater-karte > .portraet { grid-column: 1; grid-row: 1 / span 3; }
+  .rb-name { grid-column: 2; font-size: var(--step-2); font-weight: 600; overflow-wrap: anywhere; line-height: 1.2; }
+  .rb-rolle { grid-column: 2; display: flex; align-items: baseline; gap: var(--space-1); font-size: var(--step--1); color: var(--ink-dim); overflow-wrap: anywhere; }
+  .rb-rolle .icon { align-self: center; }
+  .b-loyal { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-block-start: var(--space-2); }
   .b-loyal .num { font-weight: 600; font-size: var(--step--1); color: var(--ink); min-inline-size: 2ch; }
+  .berater-gespraech { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: 0 var(--space-4) var(--space-4); }
+  .berater-gespraech > .has-tip { min-inline-size: 0; }
+  .berater-gespraech .btn { min-block-size: 2.75rem; padding: var(--space-2) var(--space-3); background: var(--night-1); border-color: var(--control-edge); }
+  .berater-gespraech .btn[aria-disabled="true"] { color: var(--ink-subtle); border-color: var(--hairline); }
   .tip-zitat { font-style: italic; font-size: 1rem; line-height: 1.45; }
   .loyalitaet { display: inline-flex; align-items: center; gap: 2px; }
   .lm-zelle { inline-size: 7px; block-size: 12px; border-radius: 2px; background: var(--night-4); transition: background var(--dur-2), opacity var(--dur-2); }
@@ -91,7 +96,7 @@
   .entscheid { display: flex; flex-direction: column; gap: var(--space-3); }
   .entscheid .btn { align-self: flex-start; min-block-size: 2.875rem; padding-inline: var(--space-4) var(--space-5); }
   .folgen-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-  .folge-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem 0.25rem 0.5rem; border-radius: 999px; background: var(--night-2); font-size: var(--step--1); font-weight: 600; color: var(--ink-dim); }
+  .folge-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem 0.25rem 0.5rem; border-radius: var(--radius-s); background: var(--night-2); font-size: var(--step--1); font-weight: 600; color: var(--ink-dim); }
   .folge-chip .icon { color: var(--ink-subtle); }
 
   /* Chronik */
@@ -169,25 +174,27 @@
   .btn-gross { min-block-size: 3rem; padding-inline: var(--space-6); font-size: var(--step-1); }
 }
 
-@media (max-width: 760px) {
-  dialog.overlay, .overlay-lesen, .overlay-klein {
-    inline-size: 100vw !important;
-    max-block-size: 100dvh;
-    block-size: 100dvh;
-    border-radius: 0;
+@layer overlays {
+  @media (max-width: 760px) {
+    dialog.overlay, .overlay-lesen, .overlay-klein {
+      inline-size: 100vw !important;
+      max-block-size: 100dvh;
+      block-size: 100dvh;
+      border-radius: 0;
+    }
+    .overlay-kopf { padding: var(--space-3) var(--space-2) var(--space-2) var(--space-4); }
+    .overlay-kopf h2 { font-size: var(--step-2); }
+    .overlay-body { padding: var(--space-2) var(--space-4) var(--space-5); }
+    dialog.overlay-voll { block-size: calc(100dvh - var(--leiste-h, 5.5rem)); margin-block-start: var(--leiste-h, 5.5rem); }
+    .chronik-eintrag { grid-template-columns: 1fr; gap: var(--space-1); }
   }
-  .overlay-kopf { padding: var(--space-3) var(--space-2) var(--space-2) var(--space-4); }
-  .overlay-kopf h2 { font-size: var(--step-2); }
-  .overlay-body { padding: var(--space-2) var(--space-4) var(--space-5); }
-  dialog.overlay-voll { block-size: calc(100dvh - var(--leiste-h, 5.5rem)); margin-block-start: var(--leiste-h, 5.5rem); }
-  .chronik-eintrag { grid-template-columns: 1fr; gap: var(--space-1); }
 }
 
 @layer overlays {
   .plan-layout { display: grid; grid-template-columns: minmax(11rem, 0.8fr) minmax(0, 1.2fr); gap: var(--space-6); }
   .plan-actions { display: grid; align-content: start; gap: var(--space-2); }
   .plan-action, .plan-route { display: flex; align-items: center; gap: var(--space-3); text-align: start; padding: var(--space-3); border-radius: var(--radius-s); }
-  .plan-action { border: 1px solid transparent; background: var(--night-2); min-block-size: 3.75rem; }
+  .plan-action { border: 1px solid var(--control-edge); background: var(--night-2); min-block-size: 3.75rem; }
   .plan-action > span { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
   .plan-action > .icon:first-child { color: var(--ember); flex-shrink: 0; }
   .plan-action.is-unavailable > .icon:first-child { color: var(--ink-dim); }

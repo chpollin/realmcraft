@@ -93,6 +93,7 @@ The draft-persistence checks exercise serial writes, edits arriving during a wri
 
 - Live-agent balance and proposal quality over a sustained campaign still require observed play.
 - No browser end-to-end test of a full turn including live agents.
+- Intermittent live-refresh timeouts occurred while project and browser gates ran together. A standalone full browser run passed without source changes. The remaining reproduction and reconciliation work is recorded in [plan.md](plan.md#current-ui-review).
 - The module spec still waits a fixed time before it looks for event cards in the agent-round campaign and after a reload, because the board exposes no signal that its card queue has settled.
 
 ## Realm start coverage
@@ -102,3 +103,5 @@ The draft-persistence checks exercise serial writes, edits arriving during a wri
 The server Realm tests use temporary roots and verify a write-free preview, preview/start identity, explicit-start-only campaign creation, package conflicts, same-key retries, server-restart recovery and safe refusal of obsolete reserved previews. Existing campaign/save files and source packages are compared byte for byte. Browser Realm cases cover editing and back navigation, real start/reload, field errors, request failures, lost responses, activation retry, narrow keyboard operation and seed boundaries. Existing template creation stays under its previous cases. These checks do not run a real LLM or establish the artistic quality of an authored world.
 
 A deterministic fresh-game browser regression changes the fixture before the intercepted SSE connection and supplies only hello. It fails without canonical catch-up and passes with it; no view broadcast is needed.
+
+The shared UI design pass retains the existing creator, planning, save/load and dialog regressions. Creator cases also cover an invalid required field in a closed disclosure, visible primary actions at the working viewport and preserved step orientation. Mobile research cases use native path buttons through path, achievement and return navigation, including a data refresh and width changes, with pending input and draft-write behavior checked. Colour contrast is checked from the actual palette values; visual inspection remains separate from automated behavior and artistic acceptance.

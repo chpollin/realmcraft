@@ -91,8 +91,8 @@ export function renderRat(dlg, api) {
     const talks = TALK.map((mode) => game.previewOption({ type: 'talk', params: { mode, member: a.id } }));
     return el('li', { 'data-berater': a.id },
       withTip(el('button', { class: 'berater-karte', type: 'button', 'aria-label': `${a.name}, ${a.rolle}, ${a.band}, ${t('ui.loyalitaet')} ${signed(a.loyalitaet)}` },
-        portrait(a.id, a.name, { size: 76 }),
-        el('span', { class: 'rb-name world', text: a.name.split(' ')[0] }),
+        portrait(a.id, a.name, { size: 64 }),
+        el('span', { class: 'rb-name world', text: a.name }),
         el('span', { class: 'rb-rolle' }, icon(ROLE_ICON[roleOf(a.id)] ?? 'volk', { size: 14 }), a.rolle),
         el('span', { class: 'b-loyal' },
           loyaltyMeter(a.loyalitaet, { label: t.fmt('board.council.loyalty-of', { name: a.name }) }),
@@ -104,13 +104,13 @@ export function renderRat(dlg, api) {
         el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.favours') }), el('span', { text: a.favor.map((g) => t(`tag.${g}`, g)).join(', ') })),
         el('span', { class: 'tip-zeile' }, el('span', { text: t('board.council.opposes') }), el('span', { text: a.oppose.map((g) => t(`tag.${g}`, g)).join(', ') })),
       ]),
-      el('div', { class: 'berater-gespraech' }, ...talks.filter((o) => !o.grund || o.params.mode !== 'honor').map((o) => optionButton(api, o, t(`talk.${o.params.mode}`, o.params.mode), { cls: 'btn-quiet' }))));
+      el('div', { class: 'berater-gespraech', role: 'group', 'aria-label': a.name }, ...talks.filter((o) => !o.grund || o.params.mode !== 'honor').map((o) => optionButton(api, o, t(`talk.${o.params.mode}`, o.params.mode), { cls: 'btn-quiet' }))));
   };
   dlg.replaceChildren(
     dialogHead(dlg, t('view.rat'), 'rat'),
     el('div', { class: 'overlay-body rat-body' },
       ...questions.map((q) => (q.kind === 'vote' ? voteQuestion(api, q) : choiceQuestion(api, q))),
       questions.length ? null : el('p', { class: 'rf-worum', text: t('board.council.no-question') }),
-      el('ul', { class: 'berater plain' }, ...members.map(card))),
+      el('ul', { class: 'berater plain', role: 'list' }, ...members.map(card))),
   );
 }

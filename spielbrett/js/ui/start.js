@@ -15,6 +15,7 @@ import { openEinstellungen } from './einstellungen.js';
 import { openRegeln } from './regeln.js';
 import { openSaves } from './saves.js';
 import { createRealmStart } from './realm-start.js';
+import { brandMark } from './realm-art.js';
 
 const SEED_MAX = 0xffffffff;
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
@@ -263,12 +264,12 @@ export async function startScreen() {
 
   function render(focusId) {
     const pane = st.pane === 'new'
-      ? el(st.creationMode === 'realm' ? 'section' : 'form', { class: 'start-pane', id: 'start-pane', 'aria-labelledby': 'start-pane-titel', ...(st.creationMode === 'template' ? { novalidate: true, onsubmit: create } : {}) },
-        el('h2', { id: 'start-pane-titel', text: t('shell.start.new') }), creationMode(), ...(st.creationMode === 'realm' ? [realm.element] : newPane()))
+      ? el(st.creationMode === 'realm' ? 'section' : 'form', { class: 'start-pane', id: 'start-pane', 'data-creation-mode': st.creationMode, 'aria-labelledby': st.creationMode === 'realm' ? 'realm-step-title' : 'start-pane-titel', ...(st.creationMode === 'template' ? { novalidate: true, onsubmit: create } : {}) },
+        st.creationMode === 'template' ? el('h2', { id: 'start-pane-titel', text: t('shell.start.new') }) : null, creationMode(), ...(st.creationMode === 'realm' ? [realm.element] : newPane()))
       : el('section', { class: 'start-pane', id: 'start-pane', 'aria-labelledby': 'start-pane-titel' },
         el('h2', { id: 'start-pane-titel', text: t('shell.start.continue') }), ...continuePane());
     root.replaceChildren(el('div', { class: 'start-buehne' },
-      el('header', { class: 'start-kopf' }, el('h1', { class: 'world', text: 'RealmCraft' })),
+      el('header', { class: 'start-kopf' }, el('h1', { class: 'world' }, brandMark(), el('span', { text: 'RealmCraft' }))),
       nav(),
       pane));
     if (focusId) document.getElementById(focusId)?.focus();

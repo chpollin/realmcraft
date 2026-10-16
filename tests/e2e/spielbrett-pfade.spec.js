@@ -275,3 +275,100 @@ test('destinies show the own milestones and a rival only once the view reveals i
   await expect(col.locator('.meilenstein.erreicht')).toHaveCount(1);
   await expect(page2.locator('#dlg-bestimmung [data-rivale]')).toHaveCount(1);
 });
+
+for (const width of [320, 390]) {
+  test(`compact paths at ${width}px support keyboard navigation without changing the plan`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 820 });
+    const errors = await openBoard(page);
+    const before = await storedDraft(page);
+    const writes = [];
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().endsWith('/api/draft')) writes.push(request.url());
+    });
+    const paths = viewFile().derived[PID].pfade.paths;
+    const path = paths.find((p) => p.open && p.known.length);
+    expect(path).toBeTruthy();
+    const name = json('welten/hochland/labels.en.json').labels[`pfad.${path.id}`];
+    await page.keyboard.press('e');
+    const dialog = wheel(page);
+    const nav = dialog.locator('.pf-mobile');
+    await expect(nav).toBeVisible();
+    await expect(dialog.locator('.pf-rad-feld')).toBeHidden();
+    await expect(nav.locator('button[data-pfad-wahl]')).toHaveCount(paths.length);
+    await expect(nav.locator('[data-pf-overview]')).toContainText(fill(en['board.paths.points'], { n: viewFile().derived[PID].pfade.points.total }));
+    const closed = paths.find((p) => !p.open);
+    if (closed) await expect(nav.locator(`[data-pfad-wahl="${closed.id}"]`)).toHaveAttribute('aria-label', new RegExp(en['board.paths.state.closed']));
+    for (const button of await nav.locator('button').all()) expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    const selected = nav.locator(`[data-pfad-wahl="${path.id}"]`);
+    await selected.focus();
+    await page.keyboard.press('Enter');
+    await expect(selected).toBeFocused();
+    await expect(dialog.locator('.pf-panel h3')).toHaveText(name);
+    await page.evaluate(() => window.spielbrett.rerenderDialog('entwicklungen'));
+    await expect(selected).toBeFocused();
+    const achievement = dialog.locator('.pf-panel [data-waehle]').first();
+    const achievementName = await achievement.locator('.pf-eintrag-name').textContent();
+    await expect.poll(async () => (await achievement.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await achievement.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialog.locator('.pf-panel h3')).toHaveText(achievementName);
+    const back = dialog.locator('.pf-panel [data-zurueck]');
+    await expect(back).toBeFocused();
+    await expect.poll(async () => (await back.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    await expect(selected).toBeFocused();
+    await expect(dialog.locator('.pf-panel h3')).toHaveText(name);
+    const note = dialog.locator('.pf-notiz');
+    await note.fill('Preserve this unsubmitted research note.');
+    await selected.focus();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(note).toHaveValue('Preserve this unsubmitted research note.');
+    await expect(nav).toBeHidden();
+    await expect(dialog.locator('.pf-rad-feld')).toBeVisible();
+    await expect(dialog.locator(`.pf-pfad[data-pfad="${path.id}"]`)).toBeFocused();
+    await page.setViewportSize({ width, height: 820 });
+    await expect(note).toHaveValue('Preserve this unsubmitted research note.');
+    await expect(selected).toBeFocused();
+    await nav.locator('[data-pf-overview]').focus();
+    await page.keyboard.press('Enter');
+    await expect(nav.locator('[data-pf-overview]')).toBeFocused();
+    await expect(dialog.locator('.pf-punkte-liste')).toBeVisible();
+    expect(await storedDraft(page)).toEqual(before);
+    expect(writes).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const [lang, labels] of [['de', de], ['en', en]]) {
+  test(`compact path names fit at 320px and the usable tier agrees with accessibility in ${lang}`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 820 });
+    const held = { id: 'nahrung', tier: 2, cap: 1 };
+    // Reproduce the observed held-tier display case in the projection, without campaign writes.
+    await openBoard(page, { lang, patchView: (view) => {
+      Object.assign(view.derived[PID].pfade.paths.find((p) => p.id === held.id), { tier: held.tier, cap: held.cap });
+    } });
+    await page.keyboard.press('e');
+    const dialog = wheel(page);
+    const button = dialog.locator(`.pf-mobile [data-pfad-wahl="${held.id}"]`);
+    const usableTier = fill(labels['board.paths.tier'], { tier: held.cap });
+    const waiting = fill(labels['board.paths.held'], { tier: held.cap + 1 });
+    await expect(button.locator('.pf-mobile-state')).toContainText(usableTier);
+    const accessible = await button.getAttribute('aria-label');
+    expect(accessible.toLocaleLowerCase(lang)).toContain(`, ${usableTier.toLocaleLowerCase(lang)} `);
+    expect(accessible).toContain(waiting);
+    await expect(dialog.locator(`.pf-pfad[data-pfad="${held.id}"]`)).toHaveAttribute('aria-label', accessible);
+    await page.evaluate(() => document.fonts.ready);
+    for (const text of await dialog.locator('.pf-mobile-name').all()) {
+      // These real package names must stay whole, rather than splitting the last letters.
+      expect(await text.evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return range.getClientRects().length;
+      })).toBe(1);
+    }
+    await button.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialog.locator('.pf-panel .pf-stufen')).toHaveAttribute('aria-label', new RegExp(usableTier));
+    await expect(dialog.locator('.pf-panel')).toContainText(waiting);
+  });
+}

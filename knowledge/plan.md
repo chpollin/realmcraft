@@ -15,7 +15,7 @@ related: [vision, new-game-design, frontend, testing, playtests, plan-m1, journa
 
 # Development plan
 
-The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has free realm creation with editable drafts and pure map previews, a separate template start, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
+The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has free realm creation with editable drafts and pure map previews, a separate template start, map and optional community views, direct main/minor planning, research, council, module views, named saves with pre-load recovery, audio cues and a rules reference. The shared Weltenwerkstatt direction frames these controls, with a compact native research view on phones. Its artistic acceptance remains open. [frontend.md](frontend.md) describes the current controls and product boundaries. Existing campaigns remain private and are never development fixtures.
 
 ## Continuation
 
@@ -68,10 +68,11 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 Reproduce a specific current case before implementing an old audit recommendation. The historical observation alone does not establish a current defect.
 
-- Check tooltips at viewport edges and in scrolling containers, narrow paths/long labels, focus visibility, actual browser zoom, contrast and small touch controls.
+- Check remaining tooltip edge cases and scrolling containers, additional long labels, actual browser zoom and contrast in states beyond the inspected palette pairs. Retain the tested compact research navigation, aligned visible/accessibility tier labels, focus restoration and creator validation/step-orientation fixes.
 - Clarify world-prose language within a translated interface, map symbols and empty layers, the place-list layout, council actions and the meaning of camp strength.
 - Review chronicle turn/date semantics and event-card icon/deadline wording on appropriate fixtures. A surviving settlement after population collapse is not by itself an invalid end summary.
 - Retain the verified planning, draft-save, empty-turn review, slot replacement, portrait fallback and focus fixes. Update the owner-feedback table only for behavior that was actually inspected.
+- Reproduce missed live refreshes seen in the parallel project/browser run of October 16. The unchanged standalone browser run passed. The server has no reconciliation for missed filesystem events during an established connection, and browser view refreshes have neither serialization nor retry. Add a deterministic failure case before changing the shared update path. The observed timeouts do not establish which gap caused them.
 
 ## Verification and acceptance
 

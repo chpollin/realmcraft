@@ -14,46 +14,44 @@
     grid-column: 1;
     min-block-size: 0;
     overflow-y: auto;
-    background:
-      radial-gradient(ellipse 55% 50% at 30% 30%, oklch(from var(--ember) l c h / 0.08), transparent 70%),
-      radial-gradient(ellipse 60% 60% at 80% 85%, oklch(from var(--origin-welt) l c h / 0.06), transparent 70%),
-      var(--night-0);
+    background: var(--night-0);
     scrollbar-width: thin;
+    scroll-padding-block: 1rem 7rem;
   }
   .start-buehne {
+    inline-size: min(100%, 84rem);
     min-block-size: 100%;
+    margin-inline: auto;
     display: grid;
-    grid-template-columns: minmax(14rem, 19rem) minmax(0, 46rem);
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto 1fr;
-    grid-template-areas: "kopf pane" "menu pane";
-    justify-content: center;
-    align-content: center;
+    grid-template-areas: "kopf menu" "pane pane";
+    align-content: start;
     gap: var(--space-6) var(--space-7);
-    padding: var(--space-7) var(--space-6);
+    padding: var(--space-5) clamp(1rem, 4vw, 3.5rem) var(--space-7);
   }
-  .start-kopf { grid-area: kopf; align-self: end; }
-  .start-kopf h1 { font-size: var(--step-4); font-weight: 600; letter-spacing: 0.01em; color: var(--ink); }
-  .start-menu { grid-area: menu; align-self: start; }
+  .start-kopf { grid-area: kopf; align-self: center; }
+  .start-kopf h1 { display: flex; align-items: center; gap: var(--space-3); font-size: 1.9rem; font-weight: 500; letter-spacing: 0.015em; color: var(--ink); }
+  .realm-brand-mark { inline-size: 2.5rem; block-size: 2.5rem; color: var(--ember); flex: none; }
+  .start-menu { grid-area: menu; align-self: center; justify-self: end; }
   .start-pane { grid-area: pane; align-self: start; }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
   .start-buehne {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
     grid-template-areas: "kopf" "menu" "pane";
-    align-content: start;
     gap: var(--space-4);
-    padding: var(--space-5) 16px;
+    padding: var(--space-4) 1rem var(--space-6);
   }
-  .start-kopf h1 { font-size: var(--step-3); }
-  .start-menu ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .start .start-pane { padding: var(--space-5) var(--space-4); }
+  .start-menu { justify-self: stretch; }
+  .start-kopf h1 { font-size: 1.7rem; }
 }
 
 @layer components {
   /* Start screen */
-  .start-menu ul { display: grid; gap: var(--space-1); }
+  .start-menu ul { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .start-menu .start-punkt { inline-size: auto; min-block-size: 2.75rem; padding-inline: var(--space-3); font-size: var(--step-0); border-radius: var(--radius-s); }
   .start-punkt, .menu-punkt {
     display: flex;
     align-items: center;
@@ -69,7 +67,7 @@
     transition: background var(--dur-1), color var(--dur-1);
   }
   .start-punkt:hover, .menu-punkt:hover { background: var(--hover-wash); color: var(--ink); }
-  .start-punkt[aria-current="true"] { background: var(--night-2); color: var(--ink); box-shadow: inset 3px 0 0 var(--ember); }
+  .start-punkt[aria-current="true"] { background: var(--night-2); color: var(--ink); box-shadow: inset 0 -2px 0 var(--ember); }
   .start-punkt[aria-current="true"] .icon { color: var(--ember); }
   .start-punkt[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
   .start-punkt[aria-disabled="true"]:hover { background: none; color: var(--ink-dim); }
@@ -78,11 +76,11 @@
     display: grid;
     gap: var(--space-5);
     align-content: start;
-    padding: var(--space-6);
-    border-radius: var(--radius-l);
-    background: oklch(from var(--night-1) l c h / 0.92);
-    box-shadow: var(--shadow-float);
+    min-inline-size: 0;
+    padding-block-start: var(--space-5);
+    border-block-start: 1px solid var(--hairline);
   }
+  .start-pane:not([data-creation-mode="realm"]) { max-inline-size: 64rem; inline-size: 100%; justify-self: center; }
   .start-pane > h2 { font-size: var(--step-3); font-weight: 600; }
   .start-leer { color: var(--ink-dim); }
 
@@ -303,40 +301,123 @@
 }
 
 @layer components {
-  .realm-mode, .realm-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-  .realm-flow { overflow-wrap: anywhere; }
-  .realm-mode { margin-block-end: var(--space-5); }
-  .realm-mode [aria-pressed="true"] { background: var(--night-4); color: var(--ink); outline: 1px solid var(--ember); }
-  .realm-flow, .realm-body, .realm-field, .realm-preview-copy { display: grid; gap: var(--space-3); min-inline-size: 0; }
-  .realm-body { padding: 0; border: 0; }
-  .realm-steps { display: flex; flex-wrap: wrap; gap: var(--space-4); color: var(--ink-subtle); font-size: var(--step--1); }
-  .realm-steps [aria-current="step"] { color: var(--ember); font-weight: 700; }
-  #realm-step-title { font-size: var(--step-2); }
+  .realm-mode, .realm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .realm-mode { justify-self: start; gap: var(--space-1); }
+  .realm-mode .btn { background: transparent; color: var(--ink-dim); box-shadow: none; border: 1px solid transparent; font-size: var(--step--1); min-block-size: 2.75rem; }
+  .realm-mode [aria-pressed="true"] { background: var(--night-2); color: var(--ink); border-color: var(--ink-faint); }
+  .realm-flow, .realm-body, .realm-field, .realm-preview-copy { display: grid; gap: var(--space-4); min-inline-size: 0; }
+  .realm-flow { overflow-wrap: anywhere; gap: var(--space-5); }
+  .realm-body { padding: 0; border: 0; gap: var(--space-6); }
+  .realm-steps { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); color: var(--ink-dim); font-size: var(--step--1); }
+  .realm-steps li { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 1.75rem; }
+  .realm-step-mark { display: grid; place-items: center; inline-size: 1.6rem; block-size: 1.6rem; border: 1px solid var(--ink-faint); border-radius: 50%; font-variant-numeric: tabular-nums; }
+  .realm-steps [data-complete="true"] .realm-step-mark { color: var(--ember); border-color: var(--ember); }
+  .realm-steps [aria-current="step"] { color: var(--ink); font-weight: 600; }
+  .realm-steps [aria-current="step"] .realm-step-mark { background: var(--ember); color: var(--on-ember); border-color: var(--ember); }
+  #realm-step-title { font-size: var(--step-4); font-weight: 500; line-height: 1.12; max-inline-size: 24ch; }
   #realm-step-title:focus { outline: none; }
-  .realm-field { gap: var(--space-1); }
-  .realm-field label, .realm-body h4 { font-weight: 600; }
+  .realm-intro { max-inline-size: 65ch; color: var(--ink-dim); }
+  .realm-workspace { display: grid; grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr); gap: clamp(2rem, 5vw, 5rem); align-items: start; }
+  .realm-editor { display: grid; gap: var(--space-7); min-inline-size: 0; }
+  .realm-author-section { display: grid; gap: var(--space-4); min-inline-size: 0; }
+  .realm-section-title { display: flex; align-items: center; gap: var(--space-3); font-size: var(--step-1); font-weight: 600; }
+  .realm-section-title .icon { color: var(--ember); flex: none; }
+  .realm-field { gap: var(--space-2); }
+  .realm-field label { font-size: var(--step--1); font-weight: 500; color: var(--ink-dim); }
   .realm-field :is(input, textarea, select) {
-    inline-size: 100%; min-inline-size: 0; min-block-size: 2.75rem; padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--ink-faint); border-radius: var(--radius-s); background: var(--night-0); color: var(--ink); font: inherit;
+    inline-size: 100%; min-inline-size: 0; min-block-size: 2.9rem; padding: var(--space-3);
+    border: 1px solid var(--ink-faint); border-radius: var(--radius-s); background: var(--night-1); color: var(--ink); font: inherit;
   }
-  .realm-field textarea { resize: vertical; min-block-size: 6rem; }
+  .realm-field textarea { resize: vertical; min-block-size: 7.5rem; line-height: 1.55; }
+  #realm-flow[data-step="brief"] textarea { min-block-size: 9rem; }
+  .realm-field :is(input, textarea, select):focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
   .realm-field [aria-invalid="true"] { border-color: var(--down); }
-  .realm-note { color: var(--ink-dim); font-size: var(--step--1); }
-  .realm-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-3); }
-  .realm-details summary { cursor: pointer; min-block-size: 2.75rem; padding-block: var(--space-2); }
-  .realm-details[open] > :not(summary) { margin-block-start: var(--space-3); }
-  .realm-body > .btn { justify-self: start; }
-  .realm-actions { margin-block-start: var(--space-3); }
-  .realm-review { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-5); }
-  .realm-review h4.world { font-size: var(--step-2); }
-  .realm-prose { white-space: pre-wrap; overflow-wrap: anywhere; }
-  #realm-map-preview { inline-size: 100%; max-block-size: 24rem; background: var(--night-1); border-radius: var(--radius-m); }
-  .realm-home-marker { fill: var(--ember); stroke: var(--night-0); stroke-width: 2; }
-  .realm-resources { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-  .realm-resources li { display: inline-flex; align-items: center; gap: var(--space-1); }
-  .realm-council { display: grid; gap: var(--space-2); }
-  .realm-council li { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
-  .realm-council li span { color: var(--ink-dim); }
-  .realm-preview-goal { display: grid; gap: var(--space-2); }
-  .realm-preview-goal ul { padding-inline-start: var(--space-4); }
+  .realm-note, .realm-choice-effect { color: var(--ink-dim); font-size: var(--step--1); line-height: 1.5; }
+  .realm-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-4); align-items: start; }
+  .realm-choice { display: grid; gap: var(--space-2); }
+  .realm-details summary { cursor: pointer; min-block-size: 2.75rem; padding-block: var(--space-2); color: var(--ink-dim); }
+  .realm-details summary .icon { display: inline-block; vertical-align: middle; margin-inline: var(--space-2); color: var(--ember); }
+  .realm-details-content { display: grid; gap: var(--space-4); margin-block-start: var(--space-4); }
+  .realm-actions {
+    position: sticky; inset-block-end: 0; z-index: 2;
+    padding-block: var(--space-3); justify-content: space-between;
+    background: var(--night-0); border-block-start: 1px solid var(--hairline);
+  }
+  .realm-actions .btn { min-block-size: 3rem; padding-inline: var(--space-5); }
+  .realm-actions .btn-primary { margin-inline-start: auto; }
+  .realm-folio { display: grid; gap: var(--space-4); position: sticky; inset-block-start: var(--space-5); min-inline-size: 0; }
+  .realm-folio-art { margin: 0; }
+  .realm-folio-art figcaption { text-align: center; color: var(--ink-subtle); font-size: 0.75rem; }
+  .realm-landscape-art { display: block; inline-size: 100%; max-block-size: 23rem; color: var(--ember); }
+  .realm-art-orbit { fill: none; stroke: var(--ink-faint); stroke-width: 0.7; stroke-dasharray: 1 7; }
+  .realm-art-contour { fill: none; stroke: var(--ink-faint); opacity: 0.5; stroke-width: 0.7; }
+  .realm-art-ridge { fill: var(--night-2); stroke: var(--ink-dim); stroke-width: 1.4; stroke-linejoin: round; }
+  .realm-art-snow { fill: none; stroke: var(--ink-dim); stroke-width: 1.1; stroke-linejoin: round; }
+  .realm-art-water { fill: none; stroke: var(--map-river); stroke-width: 6; }
+  .realm-art-water-line { fill: none; stroke: var(--map-river); stroke-width: 1; }
+  .realm-art-sun { fill: none; stroke: var(--ember); stroke-width: 1.2; }
+  .realm-art-home { fill: var(--night-0); stroke: var(--ember); stroke-width: 1.4; }
+  .realm-folio-copy { display: grid; gap: var(--space-2); }
+  .realm-folio-copy h4 { font-size: var(--step-2); font-weight: 500; line-height: 1.25; }
+  .realm-folio-people { color: var(--ink-dim); }
+  .realm-folio-facts { display: grid; gap: var(--space-4); margin-block-start: var(--space-4); }
+  .realm-folio-facts > div { display: grid; gap: var(--space-1); }
+  .realm-folio-facts dt { display: flex; align-items: center; gap: var(--space-2); font-size: var(--step--1); color: var(--ink-dim); }
+  .realm-folio-facts dt .icon { color: var(--ember); }
+  .realm-folio-facts dd { margin: 0; padding-inline-start: 1.65rem; }
+  #realm-flow:is([data-step="brief"], [data-step="preview"]) #realm-step-title { font-size: var(--step-3); max-inline-size: none; }
+  .realm-review { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(2rem, 4vw, 4rem); align-items: start; }
+  .realm-review h4.world { font-size: var(--step-3); font-weight: 500; line-height: 1.2; }
+  .realm-preview-map { display: grid; gap: var(--space-4); min-inline-size: 0; }
+  .realm-actual-map { margin: 0; display: grid; gap: var(--space-3); }
+  #realm-map-preview { display: block; inline-size: 100%; max-block-size: 29rem; min-block-size: 18rem; background: var(--night-1); border-radius: var(--radius-m); }
+  .realm-map-hex { stroke: var(--night-0); stroke-width: 0.3; }
+  .realm-map-terrain-mark { fill: none; stroke: var(--map-label); opacity: 0.55; stroke-width: 0.7; stroke-linejoin: round; }
+  .realm-map-river { fill: none; stroke: var(--map-river); stroke-width: 1.5; }
+  .realm-home-marker { fill: var(--night-0); stroke: var(--ember); stroke-width: 1; }
+  .realm-map-home-glyph { fill: none; stroke: var(--ember); stroke-width: 1; stroke-linejoin: round; }
+  .realm-map-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); color: var(--ink-dim); font-size: var(--step--1); }
+  .realm-map-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .realm-map-legend li:first-child { color: var(--ink); }
+  .realm-map-legend .icon { color: var(--ember); }
+  .realm-map-swatch { inline-size: 0.75rem; block-size: 0.75rem; background: var(--legend-colour); border: 1px solid var(--ink-faint); border-radius: 2px; }
+  .realm-map-river-swatch { inline-size: 1rem; block-size: 2px; background: var(--map-river); }
+  .realm-preview-copy { gap: var(--space-5); }
+  .realm-preview-copy section { display: grid; gap: var(--space-3); }
+  .realm-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; color: var(--ink-dim); }
+  .realm-resources { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+  .realm-resources li { display: grid; grid-template-columns: auto auto; align-items: center; gap: var(--space-1) var(--space-2); }
+  .realm-resources li .icon { grid-row: 1 / 3; color: var(--ember); }
+  .realm-resources strong { font-size: var(--step-2); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .realm-resources li > span { font-size: var(--step--1); color: var(--ink-dim); }
+  .realm-population { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-dim); font-size: var(--step--1); }
+  .realm-council { display: grid; gap: var(--space-3); }
+  .realm-council li { display: flex; align-items: center; gap: var(--space-3); }
+  .realm-council li > div { display: grid; min-inline-size: 0; gap: 0.15rem; }
+  .realm-council li > div > span { color: var(--ink-dim); font-size: var(--step--1); }
+  .realm-council-mark { display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; flex: none; border: 1px solid var(--ink-faint); border-radius: 50%; color: var(--ember); font-family: var(--font-world); font-size: var(--step--1); }
+  .realm-preview-goal ul { display: grid; gap: var(--space-2); padding-inline-start: 1.2rem; color: var(--ink-dim); }
+  #realm-error { padding: var(--space-3) var(--space-4); border-inline-start: 3px solid var(--down); background: var(--night-1); line-height: 1.5; }
+  #realm-error:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+}
+
+@media (max-width: 900px) {
+  .realm-workspace { grid-template-columns: minmax(0, 1.7fr) minmax(12rem, 1fr); gap: var(--space-6); }
+  .realm-fields { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  .realm-workspace, .realm-review { grid-template-columns: minmax(0, 1fr); }
+  .realm-folio { position: static; grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); gap: var(--space-4); }
+  .realm-folio-art figcaption { text-align: start; font-size: 0.7rem; }
+  .realm-folio-facts { gap: var(--space-3); margin-block-start: var(--space-3); }
+  .realm-editor { gap: var(--space-6); }
+  .realm-steps { gap: var(--space-3); justify-content: space-between; }
+  .realm-step-mark { inline-size: 1.4rem; block-size: 1.4rem; }
+  .realm-mode { display: grid; grid-template-columns: 1fr 1fr; inline-size: 100%; }
+  .realm-mode .btn { padding-inline: var(--space-2); }
+  .realm-actions .btn { flex: 1 1 12rem; }
+  .realm-actions .btn-primary { margin-inline-start: 0; }
+  .realm-actions > .btn-primary:only-child { flex: 0 1 auto; margin-inline-start: auto; }
+  .realm-review { gap: var(--space-6); }
+  #realm-map-preview { max-block-size: 28rem; min-block-size: 15rem; }
 }

@@ -1,7 +1,7 @@
 /* Spielbrett design tokens, the only source of colour, type and spacing.
-   Direction "Hochlandnacht": the map is the lit object, the chrome is the dark
-   around it. A cool slate night carries panels and fog, the terrain sits in muted
-   earth and lichen tones, and one warm ember accent marks the player's own camp,
+   Direction "Weltenwerkstatt": warm charcoal keeps controls distinct from the
+   landscape, bone ink carries the world, and restrained brass marks the next
+   decision. Earth and lichen terrain stays recognisable. Ember marks the own camp,
    selection and the primary action. Rivals and agent origins have their own hue
    AND their own shape or glyph, so no meaning rides on colour alone.
    The canvas renderer reads the terrain and map tokens from here at start-up
@@ -26,36 +26,40 @@
   color-scheme: dark;
 
   /* Night: background, panels, raised surfaces */
-  --night-0: oklch(0.15 0.012 250);
-  --night-1: oklch(0.195 0.013 250);
-  --night-2: oklch(0.235 0.014 250);
-  --night-3: oklch(0.285 0.015 250);
-  --night-4: oklch(0.34 0.016 250);
-  --scrim: oklch(0.12 0.012 250 / 0.62);
-  --fog: oklch(0.155 0.012 250);
-  --fog-grain: oklch(0.21 0.012 250);
+  --night-0: oklch(0.165 0.009 150);
+  --night-1: oklch(0.205 0.012 150);
+  --night-2: oklch(0.25 0.012 150);
+  --night-3: oklch(0.30 0.013 150);
+  --night-4: oklch(0.36 0.014 150);
+  --scrim: oklch(0.12 0.009 150 / 0.72);
+  --fog: oklch(0.17 0.009 150);
+  --fog-grain: oklch(0.22 0.01 150);
 
-  /* Bone ink. --ink-subtle is the faintest text tone (>= 4.5:1 on --night-2);
+  /* Bone ink. --ink-subtle is the faintest text tone (>= 4.5:1 on --night-4);
      --ink-faint is reserved for non-text marks. */
-  --ink: oklch(0.94 0.012 85);
-  --ink-dim: oklch(0.80 0.014 85);
-  --ink-subtle: oklch(0.70 0.014 85);
-  --ink-faint: oklch(0.52 0.012 85);
-  --hairline: oklch(0.94 0.012 85 / 0.09);
-  --hover-wash: oklch(0.94 0.012 85 / 0.06);
+  --ink: oklch(0.94 0.017 88);
+  --ink-dim: oklch(0.83 0.017 88);
+  --ink-subtle: oklch(0.74 0.016 88);
+  --ink-faint: oklch(0.55 0.014 88);
+  --hairline: oklch(0.94 0.017 88 / 0.13);
+  --hover-wash: oklch(0.94 0.017 88 / 0.07);
+
+  /* Field edges remain visible against both panels and filled controls. */
+  --control-edge: oklch(0.575 0.014 100);
+  --control-edge-hover: oklch(0.69 0.022 88);
 
   /* Ember: own people, selection, primary action */
-  --ember: oklch(0.80 0.135 70);
-  --ember-strong: oklch(0.74 0.155 58);
-  --ember-glow: oklch(0.80 0.15 65 / 0.32);
-  --on-ember: oklch(0.20 0.03 60);
+  --ember: oklch(0.80 0.105 80);
+  --ember-strong: oklch(0.74 0.125 70);
+  --ember-glow: oklch(0.80 0.105 80 / 0.14);
+  --on-ember: oklch(0.205 0.025 80);
 
   /* Direction of change */
-  --up: oklch(0.80 0.12 150);
-  --down: oklch(0.74 0.14 32);
+  --up: oklch(0.80 0.11 150);
+  --down: oklch(0.76 0.13 35);
 
   /* Peoples */
-  --people-own: oklch(0.80 0.135 70);
+  --people-own: oklch(0.80 0.105 80);
   --people-schaedelklan: oklch(0.66 0.17 30);
   --people-talbund: oklch(0.76 0.09 195);
 
@@ -76,8 +80,8 @@
   --pfad-magie: oklch(0.74 0.13 295);
 
   /* Verdicts */
-  --accepted: oklch(0.80 0.12 150);
-  --rejected: oklch(0.74 0.14 32);
+  --accepted: oklch(0.80 0.11 150);
+  --rejected: oklch(0.76 0.13 35);
 
   --community-ground: oklch(0.59 0.058 110);
 
@@ -97,9 +101,9 @@
   /* Map overlays */
   --map-river: oklch(0.70 0.08 228);
   --map-snow: oklch(0.95 0.012 230);
-  --map-camp-glow: oklch(0.78 0.16 62);
+  --map-camp-glow: oklch(0.78 0.12 76);
   --map-label: oklch(0.95 0.012 85);
-  --map-label-halo: oklch(0.16 0.012 250);
+  --map-label-halo: oklch(0.17 0.009 150);
   --map-region: oklch(0.90 0.02 85);
   --map-region-hover: oklch(0.92 0.03 85);
   --map-grid: oklch(0.12 0.01 250);
@@ -107,13 +111,13 @@
   --map-trade: oklch(0.78 0.11 235);
   --map-road: oklch(0.72 0.035 70);
   --map-road-casing: oklch(0.25 0.02 60);
-  --map-vignette: oklch(0.10 0.012 250);
+  --map-vignette: oklch(0.11 0.009 150);
 
   /* Type */
   --font-ui: "Inter", system-ui, "Segoe UI", sans-serif;
   --font-world: "Palatino Linotype", "Book Antiqua", Palatino, "Iowan Old Style", Georgia, serif;
   --step--1: 0.8125rem;
-  --step-0: 0.9375rem;
+  --step-0: 1rem;
   --step-1: 1.0625rem;
   --step-2: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
   --step-3: clamp(1.6rem, 1.3rem + 1vw, 2.1rem);
@@ -127,13 +131,13 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
-  --radius-s: 6px;
-  --radius-m: 10px;
-  --radius-l: 16px;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
   --bar-h: 3.25rem;
   --zug-h: 4.5rem;
   --panel-w: 24rem;
-  --shadow-float: 0 18px 48px oklch(0.08 0.01 250 / 0.55), 0 2px 6px oklch(0.08 0.01 250 / 0.4);
+  --shadow-float: 0 16px 40px oklch(0.08 0.008 150 / 0.38), 0 2px 8px oklch(0.08 0.008 150 / 0.3);
   --focus-ring: 0 0 0 2px var(--night-1), 0 0 0 4px var(--ember);
 
   /* Motion */

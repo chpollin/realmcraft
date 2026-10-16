@@ -30,6 +30,22 @@
   .icon { flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
   :focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
   ::selection { background: var(--ember-glow); }
+  :where(input, textarea, select, progress) { accent-color: var(--ember); }
+  :where(input[type="text"], input[type="number"], input[type="search"], input:not([type]), textarea, select) {
+    min-block-size: 2.75rem;
+    min-inline-size: 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--control-edge);
+    border-radius: var(--radius-s);
+    background: var(--night-0);
+    color: var(--ink);
+    font-size: max(1rem, 1em);
+  }
+  :where(input, textarea)::placeholder { color: var(--ink-subtle); opacity: 1; }
+  :where(input, textarea, select):hover:not(:disabled) { border-color: var(--control-edge-hover); }
+  :where(input, textarea, select):focus-visible { border-color: var(--ember); }
+  :where(input, textarea, select)[aria-invalid="true"] { border-color: var(--down); }
+  :where(button, input, textarea, select):disabled { cursor: not-allowed; }
   kbd {
     font: 600 0.6875rem/1 var(--font-ui);
     color: var(--ink-subtle);
@@ -45,21 +61,24 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    min-block-size: 2.5rem;
-    padding: 0 var(--space-4);
+    min-block-size: 2.75rem;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--control-edge);
     border-radius: var(--radius-s);
     background: var(--night-3);
     color: var(--ink);
     font-weight: 600;
-    transition: background var(--dur-1), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2);
+    line-height: 1.25;
+    box-shadow: inset 0 1px 0 var(--hairline), 0 2px 3px var(--scrim);
+    transition: background var(--dur-1), border-color var(--dur-1), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2);
   }
-  .btn:hover { background: var(--night-4); }
-  .btn:active { transform: scale(0.97); }
+  .btn:hover:not([disabled]):not([aria-disabled="true"]) { background: var(--night-4); border-color: var(--control-edge-hover); }
+  .btn:active:not([disabled]):not([aria-disabled="true"]) { transform: translateY(1px); box-shadow: inset 0 1px 3px var(--scrim); }
   .btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
-  .btn-primary { background: var(--ember); color: var(--on-ember); }
-  .btn-primary:hover { background: oklch(from var(--ember) calc(l + 0.04) c h); box-shadow: 0 0 0 6px var(--ember-glow); }
-  .btn-quiet { background: transparent; color: var(--ink-dim); }
-  .btn-quiet:hover { background: var(--hover-wash); color: var(--ink); }
+  .btn-primary { min-block-size: 2.75rem; background: var(--ember); border-color: var(--ember); color: var(--on-ember); }
+  .btn.btn-primary:hover:not([disabled]):not([aria-disabled="true"]) { background: oklch(from var(--ember) calc(l + 0.035) c h); border-color: var(--ember); }
+  .btn-quiet { background: transparent; border-color: transparent; color: var(--ink-dim); box-shadow: none; }
+  .btn.btn-quiet:hover:not([disabled]):not([aria-disabled="true"]) { background: var(--hover-wash); border-color: var(--hairline); color: var(--ink); }
   .icon-btn {
     display: inline-grid;
     place-items: center;

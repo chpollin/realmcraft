@@ -24,6 +24,29 @@ const NAME_CHARS = 13;
 
 // Selection and focus survive a re-render after a draft change.
 const ui = { path: null, ref: null };
+const compactPaths = window.matchMedia('(max-width: 600px)');
+const responsiveDialogs = new WeakSet();
+
+function navigationSelector(path, ref = null) {
+  if (compactPaths.matches) return ref ? '.pf-panel [data-zurueck]' : path ? `.pf-mobile [data-pfad-wahl="${path}"]` : '.pf-mobile [data-pf-overview]';
+  return ref ? `.pf-knoten[data-ref="${ref}"]` : path ? `.pf-pfad[data-pfad="${path}"]` : '.pf-nabe';
+}
+
+function compactNavigation(w) {
+  return el('nav', { class: 'pf-mobile', 'aria-label': t('board.paths.title') },
+    el('button', { id: 'pf-mobile-overview', class: 'btn pf-mobile-overview', type: 'button', 'data-pf-overview': '', 'aria-pressed': String(ui.path === null && ui.ref === null) },
+      icon('wissen', { size: 20 }), t.fmt('board.paths.points', { n: w.points.total })),
+    ...w.paths.map((p) => el('button', {
+      id: `pf-mobile-path-${p.id}`, class: 'btn pf-mobile-path', type: 'button', 'data-pfad-wahl': p.id,
+      style: { '--pf': `var(--pfad-${p.id}, var(--origin-forschung))` },
+      'aria-label': pathLabel(p, w.tiers), 'aria-pressed': String(ui.path === p.id && !ui.ref),
+    }, icon(p.open ? p.icon : 'schloss', { size: 20 }),
+    el('span', { class: 'pf-mobile-copy' },
+      el('span', { class: 'pf-mobile-name', text: p.name }),
+      el('span', { class: 'pf-mobile-state', 'aria-hidden': 'true' },
+        t.fmt('board.paths.tier', { tier: p.cap }), ', ', t(p.open ? 'board.paths.state.open' : 'board.paths.state.closed'))))));
+}
+
 
 function s(tag, attrs = {}, ...children) {
   const n = document.createElementNS(SVG, tag);
@@ -68,7 +91,9 @@ function nodeLabel(n) {
 }
 
 function pathLabel(p, tiers) {
-  return t.fmt('board.paths.path-label', { name: p.name, tier: p.tier, tiers, state: t(p.open ? 'board.paths.state.open' : 'board.paths.state.closed'), n: p.nodes.length });
+  // The usable cap can trail path progress while the people/world gate holds the next tier.
+  const label = t.fmt('board.paths.path-label', { name: p.name, tier: p.cap, tiers, state: t(p.open ? 'board.paths.state.open' : 'board.paths.state.closed'), n: p.nodes.length });
+  return p.tier > p.cap ? `${label}. ${t.fmt('board.paths.held', { tier: p.cap + 1 })}` : label;
 }
 
 // --- the wheel -----------------------------------------------------------------------
@@ -324,7 +349,7 @@ function hubPanel(api, w, people) {
       pts.mods ? el('dt', { text: t('board.paths.points.mods') }) : null, pts.mods ? el('dd', { class: 'num', text: signed(pts.mods) }) : null,
       el('dt', { class: 'pf-summe', text: t('board.paths.points.total') }), el('dd', { class: 'num pf-summe', text: signed(pts.total) })),
     current ? el('section', { class: 'pf-gruppe' }, el('h4', { text: t('board.paths.current') }), el('ul', { class: 'plain' }, el('li', {}, nodeButton(current)))) : null,
-    el('section', { class: 'pf-gruppe' },
+    el('section', { class: 'pf-gruppe pf-hub-paths' },
       el('h4', { text: t('board.paths.title') }),
       el('ul', { class: 'plain' }, ...w.paths.map((p) => el('li', {},
         el('button', { class: `pf-eintrag${p.open ? '' : ' is-zu'}`, type: 'button', 'data-pfad-wahl': p.id, style: { '--pf': `var(--pfad-${p.id}, var(--origin-forschung))` }, 'aria-label': pathLabel(p, w.tiers) },
@@ -363,9 +388,23 @@ export function renderPfade(dlg, api) {
   if (ui.path && !w.paths.some((p) => p.id === ui.path)) ui.path = null;
   const people = model.volk.name;
   const focused = document.activeElement && dlg.contains(document.activeElement) ? document.activeElement : null;
-  const refocus = focused?.dataset?.ref ? `.pf-knoten[data-ref="${focused.dataset.ref}"]`
-    : focused?.dataset?.pfadKnopf !== undefined && focused?.dataset?.pfad ? `.pf-pfad[data-pfad="${focused.dataset.pfad}"]`
-      : focused?.dataset?.nabe !== undefined ? '.pf-nabe' : null;
+  const refocus = focused?.dataset?.ref ? navigationSelector(focused.dataset.pfad, focused.dataset.ref)
+    : focused?.dataset?.pfadKnopf !== undefined && focused?.dataset?.pfad ? navigationSelector(focused.dataset.pfad)
+      : focused?.dataset?.pfadWahl ? navigationSelector(focused.dataset.pfadWahl)
+        : focused?.dataset?.pfOverview !== undefined || focused?.dataset?.nabe !== undefined ? navigationSelector(null) : null;
+
+  if (!responsiveDialogs.has(dlg)) {
+    responsiveDialogs.add(dlg);
+    compactPaths.addEventListener('change', () => {
+      if (!dlg.open) return;
+      const active = document.activeElement;
+      if (active !== document.body && !active?.closest?.('.pf-mobile, .pf-rad-feld')) return;
+      const path = active?.dataset?.pfadWahl ?? active?.dataset?.pfad ?? ui.path;
+      // Moving focus between existing surfaces leaves unsubmitted research notes intact.
+      const target = compactPaths.matches ? navigationSelector(path) : navigationSelector(path, active?.dataset?.ref ?? ui.ref);
+      dlg.querySelector(target)?.focus({ preventScroll: true });
+    });
+  }
 
   const rerender = (sel) => {
     renderPfade(dlg, api);
@@ -378,6 +417,13 @@ export function renderPfade(dlg, api) {
     api.announce(ref ? w.nodeOf(ref)?.name ?? '' : path ? w.paths.find((p) => p.id === path)?.name ?? '' : t('board.paths.title'));
   };
 
+  const navigation = compactNavigation(w);
+  navigation.addEventListener('click', (e) => {
+    const button = e.target.closest?.('button');
+    if (!button) return;
+    const path = button.dataset.pfadWahl ?? null;
+    choose(path, null, navigationSelector(path));
+  });
   const svg = drawWheel(w, people);
   const field = el('div', { class: 'pf-rad-feld' }, svg);
   const tip = el('div', { class: 'pf-tip', role: 'tooltip', id: 'pf-tip', hidden: true });
@@ -450,10 +496,10 @@ export function renderPfade(dlg, api) {
     if (!b) return;
     if (b.dataset.waehle) {
       const n = w.nodeOf(b.dataset.waehle);
-      choose(n?.pfad ?? null, b.dataset.waehle, `.pf-knoten[data-ref="${b.dataset.waehle}"]`);
+      choose(n?.pfad ?? null, b.dataset.waehle, navigationSelector(n?.pfad ?? null, b.dataset.waehle));
     } else {
       const id = b.dataset.pfadWahl ?? b.dataset.zurueck;
-      choose(id, null, `.pf-pfad[data-pfad="${id}"]`);
+      choose(id, null, navigationSelector(id));
     }
   });
 
@@ -462,6 +508,6 @@ export function renderPfade(dlg, api) {
     el('h2', { class: 'world', id: `${dlg.id}-titel`, tabindex: '-1', text: t('board.paths.title') }),
     el('button', { class: 'icon-btn', type: 'button', 'aria-label': t.fmt('board.close.esc', { label: t('board.close') }), onclick: () => dlg.close() }, icon('schliessen')));
 
-  dlg.replaceChildren(el('div', { class: 'pfade' }, head, el('div', { class: 'pf-buehne' }, field, aside)));
+  dlg.replaceChildren(el('div', { class: 'pfade' }, head, el('div', { class: 'pf-buehne' }, navigation, field, aside)));
   if (refocus) dlg.querySelector(refocus)?.focus({ preventScroll: true });
 }

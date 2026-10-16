@@ -1,5 +1,4 @@
-/* Right-hand panels over the map: the selection context and the world
-   happenings of the Zwischenzug. One floating sheet, no inner rules. */
+/* Selection and turn context stay beside the map on a solid, bounded surface. */
 
 @layer components {
   .seitenpanel {
@@ -10,8 +9,9 @@
     inline-size: var(--panel-w);
     display: flex;
     flex-direction: column;
-    border-radius: var(--radius-l);
-    background: oklch(from var(--night-1) l c h / 0.97);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-m);
+    background: var(--night-1);
     box-shadow: var(--shadow-float);
     overflow: hidden;
     animation: panel-in var(--dur-2) var(--ease-out);
@@ -25,7 +25,7 @@
     align-items: center;
     padding: var(--space-5) 3rem var(--space-3) var(--space-5);
   }
-  .panel-kopf h2 { min-inline-size: 0; overflow-wrap: anywhere; font-family: var(--font-world); font-size: 1.3rem; font-weight: 600; line-height: 1.2; text-wrap: pretty; }
+  .panel-kopf h2 { min-inline-size: 0; overflow-wrap: anywhere; font-family: var(--font-world); font-size: var(--step-2); font-weight: 600; line-height: 1.2; text-wrap: pretty; }
   .panel-kopf .unter { grid-column: 2; color: var(--ink-dim); font-size: var(--step--1); }
   .panel-kopf .icon-btn { position: absolute; inset-block-start: var(--space-3); inset-inline-end: var(--space-2); }
   .panel-siegel {
@@ -50,9 +50,8 @@
     align-items: center;
     gap: 0.4rem;
     min-block-size: 2rem;
-    padding: 0.2rem 0.7rem 0.2rem 0.55rem;
-    border-radius: 999px;
-    background: var(--night-2);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-s);
     color: var(--ink);
     font-size: var(--step--1);
     font-weight: 600;
@@ -87,7 +86,7 @@
   .portraet img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; opacity: 0; transition: opacity var(--dur-3); }
   .portraet.hat-bild img { opacity: 1; }
   .panel-body { overflow-y: auto; padding: 0 var(--space-5) var(--space-5); display: grid; gap: var(--space-5); align-content: start; scrollbar-width: thin; }
-  .panel-body h3 { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); margin-block-end: var(--space-2); }
+  .panel-body h3 { font-size: var(--step-0); font-weight: 600; color: var(--ink); margin-block-end: var(--space-2); }
 
   .fakten { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-1) var(--space-4); font-size: var(--step--1); }
   .fakten dt { color: var(--ink-subtle); }
@@ -105,26 +104,27 @@
   .befehlsliste > li > .has-tip { display: flex; }
   .befehl-option {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.15rem var(--space-2);
     inline-size: 100%;
     padding: var(--space-3);
-    border-radius: var(--radius-m);
+    border: 1px solid var(--control-edge);
+    border-radius: var(--radius-s);
     text-align: start;
     background: var(--night-2);
     transition: background var(--dur-1), transform var(--dur-1) var(--ease-out);
   }
-  .befehl-option:hover:not([aria-disabled="true"]) { background: var(--night-3); }
+  .befehl-option:hover:not([aria-disabled="true"]) { background: var(--night-3); border-color: var(--control-edge-hover); }
   .befehl-option:active:not([aria-disabled="true"]) { transform: scale(0.985); }
   .befehl-option[aria-disabled="true"] { cursor: not-allowed; }
   .befehl-option[aria-disabled="true"] .bo-titel { color: var(--ink-subtle); }
-  .bo-titel { font-weight: 600; }
+  .bo-titel { min-inline-size: 0; overflow-wrap: anywhere; font-weight: 600; }
   .bo-art { display: inline-grid; color: var(--ember); }
-  .bo-marken { display: inline-flex; align-items: center; gap: var(--space-3); justify-self: end; }
+  .bo-marken { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: var(--space-1) var(--space-3); justify-self: end; }
   .probe-mod { font-weight: 500; color: var(--ink-subtle); margin-inline-start: 1px; }
   .bo-folge, .bo-grund, .is-queued { grid-column: 2 / -1; font-size: var(--step--1); }
-  .bo-folge { color: var(--ink-subtle); }
+  .bo-folge { color: var(--ink-dim); }
   .bo-grund { color: var(--down); font-weight: 500; }
   .is-queued { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--up); font-weight: 600; }
   .probe-chance { margin-inline-start: var(--space-1); color: var(--ink); }
@@ -172,7 +172,7 @@
   .stepper .icon-btn { inline-size: 2.25rem; block-size: 2.25rem; }
   .stepper .icon-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
   .angebot .befehle-sektion > h3 { display: none; }
-  .markt-modus { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--night-2); justify-self: start; }
+  .markt-modus { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--radius-s); background: var(--night-2); justify-self: start; }
 
   /* Magic applications. */
   .anwendung { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); border-radius: var(--radius-s); }

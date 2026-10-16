@@ -229,6 +229,35 @@ test('back, mode changes and leaving the draft preserve authored text and create
   expect(await campaigns(page)).toEqual(before);
 });
 
+test('creation actions stay reachable and native validation reveals a closed required council field', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await enter(page);
+  const before = await campaigns(page);
+  await expect(page.locator('#realm-draft')).toBeInViewport();
+  expect(await page.locator('#realm-draft').evaluate((button) => button.getBoundingClientRect().bottom <= innerHeight)).toBe(true);
+  await draft(page);
+  expect(await page.locator('.start-kopf').evaluate((header) => header.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
+  await expect(page.locator('#realm-preview')).toBeInViewport();
+  const details = page.locator('[data-realm-council]');
+  await details.locator('summary').click();
+  const role = page.locator('#realm-council-0-role');
+  const original = await role.inputValue();
+  await role.fill('');
+  await details.locator('summary').click();
+  await expect(role).not.toBeVisible();
+  let previews = 0;
+  page.on('request', (request) => { if (isPost(request, 'preview')) previews++; });
+  await page.locator('#realm-preview').click();
+  await expect(details).toHaveAttribute('open', '');
+  await expect(role).toBeFocused();
+  expect(await role.evaluate((input) => input.getBoundingClientRect().bottom <= document.querySelector('.realm-actions').getBoundingClientRect().top)).toBe(true);
+  expect(await role.evaluate((input) => input.validity.valueMissing)).toBe(true);
+  expect(previews).toBe(0);
+  await role.fill(original);
+  await preview(page);
+  expect(await campaigns(page)).toEqual(before);
+});
+
 test('invalid required fields and out-of-range seeds cannot produce a startable preview', async ({ page }) => {
   await enter(page);
   const before = await campaigns(page);

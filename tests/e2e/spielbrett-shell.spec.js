@@ -77,10 +77,11 @@ test('a new game starts from the start screen and reaches its first planning vie
   await expect(page.locator('.leiste')).toBeHidden();
   await expect(page.locator('#start h1')).toHaveText('RealmCraft');
   // No campaign yet: the new game pane is open and Continue refuses.
-  await expect(page.locator('#start-pane-titel')).toHaveText(en['shell.start.new']);
+  await expect(page.locator('#realm-step-title')).toHaveText(en['realm.title.brief']);
   await expect(page.locator('#start-continue')).toHaveAttribute('aria-disabled', 'true');
 
   await page.locator('[data-new-mode="template"]').click();
+  await expect(page.locator('#start-pane-titel')).toHaveText(en['shell.start.new']);
   await page.locator('.start-voelker label[data-wert="talbund"]').click();
   await expect(page.locator('#ng-volk-talbund')).toBeChecked();
   await expect(page.locator('#ng-rivale-bergnomaden')).toBeChecked();

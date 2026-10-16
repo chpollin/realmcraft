@@ -16,6 +16,7 @@
     gap: var(--space-4);
     padding: 0 var(--space-4) var(--space-4) var(--space-5);
   }
+  .pf-mobile { display: none; }
   .pf-rad-feld { position: relative; min-block-size: 0; }
   .pf-rad { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; overflow: visible; }
 
@@ -98,17 +99,17 @@
     min-block-size: 0;
     overflow-y: auto;
     padding: var(--space-5);
-    border-radius: var(--radius-l);
-    background: oklch(from var(--night-1) l c h / 0.94);
-    box-shadow: var(--shadow-float);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-m);
+    background: var(--night-1);
     scrollbar-width: thin;
   }
   .pf-seite { display: grid; gap: var(--space-4); align-content: start; }
-  .pf-titel { display: flex; align-items: center; gap: var(--space-3); font-size: var(--step-2); font-weight: 600; }
+  .pf-titel { display: flex; align-items: center; gap: var(--space-3); overflow-wrap: anywhere; font-family: var(--font-world); font-size: var(--step-2); font-weight: 600; }
   .pf-titel .icon { color: var(--pf, var(--origin-forschung)); flex: none; }
   .pf-zurueck { justify-self: start; color: var(--pf); }
   .pf-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-block-start: calc(var(--space-3) * -1); color: var(--ink-subtle); font-size: var(--step--1); }
-  .pf-stufe-chip { display: inline-block; padding: 0 var(--space-2); border-radius: 999px; border: 1px solid oklch(from var(--pf, var(--origin-forschung)) l c h / 0.6); color: var(--ink-dim); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .pf-stufe-chip { display: inline-block; padding: 0 var(--space-2); border-radius: var(--radius-s); border: 1px solid oklch(from var(--pf, var(--origin-forschung)) l c h / 0.6); color: var(--ink-dim); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
   .pf-status.s-research { color: var(--pf); font-weight: 600; }
   .pf-status.s-candidate { color: var(--ink-dim); }
   .pf-stufen { display: flex; align-items: center; gap: var(--space-1); margin-block-start: calc(var(--space-3) * -1); }
@@ -125,11 +126,11 @@
   .pf-wert.up { color: var(--up); }
   .pf-wert.down { color: var(--down); }
   .pf-wirkung { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--step-1); }
-  .pf-balken { position: relative; display: flex; inline-size: 100%; block-size: 0.6rem; border-radius: 999px; background: oklch(from var(--pf, var(--origin-forschung)) l c h / 0.18); overflow: hidden; }
+  .pf-balken { position: relative; display: flex; inline-size: 100%; block-size: 0.6rem; border-radius: var(--radius-s); background: oklch(from var(--pf, var(--origin-forschung)) l c h / 0.18); overflow: hidden; }
   .pf-balken-stand { background: var(--pf, var(--origin-forschung)); }
   .pf-balken-zuwachs { background: repeating-linear-gradient(90deg, var(--ember) 0 5px, transparent 5px 8px); }
-  .pf-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
-  .pf-tag { padding: 0 var(--space-2); border-radius: 999px; background: var(--night-3); color: var(--ink-dim); font-size: 0.75rem; }
+  .pf-tags { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+  .pf-tag { padding: 0; color: var(--ink-dim); font-size: 0.75rem; }
 
   .pf-gruppe h4 { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); margin-block-end: var(--space-1); }
   .pf-eintrag { display: flex; align-items: center; gap: var(--space-2); inline-size: 100%; padding: var(--space-2); border-radius: var(--radius-s); text-align: start; }
@@ -152,8 +153,8 @@
   .pf-grund { color: var(--down); font-size: var(--step--1); }
   .pf-lenken { display: grid; gap: var(--space-2); }
   .pf-tagwahl { display: flex; flex-wrap: wrap; gap: var(--space-1); }
-  .pf-tagknopf { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: 999px; background: var(--night-2); font-size: var(--step--1); cursor: pointer; }
-  .pf-tagknopf:has(input:checked) { background: oklch(from var(--pf, var(--origin-forschung)) l c h / 0.25); color: var(--ink); }
+  .pf-tagknopf { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.25rem; padding: var(--space-1) var(--space-2); border: 1px solid var(--control-edge); border-radius: var(--radius-s); background: var(--night-2); font-size: var(--step--1); cursor: pointer; }
+  .pf-tagknopf:has(input:checked) { background: var(--night-3); border-color: var(--pf, var(--origin-forschung)); color: var(--ink); }
   .pf-tagknopf:has(input:focus-visible) { outline: 2px solid var(--ember); outline-offset: 1px; }
   .pf-tagknopf input { accent-color: var(--ember); }
   .pf-notiz { padding: var(--space-2) var(--space-3); border: 1px solid var(--ink-faint); border-radius: var(--radius-s); background: var(--night-0); color: var(--ink); font: inherit; resize: vertical; }
@@ -169,4 +170,21 @@
 @media (prefers-reduced-motion: no-preference) {
   .pf-knoten.is-jetzt .pf-zuwachs { animation: pf-zuwachs 1.6s linear infinite; }
   @keyframes pf-zuwachs { to { stroke-dashoffset: -16; } }
+}
+
+@layer overlays {
+  @media (max-width: 600px) {
+    .pf-buehne { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+    .pf-rad-feld, .pf-hub-paths { display: none; }
+    .pf-mobile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+    .pf-mobile .btn { min-inline-size: 0; min-block-size: 2.75rem; gap: var(--space-1); justify-content: start; text-align: start; padding: var(--space-2); }
+    .pf-mobile-overview { grid-column: 1 / -1; }
+    .pf-mobile-path > .icon { color: var(--pf); }
+    .pf-mobile .btn[aria-pressed="true"] { border-color: var(--ember); background: var(--night-3); }
+    .pf-mobile-copy { min-inline-size: 0; }
+    .pf-mobile-name { display: block; overflow-wrap: anywhere; font-size: var(--step--1); font-weight: 600; line-height: 1.25; }
+    .pf-mobile-state { display: block; color: var(--ink-dim); font-size: var(--step--1); font-weight: 400; }
+    .pf-panel { min-inline-size: 0; }
+    .pf-eintrag, .pf-panel .pf-zurueck, .pf-tagknopf { min-block-size: 2.75rem; }
+  }
 }

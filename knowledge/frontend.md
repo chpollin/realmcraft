@@ -55,12 +55,34 @@ The map is the main surface. Everything else is a panel or overlay over it.
 
 The playtest of 3 October 2026 shaped this surface ([playtests.md](playtests.md)). Research forms its own budget beside the slots, a new research choice replaces the previous one, the world event roll is its own step, and event cards appear one after another as centred modal cards confirmed with "Weiter", with options previewed by the kernel and fitting orders as quick reactions.
 
+## Art direction and interaction hierarchy
+
+The current implementation direction is Weltenwerkstatt, a workshop for possible worlds. The owner requested a stronger game identity across the creator and in-game UI on October 16. The intended feelings are curiosity about a world, care for its community and confidence when making a consequential choice. These are design aims, not established player responses. Artistic acceptance remains with the owner.
+
+Warm charcoal and green-black surfaces frame mineral bone text. Brass marks the active decision, while sage, river blue and the existing path colours retain their semantic roles. The local Inter face serves controls and values; the world serif is reserved for names and narrative titles. Small corners, clear edges and restrained depth distinguish input, panel and map. Large glow, heavy paper textures and repeated rounded dashboard cards are retired. Palette values remain in tokens.css, with literal OKLCH values for the Canvas reader.
+
+A small code-drawn vocabulary of ridges, river lines and a joined-world mark supplies identity. Before kernel preview these are explicitly schematic motifs. Only the real preview is presented as the generated start map. No raster generation, provider call, new font or runtime dependency is required. The shell remains stable across authored settings; terrain and the selected landscape affect the supporting imagery without claiming a rendering grammar for every possible world.
+
+| Task | First visible information | Optional depth | Wide and narrow layout |
+|---|---|---|---|
+| Describe a realm | Purpose, current step, world and people prompts with short input examples | Existing package start remains a distinct mode | Broad work surface under compact navigation; prompts stack on phones |
+| Edit the draft | Each name beside its associated description; supported landscape, way and goal; primary preview action | Council, neighbours and technical settings retain their disclosure | Authoring area beside a schematic folio; a single flow at narrow widths |
+| Review the start | Real known map and home, starting supplies, council and executable goal | Back returns to the same draft | Map is the visual anchor; evidence and Start remain readable when stacked |
+| Plan a season | Time, stores, current selection and available actions | Calculations, path details and rules on demand | Existing map/context and responsive sheets remain |
+| Browse research on a phone | Legible native path buttons, tier/lock status and the points overview | The same path and achievement panels as the desktop wheel | Two columns at narrow widths; resizing preserves selection and pending notes |
+| Consult the council | Member, role, loyalty and relevant conversation actions as one object | Goals and vote detail keep existing controls | Related content and actions share a tile; long names wrap |
+| Read rules or saves | Dialog purpose, grouped content and available action | Existing references and recovery details | Shared framed surface, keyboard focus and scrolling preserved |
+
+The requirement is a coherent hierarchy and working controls across these surfaces. Existing field/action ids, native input semantics, draft recovery, explicit start, save/load and kernel previews remain. Long prose, invalid fields, request failures and lost-response recovery must remain operable after the composition changes.
+
+The design draws on the developer's account of repeated code-generated shapes and a central palette in [Beastieball](https://www.gamedeveloper.com/art/deep-dive-developing-a-clear-and-consistent-visual-language-in-the-ui-of-beastieball), Microsoft's guidance on [UI context](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/114), and Paradox's account of moving relevant information toward the action in [Victoria 3](https://www.paradoxinteractive.com/games/victoria-3/news/dev-diary-74-ux-improvements). The substantive source passages were read on October 16, 2026. Their principles inform this implementation; they do not prescribe its palette or establish a universal contemporary game style.
+
 ## Design rules
 
 - Colours and sizes are tokens on `:root` in `spielbrett/css/tokens.css`. The canvas reads them once (`map/palette.js`) and only shifts lightness, chroma or alpha of a token.
 - One icon family for DOM and canvas (`js/icons.js`), 24×24 stroke drawings rendered as inline SVG and as `Path2D`.
 - Icons and two-stage tooltips over text (`ui/tip.js`). Hover or focus shows name and value, a click, Enter or Space pins the detail with calculation and origin, Escape closes it.
-- No standing explanatory prose, no eyebrow labels above headings and no decorative counters.
+- Explanatory text appears where a choice needs its consequence or expected input clarified. Avoid duplicated instructions, eyebrow labels above headings and decorative counters.
 - Text always goes through `textContent` (`js/dom.js`), so agent strings can never inject markup.
 - Accessibility. Native dialogs with focus trapping and focus return, keyboard panning of the map, the place list as alternative to the canvas, and visible focus. Single-key overview shortcuts work from the map or page background and leave dialogs and focused controls intact.
 - Labels come from the board's label files and the world's label files. Kernel issues are shown through the label `issue.<code>`, with a generic fallback.
@@ -124,8 +146,10 @@ A load whose response is lost or invalid remains locked because the server may a
 
 New game defaults to a freely authored realm, with the existing package/template form retained as a separate choice. The player first describes world and people. A compact step indicator shows description, editing and preview. Creating the draft preserves the authored prose and supplies explicitly editable neutral defaults for names, landscape, way of life, strengths, neighbours, council and a supported goal. No text-model interpretation is implied.
 
-The editor keeps world and people descriptions visible alongside their names. Landscape, way of life, strengths and goal are the mechanical choices. Council and neighbour details are optional to expand. The preview shows the actual generated known map, home, starting resources, council and goal from the kernel projection. Back returns to the same draft. Only Start creates a separate campaign; editing invalidates the preview. The start attempt keeps its idempotency key for retries after a lost response. The per-tab creation draft survives reload when session storage is available.
+The editor keeps world and people descriptions visible alongside their names. Landscape, way of life, strengths and goal are the mechanical choices. Council and neighbour details are optional to expand. The editor groups each name with its corresponding description. A schematic folio follows the chosen landscape, name, way and goal. Explicit example placeholders guide blank descriptions without supplying values. The preview shows the actual generated known map, terrain marks and legend, home, starting resources, council and goal from the kernel projection. Back returns to the same draft. Only Start creates a separate campaign; editing invalidates the preview. The start attempt keeps its idempotency key for retries after a lost response. The per-tab creation draft survives reload when session storage is available.
 
 The existing no-build modules, native controls and design tokens remain. Wide layouts place related short fields in intrinsic columns; descriptions and actions wrap to one column on phones. Errors remain next to the workflow and identify the affected field where possible. Keyboard focus moves to the current step heading and survives failed requests. Authored worlds use the world map; the Hochland community illustration remains limited to its supported package.
 
 The live client reloads its canonical view after each SSE hello, including reconnects. This covers a campaign transition between the initial HTTP read and the live connection without discarding a same-turn local draft.
+
+The creator action strip remains reachable during long editing. Native validation opens a collapsed group before focusing its invalid field and keeps it above that strip. Server and network errors use a focused summary near the step heading. Desktop council tiles keep full names, roles, loyalty and conversation actions together. Narrow reading dialogs use the full available width within the same cascade layer as their variants.
