@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHochland } from '../fixtures/spielbrett/build.mjs';
 import { REPO, startServer } from '../lib/server.mjs';
+import { hashValue } from '../../engine/core/hash.js';
 
 const CID = 'e2e-pfade';
 const PID = 'bergnomaden';
@@ -54,11 +55,21 @@ async function openBoard(page, { lang = 'en', patchView } = {}) {
     try { localStorage.setItem('realmcraft.settings', JSON.stringify({ language: l })); } catch { /* storage blocked */ }
   }, lang);
   if (patchView) {
+    let viewHash;
     await page.route(`**/campaigns/${CID}/view/${PID}.json`, async (route) => {
       const res = await route.fetch();
       const view = await res.json();
       patchView(view);
+      viewHash = hashValue(view);
       await route.fulfill({ response: res, json: view });
+    });
+    await page.route(`**/api/campaigns/${CID}/content`, async (route) => {
+      // Keep real content paired with the synthetic projection the client just read.
+      const pairedHash = viewHash;
+      expect(typeof pairedHash).toBe('string');
+      const res = await route.fetch();
+      const content = await res.json();
+      await route.fulfill({ response: res, json: { ...content, viewHash: pairedHash } });
     });
   }
   await page.goto(`${BASE}/spielbrett/?campaign=${CID}`);

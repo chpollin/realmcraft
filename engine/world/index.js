@@ -70,7 +70,7 @@
  * generate the chunks they touch and so extend world.tiles.
  */
 
-export { DIRECTIONS, key, parseKey, neighbors, distance, ring, spiral, line, hexRound, hexToPixel, pixelToHex, hexCorners } from './hex.js';
+export { DIRECTIONS, MAX_TILE_COORDINATE, TILE_KEY_PATTERN, isTileKey, key, parseKey, neighbors, distance, ring, spiral, line, hexRound, hexToPixel, pixelToHex, hexCorners } from './hex.js';
 export { hashSeed, makeRng } from './rng.js';
 export { makeNoise, fbm } from './noise.js';
 export { createWorld, ensureChunk, tileAt, terrainAt, chunkOf } from './generate.js';

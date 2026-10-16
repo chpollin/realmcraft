@@ -12,8 +12,13 @@ import { adaptView, orderRows, resourceRows, messages, issueText, describeParams
 import { draftFor, withOrder, withoutOrder, withReplacedOrder, withoutRoll, withRoll, withMandate, withChoice, withAssign, openRolls } from './draft.js';
 import { optionsFor, previewOption } from './options.js';
 import { createDraftPersistence } from './draft-persistence.js';
+import { createRefreshQueue } from './refresh-queue.js';
+import { hashValue } from '../../../engine/core/hash.js';
 
 const SAVE_DELAY = 250;
+const RECONCILE_INTERVAL = 5000;
+const LIVE_PARTS = ['view', 'status', 'chronik', 'report'];
+const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 // Agents of status.json and sources of log entries on the origin tokens the board colours by.
 const ORIGIN = { kernel: 'kern', player: 'kern', world: 'welt', rival: 'rivalen', research: 'forschung', council: 'rat', chronicler: 'chronist', image: 'chronist' };
 export const originOf = (agentOrSource) => {
@@ -141,16 +146,28 @@ export async function createGame(model, { cid: wanted } = {}) {
   const g = {
     cid, pid, t, pack,
     view: null, env: null, world: null, draft: null, base: null,
-    status: null, chronik: [], report: null, saving: null, saveError: null,
+    status: null, statusEvents: null, chronik: [], report: null, saving: null, saveError: null,
   };
 
+  let live = null;
+  let disposed = false;
+  let viewText = null;
+  const visible = () => !globalThis.document?.hidden;
   const emit = (kind, detail) => { for (const fn of listeners) fn(kind, detail); };
 
-  async function loadView() {
-    const [view, content] = await Promise.all([server.view(cid, pid), server.content(cid)]);
-    g.view = view;
-    g.env = buildEnv(pack, content?.items ?? []);
-    g.world = g.env.world(view.map.seed);
+  async function loadView(current = () => true) {
+    const view = await server.view(cid, pid);
+    const text = JSON.stringify(view);
+    if (!current() || text === viewText) return false;
+    const content = await server.content(cid);
+    if (!current()) return false;
+    // A restore can reuse turn/rev. Pair the public projection by its full fingerprint.
+    if (content?.viewHash !== hashValue(view)) throw new Error('view changed while loading its content');
+    const env = buildEnv(pack, content.items);
+    const world = env.world(view.map.seed);
+    Object.assign(g, { view, env, world });
+    viewText = text;
+    return true;
   }
 
   /** Recomputes everything that depends on the draft: preview, stores, orders, council questions, messages. */
@@ -239,15 +256,17 @@ export async function createGame(model, { cid: wanted } = {}) {
 
   const hasUnsavedDraft = () => persistence.unsaved || Boolean(g.saveError);
   async function withDraftBarrier(operation, options) {
+    live?.pause();
     const pending = persistence.withBarrier(operation, options);
     emit('draft');
-    try { return await pending; } finally { emit('draft'); }
+    try { return await pending; } finally { emit('draft'); resumeLive(); }
   }
-  globalThis.addEventListener?.('beforeunload', (event) => {
+  const beforeUnload = (event) => {
     if (!hasUnsavedDraft()) return;
     event.preventDefault();
     event.returnValue = '';
-  });
+  };
+  globalThis.addEventListener?.('beforeunload', beforeUnload);
 
   function setDraft(next) {
     if (persistence.locked) return false;
@@ -260,33 +279,30 @@ export async function createGame(model, { cid: wanted } = {}) {
 
   // --- report, status, chronicle -------------------------------------------------
 
-  async function loadStatus() {
-    g.status = await server.status(cid);
+  async function loadStatus(current = () => true) {
+    const status = await server.status(cid);
+    if (!current()) return;
+    const compatible = status && (status.turn === g.view.turn || status.turn === g.view.turn - 1);
+    const events = compatible ? await server.events(cid, pid, turnStem(status.turn)) : null;
+    if (!current() || sameJson(status, g.status) && sameJson(events, g.statusEvents)) return;
+    g.status = status;
+    g.statusEvents = events;
+    g.eventIdx = agentEventIndex(events, positionOf);
     applyStatus();
   }
 
   function applyStatus() {
     const s = g.status;
     if (!s || s.turn !== g.view.turn && s.turn !== g.view.turn - 1) return;
-    // Positions come from two logs that arrive after the status itself.
-    const build = () => {
-      const idx = [g.reportIdx, g.eventIdx].filter(Boolean);
-      const agenten = shapeSteps(s.steps, {
-        t,
-        peopleName: (id) => g.view.peoples[id]?.name ?? null,
-        positions: new Map(idx.flatMap((i) => [...i.positions])),
-      });
-      ensureZz();
-      model.zz.agenten = [model.zz.agenten.find((a) => a.role === 'kernel') ?? kernelAgent(), ...agenten];
-    };
-    build();
+    const idx = [g.reportIdx, g.eventIdx].filter(Boolean);
+    const agenten = shapeSteps(s.steps, {
+      t,
+      peopleName: (id) => g.view.peoples[id]?.name ?? null,
+      positions: new Map(idx.flatMap(i => [...i.positions])),
+    });
+    ensureZz();
+    model.zz.agenten = [model.zz.agenten.find(a => a.role === 'kernel') ?? kernelAgent(), ...agenten];
     emit('status');
-    server.events(cid, pid, turnStem(s.turn)).then((list) => {
-      if (!list || g.status !== s) return;
-      g.eventIdx = agentEventIndex(list, positionOf);
-      build();
-      emit('status');
-    }).catch(() => {});
   }
 
   function kernelAgent() {
@@ -316,9 +332,10 @@ export async function createGame(model, { cid: wanted } = {}) {
   }
 
   /** Round report of a resolved turn: kernel results, store changes and map highlights by origin. */
-  async function loadReport(turn) {
+  async function loadReport(turn, current = () => true) {
+    if (turn < 0) return;
     const rep = await server.report(cid, turnStem(turn));
-    if (!rep) return;
+    if (!current() || !rep || turn < g.view.turn - 1 || turn > g.view.turn || sameJson(rep, g.report)) return;
     g.report = rep;
     applyReport(rep, turn);
   }
@@ -397,9 +414,12 @@ export async function createGame(model, { cid: wanted } = {}) {
   }
   const regionOfTile = (p) => g.world.tiles?.[`${p.q},${p.r}`]?.regionId ?? null;
 
-  async function loadChronik() {
+  async function loadChronik(current = () => true) {
     const res = await server.chronik(cid);
-    g.chronik = res?.entries ?? [];
+    const entries = res?.entries ?? [];
+    if (!current() || sameJson(entries, g.chronik)) return false;
+    g.chronik = entries;
+    return true;
   }
 
   // --- full rebuild on a new view --------------------------------------------------
@@ -407,6 +427,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   function rebuild({ keepDraft = true } = {}) {
     if (!keepDraft || !g.draft || g.draft.turn !== g.view.turn) {
       g.draft = draftFor(g.view, null);
+      g.saveError = null;
       persistence.markClean();
     }
     const base = previewDraft(g.view, g.env, g.draft);
@@ -419,47 +440,93 @@ export async function createGame(model, { cid: wanted } = {}) {
     refresh();
   }
 
-  await loadView();
-  const stored = await server.draft(cid);
-  g.draft = draftFor(g.view, stored?.draft ?? null);
-  persistence.markClean();
-  await loadChronik();
-  rebuild();
-  if (g.view.phase !== 'planning') await loadStatus();
-  if (g.view.phase === 'agents' && g.view.turn > 0) await loadReport(g.view.turn - 1);
+  try {
+    for (let attempt = 0; ; attempt += 1) {
+      try { await loadView(); break; } catch (error) {
+        if (attempt === 2) throw error;
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+    const stored = await server.draft(cid);
+    g.draft = draftFor(g.view, stored?.draft ?? null);
+    persistence.markClean();
+    await loadChronik();
+    rebuild();
+    if (g.view.phase !== 'planning') await loadStatus();
+    if (g.view.phase === 'agents' && g.view.turn > 0) await loadReport(g.view.turn - 1);
+  } catch (error) {
+    globalThis.removeEventListener?.('beforeunload', beforeUnload);
+    throw error;
+  }
 
-  // --- SSE ----------------------------------------------------------------------------
+  // Live reads share one queue so a late response cannot roll back newer data.
+  live = createRefreshQueue({ refresh: async (part, current) => {
+    if (part === 'view') {
+      const before = { turn: g.view.turn, phase: g.view.phase, rev: g.view.rev };
+      if (!await loadView(current)) return;
+      rebuild();
+      if (g.view.phase !== before.phase && model.zz) {
+        model.zz.phase = boardPhase(g.view);
+        model.zz.phaseTitel = phaseTitle();
+      }
+      emit('view', { before, after: { turn: g.view.turn, phase: g.view.phase } });
+      live.request('status', 'chronik', 'report');
+    } else if (part === 'status') {
+      await loadStatus(current);
+    } else if (part === 'chronik') {
+      const known = new Set(g.chronik.map(c => c.file));
+      if (!await loadChronik(current)) return;
+      model.chronik = adaptView({ view: g.view, env: g.env, t, world: g.world, preview: g.base, chronik: g.chronik }).chronik;
+      for (const fresh of g.chronik.filter(c => !known.has(c.file))) emit('chronik', model.chronik.find(c => c.turn === fresh.turn));
+    } else {
+      const turn = part === 'report' ? (g.view.phase === 'resolving' ? g.view.turn : g.view.turn - 1) : Number(part.slice(7));
+      if (Number.isInteger(turn)) await loadReport(turn, current);
+    }
+  } });
 
-  let viewTimer = 0;
-  server.subscribe(cid, (ev, data) => {
-    if (ev === 'view') {
-      clearTimeout(viewTimer);
-      viewTimer = setTimeout(async () => {
-        const before = { turn: g.view.turn, phase: g.view.phase, rev: g.view.rev };
-        await loadView();
-        if (g.view.rev === before.rev && g.view.turn === before.turn) return;
-        rebuild();
-        if (g.view.phase !== before.phase && model.zz) {
-          model.zz.phase = boardPhase(g.view);
-          model.zz.phaseTitel = phaseTitle();
-        }
-        emit('view', { before, after: { turn: g.view.turn, phase: g.view.phase } });
-        if (g.view.turn !== before.turn) await loadReport(before.turn);
-      }, 80);
-    } else if (ev === 'status') {
-      loadStatus();
-    } else if (ev === 'chronik') {
-      const known = new Set(g.chronik.map((c) => c.file));
-      loadChronik().then(() => {
-        const fresh = g.chronik.filter((c) => !known.has(c.file));
-        model.chronik = adaptView({ view: g.view, env: g.env, t, world: g.world, preview: g.base, chronik: g.chronik }).chronik;
-        for (const f of fresh) emit('chronik', model.chronik.find((c) => c.turn === f.turn));
-      });
-    } else if (ev === 'report') {
-      const turn = Number(/T(\d{4})/.exec(data.file)?.[1]);
-      if (Number.isInteger(turn)) loadReport(turn);
+  function resumeLive() {
+    if (disposed || !live || persistence.locked || !visible()) return;
+    live.request(...LIVE_PARTS);
+    live.resume();
+  }
+  function visibilityChanged() {
+    if (visible()) resumeLive();
+    else live.pause();
+  }
+  const unsubscribe = server.subscribe(cid, (part, data) => {
+    if (part !== 'report') live.request(part);
+    else {
+      const match = /^log\/T(\d{4})\.json$/.exec(data.file ?? '');
+      if (match) live.request('report:' + Number(match[1]));
     }
   });
+  // The watcher is only a fast path. Visible pages also recover missed events.
+  const reconcileTimer = setInterval(() => {
+    if (!persistence.locked && visible()) live.request(...LIVE_PARTS);
+  }, RECONCILE_INTERVAL);
+  const pageHide = (event) => { if (event.persisted) live.pause(); else dispose(); };
+  const pageShow = (event) => { if (event.persisted) resumeLive(); };
+  globalThis.document?.addEventListener('visibilitychange', visibilityChanged);
+  globalThis.addEventListener?.('online', resumeLive);
+  globalThis.addEventListener?.('focus', resumeLive);
+  globalThis.addEventListener?.('pagehide', pageHide);
+  globalThis.addEventListener?.('pageshow', pageShow);
+  if (!visible()) live.pause();
+
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    live.stop();
+    clearInterval(reconcileTimer);
+    unsubscribe();
+    globalThis.document?.removeEventListener('visibilitychange', visibilityChanged);
+    globalThis.removeEventListener?.('online', resumeLive);
+    globalThis.removeEventListener?.('focus', resumeLive);
+    globalThis.removeEventListener?.('pagehide', pageHide);
+    globalThis.removeEventListener?.('pageshow', pageShow);
+    globalThis.removeEventListener?.('beforeunload', beforeUnload);
+    listeners.clear();
+  }
 
   // --- actions --------------------------------------------------------------------------
 
@@ -467,6 +534,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   const leadCache = { draft: null, view: null, out: {} };
 
   Object.assign(g, {
+    dispose,
     hasUnsavedDraft,
     flushDraft: () => persistence.flush(),
     withDraftBarrier,

@@ -14,10 +14,9 @@ import { applyOnceList } from '../core/effects.js';
 import { fireHook, setPeople } from '../core/log.js';
 import { activeDevelopments } from '../core/state.js';
 import { knownRegions, regionAt } from '../core/map.js';
-import { regionInfo } from '../world/index.js';
+import { isTileKey as isTile, regionInfo } from '../world/index.js';
 
 const MAX_WITHDRAWAL = 3;
-const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 const isRegion = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*):(0|-?[1-9][0-9]*):(0|[1-9][0-9]*)$/.test(v);
 const sliceOf = (people) => people.modules?.magie ?? { withdrawal: {}, uses: {} };
 const targetIssue = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];

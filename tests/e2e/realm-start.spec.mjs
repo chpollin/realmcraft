@@ -226,6 +226,15 @@ test('back, mode changes and leaving the draft preserve authored text and create
   await expect(page.locator('#realm-landscape')).toHaveValue(EDITED.world.landscape);
   await expect(page.locator('#realm-seed')).toHaveValue(String(EDITED.seed));
   await expect(page.locator('#realm-council-0-name')).toHaveValue(EDITED.council[0].name);
+  await page.locator('#realm-back-brief').click();
+  const revisedWorld = EDITED.world.description + ' Die Pegelhüter teilen ihre Messwerte öffentlich.';
+  await page.locator('#realm-world-brief').fill(revisedWorld);
+  await page.locator('#realm-draft').click();
+  await expect(page.locator('#realm-world-description')).toHaveValue(revisedWorld);
+  await expect(page.locator('#realm-people-name')).toHaveValue(EDITED.people.name);
+  const revised = await preview(page);
+  expect(revised.fingerprint).not.toBe(second.fingerprint);
+  await expect(page.locator('#realm-review')).toContainText(revisedWorld);
   expect(await campaigns(page)).toEqual(before);
 });
 
@@ -342,6 +351,13 @@ test('retrying a lost start response reuses its key and opens the campaign alrea
   expect(await campaigns(page)).toEqual([...before, committed.id].sort());
   expect(bodies[0].fingerprint).toBe(reviewed.fingerprint);
   expect(bodies[0].startKey).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  await page.locator('#realm-back').click();
+  await page.locator('#realm-back-brief').click();
+  await page.locator('#realm-draft').click();
+  await expect(page.locator('#realm-flow')).toHaveAttribute('data-step', 'edit');
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('realmcraft.creation.v1')))).toMatchObject({
+    attempted: true, startKey: bodies[0].startKey, fingerprint: bodies[0].fingerprint,
+  });
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await page.locator('#start-new').click();

@@ -1,3 +1,4 @@
+import { hashValue } from '../../engine/core/hash.js';
 // tests/unit/spielbrett-serve.test.js — campaign bridge of serve.mjs against a
 // real server process and a throwaway campaign root (REALMCRAFT_ROOT).
 import { test, before, after } from 'node:test';
@@ -117,6 +118,7 @@ test('content endpoint returns only items whose refs occur in the view', async (
     const r = await get(`/api/campaigns/${CID}/content`);
     assert.equal(r.status, 200);
     assert.equal(r.json.format, 'realmcraft-content');
+    assert.equal(r.json.viewHash, hashValue(JSON.parse(view)));
     assert.ok(r.json.items.length > 0);
     assert.ok(!r.json.items.some((i) => i.id === 'decoy-item'));
     for (const i of r.json.items) assert.ok(view.includes(`"${i.id}@${i.rev}"`), `${i.id}@${i.rev}`);

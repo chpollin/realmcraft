@@ -1,6 +1,7 @@
 // Militaer module: units, recruitment, movement, battle, sortie and raids. The
 // rules behind the orders live in engine/core/military.js.
 
+import { isTileKey as isTile } from '../world/hex.js';
 import { RULES } from '../core/rules.js';
 import { issue } from '../core/issues.js';
 import { activeDevelopments, homeSettlement, knownEntry, peopleIds, settlementsOf } from '../core/state.js';
@@ -11,7 +12,6 @@ import {
   battleSpec, claimUnits, moveUnit, raidSpec, resolveBattle, resolveRaid, unitStats,
 } from '../core/military.js';
 
-const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 const unitIdsOf = (v) => (Array.isArray(v) && v.length >= 1 && v.length <= 40 && v.every((x) => typeof x === 'string') ? v : null);
 const ownUnit = (ox, id) => ox.people.units.find((u) => u.id === id) ?? null;

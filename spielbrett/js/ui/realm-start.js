@@ -216,11 +216,15 @@ export function createRealmStart() {
       await run(async () => {
         const result = await server.realmDraft({ ...st.brief, language: language(), seed: newSeed() });
         if (!result?.ok) return feedback(result);
-        if (st.draft) {
+        if (!st.draft) {
+          st.draft = result.draft;
+          changed();
+        } else if (st.draft.world.description !== result.draft.world.description || st.draft.people.description !== result.draft.people.description) {
           st.draft.world.description = result.draft.world.description;
           st.draft.people.description = result.draft.people.description;
-        } else st.draft = result.draft;
-        changed(); st.step = 'edit';
+          changed();
+        }
+        st.step = 'edit';
       });
     } else if (st.step === 'edit') {
       await run(async () => {

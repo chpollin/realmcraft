@@ -93,7 +93,7 @@ The draft-persistence checks exercise serial writes, edits arriving during a wri
 
 - Live-agent balance and proposal quality over a sustained campaign still require observed play.
 - No browser end-to-end test of a full turn including live agents.
-- Intermittent live-refresh timeouts occurred while project and browser gates ran together. A standalone full browser run passed without source changes. The remaining reproduction and reconciliation work is recorded in [plan.md](plan.md#current-ui-review).
+- Earlier intermittent live-refresh timeouts did not establish a particular cause. The current deterministic recovery and ordering cases are described below. Sustained live-agent play remains a separate requirement.
 - The module spec still waits a fixed time before it looks for event cards in the agent-round campaign and after a reload, because the board exposes no signal that its card queue has settled.
 
 ## Realm start coverage
@@ -107,3 +107,11 @@ A deterministic fresh-game browser regression changes the fixture before the int
 The shared UI design pass retains the existing creator, planning, save/load and dialog regressions. Creator cases also cover an invalid required field in a closed disclosure, visible primary actions at the working viewport and preserved step orientation. Mobile research cases use native path buttons through path, achievement and return navigation, including a data refresh and width changes, with pending input and draft-write behavior checked. Colour contrast is checked from the actual palette values; visual inspection remains separate from automated behavior and artistic acceptance.
 
 The audio browser regression instruments real Web Audio source starts, stops and ended signals. It checks finite, non-looping interaction and outcome cues and silence after they settle on both start and board surfaces, including preference, reduced-motion, visibility and hover changes. Legacy ambience settings are ignored while supported preferences and mute survive storage and reload. These checks establish scheduling and lifecycle behavior, not a listening assessment of sound quality.
+
+## Refactor regression boundaries
+
+The refresh-queue unit cases pin coalescing, serial execution, retries, pause generations and disposal. Browser live-update cases exercise transient failures without further SSE, queued notifications, missed events, unchanged-read behavior, paired projection/content fingerprints and preserved same-turn planning. They also cover bootstrap retry, discarded in-flight responses while hidden or disposed, and stopped reads after disposal. Existing snapshot cases remain the checks for permanent restore barriers and old-page draft-write exclusion.
+
+Tile-boundary cases reject oversized agent proposals before derived geometry through a guarded world lookup. They check schema/runtime agreement, exact positive and negative limits, canonical syntax, persisted coordinate fields, primitives and core/module order checks. Valid fixture campaigns and normal negative-coordinate feature ingest remain accepted. These cases do not validate arbitrary numeric region identifiers or pathological world-generator configuration.
+
+The creator lost-response regression also returns through unchanged descriptions before reload and retry, proving that the existing campaign identity remains. A separate changed-description case requires a new preview while retaining unrelated edits.

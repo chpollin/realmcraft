@@ -8,6 +8,7 @@ import { join, posix } from 'node:path';
 import { CAMPAIGNS_DIR, ID_RE } from './config.mjs';
 import { notFound, readJson, sendFile, sendJson } from './http.mjs';
 import { worldRules } from './worlds.mjs';
+import { hashValue } from '../engine/core/hash.js';
 
 const REF_RE = /^[a-z][a-z0-9-]{1,40}@[1-9][0-9]*$/;
 const TURN_FILE_RE = /^T\d{4}\.json$/;
@@ -182,7 +183,7 @@ export async function handleCampaignApi(req, res, [cid, what]) {
     if (!view || !Array.isArray(library?.entries)) return notFound(res);
     const refs = collectRefs(view, new Set());
     const items = library.entries.filter((e) => refs.has(e?.ref)).map((e) => e.data);
-    return sendJson(res, 200, { format: 'realmcraft-content', version: 1, items });
+    return sendJson(res, 200, { format: 'realmcraft-content', version: 1, viewHash: hashValue(view), items });
   }
   if (what === 'draft') {
     return sendJson(res, 200, { draft: await readJson(join(dir, 'drafts', `${player}.json`)) });

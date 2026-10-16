@@ -11,6 +11,7 @@
 // Resource role herd (default "herden"): a world without that resource simply
 // has no herd rules.
 
+import { isTileKey as isTile } from '../world/hex.js';
 import { RULES } from '../core/rules.js';
 import { issue } from '../core/issues.js';
 import { applyOnce, setKern } from '../core/effects.js';
@@ -25,7 +26,6 @@ const campOf = (state, pid) => {
   const id = sliceOf(state.peoples[pid]).camp;
   return id ? settlementsOf(state, pid).find((s) => s.id === id) ?? null : null;
 };
-const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
 
 function adoptable(ox) {

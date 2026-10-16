@@ -2,6 +2,8 @@
 // $defs it needs (bundle below), because $ref resolves only against the root
 // and the interpreter knows no cross-document references.
 
+import { TILE_KEY_PATTERN } from '../world/hex.js';
+
 export const PATTERNS = Object.freeze({
   id: '^[a-z][a-z0-9-]{1,40}$',
   // A content reference pins the revision, "salzpfad@1".
@@ -10,7 +12,7 @@ export const PATTERNS = Object.freeze({
   // Resource, stat and terrain keys come from the world package (welt.json uses "eisenerz", "alm").
   key: '^[a-z][a-z0-9-]{1,24}$',
   // engine/world/hex.js key(): "q,r", negative ints, never "-0".
-  tile: '^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$',
+  tile: TILE_KEY_PATTERN,
   // engine/world/regions.js regionId(): "cq:cr:i".
   region: '^(0|-?[1-9][0-9]*):(0|-?[1-9][0-9]*):(0|[1-9][0-9]*)$',
   order: '^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)?$',

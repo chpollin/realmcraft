@@ -35,7 +35,7 @@ import {
 import { addPeople, noteChange, notice, setControl, setPeople } from './log.js';
 import { activeModules, moduleOrders } from '../modules/index.js';
 import { regionAt, tileOf, route } from './map.js';
-import { distance, parseKey, reveal, key as tileKey } from '../world/index.js';
+import { distance, isTileKey as isTile, parseKey, reveal, key as tileKey } from '../world/index.js';
 import { councilVote, ORDERS as COUNCIL_ORDERS } from './council.js';
 import { ORDERS as RESEARCH_ORDERS } from './research.js';
 import { eventProbeSpec } from './events.js';
@@ -78,7 +78,6 @@ const slotOf = (def, ox, order, k) => (typeof def.slot === 'function' ? def.slot
 // --- core orders -----------------------------------------------------------
 
 const target = (ox, reason, msg, params = {}) => [issue('target', `${ox.path}/params`, msg, { params: { reason, ...params } })];
-const isTile = (v) => typeof v === 'string' && /^(0|-?[1-9][0-9]*),(0|-?[1-9][0-9]*)$/.test(v);
 
 function ownSettlement(ox, id) {
   return settlementsOf(ox.state, ox.pid).find((s) => s.id === id) ?? null;

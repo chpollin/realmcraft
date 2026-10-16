@@ -31,7 +31,7 @@ import { checkDraft, orderContext, catalogueFor } from './orders.js';
 import { calculation, eventBand, resolveProbe, SUCCESS } from './probes.js';
 import { visionUpdate } from './map.js';
 import { MODULES, activeModules } from '../modules/index.js';
-import { findStart, placePeoples, key as tileKey, regionOf, regionInfo, reveal, hashSeed } from '../world/index.js';
+import { findStart, placePeoples, isTileKey, key as tileKey, regionOf, regionInfo, reveal, hashSeed } from '../world/index.js';
 import * as economy from './economy.js';
 import * as research from './research.js';
 import * as military from './military.js';
@@ -71,8 +71,6 @@ const hideEntry = (entry) => {
   return entry;
 };
 
-const TILE_KEY = new RegExp(PATTERNS.tile);
-
 /**
  * The tile an order acts on, read from its params as the order checks name
  * them (tile, target, region, settlement, unit, units), or null for an order
@@ -80,7 +78,7 @@ const TILE_KEY = new RegExp(PATTERNS.tile);
  */
 export function orderTile(state, world, pid, order) {
   const p = order.params ?? {};
-  for (const v of [p.tile, p.target]) if (typeof v === 'string' && TILE_KEY.test(v)) return v;
+  for (const v of [p.tile, p.target]) if (isTileKey(v)) return v;
   if (typeof p.region === 'string') {
     const c = regionInfo(world, p.region)?.centre;
     if (c) return tileKey(c.q, c.r);

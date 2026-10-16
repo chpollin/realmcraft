@@ -2,6 +2,34 @@
 // Only +, -, *, /, sqrt and rounding are used, which IEEE 754 defines exactly,
 // so results are identical across JavaScript engines.
 
+// The largest hex distance between signed coordinates is 4 * bound. Leave 64
+// tiles of headroom: the default 16-tile chunks scan two neighbouring chunks
+// twice in regionDetails/candidateSeeds; path searches also stop at radius 64.
+// Pathological world-pack chunk sizes need their own package validation.
+export const MAX_TILE_COORDINATE = Math.floor(Number.MAX_SAFE_INTEGER / 4) - 64;
+
+// JSON Schema and runtime checks share the same inclusive integer range.
+// Each branch first differs from the upper bound at one decimal digit.
+function coordinatePattern(max) {
+  const digits = String(max);
+  const alternatives = [digits, `[1-9][0-9]{0,${digits.length - 2}}`];
+  for (let i = 0; i < digits.length; i++) {
+    const min = i === 0 ? 1 : 0;
+    const maxDigit = Number(digits[i]) - 1;
+    if (maxDigit >= min) alternatives.push(`${digits.slice(0, i)}[${min}-${maxDigit}][0-9]{${digits.length - i - 1}}`);
+  }
+  return `(?:0|-?(?:${alternatives.join('|')}))`;
+}
+
+const COORDINATE_PATTERN = coordinatePattern(MAX_TILE_COORDINATE);
+// Unlike $ alone, this end check also rejects a trailing line break.
+export const TILE_KEY_PATTERN = `^${COORDINATE_PATTERN},${COORDINATE_PATTERN}(?![\\s\\S])$`;
+const TILE_KEY = new RegExp(TILE_KEY_PATTERN);
+
+export function isTileKey(value) {
+  return typeof value === 'string' && TILE_KEY.test(value);
+}
+
 const SQRT3 = Math.sqrt(3);
 
 // Order matters for ring(): walking these directions in sequence traces a ring.

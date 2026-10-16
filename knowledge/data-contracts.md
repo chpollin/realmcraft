@@ -48,7 +48,7 @@ Files without a schema of their own are `world.lock.json`, `log/journal.json` (h
 
 ## Campaign state
 
-The state holds references to world content and the mutable part of the map. Generated tiles are a function of `map.seed` and the pinned package and are never stored.
+The state holds references to world content and the mutable part of the map. Generated tiles are a function of `map.seed` and the pinned package and are never stored. Tile keys use the canonical q,r integer syntax and the shared inclusive technical range in engine/world/hex.js, floor(MAX_SAFE_INTEGER / 4) minus a neighbourhood reserve. Schema and runtime checks use the same bounded pattern before proposal-derived geometry. Numeric region-id bounds and pathological world-package chunk sizes require separate validation.
 
 - Envelope. `format`, `version`, `rulesVersion`, `campaign { id, world { id, version, hash }, player }`, `rev`, `turn`, `phase` (`planning`, `resolving`, `agents`), `rng { algo: sfc32, s }`, `status` (`playing` or `ended`) and `result`. Optional `settings { difficulty, language }` carries the campaign difficulty and narrative language, with defaults from `settingsOf()` for older campaigns.
 - `map`. `seed`, `packId`, `control` by region id (`cq:cr:i`), `settlements` with tile, region, kind and buildings, `known` per people and tile (`seen` or `visible`) and `features` per tile, at most one each.
@@ -131,6 +131,8 @@ A `task` carries `campaign`, `turn`, `rev`, `agent`, `people`, `respondAs { prop
 ## Log entries, reports and views
 
 A log entry (`event`) is `{ id, turn, source, kind, target { kind, id }, change, reason, refs, step, visibleTo }`. `source` is `kernel`, `player` or `agent:<id>`. `change` is `{ field, before, after }`, `{ field, delta }` or null. `visibleTo` lists the peoples whose projection shows the entry, or exactly `["all"]`. An entry without `visibleTo` reaches no projection.
+
+The browser content endpoint returns only library items referenced by the player projection, together with viewHash computed from that projection by the shared canonical hash function. The client checks this fingerprint before publishing a changed view/content pair. It is an additive response field and changes no saved-game schema.
 
 A round report `log/T<turn>.json` holds `revBefore`, `revAfter`, `hashBefore`, `hashAfter`, `sections` (calendar, orders, probes, draws, substitutions and more in kernel form) and `events`, the full unfiltered log of the turn. The view `view/<people>.json` is the projection of the state ([rules-kernel.md](rules-kernel.md), section 13) without `rulesVersion`, `rng`, `eventPool` and `ingested`, with foreign peoples in the `foreignPeople` shape.
 

@@ -48,7 +48,7 @@ These dependencies constrain individual implementations. They do not assign dead
 |---|---|
 | Validate productive labour keys and account for idle work | `checkLabour` accepts all resource ids, so an assignment to Wissen can pass without producing research. The board picker is corrected, but kernel validation and legacy-allocation migration still need a regression proving refusal or explicit correction and a truthful forecast. |
 | Expose effective research costs to agents | `pathsView` carries refs, while the board adapter computes the complexity surcharge through `researchCost`. Research and judge contexts must receive the effective cost, with the relevant opening/working-state semantics tested. |
-| Bound tile coordinates at input | The tile pattern admits unsafe integer coordinates and feature ingest does not reject them before world lookup. Validate without invoking the dangerous lookup, then test boundary refusal and unchanged state/library. |
+| Bound other spatial inputs | Tile keys now share bounded schema/runtime validation before geometry. Numeric region-id bounds and pathological world-package chunkSize values remain separate input gaps. Reproduce them without invoking dangerous geometry before selecting their supported contract. |
 | Avoid library residue after a refused destiny | `storeContent` precedes `offerDestiny`. A partially accepted proposal can keep a refused destiny card in its returned library. Test partial acceptance and prevent that residue without losing accepted items. |
 | Align configurable collapse with the world schema | `tuning.collapseCore` is read by the kernel but rejected by the closed world schema. Decide the supported package contract and test it before exposing the setting. |
 | Review sequential trade identifiers | The data contract records a global trade-id counter. Check the player-visible inference before changing ids or making a fog-safety claim. |
@@ -72,7 +72,7 @@ Reproduce a specific current case before implementing an old audit recommendatio
 - Clarify world-prose language within a translated interface, map symbols and empty layers, the place-list layout, council actions and the meaning of camp strength.
 - Review chronicle turn/date semantics and event-card icon/deadline wording on appropriate fixtures. A surviving settlement after population collapse is not by itself an invalid end summary.
 - Retain the verified planning, draft-save, empty-turn review, slot replacement, portrait fallback and focus fixes. Update the owner-feedback table only for behavior that was actually inspected.
-- Reproduce missed live refreshes seen in the parallel project/browser run of October 16. The unchanged standalone browser run passed. The server has no reconciliation for missed filesystem events during an established connection, and browser view refreshes have neither serialization nor retry. Add a deterministic failure case before changing the shared update path. The observed timeouts do not establish which gap caused them.
+- Retain the serialized live-refresh queue, matching public-view/content fingerprints, visible-page reconciliation and save/load barriers. Deterministic regressions reproduce a transient read failure and overlapping notifications independently of the earlier intermittent suite timeouts. The cause of those earlier timeouts was not established. Assess further polling or chronicle-index optimization only from observed campaign behavior.
 
 ## Verification and acceptance
 

@@ -57,11 +57,11 @@ report                                                                  tasks fo
                                                                         open: agents -> planning       judges in background
 ```
 
-The server never computes game logic. A draft change becomes a CLI `preview --draft` call that also stores the draft, and "end turn" becomes `seal`. CLI calls of one campaign are queued in the server and serialised by the campaign lock in the CLI.
+The server never computes game logic. A draft change becomes a CLI `preview --draft` call that also stores the draft, and "end turn" becomes `seal`. CLI calls of one campaign are queued in the server and serialised by the campaign lock in the CLI. Browser invalidations pass through one refresh queue. Filesystem notifications accelerate updates, while visible pages periodically recover missed notifications through existing read endpoints. Projection and content are paired by the existing canonical hash function over the public view. This fingerprint checks snapshot agreement and provides no cryptographic security guarantee.
 
 The community scene under `spielbrett/js/community/` is drawn with Canvas code. Its labour and home controls route to the existing context panel. `data/planning.js` derives concrete main or minor options from known targets in the player projection and passes them through `game.previewOption()`. `ui/planen.js` groups these options and reuses the context order controls. Neither surface creates rules or reveals unknown map data.
 
-The running browser has finite synthesized Web Audio cues for interactions and events, without background music or ambient loops ([decisions.md](decisions.md#d25-audio-feedback-without-background-loops)). It has no integrated speech narrator or LLM conversation service. Free-description campaign authoring and an in-game intentions conversation remain requirements in [new-game-design.md](new-game-design.md). The current creation endpoint accepts existing package and template ids ([operations.md](operations.md)).
+The running browser has finite synthesized Web Audio cues for interactions and events, without background music or ambient loops ([decisions.md](decisions.md#d25-audio-feedback-without-background-loops)). It has no integrated speech narrator or LLM conversation service. Further adaptive authoring and an in-game intentions conversation remain requirements in [new-game-design.md](new-game-design.md). The browser also compiles editable free descriptions and supported choices into an independent world package and campaign. Package/template creation remains available ([operations.md](operations.md)).
 
 ## Trust boundaries
 
