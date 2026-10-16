@@ -32,3 +32,43 @@ export function landscapeArt(landscape = 'highlands') {
     svgNode('circle', { cx: 180, cy: 222, r: 7, class: 'realm-art-home' }));
   return svg;
 }
+
+// Static relief studies communicate authoring state, not kernel geography.
+export function workshopArt(landscape) {
+  const svg = svgNode('svg', { viewBox: '0 70 760 300', class: 'realm-relief', 'aria-hidden': 'true', 'data-landscape': landscape || 'unformed' });
+  function contour(cx, cy, rx, ry, phase, lift = 0) {
+    const points = Array.from({ length: 96 }, (_, i) => {
+      const a = i * Math.PI / 48;
+      const edge = 1 + 0.10 * Math.sin(a * 3 + phase) + 0.065 * Math.cos(a * 5 - phase) + 0.035 * Math.sin(a * 9);
+      return `${(cx + Math.cos(a) * rx * edge).toFixed(1)},${(cy + Math.sin(a) * ry * edge - lift).toFixed(1)}`;
+    });
+    return 'M' + points.join('L') + 'Z';
+  }
+  const base = contour(383, 239, 287, 113, 0.6);
+  svg.append(svgNode('path', { d: base, transform: 'translate(0 24)', class: 'relief-shadow' }));
+  for (let i = 6; i >= 0; i--) {
+    svg.append(svgNode('path', { d: base, transform: `translate(0 ${i * 3.4})`, class: i === 0 ? 'relief-base' : 'relief-edge' }));
+  }
+  if (!landscape) {
+    for (let i = 0; i < 7; i++) {
+      svg.append(svgNode('path', { d: contour(372, 228, 236 - i * 22, 88 - i * 8, 0.6 + i * 0.08, i * 4), class: 'relief-unformed' }));
+    }
+    return svg;
+  }
+  const forms = landscape === 'highlands'
+    ? [[291, 201, 140, 61, 0.3, 12], [452, 219, 131, 59, 2, 10], [377, 263, 84, 40, 1, 7]]
+    : landscape === 'riverlands'
+      ? [[252, 223, 132, 67, 1, 8], [476, 212, 127, 61, 2.2, 8], [456, 295, 62, 25, 1.7, 4]]
+      : [[290, 215, 136, 58, 0.2, 7], [479, 239, 118, 53, 1.5, 6], [346, 292, 67, 28, 2.3, 4]];
+  for (const [cx, cy, rx, ry, phase, count] of forms) {
+    for (let i = 0; i < count; i++) {
+      const scale = 1 - i / (count + 1);
+      const band = i > count * 0.7 ? 'upper' : i > count * 0.35 ? 'middle' : 'lower';
+      svg.append(svgNode('path', { d: contour(cx, cy, rx * scale, ry * scale, phase + i * 0.055, i * 5), class: `relief-land relief-land-${band}` }));
+    }
+  }
+  if (landscape === 'riverlands') {
+    svg.append(svgNode('path', { d: 'M389 137C440 169 326 179 369 213S433 258 366 280 339 307 358 329', class: 'relief-river' }));
+  }
+  return svg;
+}

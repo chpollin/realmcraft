@@ -82,6 +82,13 @@ test('the harness publishes a shared draft, unresolved rules block review and ex
   await expect(page.locator('#realm-shared-draft')).toContainText(draft.world.name);
   await expect(page.locator('[data-workshop-items="questions"]')).toContainText('Wer darf Erinnerungsspuren vergleichen?');
   await expect(page.locator('[data-workshop-items="ruleIdeas"]')).toContainText('Erinnerungen als neue handelbare Ressource.');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#realm-copy-prompt').click();
+  await expect(page.locator('#realm-prompt-text')).toBeFocused();
+  const fallback = await page.locator('#realm-prompt-text').boundingBox();
+  expect(fallback.y).toBeLessThan(844);
+  expect(fallback.y + fallback.height).toBeGreaterThan(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator('#realm-workshop-preview')).toHaveCount(0);
   expect(await (await page.request.get(`${base}/api/campaigns`)).json()).toEqual([]);
   workshop = publish(workshop, { draft, questions: [], ruleIdeas: [] });
@@ -303,6 +310,8 @@ test('copy succeeds by keyboard on a narrow screen and the selectable fallback n
     writeText: async (value) => { window.__copiedRealmPrompt = value; },
   } }));
   await enter(page);
+  const action = await page.locator('#realm-copy-prompt').boundingBox();
+  expect(action.y + action.height).toBeLessThan(844);
   await page.locator('#realm-copy-prompt').focus();
   const response = page.waitForResponse((res) => res.request().method() === 'POST' && new URL(res.url()).pathname === '/api/realms/workshops');
   await page.keyboard.press('Enter');

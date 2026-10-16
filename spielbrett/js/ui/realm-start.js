@@ -5,7 +5,7 @@ import { t, language } from '../i18n/index.js';
 import { server } from '../data/server.js';
 import { issueText } from '../data/adapter.js';
 import { normalizeCreation } from '../../../engine/creation/realm.js';
-import { landscapeArt, svgNode } from './realm-art.js';
+import { landscapeArt, workshopArt, svgNode } from './realm-art.js';
 
 const STORAGE = 'realmcraft.creation.v1';
 const validGeneration = (value) => value === null || (typeof value === 'string' && /^[0-9a-f]{32}$/.test(value));
@@ -150,6 +150,7 @@ export function createRealmStart({ generation } = {}) {
         st.promptOpen = true; st.notice = t('realm.chat.copy-fallback');
       }
     }, 'realm-copy-prompt');
+    if (!disposed && st.notice === t('realm.chat.copy-fallback')) root.querySelector('#realm-prompt-text')?.focus();
   }
   async function workshopPreview() {
     if (!st.workshop?.draft || st.workshop.questions.length || st.workshop.ruleIdeas.length) return;
@@ -169,34 +170,46 @@ export function createRealmStart({ generation } = {}) {
     const w = st.workshop, d = w ? st.draft : null;
     const ready = d && !w.questions.length && !w.ruleIdeas.length;
     const facts = d ? [
-      [t('realm.landscape'), t(`realm.landscape.${d.world.landscape}`)],
-      [t('realm.way'), t(`realm.way.${d.people.way}`)],
-      [t('realm.goal'), t(`realm.goal.${d.goal}`)],
-      [t('realm.strength'), t(`tag.${d.people.strength}`)],
-      [t('realm.weakness'), t(`tag.${d.people.weakness}`)],
+      ['welt', t('realm.landscape'), t(`realm.landscape.${d.world.landscape}`)],
+      ['volk', t('realm.way'), t(`realm.way.${d.people.way}`)],
+      ['kompass', t('realm.goal'), t(`realm.goal.${d.goal}`)],
+      ['dafuer', t('realm.strength'), t(`tag.${d.people.strength}`)],
+      ['dagegen', t('realm.weakness'), t(`tag.${d.people.weakness}`)],
     ] : [];
+    const scene = el('section', { class: 'realm-studio-world' },
+      el('div', { class: 'realm-studio-world-heading' },
+        el('h4', { class: 'world', id: 'realm-shared-title', text: d?.world.name || t('realm.studio.unnamed') }),
+        d ? el('p', { class: 'realm-note', id: 'realm-workshop-revision', text: t.fmt('realm.chat.revision', { rev: w.rev }) }) : null),
+      el('figure', { class: 'realm-studio-study' }, workshopArt(d?.world.landscape),
+        el('figcaption', { text: t(d ? 'realm.studio.schematic' : 'realm.studio.unformed') })),
+      d ? el('p', { class: 'realm-prose', text: d.world.description }) : el('p', { id: 'realm-chat-empty', class: 'realm-studio-invitation', text: t('realm.chat.empty') }));
+    const record = d ? el('aside', { class: 'realm-studio-record' },
+      el('section', { class: 'realm-studio-community' }, sectionTitle('volk', d.people.name),
+        el('p', { class: 'realm-prose', text: d.people.description })),
+      el('dl', { class: 'realm-shared-facts' }, ...facts.map(([glyph, name, value]) => el('div', {},
+        el('dt', {}, icon(glyph, { size: 17 }), name), el('dd', { text: value })))))
+      : el('ol', { class: 'realm-studio-route plain', role: 'list', 'aria-label': t('realm.steps') },
+        ...[['welt', 'world'], ['volk', 'people'], ['kompass', 'review']].map(([glyph, key]) => el('li', {},
+          icon(glyph, { size: 27 }), el('div', {}, el('h4', { text: t(`realm.studio.${key}`) }), el('p', { text: t(`realm.studio.${key}-hint`) })))));
     return [
-      el('p', { class: 'realm-intro', text: t('realm.chat.overview') }),
-      el('div', { class: 'realm-chat-entry' }, button('realm-copy-prompt', t(st.busy ? 'realm.chat.loading' : 'realm.chat.copy'), copyPrompt, true)),
-      st.notice ? el('p', { id: 'realm-chat-notice', class: 'realm-note', role: 'status', text: st.notice }) : null,
-      st.prompt ? el('details', { class: 'realm-details', id: 'realm-chat-prompt', open: st.promptOpen, ontoggle: (e) => { st.promptOpen = e.currentTarget.open; } },
-        el('summary', { text: t('realm.chat.prompt') }), el('pre', { id: 'realm-prompt-text', class: 'realm-prompt', tabindex: '0', text: st.prompt })) : null,
-      d ? el('section', { id: 'realm-shared-draft', class: 'realm-shared-draft', 'aria-labelledby': 'realm-shared-title' },
-        el('div', { class: 'realm-shared-heading' }, el('h4', { id: 'realm-shared-title', text: t('realm.chat.draft') }), el('p', { class: 'realm-note', id: 'realm-workshop-revision', text: t.fmt('realm.chat.revision', { rev: w.rev }) })),
-        el('div', { class: 'realm-shared-worlds' },
-          el('section', {}, sectionTitle('welt', d.world.name), el('p', { class: 'realm-prose', text: d.world.description })),
-          el('section', {}, sectionTitle('volk', d.people.name), el('p', { class: 'realm-prose', text: d.people.description }))),
-        el('dl', { class: 'realm-shared-facts' }, ...facts.map(([name, value]) => el('div', {}, el('dt', { text: name }), el('dd', { text: value })))))
-        : el('p', { class: 'realm-note', id: 'realm-chat-empty', text: t('realm.chat.empty') }),
+      el('div', { class: 'realm-studio-dock' },
+        el('div', { class: 'realm-studio-chat' },
+          el('p', { class: 'realm-note', text: t('realm.chat.overview') }),
+          el('div', { class: 'realm-chat-entry' }, button('realm-copy-prompt', t(st.busy ? 'realm.chat.loading' : 'realm.chat.copy'), copyPrompt, !d)),
+          st.notice ? el('p', { id: 'realm-chat-notice', class: 'realm-note', role: 'status', text: st.notice }) : null),
+        el('div', { class: 'realm-studio-next' },
+          d && !ready ? el('p', { class: 'realm-note', text: t('realm.chat.blocked') }) : null,
+          w?.state === 'starting' ? el('p', { class: 'realm-note', text: t('realm.chat.starting') }) : null,
+          w?.state === 'started' ? el('p', { class: 'realm-note', text: t('realm.chat.started') }) : null,
+          w && st.attempted ? button('realm-workshop-retry', t(w.state === 'started' ? 'realm.chat.resume' : 'realm.chat.retry'), start, true)
+            : ready ? button('realm-workshop-preview', t('realm.chat.preview'), workshopPreview, true) : null)),
+      el('div', { id: d ? 'realm-shared-draft' : null, class: 'realm-studio', 'data-authored': String(Boolean(d)), 'aria-labelledby': 'realm-shared-title' }, scene, record),
       ...[['questions', 'realm.chat.questions'], ['ruleIdeas', 'realm.chat.rule-ideas']].map(([key, label]) => w?.[key]?.length ? el('section', { class: 'realm-open-items', 'data-workshop-items': key },
-        el('h4', { text: t(label) }), el('ul', {}, ...w[key].map((item) => el('li', { text: item })))) : null),
-      d && !ready ? el('p', { class: 'realm-note', text: t('realm.chat.blocked') }) : null,
-      w?.state === 'starting' ? el('p', { class: 'realm-note', text: t('realm.chat.starting') }) : null,
-      w?.state === 'started' ? el('p', { class: 'realm-note', text: t('realm.chat.started') }) : null,
-      el('div', { class: 'realm-actions' },
-        button('realm-open-manual', t('realm.chat.manual'), () => mode('manual')),
-        w && st.attempted ? button('realm-workshop-retry', t(w.state === 'started' ? 'realm.chat.resume' : 'realm.chat.retry'), start, true)
-          : ready ? button('realm-workshop-preview', t('realm.chat.preview'), workshopPreview, true) : null),
+        sectionTitle(key === 'questions' ? 'rat' : 'buch', t(label)), el('ul', {}, ...w[key].map((item) => el('li', { text: item })))) : null),
+      el('div', { class: 'realm-studio-tools' },
+        st.prompt ? el('details', { class: 'realm-details', id: 'realm-chat-prompt', open: st.promptOpen, ontoggle: (e) => { st.promptOpen = e.currentTarget.open; } },
+          el('summary', { text: t('realm.chat.prompt') }), el('pre', { id: 'realm-prompt-text', class: 'realm-prompt', tabindex: '0', text: st.prompt })) : null,
+        button('realm-open-manual', t('realm.chat.manual'), () => mode('manual'))),
     ].filter(Boolean);
   }
   // Native validation must reveal required controls inside a closed disclosure.

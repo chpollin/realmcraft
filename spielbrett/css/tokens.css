@@ -54,6 +54,20 @@
   --ember-glow: oklch(0.80 0.105 80 / 0.14);
   --on-ember: oklch(0.205 0.025 80);
 
+  /* Layered authoring studies, kept separate from actual terrain tokens. */
+  --studio-surface: oklch(0.225 0.022 190);
+  --studio-field: oklch(0.29 0.027 190);
+  --studio-edge: oklch(0.39 0.035 185);
+  --studio-water: oklch(0.50 0.045 210);
+  --studio-stone: oklch(0.72 0.025 165);
+  --studio-land-low: oklch(0.57 0.050 170);
+  --studio-land-mid: oklch(0.69 0.050 155);
+  --studio-land-high: oklch(0.82 0.025 110);
+  --studio-contour: oklch(0.40 0.035 170);
+  --studio-dry-low: oklch(0.58 0.060 65);
+  --studio-dry-mid: oklch(0.69 0.060 70);
+  --studio-dry-high: oklch(0.81 0.045 80);
+
   /* Direction of change */
   --up: oklch(0.80 0.11 150);
   --down: oklch(0.76 0.13 35);
