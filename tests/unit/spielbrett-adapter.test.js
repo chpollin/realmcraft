@@ -172,7 +172,7 @@ describe('previewDeltas', () => {
 
   test('a changed assign differs by stock minus costs plus forecast net, per store', () => {
     const from = Object.keys(own.population.assigned)[0];
-    const to = env.regeln.resources[2].id;
+    const to = 'research';
     assert.notEqual(from, to);
     const moved = { ...own.population.assigned, [from]: own.population.assigned[from] - 1, [to]: (own.population.assigned[to] ?? 0) + 1 };
     const next = previewDraft(view, env, withAssign(draft0, moved));

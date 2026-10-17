@@ -16,8 +16,13 @@ export function runCli(key, args) {
       windowsHide: true,
     }, (err, stdout) => done({ err, stdout }));
   });
+  return queueCampaign(key, run);
+}
+
+/** Serializes compound server operations with ordinary CLI calls of the campaign. */
+export function queueCampaign(key, run) {
   const next = (queues.get(key) ?? Promise.resolve()).then(run);
-  queues.set(key, next);
+  queues.set(key, next.catch(() => {}));
   return next;
 }
 

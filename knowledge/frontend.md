@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, architecture, data-contracts, playtests, testing, plan-m1]
@@ -169,3 +169,11 @@ SSE notifications and reconnect hello share a serialized refresh queue with a pe
 The queue coalesces notifications received during a read and retries failures without requiring another event. Hidden pages pause publication and reconcile on return. Save/load barriers invalidate in-flight reads, and an uncertain or completed restore stays frozen until reload. Same-turn updates retain the local draft and its save error. A new turn resets the draft and obsolete save error. Disposal stops the stream, timer, queue and lifecycle listeners. Restored revisions can decrease, so request ordering and snapshot fingerprints govern freshness rather than a monotonically increasing revision.
 
 The creator action strip remains reachable during long editing. Native validation opens a collapsed group before focusing its invalid field and keeps it above that strip. Server and network errors use a focused summary near the step heading. Desktop council tiles keep full names, roles, loyalty and conversation actions together. Narrow reading dialogs use the full available width within the same cascade layer as their variants.
+
+## Season plan
+
+The Season plan shortcut (P) opens a native dialog. Assigned clans and action budgets appear first, followed by a resource table, research and the previous season's logged changes. The wide view places labour beside the action entries, the resource table spans the dialog, and research sits beside the recap. Narrow layouts stack these sections. All actions reuse the existing assignment, planning, research and end-turn controls. Counter focus and scroll position survive rerendering. Pure agent-status messages leave this dialog unchanged. During the agents phase the next plan remains editable, while ending the season waits for the kernel to open it.
+
+`data/saison.js` arranges stocks, reserved order costs, economic net and effective research costs from the kernel. Economic net excludes order reservations, while unresolved rolls, events and research spending can change the eventual balance. Missing forecasts remain unknown. An available forecast with no change for a resource means zero. The recap sums only resource events targeting the player in the immediately preceding report and retains the actual calendar season. Reload in planning fetches that report without replaying its highlights.
+
+Labour work areas come from terrain yields and positive standing yield modifiers, plus the existing activities. A positive inherited unsupported allocation remains visible for reduction, but cannot be increased. Explicit edits pass the shared kernel validation. The labour section reports any locally idle resource work directly from the harvest forecast. The menu reads the application version from `/api/app`, whose demo capability also governs the optional offline continuation in Weltgeschehen.

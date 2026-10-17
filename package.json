@@ -1,6 +1,6 @@
 {
   "name": "realmcraft",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "RealmCraft, a turn-based open-world strategy game with a deterministic rules kernel, world packages, an AI harness in Claude Code and a map-first browser board.",
   "type": "module",

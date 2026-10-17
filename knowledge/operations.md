@@ -170,3 +170,25 @@ The command is offline maintenance. Its locks do not make deletion safe against 
 - `.env` holds the image key of the portrait generator `tools/portraits/generate.mjs`, and the dev server never serves it. It never enters campaign files, knowledge or commits, and agents never read it.
 - `campaigns/` is private and ignored by git. Back up a campaign by copying its whole folder while no transition runs.
 - The ports of the owner's running servers are not used by tests or development sessions.
+
+## Isolated offline playtest
+
+The application candidate 0.2.0 offers an opt-in continuation for developer playtests without an LLM. Create a dedicated temporary root and choose an unused port, then start the server there. For example in PowerShell:
+
+```powershell
+$testRoot = Join-Path $env:TEMP ('realmcraft-demo-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $testRoot | Out-Null
+$env:REALMCRAFT_ROOT = $testRoot
+$env:REALMCRAFT_DEMO = '1'
+$env:HOST = '127.0.0.1'
+$env:PORT = '5500'
+node serve.mjs
+```
+
+Use the normal reviewed Realm start on that server. Open Season plan, distribute clans, choose orders and a research goal, save if wanted, roll your own probes and end the season. Weltgeschehen then offers Continue offline. It invokes the existing dry-run harness with a freshly empty fixture directory and kernel fallbacks. It does not run LLM agents or invent agent contributions. The next planning phase exposes the previous season's own logged resource changes in Season plan. Existing named saves and automatic pre-load backups work on this temporary campaign too.
+
+`GET /api/app` reads the package version and reports whether the capability is available. `POST /api/campaigns/<cid>/demo-turn` accepts only non-negative integer `turn` and `rev`. It requires explicit demo activation, a loopback bind and a real campaign root beneath the OS temporary directory, excluding the owner root. Missing roots disable the capability. The normal server never offers this action. The shared POST guards apply, and the campaign HTTP queue serializes continuation with draft and save operations. Stale or duplicate requests, unsealed planning and an already active or unreadable run marker are refused.
+
+The child harness also receives `--sealed-only --expect-turn <turn> --expect-rev <rev>`. It checks these before starting and refuses its planning branch instead of generating player rolls. Default scripted-harness behavior is unchanged. A failed or lost continuation response requires reloading and checking the actual phase before retrying.
+
+Keep this root exclusive to offline testing. Do not run an external `/zug` or a second harness against it. The HTTP queue and initial marker check do not provide an atomic reservation against independent external processes. Full agent play continues through the normal harness on its own campaign. The temporary test world is a developer fixture and does not establish human acceptance of its setting, narration or balance.

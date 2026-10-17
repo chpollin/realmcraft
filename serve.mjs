@@ -4,6 +4,7 @@
 //   PORT=8080 node serve.mjs  -> http://localhost:8080
 // Campaigns are read from <REALMCRAFT_ROOT>/campaigns (default: this folder).
 // The modules live under server/.
+import { handleApp, handleDemo } from './server/demo.mjs';
 import { createServer } from 'node:http';
 import { ALLOWED_HOSTS, HOST, LOOPBACK_BIND, PORT } from './server/config.mjs';
 import { forbidden, notFound, sendIssues, serverIssue } from './server/http.mjs';
@@ -86,6 +87,8 @@ import { handleWorkshopCreate, handleWorkshopGet } from './server/workshops.mjs'
  * fetch metadata and Origin, application/json, at most 64 KiB, a JSON object.
  */
 const ROUTES = [
+  { path: /^\/api\/app$/, on: { GET: handleApp } },
+  { path: /^\/api\/campaigns\/([^/]+)\/demo-turn$/, on: { POST: handleDemo } },
   { path: /^\/api\/realms\/workshops$/, on: { POST: handleWorkshopCreate } },
   { path: /^\/api\/realms\/workshops\/([^/]+)$/, on: { GET: handleWorkshopGet } },
   { path: /^\/api\/realms\/draft$/, on: { POST: handleRealmDraft } },

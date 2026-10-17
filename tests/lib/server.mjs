@@ -26,7 +26,7 @@ function freePort() {
  * stop() resolves once the process has exited, so a pinned port is free again
  * for the next spec file.
  */
-export async function startServer(root, { port: pinned } = {}) {
+export async function startServer(root, { port: pinned, demo = false } = {}) {
   let port = Number(pinned) || 0;
   if (FORBIDDEN_PORTS.has(port)) throw new Error(`port ${port} belongs to the owner's servers`);
   if (!port) {
@@ -35,7 +35,7 @@ export async function startServer(root, { port: pinned } = {}) {
   }
   const proc = spawn(process.execPath, ['serve.mjs'], {
     cwd: REPO,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root },
+    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', REALMCRAFT_ROOT: root, REALMCRAFT_DEMO: demo ? '1' : '0' },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
   await new Promise((resolve, reject) => {

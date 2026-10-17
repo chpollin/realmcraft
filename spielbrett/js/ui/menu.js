@@ -68,6 +68,7 @@ export function installMenu({ api, regeln, ended, onResult }) {
         el('ul', { class: 'plain' }, ...ITEMS.filter((i) => !i.when || i.when()).map((i) => el('li', {},
           el('button', { class: `menu-punkt${i.id === 'resume' ? ' btn-primary' : ''}`, type: 'button', 'data-menu': i.id, disabled: leaving, onclick: i.run },
             icon(i.icon, { size: 20 }), el('span', { text: t(`shell.menu.${i.id}`) }))))),
+        api.game.app?.version ? el('p', { class: 'meta', text: `RealmCraft ${api.game.app.version}` }) : null,
         error ? el('p', { role: 'alert', class: 'save-warning', text: error }) : null));
     dlg.querySelector('.overlay-kopf button').disabled = leaving;
     dlg.setAttribute('aria-busy', String(leaving));

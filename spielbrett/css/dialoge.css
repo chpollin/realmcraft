@@ -216,3 +216,17 @@
   .plan-action { gap: var(--space-2); padding: var(--space-2); }
   .plan-action:not(.is-unavailable) > .icon:last-child { display: none; }
 }
+
+@layer overlays {
+  .saison-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items: start; gap: var(--space-5); }
+  .saison-body > section:nth-child(3), .saison-body > .saison-actions { grid-column: 1 / -1; }
+  .saison-body section { min-inline-size: 0; }
+  .saison-body h3 { margin-block-end: var(--space-2); }
+  .saison-body .meta { margin-block: var(--space-2); }
+  .saison-table { inline-size: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .saison-table th, .saison-table td { padding-block: var(--space-2); border-block-end: 1px solid var(--hairline); text-align: end; overflow-wrap: anywhere; }
+  .saison-table th:first-child { text-align: start; }
+  .saison-table thead th { font-size: var(--step--1); font-weight: 500; color: var(--ink-dim); }
+  .saison-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .saison-changes { padding-inline-start: var(--space-4); }
+}

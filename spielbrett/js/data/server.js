@@ -32,6 +32,8 @@ const c = (cid) => `/campaigns/${encodeURIComponent(cid)}`;
 const a = (cid) => `/api/campaigns/${encodeURIComponent(cid)}`;
 
 export const server = {
+  app: () => json('/api/app'),
+  demoTurn: (cid, turn, rev) => post(`${a(cid)}/demo-turn`, { turn, rev }),
   index: () => json('/campaigns/index.json', { optional: true }),
   view: (cid, pid) => json(`${c(cid)}/view/${encodeURIComponent(pid)}.json`),
   status: (cid) => json(`${c(cid)}/status.json`, { optional: true }),

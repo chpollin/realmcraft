@@ -146,7 +146,7 @@ export async function createGame(model, { cid: wanted } = {}) {
   const g = {
     cid, pid, t, pack,
     view: null, env: null, world: null, draft: null, base: null,
-    status: null, statusEvents: null, chronik: [], report: null, saving: null, saveError: null,
+    app: null, status: null, statusEvents: null, chronik: [], report: null, saving: null, saveError: null,
   };
 
   let live = null;
@@ -447,6 +447,7 @@ export async function createGame(model, { cid: wanted } = {}) {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
     }
+    g.app = await server.app().catch(() => null);
     const stored = await server.draft(cid);
     g.draft = draftFor(g.view, stored?.draft ?? null);
     persistence.markClean();
@@ -454,6 +455,7 @@ export async function createGame(model, { cid: wanted } = {}) {
     rebuild();
     if (g.view.phase !== 'planning') await loadStatus();
     if (g.view.phase === 'agents' && g.view.turn > 0) await loadReport(g.view.turn - 1);
+    else if (g.view.phase === 'planning' && g.view.turn > 0) g.report = await server.report(cid, turnStem(g.view.turn - 1)).catch(() => null);
   } catch (error) {
     globalThis.removeEventListener?.('beforeunload', beforeUnload);
     throw error;

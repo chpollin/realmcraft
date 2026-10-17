@@ -18,11 +18,11 @@ export function renderTopbar(api) {
   renderResources(api);
   renderDestinyChip(api);
   // Views are named from the world's labels (view.<id>); the paths are a board concept and named by the board.
-  const labels = { entwicklungen: [t('board.paths.title'), 'E'], rat: [t('view.rat'), 'R'], chronik: [t('view.chronik'), 'C'] };
+  const labels = { saison: [t('season.title'), 'P'], entwicklungen: [t('board.paths.title'), 'E'], rat: [t('view.rat'), 'R'], chronik: [t('view.chronik'), 'C'] };
   for (const b of document.querySelectorAll('.kurz')) {
     const [label, key] = labels[b.dataset.dialog];
     b.classList.add('has-tip');
-    b.replaceChildren(icon(b.dataset.dialog), el('span', { class: 'kurz-label', text: label }), el('kbd', { text: key, 'aria-hidden': 'true' }),
+    b.replaceChildren(icon(b.dataset.dialog === 'saison' ? 'kompass' : b.dataset.dialog), el('span', { class: 'kurz-label', text: label }), el('kbd', { text: key, 'aria-hidden': 'true' }),
       el('span', { class: 'tip tip-kurz tip-rechts', 'aria-hidden': 'true' }, `${label} `, el('kbd', { text: key })));
     b.setAttribute('aria-label', label);
     b.onclick = () => api.openDialog(b.dataset.dialog);

@@ -371,13 +371,27 @@ export function effectiveAssign(state, draft, pid) {
   return draft && draft.assign !== undefined ? draft.assign : state.peoples[pid]?.population?.assigned ?? {};
 }
 
+/** Work areas come from terrain or standing yield effects; the forecast decides usable local yield. */
+export function labourResources(env, state, pid) {
+  const produced = new Set((env.welt.terrains ?? []).flatMap((terrain) => Object.entries(terrain.yields ?? {})
+    .filter(([, amount]) => amount > 0).map(([key]) => env.resourceIds.includes(key) ? key : RULES.yieldAlias[key])));
+  if (state && pid) for (const { effect } of ofOp(standingOf(state, env, pid), 'yield.mod')) {
+    if (effect.amount > 0) produced.add(env.resourceIds.includes(effect.res) ? effect.res : RULES.yieldAlias[effect.res]);
+  }
+  return env.resourceIds.filter((key) => produced.has(key));
+}
+
 function checkLabour(state, env, draft, pid, issues) {
+  // Inherited allocations keep their historical semantics; only an explicit edit is revalidated.
+  // Otherwise a legacy rival allocation could block sealing an unrelated player's season.
   if (!draft.assign) return;
+  const assign = draft.assign;
+  const resources = labourResources(env, state, pid);
   const core = state.peoples[pid].population.core;
   let total = 0;
-  for (const [k, n] of Object.entries(draft.assign)) {
-    if (!env.resourceIds.includes(k) && !RULES.activities.includes(k)) {
-      issues.push(issue('target', `/assign/${k}`, `${k} is neither a resource nor an activity`, { params: { reason: 'not-activity', key: k } }));
+  for (const [k, n] of Object.entries(assign)) {
+    if (n > 0 && !resources.includes(k) && !RULES.activities.includes(k)) {
+      issues.push(issue('target', `/assign/${k}`, `${k} is not a productive work area`, { params: { reason: 'not-activity', key: k } }));
     }
     total += n;
   }

@@ -7,6 +7,7 @@ import { closeButton } from './kontext.js';
 import { withTip } from './tip.js';
 import { formatDuration } from '../data/game.js';
 import { t } from '../i18n/index.js';
+import { server } from '../data/server.js';
 
 const STATE_CLASS = { fertig: 'done', arbeitet: 'working', gescheitert: 'failed' };
 
@@ -35,6 +36,25 @@ export function renderWeltgeschehen(api) {
       closeButton(() => api.setPanel(null), t('board.world.close'))),
     el('p', { class: `phase ${phaseA ? 'a' : 'b'}`, role: 'status' },
       icon(phaseA ? 'schloss' : 'ja', { size: 16 }), zz.phaseTitel),
+    api.game.app?.demo ? el('section', { class: 'demo-controls' },
+      el('p', { class: 'meta', text: t('season.demo-note') }),
+      api.game.demoError ? el('p', { role: 'alert', text: t('season.demo-error') }) : null,
+      el('button', { type: 'button', class: 'btn btn-primary', 'data-fk': 'demo-turn',
+        disabled: Boolean(api.game.demoBusy || api.game.demoError),
+        onclick: async () => {
+          if (api.game.demoBusy) return;
+          const { turn, rev } = api.game.view;
+          api.game.demoBusy = true;
+          renderWeltgeschehen(api);
+          try {
+            const result = await api.game.withDraftBarrier(() => server.demoTurn(api.game.cid, turn, rev));
+            if (result.ok) { location.reload(); return; }
+            api.game.demoError = true;
+          } catch { api.game.demoError = true; }
+          api.game.demoBusy = false;
+          renderWeltgeschehen(api);
+        },
+      }, t(api.game.demoBusy ? 'season.demo-busy' : 'season.demo-go'))) : null,
     pipeline(rows),
     el('div', { class: 'panel-body' },
       kern ? kernGroup(api, zz, kern) : null,

@@ -1,3 +1,4 @@
+import { labourResources } from '../../../engine/core/orders.js';
 // Selection panel: what the selected tile, unit, place, region, people or
 // module is, and which orders it allows. Facts are icon and value with a
 // tooltip; orders preview their effect in the top bar and on the map while
@@ -235,12 +236,13 @@ export function orderOptions(api, target, { given = null, titel = t('board.optio
  * Labour of the turn (draft.assign): clans per resource or activity. Every
  * step previews its effect on the stores before it is made.
  */
-function labour(api) {
+export function labour(api, headingId = 'arbeit-h') {
   const { model, game } = api;
   const people = game.view.peoples[game.pid];
   const assign = { ...(game.draft.assign ?? people.population.assigned ?? {}) };
-  const resources = [RULES.food, RULES.material].filter((k) => game.env.resourceIds.includes(k));
-  const keys = [...new Set([...resources, 'research', ...Object.keys(assign)])];
+  const resources = labourResources(game.env, game.view, game.pid);
+  const productive = new Set([...resources, ...RULES.activities]);
+  const keys = [...new Set([...resources, 'research', ...Object.keys(assign).filter((k) => assign[k] > 0)])];
   const total = Object.values(assign).reduce((a, n) => a + n, 0);
   const core = people.population.core;
   const locked = model.phase === 'A';
@@ -258,14 +260,18 @@ function labour(api) {
     onfocus: () => { if (!disabled) hover(k, d); },
     onblur: () => api.setPreview(null),
   }, icon(d > 0 ? 'plus' : 'minus', { size: 15 }));
-  return el('section', { 'aria-labelledby': 'arbeit-h', class: 'befehle-sektion arbeit' },
-    el('h3', { id: 'arbeit-h', text: t.fmt('board.labour.heading', { clans: t('population.core'), total, core }) }),
+  const work = el('section', { 'aria-labelledby': headingId, class: 'befehle-sektion arbeit' },
+    el('h3', { id: headingId, text: t.fmt('board.labour.heading', { clans: t('population.core'), total, core }) }),
     el('ul', { class: 'arbeit-liste plain' }, ...keys.map((k) => el('li', { class: 'arbeit-zeile', 'data-arbeit': k },
       icon(k === 'research' ? 'wissen' : k, { size: 17 }),
       el('span', { class: 'arbeit-name', text: label(k) }),
       btn(k, -1, locked || !(assign[k] > 0), label(k)),
       el('span', { class: 'num arbeit-zahl', text: String(assign[k] ?? 0) }),
-      btn(k, 1, locked || total >= core, label(k))))));
+      btn(k, 1, locked || total >= core || !productive.has(k), label(k))))));
+  for (const idle of game.base.forecast?.harvest?.filter((entry) => entry.kind === 'idle') ?? []) {
+    work.append(el('p', { class: 'meta', text: t.plural('board.labour.no-yield', idle.clans, { name: label(idle.res) }) }));
+  }
+  return work;
 }
 
 export function onTile(api, q, r, exclude) {

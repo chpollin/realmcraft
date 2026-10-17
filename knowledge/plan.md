@@ -23,6 +23,18 @@ Continue from the relevant section below with one bounded task and its acceptanc
 
 [plan-m1.md](plan-m1.md) retains the milestone contract and its current evidence limits. [playtests.md](playtests.md) retains owner feedback and the historical UI audits. [handoff.md](handoff.md) is only an inbox for material awaiting integration, not a second backlog.
 
+## Playable candidate 0.2.0
+
+REALMCRAFT-PLAYABLE-INCREMENT-2026-10-17 implements the season planning and continuation journey as a local candidate. The application version advances from package 0.1.0 to 0.2.0. Campaign schema, kernel rules version and knowledge schema keep their own existing versions.
+
+- Provide one Season plan that distinguishes assigned clans, resource stocks and reserved order costs, economic preview and the separate research budget. Reuse existing assignment, action and research controls. Explain forecast limits rather than presenting unresolved effects as certain totals.
+- Refuse explicit positive assignments to resources without terrain yields or a positive standing yield modifier. Preserve inherited allocations so legacy rival work cannot block an unrelated season. Old allocations remain readable and can be reduced in the UI. Local production still depends on the kernel forecast.
+- Show the previous season's own logged resource changes with its actual season and a return to planning. Preserve partial/missing report states and foreign visibility boundaries.
+- Offer an explicit loopback-only demo capability on a temporary campaign root. It resumes an already sealed turn through the existing offline harness with no proposal templates or provider calls. The normal owner-root server never offers it. Repeated, stale and unsealed requests and an already active harness must refuse safely. The dedicated temporary root is for fallback testing only and must not run concurrent external /zug commands.
+- Preserve free realm authoring, reviewed explicit start, named saves, pre-load backup and reload recovery. Exercise several season transitions, review results, continue planning and restore an earlier plan on broad and phone layouts.
+
+Acceptance requires focused kernel and server regressions, complete project and browser gates, and inspected broad/narrow screenshots from an isolated playable candidate. The demo uses kernel fallback, not live LLM agents or human gameplay evidence. Effective research costs for agent contexts, other spatial/projection gaps, arbitrary new mechanics, narrated audio and new artwork remain outside this increment. Production changes and final evidence are recorded in the responsible documents before local commit. No tag, push or release is authorized.
+
 ## Completion criteria
 
 - A player can create, revise, preview and start a realm whose supported mechanics pass kernel validation.

@@ -18,6 +18,7 @@ import { renderRat } from './ui/rat.js';
 import { renderChronik } from './ui/chronik.js';
 import { renderBestimmung } from './ui/bestimmung.js';
 import { renderProbe } from './ui/probe.js';
+import { renderSaison } from './ui/saison.js';
 import { renderPlanen } from './ui/planen.js';
 import { closePinnedTip } from './ui/tip.js';
 import { issueText, objectsAt, resourceByKey } from './data/adapter.js';
@@ -26,6 +27,7 @@ import { getAudio } from './audio/index.js';
 import { dialogHead } from './ui/dialoge.js';
 
 const DIALOGS = {
+  saison: renderSaison,
   entwicklungen: renderPfade,
   rat: renderRat,
   chronik: renderChronik,
@@ -33,7 +35,7 @@ const DIALOGS = {
   probe: renderProbe,
   planen: renderPlanen,
 };
-const SHORTCUTS = { e: 'entwicklungen', r: 'rat', c: 'chronik', b: 'bestimmung' };
+const SHORTCUTS = { p: 'saison', e: 'entwicklungen', r: 'rat', c: 'chronik', b: 'bestimmung' };
 const LAYERS = ['gelaende', 'besitz', 'bedrohung', 'handel'];
 
 export function startBoard(model, game) {
@@ -181,6 +183,7 @@ export function startBoard(model, game) {
       const dlg = document.getElementById(`dlg-${name}`);
       const active = dlg.contains(document.activeElement) ? document.activeElement : null;
       const selector = active?.id ? `#${CSS.escape(active.id)}`
+        : active?.dataset.fk ? `[data-fk="${CSS.escape(active.dataset.fk)}"]`
         : active?.dataset.planType ? `[data-plan-type="${CSS.escape(active.dataset.planType)}"]` : null;
       const focusedText = active?.textContent;
       const scroll = dlg.querySelector('.overlay-body')?.scrollTop ?? 0;
@@ -414,7 +417,7 @@ export function startBoard(model, game) {
       renderKontext(api);
       renderRatsleiste(api);
       community?.refresh();
-      for (const name of ['rat', 'entwicklungen', 'bestimmung', 'planen']) {
+      for (const name of ['rat', 'entwicklungen', 'bestimmung', 'planen', 'saison']) {
         const d = document.getElementById(`dlg-${name}`);
         if (d.open) api.rerenderDialog(name);
       }
@@ -446,6 +449,7 @@ export function startBoard(model, game) {
       renderMessages(api, { freshId: 'weltgeschehen' });
       api.setPanel('welt');
     }
+    if (['view', 'report', 'sealed'].includes(kind) && document.getElementById('dlg-saison').open) api.rerenderDialog('saison');
   });
 
   /* Keyboard */

@@ -213,3 +213,5 @@
   .ergebnis.sev-severe .erg-titel { font-weight: 700; }
   .ergebnis.sev-severe .erg-schwere { background: var(--rejected); color: var(--night-0); }
 }
+
+@layer panels { .demo-controls { padding: var(--space-3); display: grid; gap: var(--space-2); } }

@@ -612,3 +612,22 @@ test('checkDraft does not mutate the state or the draft', () => {
   checkDraft(state, base.env, draft, { mode: 'apply' });
   assert.equal(JSON.stringify([state, draft]), before);
 });
+
+
+test('labour refuses explicit non-producing stocks while preserving inherited legacy allocations', () => {
+  const explicit = check({ assign: { nahrung: 2, wissen: 1 } });
+  assert.equal(issuesOf(explicit.chk, 'target').some((i) => i.path === '/assign/wissen'), true);
+  const inherited = check({}, { edit: (state) => { state.peoples[P].population.assigned = { nahrung: 2, wissen: 1 }; } });
+  assert.deepEqual(issuesOf(inherited.chk, 'target'), []);
+  assert.deepEqual(inherited.state.peoples[P].population.assigned, { nahrung: 2, wissen: 1 });
+  const corrected = check({ assign: { nahrung: 2, wissen: 0, research: 1 } });
+  assert.deepEqual(issuesOf(corrected.chk, 'target'), []);
+});
+
+test('positive standing yield modifiers make a resource a valid explicit work area', () => {
+  const result = check({ assign: { nahrung: 2, wissen: 1 } }, { edit: (state) => {
+    state.peoples[P].statuses.push({ id: 'knowledge-fields', until: null, endsOn: null,
+      effects: [{ op: 'yield.mod', res: 'wissen', terrain: 'wiese', amount: 1 }] });
+  } });
+  assert.deepEqual(issuesOf(result.chk, 'target'), []);
+});

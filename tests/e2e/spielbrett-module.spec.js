@@ -188,3 +188,15 @@ test('the board keeps the modules usable on a phone', async ({ page }) => {
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
 });
+
+
+test('season plan permits next-season orders during agents while keeping the turn closed', async ({ page }) => {
+  await openBoard(page, AGENTS);
+  expect(await page.evaluate(() => window.spielbrett.game.view.phase)).toBe('agents');
+  await page.evaluate(() => window.spielbrett.openDialog('saison'));
+  await expect(page.locator('#dlg-saison [data-season-slot="neben"]')).toBeEnabled();
+  await expect(page.locator('#dlg-saison .btn-primary')).toBeDisabled();
+  await page.locator('#dlg-saison [data-season-slot="neben"]').click();
+  await expect(page.locator('#dlg-planen')).toBeVisible();
+  await expect(page.locator('#dlg-planen [data-plan-type]')).not.toHaveCount(0);
+});

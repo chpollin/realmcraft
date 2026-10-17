@@ -188,11 +188,17 @@ function tasksOf(phaseFilter) {
 const run = (cmd) => spawnSync(process.execPath, [fileURLToPath(new URL('./run-marker.mjs', import.meta.url)), cmd, '--campaign', cid, '--root', root], { encoding: 'utf8' });
 
 const from = state();
+// The browser demo can only resume sealed work. Keep the ordinary scripted runner unchanged.
+if (opt['sealed-only'] && (!['resolving', 'agents'].includes(from.phase)
+    || String(from.turn) !== String(opt['expect-turn']) || String(from.rev) !== String(opt['expect-rev']))) {
+  stop('sealed-only', { code: 4, json: { issues: [{ code: 'phase', message: 'sealed turn or revision changed' }] } });
+}
 if (from.status === 'ended') stop('status', { code: 4, json: { issues: [{ code: 'finished', message: 'campaign has ended' }] } });
 run('start');
 initTurnStatus(dir, from.turn, { campaign: cid, phase: from.phase });
 
 if (state().phase === 'planning') {
+  if (opt['sealed-only']) stop('sealed-only', { code: 4, json: { issues: [{ code: 'phase', message: 'player must roll and seal' }] } });
   const st = cli('status');
   for (const probe of st.json?.probes ?? []) cli('roll', probe, String(nextRoll()));
   let res = cli('seal');

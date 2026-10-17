@@ -20,6 +20,8 @@ New game opens a shared chat workshop. Copy its starting prompt into the existin
 
 The existing harness chat authors the shared draft, while the compiler validates its supported structured choices. No additional LLM service runs in the browser, and prose cannot invent executable mechanics. Authored worlds use the world map. Free intentions in an in-game chat, world-specific community scenes and spoken narration remain planned in [new-game-design.md](knowledge/new-game-design.md). Named saves are available in the game menu. The start screen opens each campaign’s saved games, including automatic backups. Agent rounds still use Claude Code, as described below. The board has no background agent service.
 
+The local 0.2.0 candidate adds Season plan (P) with clan work, action budgets, reserved costs, economic forecasts, research and the previous season's own resource changes. An explicitly enabled temporary-root server can continue sealed seasons with kernel fallbacks for offline testing. The [offline playtest runbook](knowledge/operations.md#isolated-offline-playtest) describes its limits. Normal agent play still uses the existing harness.
+
 ## Requirements
 
 Node 21 or later, and Claude Code for play with agents. There is no build step.
