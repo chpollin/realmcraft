@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [game-design, decisions, architecture, plan-m1]
@@ -32,7 +32,9 @@ The owner's intention combines goals that depend on each other.
 
 ## Campaign authoring direction
 
-On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. The optional community layout is implemented as a Hochland experiment. Its drawing style remains subject to owner review. The shared chat workshop now publishes confirmed drafts and supported choices for a reversible kernel preview and explicit independent campaign start. Conversation quality, arbitrary new mechanics and world-specific rendering remain open. The visual studio is a prototype whose artistic acceptance is not established.
+On October 15 the owner requested free world and people description, adaptive questions, an editable generated draft and a fresh campaign. Role and visual treatment should respond to each campaign. The owner also requested a chat simulation with process observation to develop this flow. The exploration is specified in [new-game-design.md](new-game-design.md). The map-first board and Hochland acceptance criteria below describe the implemented M1 scope. The optional community layout is implemented as a Hochland experiment. Its drawing style remains subject to owner review.
+
+On October 17 the owner concretized the harness chat's game-master system-prompt style and conversational controls as an integral game mechanic. Player-facing responses use a pure Markdown layout without fenced code blocks or bullet lists (`### REALMCRAFT v0.2.0` during discovery and `### REALMCRAFT v0.2.0 · <World Name>` once named, browser sync status line, `>` scene impulse, and `####` option subheadings with short paragraphs and bold key terms). The helper `realm-workshop.mjs` runs silently in the background without exposing internal enum keys, JSON paths or revision numbers. A two-stage diagnostic funnel (`draft: null` with open `questions` before a derived `draft`) leads from general concepts (core conflict and drive, community organization and movement) to story-concrete setting elements at the end (science fiction, fantasy, historical or real-world, or custom setting). Every step ends with the conversational control set covering direct selection (`Direktwahl`), combination (`Verbinden`), custom concepts (`Eigenes Konzept`), and curated synthesis or perspective shift (`Synthese-Modus`, where the player asks the game master for a coherent and professional combination, a high-tension combination or unconventional new perspectives). The shared chat workshop publishes confirmed drafts and supported choices for a reversible kernel preview and explicit independent campaign start. Arbitrary new mechanics and world-specific rendering remain open. The visual studio is a prototype whose artistic acceptance is not established.
 
 ## Shape of the game
 
