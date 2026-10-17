@@ -192,3 +192,14 @@ Use the normal reviewed Realm start on that server. Open Season plan, distribute
 The child harness also receives `--sealed-only --expect-turn <turn> --expect-rev <rev>`. It checks these before starting and refuses its planning branch instead of generating player rolls. Default scripted-harness behavior is unchanged. A failed or lost continuation response requires reloading and checking the actual phase before retrying.
 
 Keep this root exclusive to offline testing. Do not run an external `/zug` or a second harness against it. The HTTP queue and initial marker check do not provide an atomic reservation against independent external processes. Full agent play continues through the normal harness on its own campaign. The temporary test world is a developer fixture and does not establish human acceptance of its setting, narration or balance.
+
+### Guided assessment and recovery
+
+Prepare a separate fresh campaign on the isolated demo server and save its opening plan with the label `Beginn der gemeinsamen Spielprobe`. Verify that label in Menu > Load before handing over the current local URL. Keep earlier campaigns available. The local URL and temporary campaign identifiers belong in the dated delivery, not as permanent project links.
+
+1. Open Season plan (P). Move a clan from food work to research and inspect the economic forecast. Choose a research goal through the existing paths view if wanted.
+2. Plan an exploration through a minor action and inspect its target, costs and roll. Save the plan under a second name so its recorded order and roll can be revisited.
+3. End the season with the player's own world-event roll, choose Continue offline, read and acknowledge the event cards, then compare the next Season plan with its previous-season recap.
+4. Open Menu > Load and restore `Beginn der gemeinsamen Spielprobe`. Confirm the return to the opening season. The displaced later state remains available as the automatic pre-load backup. Loading that backup returns to the later plan.
+
+Human assessment asks whether the player can distinguish assigned work, a planned order, reserved costs and effects that depend on the roll. The fallback workflow establishes no live LLM interaction, narrative quality or artistic acceptance. Retain the normal harness as the separate route for an explicitly authorized real-agent test.

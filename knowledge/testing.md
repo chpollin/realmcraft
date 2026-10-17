@@ -139,3 +139,9 @@ The demo server cases exercise opt-in capability, missing roots, shared POST gua
 These are deterministic developer checks with kernel fallbacks. Real LLM gameplay, subjective sound quality and human gameplay acceptance remain unverified. Browser screenshots establish the inspected composition only for the recorded data and viewport states.
 
 Visual review covered the Season plan at desktop and phone widths, including its scrolled resource/research/recap area. Keyboard counter focus and narrow overflow are exercised in Chrome. Native browser zoom could not be verified through the in-app browser controls, so the 200 percent zoom acceptance check remains open. The independent read-only review covered report filtering and the demo boundary, and its startup finding has a regression test.
+
+## Readiness recheck of 17 October 2026
+
+REALMCRAFT-READINESS-2026-10-17 checked the delivered 0.2.0 candidate against the older operator record. The focused Chrome run repeated `season-plan.spec.mjs` and the authored-realm roundtrip in `realm-workshop.spec.mjs` at desktop and phone widths, including planned rolls, named saves, automatic pre-load backup and restoration. The dedicated manual assessment campaign starts in planning with a named opening save verified through the real server and the visible Load dialog. The previous test campaign remains available.
+
+No new runtime defect was reproduced on this route. A stale development-plan statement still called productive-labour validation unimplemented and was reconciled against the code and its regressions. The current readiness pass adds no mechanic or external LLM run. It does not close the existing native-zoom limit, backlog defects outside this route, or human gameplay and artistic acceptance. The canonical operator record must be reconciled by a vault-authorized session.

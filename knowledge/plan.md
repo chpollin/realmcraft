@@ -35,6 +35,14 @@ REALMCRAFT-PLAYABLE-INCREMENT-2026-10-17 implements the season planning and cont
 
 Acceptance requires focused kernel and server regressions, complete project and browser gates, and inspected broad/narrow screenshots from an isolated playable candidate. The demo uses kernel fallback, not live LLM agents or human gameplay evidence. Effective research costs for agent contexts, other spatial/projection gaps, arbitrary new mechanics, narrated audio and new artwork remain outside this increment. Production changes and final evidence are recorded in the responsible documents before local commit. No tag, push or release is authorized.
 
+## Readiness check of 17 October 2026
+
+REALMCRAFT-READINESS-2026-10-17 was received and read in this outside-vault Developer session on 17 October 2026. Its saved source is the activation message in the coordinating operator document. The repository contains the delivered 0.2.0 candidate, while the RealmCraft operator document still records the earlier provisional pickup. The operator document and shared control files remain read-only here. The coordination receives concrete replacement text for that reconciliation.
+
+The bounded task is to verify the existing local play-and-recovery journey, correct reproduced local defects in that journey, and prepare a short human assessment route. Existing mechanics and the delivered candidate remain the product scope. Acceptance requires a reachable isolated test campaign, a named opening save, checked save/restore behavior and explicit evidence limits. Temporary-root and owner-root data remain separate. Existing campaigns and owner files are preserved. No external LLM call, new mechanic, provider setup, subagent, push, merge, tag or release belongs to this task. Technical verification does not establish human gameplay or artistic acceptance.
+
+The read-back confirms package 0.2.0 and the delivered implementation commit. A fresh additional assessment campaign has a visible named opening save. Current desktop/phone browser runs repeat both the authored-realm roundtrip and two fallback seasons with full planned-draft restoration. No further runtime defect was reproduced in this journey. The stale labour-validation backlog row is corrected below. [operations.md](operations.md#guided-assessment-and-recovery) carries the short assessment route. The operator-file reconciliation and human assessment remain separate outstanding write-backs or inputs.
+
 ## Completion criteria
 
 - A player can create, revise, preview and start a realm whose supported mechanics pass kernel validation.
@@ -58,7 +66,7 @@ These dependencies constrain individual implementations. They do not assign dead
 
 | Work | Evidence and acceptance boundary |
 |---|---|
-| Validate productive labour keys and account for idle work | `checkLabour` accepts all resource ids, so an assignment to Wissen can pass without producing research. The board picker is corrected, but kernel validation and legacy-allocation migration still need a regression proving refusal or explicit correction and a truthful forecast. |
+| Productive labour validation | Implemented in candidate 0.2.0. Explicit unsupported work is refused, positive standing yields remain valid and local idle work is reported. Inherited allocations retain their semantics so legacy rival plans do not block unrelated seasons. The kernel, adapter and browser regressions are described in [testing.md](testing.md#season-planning-and-offline-continuation). |
 | Expose effective research costs to agents | `pathsView` carries refs, while the board adapter computes the complexity surcharge through `researchCost`. Research and judge contexts must receive the effective cost, with the relevant opening/working-state semantics tested. |
 | Bound other spatial inputs | Tile keys now share bounded schema/runtime validation before geometry. Numeric region-id bounds and pathological world-package chunkSize values remain separate input gaps. Reproduce them without invoking dangerous geometry before selecting their supported contract. |
 | Avoid library residue after a refused destiny | `storeContent` precedes `offerDestiny`. A partially accepted proposal can keep a refused destiny card in its returned library. Test partial acceptance and prevent that residue without losing accepted items. |
