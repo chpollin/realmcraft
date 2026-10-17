@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [decisions, playtests, handoff, plan-m1]
@@ -219,3 +219,10 @@ The curated backward-looking provenance index of the project. Current specificat
 - Target. Workshop rendering and presentation notices, scoped shell layout, retired empty-study art and labels, with the current contract in [frontend.md](frontend.md#chat-workshop-composition) and coverage in [testing.md](testing.md#chat-workshop-coverage).
 - Result. The empty entry has one copy action, a factual waiting status and a short process line. Copy success replaces the status; authoritative publication removes stale feedback, and start/recovery messages retain precedence. A loaded shared draft reveals the studio. Early questions and rule ideas remain visible without one. Clipboard fallback and the independent form keep their existing paths. The narrow shell now gives its menu an automatic row, preventing unused page height from expanding header gaps. Server, kernel and start identity contracts are unchanged.
 - Verification. Project syntax, unit and CLI acceptance gates and the complete installed-Chrome browser suite pass. The affected start, workshop and shell cases were repeated after the narrow header correction and pass. Regression assertions cover no surface before publication, after copy, with early questions and after reload, replacement feedback, published content, retry identity, manual independence and focused fallback. The initial expanded keyboard check incorrectly read its page global after reload; it now checks copied bytes before reload and restored compact state afterward. Independent source review found no remaining material code issue. Empty, copied and published states were visually inspected at default and phone widths using an isolated draft; no owner campaign was created. Actual 200-percent browser zoom and broader artistic acceptance remain unverified.
+
+### 2026-10-17 verified the authored-realm save/load roundtrip
+
+- Source. Developer assignment REALMCRAFT-ROUNDTRIP-2026-10-17, bounded to the existing local creation and persistence flow with synthetic test data.
+- Target. `tests/e2e/realm-workshop.spec.mjs`, [testing.md](testing.md#chat-workshop-coverage), [operations.md](operations.md#local-roundtrip-playtest) and [plan.md](plan.md).
+- Result. A continuous desktop/phone regression connects helper-published revisions, actual preview, explicit start, native action/probe planning, save, restore, reload and automatic-backup recovery. Complete drafts and authored identity are compared through the actual server/CLI paths. The scoped check required no production behavior change. The shared playtest procedure remains distinct from observed human worldbuilding, a live agent turn and artistic acceptance.
+- Verification. The project syntax/unit/CLI gate and complete installed-Chrome browser suite pass. The new continuous case passes at desktop and phone widths. Its saved and restored screenshots were inspected, and a separate isolated synthetic workshop was opened through the real browser into its kernel preview for the shared trial. No live owner campaign or model service was used. Human gameplay and artistic acceptance remain open.

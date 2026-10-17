@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [agents-harness, architecture, world-packages, testing]
@@ -121,6 +121,17 @@ node tools/harness/realm-workshop.mjs publish --id <uuid> --root <runtime-root> 
 A publication contains draft, questions and ruleIdeas. Read schema for the existing creation draft and allowed choices. The schema output is a shape example whose placeholders must be replaced through the conversation. Read before writing, publish only confirmed changes and reread after a revision conflict. Preserve alternatives in the conversation. These writes affect private authoring data and create no campaign. Gameplay workers do not initialize a realm.
 
 The board shows open questions and rule ideas as unresolved. Clear them through a player decision before reviewing the start. Unsupported mechanics need their own implementation task. After the real preview, the player explicitly starts the reviewed snapshot in the browser. The workshop freezes while that start is pending and supports the same start key after a lost response. Completed or uncertain starts are recovered instead of republished. Manual form editing and package/template starts remain available.
+
+## Local roundtrip playtest
+
+Run development playtests on an isolated temporary `REALMCRAFT_ROOT` and a free loopback port, using the existing server helper. Publish explicitly synthetic world/community data with the workshop helper above. The owner campaign root and reserved server ports remain untouched. The Developer role performs this fixture check. Live player choices remain with the player.
+
+1. Read the shared draft, open the real preview and check the world and community names. A preview creates no campaign. After any published revision, review again before Start.
+2. Start explicitly. Plan Explore through a minor action slot, roll in the fixture's probe dialog and choose Add to orders. Saving retains the planned order for later resolution.
+3. Save the plan under a recognizable name. Withdraw its Explore order, then load the named snapshot and confirm the displayed name. The original order and its recorded roll return.
+4. Reload the board and verify that the restored plan remains. In Load, choose the automatic backup to recover the displaced plan. Both loads retain the same authored campaign and create recovery snapshots.
+
+The browser regression in [testing.md](testing.md#chat-workshop-coverage) checks this sequence. An agent-operated fixture run is separate from the owner's own playtest. A shared trial can start at the prepared draft and repeat these actions without ending a season or calling a model service.
 
 ## Reset runtime games
 

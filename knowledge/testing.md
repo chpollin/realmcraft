@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, rules-kernel, agents-harness, frontend, operations]
@@ -113,6 +113,8 @@ The audio browser regression instruments real Web Audio source starts, stops and
 The shared-store and HTTP checks use isolated roots to validate closed packets, null drafts with early questions, bounded notes, path containment, generation checks and compare-and-swap revisions. They establish that open questions and unsupported rule ideas block preview/start, newer content refuses an old review, explicit Start freezes publication before asynchronous creation and the same key recovers across lost responses and server restart. The existing manual server cases remain covered.
 
 Browser cases use the real publication helper to update the shared draft without a reload, exercise selectable-prompt fallback, keep the manual draft independent, invalidate stale or hidden previews and recover the same attempt before and after server reservation. A newer unfrozen revision safely supersedes a start refused by its revision check. Keyboard and narrow-width cases remain part of the checks. The initial Copy action is inside the phone viewport; a populated draft with unresolved notes exercises focused, in-viewport selectable-prompt fallback without horizontal overflow. The compact-entry regression checks that no world surface appears before publication, after copying, with early null-draft questions or after reload. A published shared draft shows the studio, and successful copy replaces the initial status rather than adding another instruction. These are deterministic helper/fixture runs, not observed live LLM worldbuilding or acceptance of the conversation quality.
+
+The authored-realm roundtrip in `realm-workshop.spec.mjs` spans shared publication, a revised preview, explicit keyboard start, an order planned through the native action/probe dialogs, named save, withdrawal, restoration, page reload and loading the automatic backup. It compares the complete stored and displayed drafts, including the actual recorded roll, and retains the reviewed world identity. Desktop and phone-width cases use temporary roots, the real publication helper and actual server/CLI persistence. These developer checks establish this supported journey, not a live worldbuilding conversation or personal gameplay acceptance.
 
 ## Offline reset coverage
 

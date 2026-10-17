@@ -341,3 +341,106 @@ test('copy succeeds by keyboard on a narrow screen and the selectable fallback n
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator('#realm-copy-prompt')).toBeEnabled();
 });
+
+for (const width of [1440, 390]) {
+  test(`authored realm roundtrip preserves the reviewed world, planned roll and recoverable backup at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await enter(page);
+    let workshop = await session(page);
+    const draft = await creation(page);
+    workshop = publish(workshop, { draft, questions: [], ruleIdeas: [] });
+    await expect(page.locator('#realm-workshop-preview')).toBeVisible();
+    await review(page);
+    expect(await (await page.request.get(`${base}/api/campaigns`)).json()).toEqual([]);
+    draft.people.name = 'Die gemeinsam bestätigten Pegelhüter';
+    workshop = publish(workshop, { draft, questions: [], ruleIdeas: [] });
+    await expect(page.locator('#realm-shared-draft')).toContainText(draft.people.name);
+    const preview = await review(page);
+    expect(preview.draft).toEqual(draft);
+    await page.screenshot({ path: testInfo.outputPath(`roundtrip-preview-${width}.png`) });
+    const started = page.waitForResponse((res) => res.request().method() === 'POST' && new URL(res.url()).pathname === '/api/realms/start');
+    await page.locator('#realm-start').focus();
+    await page.keyboard.press('Enter');
+    const created = await (await started).json();
+    expect(created.ok).toBe(true);
+    await page.waitForURL(`**/spielbrett/?campaign=${created.id}`);
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#menu-knopf')).toBeVisible();
+    expect(await page.evaluate(() => window.spielbrett.game.pack.welt.creation)).toEqual(draft);
+    expect((await (await page.request.get(`${base}/api/campaigns`)).json()).map((entry) => entry.id)).toEqual([created.id]);
+
+    const minor = page.locator('#budget [data-plan-slot="neben"][data-slot-index="0"]');
+    await minor.focus();
+    await page.keyboard.press('Enter');
+    await page.locator('#dlg-planen [data-plan-type="explore"]').click();
+    await page.locator('#plan-option .befehl-option[data-order="explore"]').click();
+    await page.locator('#dlg-probe [data-wuerfeln]').click();
+    await page.locator('#dlg-probe').getByRole('button', { name: 'In die Befehle', exact: true }).click();
+    await expect(page.locator('#befehle .befehl[data-order-id]:not([data-order-id="event"])')).toHaveCount(1);
+
+    async function snapshots(mode) {
+      const dialog = page.locator('#dlg-spielstaende');
+      if (await dialog.isVisible()) {
+        await dialog.locator('.overlay-kopf .icon-btn').click();
+        await expect(page.locator('#dlg-menu')).toBeVisible();
+      }
+      if (!await page.locator('#dlg-menu').isVisible()) await page.locator('#menu-knopf').click();
+      await page.locator(`#dlg-menu [data-menu="${mode}"]`).click();
+      await expect(dialog).toBeVisible();
+      return dialog;
+    }
+    const readDraft = async () => (await (await page.request.get(`${base}/api/campaigns/${created.id}/draft`)).json()).draft;
+    const dialog = await snapshots('save');
+    await dialog.locator('#save-label').fill('Vor dem Aufbruch der Pegelhüter');
+    const saved = page.waitForResponse((res) => res.request().method() === 'POST' && new URL(res.url()).pathname === `/api/campaigns/${created.id}/saves`);
+    await dialog.locator('#save-create').click();
+    const savedResponse = await saved;
+    expect(savedResponse.status()).toBe(201);
+    const { save } = await savedResponse.json();
+    await expect(dialog.locator(`[data-save-slot="${save.slot}"]`)).toContainText('Vor dem Aufbruch der Pegelhüter');
+    const planned = await readDraft();
+    expect(planned.orders).toHaveLength(1);
+    expect(planned.orders[0].type).toBe('explore');
+    expect(Object.keys(planned.rolls).length).toBeGreaterThan(0);
+    await page.screenshot({ path: testInfo.outputPath(`roundtrip-saved-${width}.png`) });
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('#dlg-menu')).toBeVisible();
+    await page.locator('#dlg-menu [data-menu="resume"]').click();
+    await expect(page.locator('#dlg-menu')).toBeHidden();
+    await page.locator('#befehle').getByRole('button', { name: /zurücknehmen$/ }).click();
+    await expect.poll(async () => (await readDraft()).orders).toEqual([]);
+    const displaced = await readDraft();
+    expect(displaced).not.toEqual(planned);
+
+    async function restore(slot) {
+      const list = await snapshots('load');
+      await list.locator(`[data-load-slot="${slot}"]`).click();
+      await expect(list.locator('#save-load-confirm')).toBeVisible();
+      const restored = page.waitForResponse((res) => res.request().method() === 'POST' && new URL(res.url()).pathname === `/api/campaigns/${created.id}/load`);
+      const navigation = page.waitForEvent('framenavigated', { predicate: (frame) => frame === page.mainFrame() });
+      await list.locator('#save-load-confirm').click();
+      const response = await restored;
+      expect(response.status()).toBe(200);
+      const result = await response.json();
+      await navigation;
+      await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+      await expect(page.locator('#menu-knopf')).toBeVisible();
+      return result;
+    }
+    const restored = await restore(save.slot);
+    expect(await readDraft()).toEqual(planned);
+    expect(await page.evaluate(() => window.spielbrett.game.draft)).toEqual(planned);
+    await expect(page.locator('#befehle .befehl[data-order-id]:not([data-order-id="event"])')).toHaveCount(1);
+    await page.screenshot({ path: testInfo.outputPath(`roundtrip-restored-${width}.png`) });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#menu-knopf')).toBeVisible();
+    expect(await page.evaluate(() => window.spielbrett.game.draft)).toEqual(planned);
+    expect(await page.evaluate(() => window.spielbrett.game.pack.welt.creation)).toEqual(draft);
+    expect((await (await page.request.get(`${base}/api/campaigns/${created.id}/saves`)).json()).saves.find((entry) => entry.slot === restored.autosave).auto).toEqual({ reason: 'load', slot: save.slot });
+    await restore(restored.autosave);
+    expect(await readDraft()).toEqual(displaced);
+    expect(await page.evaluate(() => window.spielbrett.game.draft)).toEqual(displaced);
+  });
+}
