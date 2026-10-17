@@ -24,7 +24,7 @@ export class CommunityView {
     this.lastFrame = 0;
     this.buttons = new Map();
     this.nav = document.getElementById('ansichten');
-    this.supported = !api.game.pack.welt.creation;
+    this.supported = true;
     for (const mode of ['gemeinschaft', 'welt']) {
       if (mode === 'gemeinschaft' && !this.supported) continue;
       const btn = el('button', {
@@ -33,6 +33,11 @@ export class CommunityView {
       }, icon(mode === 'welt' ? 'gelaende' : 'lager', { size: 18 }), el('span'));
       this.nav.append(btn);
     }
+    this.streamLink = el('a', {
+      class: 'ansicht-wahl', 'data-ansicht': 'strom',
+      href: `strom.html?campaign=${encodeURIComponent(api.game.cid)}`,
+    }, icon('chronist', { size: 18 }), el('span', { text: 'Strom' }));
+    this.nav.append(this.streamLink);
     for (const spot of COMMUNITY_ANCHORS) {
       const btn = el('button', {
         type: 'button', class: 'gemeinschaft-ort', 'data-community-spot': spot.id,
@@ -122,6 +127,7 @@ export class CommunityView {
       labour: { food: assign[RULES.food] ?? 0, material: assign[RULES.material] ?? 0, research: assign.research ?? 0 },
       seed: String(game.view.map.seed), reducedMotion: prefersReducedMotion(),
       herds: people.resources.herden ?? 0,
+      landscape: game.pack?.welt?.creation?.world?.landscape || 'highlands',
     };
     this.root.dataset.season = this.state.season;
     this.root.dataset.settled = String(this.state.settled);

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>RealmCraft — Weltenstrom</title>
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/strom.css">
+  <script type="module" src="js/strom.js"></script>
+</head>
+<body class="strom-body">
+  <nav class="strom-anker" id="strom-anker" aria-label="Ebenen">
+    <a class="strom-punkt is-active" href="#stratum-himmel" title="I · Jahreskreis" aria-label="I · Jahreskreis"><span>I</span></a>
+    <a class="strom-punkt" href="#stratum-siedlung" title="II · Siedlung &amp; Sippen" aria-label="II · Siedlung &amp; Sippen"><span>II</span></a>
+    <a class="strom-punkt" href="#stratum-fluesse" title="III · Ressourcen-Ströme" aria-label="III · Ressourcen-Ströme"><span>III</span></a>
+    <a class="strom-punkt" href="#stratum-karte" title="IV · Topographie" aria-label="IV · Topographie"><span>IV</span></a>
+    <a class="strom-punkt" href="#stratum-rat" title="V · Rat &amp; Bestimmung" aria-label="V · Rat &amp; Bestimmung"><span>V</span></a>
+    <a class="strom-punkt" href="#stratum-wissen" title="VI · Wissens-Geflecht" aria-label="VI · Wissens-Geflecht"><span>VI</span></a>
+    <a class="strom-punkt" href="#stratum-zeit" title="VII · Zeitspur" aria-label="VII · Zeitspur"><span>VII</span></a>
+    <a class="strom-punkt strom-zurueck" id="strom-zurueck" href="/spielbrett/" title="Klassisches Spielbrett" aria-label="Klassisches Spielbrett">⊞</a>
+  </nav>
+
+  <main class="weltenstrom" id="weltenstrom">
+    <!-- I. HIMMEL & JAHRESKREIS -->
+    <section class="stratum stratum-himmel" id="stratum-himmel" aria-label="Jahreskreis">
+      <div class="strom-viz" id="viz-himmel"></div>
+    </section>
+
+    <!-- II. SIEDLUNGS-DIORAMA & SIPPEN-ARBEIT -->
+    <section class="stratum stratum-siedlung" id="stratum-siedlung" aria-label="Siedlung und Sippen">
+      <div class="diorama-buehne">
+        <canvas id="strom-gemeinschaft" width="1200" height="680" aria-label="Siedlungsansicht"></canvas>
+        <div class="diorama-fade-top" aria-hidden="true"></div>
+        <div class="diorama-fade-bottom" aria-hidden="true"></div>
+        <div class="sippen-leiste" id="viz-sippen"></div>
+      </div>
+    </section>
+
+    <!-- III. ALLUVIALE RESSOURCEN-STRÖME & PEGEL -->
+    <section class="stratum stratum-fluesse" id="stratum-fluesse" aria-label="Ressourcenströme">
+      <div class="strom-viz" id="viz-fluesse"></div>
+    </section>
+
+    <!-- IV. TOPOGRAPHISCHE 5-PASS-WELTKARTE -->
+    <section class="stratum stratum-karte" id="stratum-karte" aria-label="Topographische Weltkarte">
+      <div class="karten-strom-buehne">
+        <canvas id="karte" tabindex="0" role="application" aria-label="Weltkarte"></canvas>
+        <div class="karten-fade-top" aria-hidden="true"></div>
+        <div class="karten-fade-bottom" aria-hidden="true"></div>
+        <div class="karten-ebenen-spur" id="strom-ebenen" role="radiogroup" aria-label="Kartenebenen"></div>
+        <div class="karten-zoom-spur" id="strom-zoom"></div>
+        <div class="karten-ort-spur" id="strom-ort-aktionen"></div>
+      </div>
+    </section>
+
+    <!-- V. RATS-WAAGE & BESTIMMUNGS-KONSTELLATION -->
+    <section class="stratum stratum-rat" id="stratum-rat" aria-label="Rat und Bestimmung">
+      <div class="strom-viz" id="viz-rat"></div>
+    </section>
+
+    <!-- VI. PRAXIS-WURZELN & WISSENS-BAUM -->
+    <section class="stratum stratum-wissen" id="stratum-wissen" aria-label="Wissensgeflecht">
+      <div class="strom-viz" id="viz-wissen"></div>
+    </section>
+
+    <!-- VII. STRATIGRAPHISCHE ZEITSPUR & ZUG-SIEGEL -->
+    <section class="stratum stratum-zeit" id="stratum-zeit" aria-label="Zeitspur und Zug">
+      <div class="strom-viz" id="viz-zeit"></div>
+    </section>
+  </main>
+
+  <div class="sr-only" id="ansage" aria-live="polite"></div>
+</body>
+</html>

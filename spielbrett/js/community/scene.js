@@ -57,25 +57,53 @@ function mountain(ctx, x, y, w, h, snow) {
   polygon(ctx, [[x - w * .22, y - h * .59], [x - w * .1, y - h * .52], [x - w * .15, y - h * .42], [x - w * .19, y - h * .48], [x - w * .28, y - h * .45]], '#e0e3d3');
   line(ctx, [[x + w * .05, y - h], [x - w * .01, y - h * .5], [x - w * .02, y]], '#d2d6c233', 2);
 }
-function backdrop(ctx, palette, winter, rnd, time) {
+function reedClump(ctx, x, y, scale, winter) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+  ellipse(ctx, 0, 2, 16, 4, '#243c3e55');
+  for (const [dx, h, tilt] of [[-7, 26, -3], [-2, 34, -1], [4, 30, 2], [9, 23, 4]]) {
+    line(ctx, [[dx, 0], [dx + tilt, -h]], winter ? '#8c8568' : '#4a6448', 1.8);
+    if (h >= 28) line(ctx, [[dx + tilt * .72, -h * .68], [dx + tilt * .88, -h * .86]], '#5c3b24', 3.4);
+  }
+  ctx.restore();
+}
+function backdrop(ctx, palette, winter, rnd, time, landscape = 'highlands') {
   const sky = ctx.createLinearGradient(0, 0, 0, 350);
   sky.addColorStop(0, palette.sky); sky.addColorStop(1, palette.haze);
   ctx.fillStyle = sky; ctx.fillRect(-1200, -760, 3600, 2280);
   ellipse(ctx, 850, 95, 180, 120, '#f5ebc819');
-  polygon(ctx, [[0, 184], [90, 150], [150, 168], [275, 101], [350, 161], [425, 130], [540, 190], [640, 130], [780, 151], [900, 110], [1050, 167], [1200, 113], [1200, 360], [0, 360]], '#7d9391');
-  mountain(ctx, 170, 290, 460, 246, palette.snow);
-  mountain(ctx, 545, 288, 475, 257, palette.snow);
-  mountain(ctx, 930, 298, 510, 238, palette.snow);
-  const mist = ctx.createLinearGradient(0, 150, 0, 325);
-  mist.addColorStop(0, '#c8cdb700'); mist.addColorStop(1, '#c8cdb7b0');
-  ctx.fillStyle = mist; ctx.fillRect(0, 130, 1200, 230);
-  polygon(ctx, [[0, 242], [120, 225], [245, 255], [380, 233], [520, 280], [670, 253], [810, 227], [980, 225], [1200, 183], [1200, 420], [0, 420]], '#526f61');
-  for (let i = 0; i < 65; i++) {
-    const x = i * 20 - 20;
-    const y = 270 + rnd(i + 90) * 45 + Math.sin(x * .006) * 18;
-    pine(ctx, x, y, .4 + rnd(i + 240) * .36, palette, winter);
+  if (landscape === 'riverlands') {
+    polygon(ctx, [[0, 232], [180, 218], [390, 228], [620, 214], [880, 226], [1200, 210], [1200, 360], [0, 360]], '#6d8889');
+    const mist = ctx.createLinearGradient(0, 170, 0, 330);
+    mist.addColorStop(0, '#c8cdb700'); mist.addColorStop(1, '#c8cdb7b8');
+    ctx.fillStyle = mist; ctx.fillRect(0, 160, 1200, 200);
+    polygon(ctx, [[0, 255], [160, 248], [340, 262], [560, 250], [790, 264], [1020, 246], [1200, 254], [1200, 420], [0, 420]], palette.water);
+    polygon(ctx, [[80, 285], [270, 276], [350, 292], [210, 304]], winter ? '#9aa89e' : '#58725b');
+    polygon(ctx, [[680, 272], [910, 265], [1040, 284], [760, 296]], winter ? '#9aa89e' : '#526d56');
+    for (let i = 0; i < 42; i++) {
+      const x = i * 29 + 10;
+      const y = 282 + rnd(i + 90) * 32 + Math.sin(x * .008) * 10;
+      reedClump(ctx, x, y, .65 + rnd(i + 240) * .45, winter);
+    }
+  } else {
+    polygon(ctx, [[0, 184], [90, 150], [150, 168], [275, 101], [350, 161], [425, 130], [540, 190], [640, 130], [780, 151], [900, 110], [1050, 167], [1200, 113], [1200, 360], [0, 360]], '#7d9391');
+    mountain(ctx, 170, 290, 460, 246, palette.snow);
+    mountain(ctx, 545, 288, 475, 257, palette.snow);
+    mountain(ctx, 930, 298, 510, 238, palette.snow);
+    const mist = ctx.createLinearGradient(0, 150, 0, 325);
+    mist.addColorStop(0, '#c8cdb700'); mist.addColorStop(1, '#c8cdb7b0');
+    ctx.fillStyle = mist; ctx.fillRect(0, 130, 1200, 230);
+    polygon(ctx, [[0, 242], [120, 225], [245, 255], [380, 233], [520, 280], [670, 253], [810, 227], [980, 225], [1200, 183], [1200, 420], [0, 420]], '#526f61');
+    for (let i = 0; i < 65; i++) {
+      const x = i * 20 - 20;
+      const y = 270 + rnd(i + 90) * 45 + Math.sin(x * .006) * 18;
+      pine(ctx, x, y, .4 + rnd(i + 240) * .36, palette, winter);
+    }
   }
   polygon(ctx, [[345, 282], [403, 275], [379, 307], [309, 332], [267, 376], [156, 423], [0, 488], [0, 600], [141, 480], [218, 427], [296, 368], [328, 332], [390, 303]], palette.water);
+  if (landscape === 'riverlands') {
+    polygon(ctx, [[790, 286], [855, 282], [935, 340], [1075, 415], [1200, 475], [1200, 565], [1035, 468], [895, 372], [812, 314]], palette.water);
+    line(ctx, [[825, 290], [912, 352], [1052, 438], [1200, 515]], '#cee2d25c', 4);
+  }
   line(ctx, [[369, 287], [350, 315], [288, 344], [245, 391], [126, 450], [0, 535]], '#cee2d25c', 5);
   for (let i = 0; i < 18; i++) {
     const p = (i + time * .12) % 18;
@@ -254,7 +282,7 @@ export function drawCommunity(ctx, state = {}, time = 0) {
   const count = (value, max = 8) => Number.isFinite(value) ? Math.max(0, Math.min(max, Math.floor(value))) : 0;
   const labour = state.labour || {};
   ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  backdrop(ctx, palette, winter, rnd, t); ground(ctx, palette, winter, rnd);
+  backdrop(ctx, palette, winter, rnd, t, state.landscape || 'highlands'); ground(ctx, palette, winter, rnd);
   for (const [x, y, s] of [[452, 363, .94], [651, 334, 1.1], [838, 369, .85]]) {
     if (state.settled) cottage(ctx, x, y, s, palette, winter);
     else tent(ctx, x, y, s, palette, winter, t);

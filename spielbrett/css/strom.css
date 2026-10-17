@@ -1,0 +1,371 @@
+/* Unified Vertical Information Visualization (Weltenstrom) — zero cards, zero prose, pure visual strata */
+
+html:has(.strom-body),
+body.strom-body {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(ellipse 90% 24% at 50% 0%, rgba(122, 166, 172, 0.16), transparent 70%),
+    radial-gradient(ellipse 80% 30% at 50% 45%, rgba(215, 154, 73, 0.06), transparent 75%),
+    linear-gradient(180deg, #131b1c 0%, #0f1514 28%, #111716 62%, #0c1110 100%);
+  color: var(--ink);
+}
+
+/* Subtle right-margin stratum index (Roman numerals I–VII) */
+.strom-anker {
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-end: 18px;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.strom-punkt {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  font-family: var(--font-world);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  background: rgba(17, 22, 21, 0.72);
+  border: 1px solid rgba(235, 228, 212, 0.14);
+  transition: color 140ms ease, border-color 140ms ease, transform 140ms ease, background 140ms ease;
+}
+
+.strom-punkt:hover,
+.strom-punkt.is-active {
+  color: var(--ember);
+  border-color: rgba(215, 154, 73, 0.65);
+  background: rgba(28, 36, 34, 0.92);
+  transform: scale(1.1);
+}
+
+.strom-zurueck {
+  margin-block-start: 8px;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--ink-dim);
+}
+
+/* Continuous vertical tapestry with a central meridian spine */
+.weltenstrom {
+  position: relative;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 2.5vw, 36px);
+  padding-block-end: 96px;
+}
+
+.weltenstrom::before {
+  content: "";
+  position: absolute;
+  inset-block: 60px 80px;
+  inset-inline-start: 50%;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(215, 154, 73, 0.28) 6%,
+    rgba(235, 228, 212, 0.12) 25%,
+    rgba(215, 154, 73, 0.24) 50%,
+    rgba(116, 165, 127, 0.22) 75%,
+    rgba(215, 154, 73, 0.35) 95%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stratum {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.strom-viz {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.strom-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Stratum II: Illustrated Settlement Diorama & Direct Isotype Labour */
+.diorama-buehne {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1200 / 640;
+  max-height: 640px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+#strom-gemeinschaft {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.diorama-fade-top {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 84px;
+  background: linear-gradient(180deg, #121919 0%, rgba(18, 25, 25, 0) 100%);
+  pointer-events: none;
+}
+
+.diorama-fade-bottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 130px;
+  background: linear-gradient(0deg, #101615 4%, rgba(16, 22, 21, 0.72) 55%, rgba(16, 22, 21, 0) 100%);
+  pointer-events: none;
+}
+
+/* Isotype clan figures anchored along the bottom horizon of the settlement */
+.sippen-leiste {
+  position: absolute;
+  inset: auto 0 10px 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  padding-inline: clamp(16px, 5vw, 72px);
+  gap: clamp(12px, 3vw, 40px);
+}
+
+.sippen-anker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.sippen-steuer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sippen-knopf {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(235, 228, 212, 0.28);
+  background: rgba(17, 22, 21, 0.82);
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.sippen-knopf:hover:not(:disabled) {
+  border-color: var(--ember);
+  color: var(--ember);
+  transform: scale(1.08);
+}
+
+.sippen-knopf:disabled {
+  opacity: 0.26;
+  cursor: default;
+}
+
+.sippen-figuren {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+}
+
+.sippe-figur {
+  width: 18px;
+  height: 30px;
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.sippe-figur.is-idle {
+  opacity: 0.25;
+}
+
+.sippen-wert {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sippen-wert .icon {
+  color: var(--ember);
+}
+
+/* Stratum IV: 5-Pass Topographic Map seamlessly embedded in the vertical stream */
+.karten-strom-buehne {
+  position: relative;
+  width: 100%;
+  height: clamp(460px, 64vh, 640px);
+  overflow: hidden;
+}
+
+.karten-strom-buehne #karte {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.karten-strom-buehne #karte:active {
+  cursor: grabbing;
+}
+
+.karten-fade-top {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 54px;
+  background: linear-gradient(180deg, #101615 0%, rgba(16, 22, 21, 0) 100%);
+  pointer-events: none;
+}
+
+.karten-fade-bottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 64px;
+  background: linear-gradient(0deg, #101615 0%, rgba(16, 22, 21, 0) 100%);
+  pointer-events: none;
+}
+
+.karten-ebenen-spur {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+.karten-zoom-spur {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+.strom-sigil-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(235, 228, 212, 0.22);
+  background: rgba(17, 22, 21, 0.84);
+  color: var(--ink-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color 140ms ease, border-color 140ms ease, transform 140ms ease, background 140ms ease;
+}
+
+.strom-sigil-btn:hover,
+.strom-sigil-btn[aria-checked="true"],
+.strom-sigil-btn[aria-pressed="true"] {
+  color: var(--ember);
+  border-color: rgba(215, 154, 73, 0.72);
+  background: rgba(29, 37, 35, 0.94);
+  transform: scale(1.06);
+}
+
+/* Radial/inline sigil bar when a hex is selected on the map */
+.karten-ort-spur {
+  position: absolute;
+  inset: auto 0 18px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.ort-aktion-sigil {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(215, 154, 73, 0.45);
+  background: rgba(17, 22, 21, 0.92);
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.ort-aktion-sigil:hover:not(:disabled) {
+  border-color: var(--ember);
+  color: var(--ember);
+  transform: translateY(-2px);
+}
+
+.ort-aktion-sigil:disabled {
+  opacity: 0.38;
+  border-color: rgba(235, 228, 212, 0.16);
+  cursor: default;
+}
+
+/* Interactive SVG nodes in Stratum VI & VII */
+.svg-klickbar {
+  cursor: pointer;
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.svg-klickbar:hover {
+  filter: brightness(1.22) drop-shadow(0 0 8px rgba(215, 154, 73, 0.35));
+}
+
+@media (max-width: 760px) {
+  .strom-anker {
+    inset-inline-end: 6px;
+    gap: 6px;
+  }
+  .strom-punkt {
+    width: 24px;
+    height: 24px;
+    font-size: 0.65rem;
+  }
+  .sippen-leiste {
+    padding-inline: 8px;
+    gap: 6px;
+  }
+}
