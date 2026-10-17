@@ -107,6 +107,52 @@ test('log reports are served as a player summary only', async () => {
   assert.equal((await get(`/campaigns/${CID}/log/journal.json`)).status, 404);
 });
 
+test('status.json endpoint projects out foreign research and rival proposals and summaries', async () => {
+  const statusPath = join(tempRoot, 'campaigns', CID, 'status.json');
+  const original = readFileSync(statusPath, 'utf8');
+  const base = JSON.parse(original);
+  const seeded = {
+    ...base,
+    steps: [
+      {
+        id: `research-${PLAYER}`, agent: 'research', state: 'done', startedAt: null, endedAt: null,
+        summary: 'Eigene Forschung',
+        proposals: [{ proposalId: `research.${PLAYER}.T0`, kind: 'entwicklung', title: 'Kammweide', verdict: 'accepted', budget: { effect: 2, price: -1, net: 1, tier: 1 }, reason: null }],
+      },
+      {
+        id: 'research-talbund', agent: 'research', state: 'done', startedAt: null, endedAt: null,
+        summary: 'Fremde Forschung des Talbunds',
+        proposals: [{ proposalId: 'research.talbund.T0', kind: 'entwicklung', title: 'Geheime Brücke', verdict: 'rejected', budget: { effect: 3, price: -1, net: 2, tier: 1 }, reason: 'Geheimer Grund' }],
+      },
+      {
+        id: 'rival-talbund', agent: 'rival', state: 'done', startedAt: null, endedAt: null,
+        summary: 'Der Talbund sammelt Truppen.',
+        proposals: [{ proposalId: 'rival.talbund.T0', kind: 'stance', title: 'Geheime Haltung', verdict: 'accepted', budget: null, reason: null }],
+      },
+    ],
+  };
+  writeFileSync(statusPath, JSON.stringify(seeded));
+  try {
+    const r = await get(`/campaigns/${CID}/status.json`);
+    assert.equal(r.status, 200);
+    const own = r.json.steps.find((s) => s.id === `research-${PLAYER}`);
+    assert.equal(own.summary, 'Eigene Forschung');
+    assert.equal(own.proposals.length, 1);
+    assert.equal(own.proposals[0].title, 'Kammweide');
+    const foreignResearch = r.json.steps.find((s) => s.id === 'research-talbund');
+    assert.equal(foreignResearch.state, 'done');
+    assert.equal(foreignResearch.summary, '');
+    assert.deepEqual(foreignResearch.proposals, []);
+    const foreignRival = r.json.steps.find((s) => s.id === 'rival-talbund');
+    assert.equal(foreignRival.state, 'done');
+    assert.equal(foreignRival.summary, '');
+    assert.deepEqual(foreignRival.proposals, []);
+    assert.ok(!r.text.includes('Geheime Brücke') && !r.text.includes('Geheimer Grund') && !r.text.includes('Geheime Haltung'));
+  } finally {
+    writeFileSync(statusPath, original);
+  }
+});
+
 test('content endpoint returns only items whose refs occur in the view', async () => {
   const libPath = join(tempRoot, 'campaigns', CID, 'library.json');
   const original = readFileSync(libPath, 'utf8');

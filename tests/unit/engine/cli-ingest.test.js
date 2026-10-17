@@ -81,6 +81,24 @@ describe('ingestProposal, research', () => {
     assert.equal(r.state.peoples[player].developments.candidates.length, 1);
   });
 
+  it('leaves no library residue when a destiny offer is refused in a partial proposal', () => {
+    const { env: envH, library: libH, holder } = hochland();
+    const t = taskOf(buildTasks(state, envH, { library: libH }), 'research', player);
+    const destiny = { ...structuredClone(envH.content.bestimmungen[0]), id: 'abgewiesenes-ziel' };
+    const p = proposalFor(t, [
+      { type: 'entwicklung', data: agentEntwicklung(envH, t.respondAs.proposalId, 'karawanenpfad') },
+      { type: 'bestimmung', data: destiny },
+    ]);
+    holder.library = libH;
+    const r = ingestProposal(state, envH, p, { task: t, library: libH, holder });
+    assert.equal(r.verdict, 'partial');
+    assert.deepEqual(r.items.map((i) => i.verdict), ['accepted', 'rejected']);
+    assert.ok(r.items[1].issues.some((i) => i.params?.reason === 'practice-touches-destiny'));
+    assert.ok(r.library.entries.some((e) => e.ref === 'karawanenpfad@1'));
+    assert.ok(!r.library.entries.some((e) => e.ref.startsWith('abgewiesenes-ziel')));
+    assert.equal(holder.library, r.library);
+  });
+
   it('rejects a proposal without any accepted item and keeps state and library', () => {
     const r = ingest(state, proposalFor(research, [overBudget(research.respondAs.proposalId)]), research);
     assert.equal(r.verdict, 'rejected');

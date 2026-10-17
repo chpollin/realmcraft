@@ -107,13 +107,69 @@ function agentOf(proposalId) {
   return AGENTS.includes(head) ? head : 'kernel';
 }
 
+function stepPeople(step) {
+  if (!step || typeof step.id !== 'string' || typeof step.agent !== 'string') return null;
+  if (step.id === step.agent) return null;
+  const prefix = `${step.agent}-`;
+  if (!step.id.startsWith(prefix)) return null;
+  const scope = step.id.slice(prefix.length);
+  return scope && scope !== 'all' ? scope : null;
+}
+
+function proposalPeople(proposalId) {
+  const parts = String(proposalId ?? '').split('.');
+  return parts.length === 3 ? parts[1] : null;
+}
+
+function projectStep(step, player) {
+  const who = stepPeople(step);
+  const foreign = step.agent === 'rival' || (Boolean(player) && who !== null && who !== player);
+  if (foreign) {
+    const { findings: _f, ...rest } = step;
+    return { ...rest, summary: '', proposals: [] };
+  }
+  const judge = String(step.agent ?? '').startsWith('judge');
+  const visibleFindings = step.findings ?? [];
+  const proposals = (step.proposals ?? []).filter((p) => {
+    const pWho = proposalPeople(p.proposalId);
+    if (player && pWho !== null && pWho !== player) return false;
+    if (judge) {
+      if (p.kind === 'finding') return visibleFindings.some((f) => clip(f.text, 80) === p.title);
+      if (p.kind === 'memory') return false;
+    }
+    return true;
+  });
+  return { ...step, proposals };
+}
+
+/**
+ * Fog-filtered status for `player`: foreign people steps keep their lifecycle
+ * state and timestamps but carry no summary or proposal items, and judge steps
+ * keep only finding proposals whose cited events were shown to the player.
+ */
+export function projectStatus(status, player) {
+  if (!status || typeof status !== 'object') return status;
+  const out = {
+    ...status,
+    steps: Array.isArray(status.steps) ? status.steps.map((s) => projectStep(s, player)) : [],
+  };
+  if (status.resolved && Array.isArray(status.resolved.steps)) {
+    out.resolved = { ...status.resolved, steps: status.resolved.steps.map((s) => projectStep(s, player)) };
+  }
+  return out;
+}
+
 /**
  * Records the validator's verdict on one proposal item under a step. An
  * entry with the same proposalId, kind and title is replaced, so re-running
  * ingest does not duplicate lines. budget may be a full score object; only
  * effect, price, net and tier are kept (event cards pass their band as tier).
+ * Foreign people proposals and judge findings/memories are omitted from
+ * step.proposals so status.json never leaks hidden titles, budgets or reasons.
  */
 export function recordVerdict(dir, stepId, { proposalId, kind, title, verdict, budget = null, reason = null }, { lock } = {}) {
+  const state = readJson(join(dir, LAYOUT.state), { fallback: null });
+  const player = state?.campaign?.player ?? null;
   return commit(dir, (cur) => {
     const status = requireStatus(cur, dir);
     let step = status.steps.find((s) => s.id === stepId);
@@ -129,6 +185,13 @@ export function recordVerdict(dir, stepId, { proposalId, kind, title, verdict, b
       budget: budget ? { effect: budget.effect, price: budget.price, net: budget.net, tier: budget.tier ?? budget.band } : null,
       reason: reason === null || reason === undefined || reason === '' ? null : clip(reason, 400),
     };
+    const who = stepPeople(step);
+    const foreignStep = (step.agent === 'rival' && step.id.startsWith('rival-')) || (Boolean(player) && who !== null && who !== player);
+    if (foreignStep || kind === 'finding' || kind === 'memory') {
+      const check = validate(SCHEMAS.status, { ...status, steps: [{ ...step, proposals: [entry] }] });
+      if (check.length) return { ...status, steps: [{ ...step, proposals: [entry] }] };
+      return status;
+    }
     const at = step.proposals.findIndex((p) => p.proposalId === proposalId && p.kind === kind && p.title === entry.title);
     if (at >= 0) step.proposals[at] = entry;
     else step.proposals.push(entry);

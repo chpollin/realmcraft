@@ -844,6 +844,7 @@
     "season.no-report": "Noch kein Bericht der letzten Saison verfügbar.",
     "season.back": "Weiter planen",
     "season.end": "Saison abschließen",
+    "season.world-roll": "Weltereignis würfeln",
     "season.demo-note": "Offline-Test mit Regelkern-Ersatzverfahren. Keine LLM-Agenten. Du würfelst selbst und bestätigst deine Saison.",
     "season.demo-go": "Offline fortsetzen",
     "season.demo-busy": "Saison wird aufgelöst …",

@@ -15,6 +15,13 @@ const SEASONS = {
   winter: { sky: '#84969f', haze: '#c5cdca', land: '#b4c0b7', light: '#dee1cf', grass: '#eef0df', trees: '#405b55', leaf: '#697b65', snow: '#f0f0df', water: '#6d8f9b' },
 };
 
+export const DRYLANDS_SEASON = Object.freeze({
+  spring: { sky: '#c99b6b', haze: '#eadab8', land: '#c2925a', light: '#d9b57d', grass: '#d8c285', trees: '#4f6845', leaf: '#849a58', snow: '#f2e8d2', water: '#3f9690', mesa: '#b56545', salt: '#efe5cc' },
+  summer: { sky: '#cf935c', haze: '#f2dfc0', land: '#c98f52', light: '#e2bc80', grass: '#e3c882', trees: '#49613f', leaf: '#7c914f', snow: '#f5ecd6', water: '#38918b', mesa: '#bf6843', salt: '#f5ebd2' },
+  autumn: { sky: '#b88763', haze: '#e3cba8', land: '#b47f4f', light: '#cfa673', grass: '#cfb077', trees: '#566141', leaf: '#b88446', snow: '#ede1cb', water: '#468986', mesa: '#a4573c', salt: '#e8dac0' },
+  winter: { sky: '#99978e', haze: '#d8d2c3', land: '#b59c78', light: '#d2bfa0', grass: '#dfd5bd', trees: '#4b5d49', leaf: '#6d7c5c', snow: '#eef0e6', water: '#4f888d', mesa: '#8f6452', salt: '#e7e9df' },
+});
+
 function polygon(ctx, points, fill, stroke, width = 1) {
   ctx.beginPath();
   points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
@@ -50,12 +57,48 @@ function pine(ctx, x, y, scale, palette, snow = false) {
   }
   ctx.restore();
 }
+function acacia(ctx, x, y, scale, palette, winter = false) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+  ellipse(ctx, 2, 2, 22, 5, '#3b29192e');
+  line(ctx, [[0, 0], [-2, -18], [-16, -38]], '#5c432d', 3.2);
+  line(ctx, [[-2, -18], [14, -42]], '#5c432d', 2.8);
+  line(ctx, [[4, -27], [24, -36]], '#5c432d', 2);
+  polygon(ctx, [[-38, -36], [-26, -46], [8, -47], [22, -38], [-6, -33]], palette.trees);
+  polygon(ctx, [[-12, -42], [4, -53], [38, -51], [46, -41], [8, -38]], palette.leaf);
+  polygon(ctx, [[-34, -39], [-22, -45], [6, -45], [-8, -37]], '#ffffff1c');
+  if (winter) line(ctx, [[-24, -45], [32, -49]], palette.snow, 2);
+  ctx.restore();
+}
 function mountain(ctx, x, y, w, h, snow) {
   polygon(ctx, [[x - w / 2, y], [x - w * .22, y - h * .59], [x - w * .1, y - h * .52], [x + w * .05, y - h], [x + w * .22, y - h * .64], [x + w * .31, y - h * .69], [x + w * .55, y]], '#718386');
   polygon(ctx, [[x + w * .05, y - h], [x + w * .22, y - h * .64], [x + w * .31, y - h * .69], [x + w * .55, y], [x - w * .02, y]], '#556b70');
   polygon(ctx, [[x + w * .05, y - h], [x + w * .16, y - h * .76], [x + w * .08, y - h * .79], [x + w * .025, y - h * .71], [x - w * .015, y - h * .81], [x - w * .07, y - h * .72]], snow);
   polygon(ctx, [[x - w * .22, y - h * .59], [x - w * .1, y - h * .52], [x - w * .15, y - h * .42], [x - w * .19, y - h * .48], [x - w * .28, y - h * .45]], '#e0e3d3');
   line(ctx, [[x + w * .05, y - h], [x - w * .01, y - h * .5], [x - w * .02, y]], '#d2d6c233', 2);
+}
+function mesa(ctx, x, y, w, h, palette, winter = false) {
+  const ridge = palette.mesa || '#b56545';
+  polygon(ctx, [
+    [x - w * .52, y],
+    [x - w * .38, y - h * .48],
+    [x - w * .29, y - h * .52],
+    [x - w * .21, y - h * .96],
+    [x + w * .19, y - h],
+    [x + w * .27, y - h * .58],
+    [x + w * .37, y - h * .54],
+    [x + w * .52, y],
+  ], ridge);
+  polygon(ctx, [
+    [x + w * .04, y - h * .98],
+    [x + w * .19, y - h],
+    [x + w * .27, y - h * .58],
+    [x + w * .37, y - h * .54],
+    [x + w * .52, y],
+    [x + w * .01, y],
+  ], '#7d4330');
+  line(ctx, [[x - w * .27, y - h * .68], [x + w * .23, y - h * .7]], '#eab88a55', 3);
+  line(ctx, [[x - w * .34, y - h * .38], [x + w * .33, y - h * .4]], '#592c1e44', 2.5);
+  if (winter) line(ctx, [[x - w * .2, y - h * .96], [x + w * .18, y - h]], palette.snow, 3.5);
 }
 function reedClump(ctx, x, y, scale, winter) {
   ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
@@ -71,7 +114,37 @@ function backdrop(ctx, palette, winter, rnd, time, landscape = 'highlands') {
   sky.addColorStop(0, palette.sky); sky.addColorStop(1, palette.haze);
   ctx.fillStyle = sky; ctx.fillRect(-1200, -760, 3600, 2280);
   ellipse(ctx, 850, 95, 180, 120, '#f5ebc819');
-  if (landscape === 'riverlands') {
+  if (landscape === 'drylands') {
+    ellipse(ctx, 880, 92, 62, 62, '#fbe6b244');
+    ellipse(ctx, 880, 92, 34, 34, '#fff1c988');
+    polygon(ctx, [[0, 212], [110, 168], [260, 166], [310, 205], [470, 152], [650, 150], [720, 198], [860, 162], [1040, 160], [1120, 195], [1200, 174], [1200, 360], [0, 360]], '#9e6246');
+    mesa(ctx, 210, 292, 410, 185, palette, winter);
+    mesa(ctx, 610, 286, 440, 205, palette, winter);
+    mesa(ctx, 985, 296, 390, 172, palette, winter);
+    const haze = ctx.createLinearGradient(0, 175, 0, 330);
+    haze.addColorStop(0, '#f4dfc000'); haze.addColorStop(1, '#f4dfc0b5');
+    ctx.fillStyle = haze; ctx.fillRect(0, 170, 1200, 190);
+    // Sun-baked salt pan shimmer in the mid-ground
+    polygon(ctx, [[0, 258], [240, 246], [540, 254], [890, 244], [1200, 256], [1200, 365], [0, 365]], palette.salt || '#efe5cc');
+    for (let i = 0; i < 14; i++) {
+      const sx = 45 + i * 82 + Math.sin(time * .4 + i) * 6;
+      const sy = 268 + (i % 3) * 14;
+      line(ctx, [[sx, sy], [sx + 48, sy]], '#ffffff88', 2);
+    }
+    // Sunken oasis basin with stone cisterns and stepped terraces
+    polygon(ctx, [[120, 294], [385, 276], [565, 288], [520, 342], [240, 352], [95, 326]], '#8b6849');
+    polygon(ctx, [[145, 302], [380, 284], [540, 296], [495, 336], [245, 344], [125, 322]], palette.water);
+    line(ctx, [[140, 292], [382, 274], [552, 286]], '#cbb089', 3.5);
+    line(ctx, [[160, 300], [378, 283], [534, 294]], '#6b4e35', 2);
+    // Stone cisterns and water channels on the oasis terrace
+    polygon(ctx, [[545, 288], [625, 282], [638, 306], [556, 312]], '#9e7d5a', '#5e4630', 1.5);
+    polygon(ctx, [[554, 292], [618, 287], [627, 302], [562, 307]], palette.water);
+    for (let i = 0; i < 34; i++) {
+      const x = i * 35 + 15;
+      const y = 278 + rnd(i + 90) * 36 + Math.sin(x * .007) * 8;
+      acacia(ctx, x, y, .45 + rnd(i + 240) * .35, palette, winter);
+    }
+  } else if (landscape === 'riverlands') {
     polygon(ctx, [[0, 232], [180, 218], [390, 228], [620, 214], [880, 226], [1200, 210], [1200, 360], [0, 360]], '#6d8889');
     const mist = ctx.createLinearGradient(0, 170, 0, 330);
     mist.addColorStop(0, '#c8cdb700'); mist.addColorStop(1, '#c8cdb7b8');
@@ -103,6 +176,9 @@ function backdrop(ctx, palette, winter, rnd, time, landscape = 'highlands') {
   if (landscape === 'riverlands') {
     polygon(ctx, [[790, 286], [855, 282], [935, 340], [1075, 415], [1200, 475], [1200, 565], [1035, 468], [895, 372], [812, 314]], palette.water);
     line(ctx, [[825, 290], [912, 352], [1052, 438], [1200, 515]], '#cee2d25c', 4);
+  } else if (landscape === 'drylands') {
+    // Stone-lined irrigation channel & terrace steps along the oasis outflow
+    line(ctx, [[398, 280], [330, 334], [220, 422], [135, 478]], '#9e7d5a', 4);
   }
   line(ctx, [[369, 287], [350, 315], [288, 344], [245, 391], [126, 450], [0, 535]], '#cee2d25c', 5);
   for (let i = 0; i < 18; i++) {
@@ -110,11 +186,18 @@ function backdrop(ctx, palette, winter, rnd, time, landscape = 'highlands') {
     line(ctx, [[345 - p * 20, 315 + p * 12], [361 - p * 20 + rnd(i) * 20, 313 + p * 12]], '#dce7db6b', 1.3);
   }
 }
-function ground(ctx, palette, winter, rnd) {
+function ground(ctx, palette, winter, rnd, landscape = 'highlands') {
   polygon(ctx, [[-50, 470], [200, 372], [374, 302], [710, 284], [965, 319], [1250, 414], [1250, 790], [-50, 790]], palette.land);
   polygon(ctx, [[165, 432], [360, 326], [685, 307], [947, 340], [1150, 437], [1060, 608], [853, 696], [530, 719], [224, 629]], palette.light);
-  polygon(ctx, [[-40, 650], [200, 616], [371, 684], [649, 705], [887, 651], [1200, 589], [1200, 760], [0, 760]], winter ? '#84978e' : '#6c7c58');
-  polygon(ctx, [[1050, 330], [1200, 372], [1200, 760], [1080, 679], [1109, 575], [1029, 495]], '#4d61534f');
+  polygon(ctx, [[-40, 650], [200, 616], [371, 684], [649, 705], [887, 651], [1200, 589], [1200, 760], [0, 760]], landscape === 'drylands' ? (winter ? '#9c8b74' : '#a67649') : (winter ? '#84978e' : '#6c7c58'));
+  polygon(ctx, [[1050, 330], [1200, 372], [1200, 760], [1080, 679], [1109, 575], [1029, 495]], landscape === 'drylands' ? '#7a523438' : '#4d61534f');
+  if (landscape === 'drylands') {
+    // Stepped sandstone cistern terraces in the mid-ground
+    for (const [tx, ty, tw] of [[520, 312, 150], [545, 326, 135], [285, 362, 115]]) {
+      line(ctx, [[tx, ty], [tx + tw, ty - 6]], '#8a6240', 3.5);
+      line(ctx, [[tx + 4, ty - 3], [tx + tw - 4, ty - 9]], '#ead3a880', 1.5);
+    }
+  }
   for (let i = 0; i < 390; i++) {
     const x = rnd(i + 1000) * 1200, y = 350 + rnd(i + 2000) * 410, h = 2 + rnd(i + 3000) * 6;
     line(ctx, [[x - 3, y - h], [x, y], [x + 2, y - h * .7]], i % 3 ? '#3e594627' : palette.grass, .8);
@@ -154,6 +237,28 @@ function tent(ctx, x, y, s, palette, winter, time) {
   polygon(ctx, [[-14, -139], [18, -133 + Math.sin(time * 1.9) * 4], [10, -122 + Math.sin(time * 1.9) * 4], [-14, -126]], '#b47a46');
   ctx.restore();
 }
+function nomadPavilion(ctx, x, y, s, palette, winter, time) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ellipse(ctx, 10, 8, 86, 18, '#3b261838');
+  // Wide desert nomad pavilion with twin ridges and sun-sail awning
+  polygon(ctx, [[-78, -6], [-32, -78], [28, -84], [88, -18], [58, 18], [-22, 24]], '#d8be92', '#59422c', 1.3);
+  polygon(ctx, [[-78, -6], [-32, -78], [28, -84], [-12, 22]], '#ecd7ae');
+  polygon(ctx, [[-32, -78], [28, -84], [88, -18], [58, 18], [-12, 22]], '#bfa074');
+  // Woven terracotta & ochre stripes
+  line(ctx, [[-56, -34], [54, -44]], '#a8533888', 4);
+  line(ctx, [[-66, -19], [68, -28]], '#6e4c3077', 3);
+  // Shaded entrance opening
+  polygon(ctx, [[-34, 18], [-18, -42], [14, -38], [6, 21]], '#3a281d');
+  // Sun-sail awning stretched forward on angled poles
+  const flutter = Math.sin(time * 1.7) * 2.5;
+  polygon(ctx, [[-24, -42], [22, -45], [52, -16 + flutter], [-4, -10 + flutter]], '#c46843', '#5c3824', 1);
+  line(ctx, [[-4, -10 + flutter], [-8, 26]], '#543c28', 2.2);
+  line(ctx, [[52, -16 + flutter], [56, 20]], '#543c28', 2.2);
+  line(ctx, [[-32, -78], [-32, -112]], '#543c28', 2);
+  polygon(ctx, [[-31, -110], [4, -103 + flutter], [-4, -93 + flutter], [-31, -98]], '#3f9690');
+  if (winter) line(ctx, [[-32, -78], [28, -84]], palette.snow, 3);
+  ctx.restore();
+}
 function cottage(ctx, x, y, s, palette, winter) {
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
   ellipse(ctx, 10, 10, 81, 20, '#263d3436');
@@ -169,6 +274,35 @@ function cottage(ctx, x, y, s, palette, winter) {
   line(ctx, [[34, -11], [55, -19]], '#c1b48b', 2);
   line(ctx, [[-63, 0], [7, 17]], '#7d81633d', 2);
   if (winter) polygon(ctx, [[-79, -42], [-31, -105], [53, -85], [93, -58], [84, -56], [49, -78], [-30, -96], [-72, -38]], palette.snow);
+  ctx.restore();
+}
+function windTowerDwelling(ctx, x, y, s, palette, winter, time = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ellipse(ctx, 12, 10, 84, 20, '#3b261838');
+  // Main mud-brick & sandstone courtyard mass
+  polygon(ctx, [[-66, -48], [12, -32], [12, 26], [-66, 10]], '#d8b483');
+  polygon(ctx, [[12, -32], [78, -58], [78, 2], [12, 26]], '#b38b5d');
+  // Flat terraced roof parapet
+  polygon(ctx, [[-68, -48], [-4, -68], [80, -58], [12, -32]], '#e6c89a', '#7a593b', 1.2);
+  // Sandstone wind-tower (badgir) rising from the rear terrace
+  polygon(ctx, [[-18, -116], [16, -108], [16, -44], [-18, -52]], '#cfa572');
+  polygon(ctx, [[16, -108], [40, -118], [40, -54], [16, -44]], '#a67c50');
+  polygon(ctx, [[-20, -116], [6, -124], [42, -118], [16, -108]], '#e8cba0');
+  // Wind-catcher vertical intake vents
+  polygon(ctx, [[-10, -104], [-2, -102], [-2, -76], [-10, -78]], '#3a271b');
+  polygon(ctx, [[2, -101], [10, -99], [10, -73], [2, -75]], '#3a271b');
+  polygon(ctx, [[22, -102], [33, -107], [33, -81], [22, -76]], '#2e1f15');
+  // Projecting timber beam ends (toron)
+  for (let i = 0; i < 4; i++) ellipse(ctx, -50 + i * 16, -39 + i * 3, 2.5, 2, '#5c3f28');
+  // Arched doorway and turquoise-shuttered niche
+  polygon(ctx, [[-40, -22], [-18, -17], [-18, 20], [-40, 15]], '#3c281b');
+  polygon(ctx, [[30, -26], [52, -35], [52, -12], [30, -3]], '#3f9690');
+  // Sun-sail awning over the courtyard terrace
+  const sway = Math.sin(time * 1.5) * 2;
+  polygon(ctx, [[12, -34], [74, -56], [96, -30 + sway], [34, -8 + sway]], '#c46441', '#6b3824', 1);
+  line(ctx, [[34, -8 + sway], [34, 24]], '#5a3e28', 2);
+  line(ctx, [[96, -30 + sway], [92, 4]], '#5a3e28', 2);
+  if (winter) line(ctx, [[-20, -116], [16, -108], [42, -118]], palette.snow, 3);
   ctx.restore();
 }
 function person(ctx, x, y, s, time, role = 'walk', tone = 0) {
@@ -261,31 +395,43 @@ function hearth(ctx, time) {
   for (let i = 0; i < 6; i++) line(ctx, [[666 + i * 4, 500 + i], [665 + i * 4, 544 + i]], '#d4b67d', 1.2);
   line(ctx, [[666, 520], [691, 526]], '#aa784b', 4);
 }
-function foreground(ctx, palette, winter, rnd) {
+function foreground(ctx, palette, winter, rnd, landscape = 'highlands') {
   for (let i = 0; i < 18; i++) {
     const x = i < 9 ? -28 + rnd(i + 5000) * 170 : 1080 + rnd(i + 5000) * 170;
-    pine(ctx, x, 410 + rnd(i + 5100) * 420, .7 + rnd(i + 5200) * .9, palette, winter);
+    const y = 410 + rnd(i + 5100) * 420, s = .7 + rnd(i + 5200) * .9;
+    if (landscape === 'drylands') acacia(ctx, x, y, s, palette, winter);
+    else pine(ctx, x, y, s, palette, winter);
   }
+  const rockBase = landscape === 'drylands' ? '#8c5339' : '#65766b';
+  const rockLight = landscape === 'drylands' ? (winter ? palette.snow : '#c48a62') : (winter ? palette.snow : '#9ea38a');
   for (const [x, y, s] of [[80, 681, 45], [152, 704, 33], [1015, 699, 29], [1076, 730, 45], [446, 708, 15]]) {
-    polygon(ctx, [[x - s, y], [x - s * .6, y - s * .6], [x + s * .2, y - s * .85], [x + s, y - s * .2], [x + s * .4, y + s * .15]], '#65766b');
-    polygon(ctx, [[x - s * .6, y - s * .6], [x + s * .2, y - s * .85], [x + s * .4, y + s * .15], [x - s * .2, y - s * .05]], winter ? palette.snow : '#9ea38a');
+    polygon(ctx, [[x - s, y], [x - s * .6, y - s * .6], [x + s * .2, y - s * .85], [x + s, y - s * .2], [x + s * .4, y + s * .15]], rockBase);
+    polygon(ctx, [[x - s * .6, y - s * .6], [x + s * .2, y - s * .85], [x + s * .4, y + s * .15], [x - s * .2, y - s * .05]], rockLight);
   }
   const shade = ctx.createLinearGradient(0, 630, 0, 760);
-  shade.addColorStop(0, '#203c3200'); shade.addColorStop(1, '#203c3252');
+  shade.addColorStop(0, '#203c3200'); shade.addColorStop(1, landscape === 'drylands' ? '#3d241548' : '#203c3252');
   ctx.fillStyle = shade; ctx.fillRect(0, 630, 1200, 130);
 }
 
 /** Paints a deterministic, DOM-free community illustration in the exported world coordinates. */
 export function drawCommunity(ctx, state = {}, time = 0) {
-  const palette = SEASONS[state.season] || SEASONS.spring, winter = state.season === 'winter';
+  const landscape = state.landscape || 'highlands';
+  const seasons = landscape === 'drylands' ? DRYLANDS_SEASON : SEASONS;
+  const palette = seasons[state.season] || seasons.spring, winter = state.season === 'winter';
   const t = state.reducedMotion || !Number.isFinite(time) ? 0 : time, rnd = seeded(state.seed || 'hochland');
   const count = (value, max = 8) => Number.isFinite(value) ? Math.max(0, Math.min(max, Math.floor(value))) : 0;
   const labour = state.labour || {};
   ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  backdrop(ctx, palette, winter, rnd, t, state.landscape || 'highlands'); ground(ctx, palette, winter, rnd);
+  backdrop(ctx, palette, winter, rnd, t, landscape); ground(ctx, palette, winter, rnd, landscape);
   for (const [x, y, s] of [[452, 363, .94], [651, 334, 1.1], [838, 369, .85]]) {
-    if (state.settled) cottage(ctx, x, y, s, palette, winter);
-    else tent(ctx, x, y, s, palette, winter, t);
+    if (landscape === 'drylands') {
+      if (state.settled) windTowerDwelling(ctx, x, y, s, palette, winter, t);
+      else nomadPavilion(ctx, x, y, s, palette, winter, t);
+    } else if (state.settled) {
+      cottage(ctx, x, y, s, palette, winter);
+    } else {
+      tent(ctx, x, y, s, palette, winter, t);
+    }
   }
   line(ctx, [[688, 331], [688, 272]], '#5a644c', 3);
   polygon(ctx, [[690, 275], [728, 285 + Math.sin(t * 1.8) * 3], [711, 298], [690, 290]], '#b57b44');
@@ -308,5 +454,5 @@ export function drawCommunity(ctx, state = {}, time = 0) {
   // Passers-by establish human scale without representing additional clans.
   person(ctx, 725 + Math.sin(t * .12) * 13, 426 + Math.sin(t * .12) * 6, .75, t, 'walk', 1);
   person(ctx, 465 + Math.sin(t * .1) * 12, 625 - Math.sin(t * .1) * 4, 1.05, t + 1, 'walk', 2);
-  foreground(ctx, palette, winter, rnd); ctx.restore();
+  foreground(ctx, palette, winter, rnd, landscape); ctx.restore();
 }

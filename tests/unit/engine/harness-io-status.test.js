@@ -8,7 +8,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { initTurnStatus, recordVerdict, updateStep } from '../../../engine/harness/status.js';
+import { initTurnStatus, projectStatus, recordFinding, recordVerdict, updateStep } from '../../../engine/harness/status.js';
 import { LAYOUT, ensureLayout, readJson, writeState } from '../../../engine/harness/io.js';
 import { SCHEMAS } from '../../../engine/schemas/index.js';
 import { validate } from '../../../engine/content/schema.js';
@@ -109,3 +109,40 @@ test('concurrent writers in four processes lose no update', async (t) => {
   assert.equal(status.steps.filter((s) => s.id.startsWith('c')).length, 32);
   assert.equal(status.steps.find((s) => s.id === 'ingest').proposals.length, 20);
 });
+
+test('recordVerdict and projectStatus keep foreign people proposals and hidden judge findings out of the player status', (t) => {
+  const dir = tempCampaign(t);
+  initTurnStatus(dir, 0);
+  const budget = { effect: 2, price: -1, net: 1, tier: 1 };
+  recordVerdict(dir, 'research-hochweide', { proposalId: 'research.hochweide.T0', kind: 'entwicklung', title: 'Eigenes Werk', verdict: 'accepted', budget });
+  recordVerdict(dir, 'research-schar', { proposalId: 'research.schar.T0', kind: 'entwicklung', title: 'Geheimer Pfad', verdict: 'rejected', budget, reason: 'Geheimer Grund' });
+  recordVerdict(dir, 'rival-schar', { proposalId: 'rival.schar.T0', kind: 'stance', title: 'Geheime Haltung', verdict: 'accepted' });
+  recordVerdict(dir, 'judge-coherence-all', { proposalId: 'judge-coherence.T0', kind: 'finding', title: 'Verdeckter Befund', verdict: 'accepted' });
+  recordFinding(dir, 'judge-coherence-all', { id: 'f-offen', judge: 'judge-coherence', severity: 'warn', text: 'Sichtbarer Befund', refs: ['T0-e1'] });
+  const disk = read(dir);
+  assert.deepEqual(validate(SCHEMAS.status, disk), []);
+  assert.equal(disk.steps.find((s) => s.id === 'research-hochweide').proposals.length, 1);
+  assert.deepEqual(disk.steps.find((s) => s.id === 'research-schar').proposals, []);
+  assert.deepEqual(disk.steps.find((s) => s.id === 'rival-schar').proposals, []);
+  assert.deepEqual(disk.steps.find((s) => s.id === 'judge-coherence-all').proposals, []);
+
+  // Even when a status document on disk carries raw foreign summaries or proposals, projectStatus strips them for the player.
+  const raw = {
+    ...disk,
+    steps: [
+      ...disk.steps,
+      {
+        id: 'research-esk', agent: 'research', state: 'done', startedAt: null, endedAt: null,
+        summary: 'Ein Kandidat für Esk.',
+        proposals: [{ proposalId: 'research.esk.T0', kind: 'entwicklung', title: 'Fremder Speer', verdict: 'accepted', budget, reason: null }],
+      },
+    ],
+  };
+  const projected = projectStatus(raw, 'hochweide');
+  assert.deepEqual(validate(SCHEMAS.status, projected), []);
+  const esk = projected.steps.find((s) => s.id === 'research-esk');
+  assert.equal(esk.state, 'done');
+  assert.equal(esk.summary, '');
+  assert.deepEqual(esk.proposals, []);
+});
+

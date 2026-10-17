@@ -550,8 +550,7 @@ function renderHexActions(game, model) {
       title: opt.grund || opt.titel,
       onclick: () => {
         if (opt.grund) return;
-        const roll = opt.probe ? { value: 7 } : undefined;
-        game.addOption(opt, { roll });
+        game.addOption(opt);
       },
     },
     icon(opt.icon || 'pfeil', { size: 15 }),
@@ -946,7 +945,58 @@ function renderWissen(game, model) {
 }
 
 // --- VII. STRATIGRAPHISCHE ZEITSPUR & ZUG-SIEGEL -------------------------------
+function randomDieRoll() {
+  const buf = new Uint32Array(1);
+  do crypto.getRandomValues(buf); while (buf[0] >= 4294967290);
+  return (buf[0] % 10) + 1;
+}
+
+function syncStromRolls(game, model) {
+  const probes = game.base?.probes ?? [];
+  const rolls = game.draft?.rolls ?? {};
+  const stale = new Set(
+    (game.base?.issues ?? [])
+      .filter((i) => i.code === 'roll_stale')
+      .map((i) => i.path.replace('/rolls/', '')),
+  );
+
+  for (const o of model.orders ?? []) {
+    const p = probes.find((x) => x.order === o.id) ?? (typeof o.probe === 'string' ? probes.find((x) => x.id === o.probe) : null);
+    if (p) {
+      const r = rolls[p.id];
+      const hasValidRoll = Boolean(r && !stale.has(p.id));
+      o.probe = {
+        id: p.id,
+        ziel: p.target,
+        mod: p.modTotal ?? 0,
+        wurf: hasValidRoll ? r.value : null,
+      };
+    } else if (o.probe && typeof o.probe === 'object') {
+      // keep existing object if already enriched
+    } else {
+      o.probe = null;
+    }
+  }
+
+  const worldProbe = probes.find((x) => x.target == null && x.roller === 'player');
+  if (worldProbe) {
+    const wr = rolls[worldProbe.id];
+    const hasValidWorldRoll = Boolean(wr && !stale.has(worldProbe.id));
+    model.weltwurf = {
+      id: worldProbe.id,
+      offen: !hasValidWorldRoll,
+      wurf: hasValidWorldRoll ? wr.value : null,
+    };
+  } else {
+    model.weltwurf = null;
+  }
+
+  const blockers = game.blockers ? game.blockers() : { probleme: [] };
+  model.probleme = blockers.probleme ?? [];
+}
+
 function renderZeitspur(game, model, historyReports) {
+  syncStromRolls(game, model);
   const host = document.getElementById('viz-zeit');
   const currentTurn = game.view.turn;
   const rowsCount = currentTurn + 1;
@@ -1078,12 +1128,14 @@ function renderZeitspur(game, model, historyReports) {
     } else if (isNow) {
       const orders = model.orders ?? [];
       orders.forEach((o, oIdx) => {
-        const ox = 668 + oIdx * 116;
+        const ox = 668 + oIdx * 140;
         const col = o.art === 'haupt' ? '#d79a49' : '#78b0c4';
         const g = svgEl('g', {
           class: 'svg-klickbar',
           role: 'button',
           tabindex: '0',
+          'data-strom-remove-order': o.id,
+          'aria-label': t.fmt('board.orders.withdraw', { title: o.titel }),
           title: `${o.titel} · ${o.ziel} ×`,
           onclick: () => game.removeOrder(o.id),
         });
@@ -1104,6 +1156,59 @@ function renderZeitspur(game, model, historyReports) {
           'font-size': '10.5',
         }));
         svg.append(g);
+
+        if (o.probe) {
+          const dx = ox + 36;
+          const dy = y - 10;
+          if (!Number.isInteger(o.probe.wurf)) {
+            const rollNode = svgEl('g', {
+              class: 'svg-klickbar strom-wuerfel-offen',
+              role: 'button',
+              tabindex: '0',
+              'data-strom-roll-order': o.id,
+              'aria-label': t.fmt('board.orders.roll', { title: o.titel }),
+              onclick: () => game.rollOrder(o.id),
+            });
+            rollNode.append(svgEl('rect', {
+              x: dx - 14, y: dy - 14, width: 64, height: 28, rx: 6,
+              fill: 'rgba(20, 27, 26, 0.01)',
+            }));
+            rollNode.append(dieGlyph(dx, dy, 10, '#e7b96b'));
+            rollNode.append(svgEl('text', {
+              x: dx + 15, y: dy + 4,
+              fill: '#e7b96b',
+              'font-size': '11',
+              'font-weight': '700',
+              text: `▸ ${o.probe.ziel}`,
+            }));
+            svg.append(rollNode);
+          } else {
+            const rolledCol = o.wurf?.gut === false ? '#c96b53' : '#7cb586';
+            const rolledNode = svgEl('g', {
+              class: 'svg-klickbar',
+              role: 'button',
+              tabindex: '0',
+              'data-strom-roll-order': o.id,
+              'aria-label': t.fmt('board.orders.reroll', { title: o.titel }),
+              onclick: () => game.rollOrder(o.id),
+            });
+            rolledNode.append(svgEl('rect', {
+              x: dx - 14, y: dy - 14, width: 84, height: 28, rx: 6,
+              fill: 'rgba(20, 27, 26, 0.01)',
+            }));
+            rolledNode.append(dieGlyph(dx, dy, o.probe.wurf, rolledCol));
+            const modVal = o.probe.mod ?? 0;
+            const modText = modVal ? signed(modVal) : '';
+            rolledNode.append(svgEl('text', {
+              x: dx + 15, y: dy + 4,
+              fill: '#ebe4d4',
+              'font-size': '11',
+              'font-weight': '700',
+              text: `${o.probe.wurf}${modText} ▸ ${o.probe.ziel}`,
+            }));
+            svg.append(rolledNode);
+          }
+        }
       });
     }
   }
@@ -1114,8 +1219,57 @@ function renderZeitspur(game, model, historyReports) {
   const minorUsed = model.slots?.minor?.used ?? 0;
   const minorMax = model.slots?.minor?.max ?? 2;
 
+  // World Event Roll sigil near the bottom seal (x = 430, y = sealY)
+  if (model.weltwurf?.offen) {
+    const ww = svgEl('g', {
+      id: 'strom-weltwurf',
+      class: 'svg-klickbar strom-wuerfel-offen',
+      role: 'button',
+      tabindex: '0',
+      'aria-label': t('season.world-roll'),
+      onclick: () => game.rollWorld(),
+    });
+    ww.append(svgEl('rect', {
+      x: 260, y: sealY - 16, width: 186, height: 32, rx: 6,
+      fill: 'rgba(20, 27, 26, 0.01)',
+    }));
+    ww.append(dieGlyph(430, sealY, 10, '#e7b96b'));
+    ww.append(svgEl('text', {
+      x: 414, y: sealY + 4,
+      'text-anchor': 'end',
+      fill: '#e7b96b',
+      'font-size': '12',
+      'font-weight': '600',
+      text: `${t('ui.weltereignis')} · ${t('ui.wuerfeln')}`,
+    }));
+    svg.append(ww);
+  } else if (Number.isInteger(model.weltwurf?.wurf)) {
+    const ww = svgEl('g', {
+      id: 'strom-weltwurf',
+      class: 'svg-klickbar',
+      role: 'button',
+      tabindex: '0',
+      'aria-label': t('season.world-roll'),
+      onclick: () => game.rollWorld(),
+    });
+    ww.append(svgEl('rect', {
+      x: 260, y: sealY - 16, width: 186, height: 32, rx: 6,
+      fill: 'rgba(20, 27, 26, 0.01)',
+    }));
+    ww.append(dieGlyph(430, sealY, model.weltwurf.wurf, '#78b0c4'));
+    ww.append(svgEl('text', {
+      x: 414, y: sealY + 4,
+      'text-anchor': 'end',
+      fill: '#ebe4d4',
+      'font-size': '12',
+      'font-weight': '600',
+      text: `${t('ui.weltereignis')} · ${model.weltwurf.wurf}`,
+    }));
+    svg.append(ww);
+  }
+
   svg.append(svgEl('text', {
-    x: 520, y: sealY + 5,
+    x: 545, y: sealY + 5,
     'text-anchor': 'end',
     fill: 'rgba(235,228,212,0.68)',
     'font-size': '13',
@@ -1123,45 +1277,80 @@ function renderZeitspur(game, model, historyReports) {
     text: `H ${mainUsed}/${mainMax}  ·  N ${minorUsed}/${minorMax}`,
   }));
 
+  const readyToSeal = !model.weltwurf?.offen
+    && !(model.orders ?? []).some((o) => o.probe && !Number.isInteger(o.probe.wurf))
+    && (model.probleme ?? []).length === 0;
+  const sealStroke = readyToSeal ? '#82b889' : '#d79a49';
+  const sealFill = readyToSeal ? '#15251d' : '#231c12';
+
   const sealGroup = svgEl('g', {
-    class: 'svg-klickbar',
+    id: 'strom-zug-siegel',
+    class: `svg-klickbar ${readyToSeal ? 'is-ready' : 'is-pending'}`,
+    'data-ready-seal': String(readyToSeal),
     role: 'button',
     tabindex: '0',
     'aria-label': t('season.end'),
-    onclick: () => {
-      location.href = `/spielbrett/?campaign=${encodeURIComponent(game.cid)}`;
+    onclick: async () => {
+      if (model.weltwurf?.offen) {
+        game.rollWorld();
+        return;
+      }
+      const unrolled = (model.orders ?? []).find((o) => o.probe && !Number.isInteger(o.probe.wurf));
+      if (unrolled) {
+        game.rollOrder(unrolled.id);
+        return;
+      }
+      if (game.view.phase === 'planning') {
+        await game.endTurn();
+        if (game.app?.demo && game.view.phase !== 'planning') {
+          await game.withDraftBarrier(async () => {
+            const cont = await server.continueDemo(game.cid, { expectTurn: game.view.turn, expectRev: game.view.rev });
+            if (cont?.ok) {
+              const freshView = await server.view(game.cid, game.pid).catch(() => null);
+              if (freshView) {
+                game.view = freshView;
+                game.relabel();
+              }
+            }
+          });
+        }
+      }
     },
   });
   sealGroup.append(svgEl('circle', {
     cx: 600, cy: sealY, r: 28,
-    fill: '#231c12',
-    stroke: '#d79a49',
+    fill: sealFill,
+    stroke: sealStroke,
     'stroke-width': 2.4,
   }));
   sealGroup.append(svgEl('circle', {
     cx: 600, cy: sealY, r: 22,
     fill: 'none',
-    stroke: 'rgba(215,154,73,0.45)',
+    stroke: readyToSeal ? 'rgba(130,184,137,0.55)' : 'rgba(215,154,73,0.45)',
     'stroke-width': 1,
-    'stroke-dasharray': '3 3',
+    'stroke-dasharray': readyToSeal ? 'none' : '3 3',
   }));
   sealGroup.append(svgEl('text', {
     x: 600, y: sealY + 6,
     'text-anchor': 'middle',
-    fill: '#e7b96b',
+    fill: readyToSeal ? '#82b889' : '#e7b96b',
     'font-size': '18',
-    text: '⟡',
+    text: readyToSeal ? '✦' : '🎲',
   }));
   svg.append(sealGroup);
 
+  const sealStatusText = model.weltwurf?.offen || (model.orders ?? []).some((o) => o.probe && !Number.isInteger(o.probe.wurf))
+    ? `${t('ui.wuerfeln')} · ${t('season.end')}`
+    : t('season.end');
+
   svg.append(svgEl('text', {
-    x: 680, y: sealY + 5,
+    x: 650, y: sealY + 5,
     'text-anchor': 'start',
-    fill: '#d79a49',
+    fill: sealStroke,
     'font-family': FONT_WORLD,
     'font-size': '14',
     'letter-spacing': '0.05em',
-    text: t('season.end'),
+    text: sealStatusText,
   }));
 
   host.replaceChildren(svg);
@@ -1195,6 +1384,11 @@ async function loadTurnHistory(cid, currentTurn) {
   return reports;
 }
 
+if (!server.appInfo) server.appInfo = () => server.app();
+if (!server.continueDemo) {
+  server.continueDemo = (cid, { expectTurn, expectRev } = {}) => server.demoTurn(cid, expectTurn, expectRev);
+}
+
 applyStatic();
 const params = new URLSearchParams(location.search);
 const model = {
@@ -1210,6 +1404,38 @@ try {
 }
 
 if (game) {
+  const appInfo = game.app ?? (await server.appInfo().catch(() => null));
+  game.app = appInfo;
+
+  game.rollOrder = (orderId) => {
+    const p = (game.base?.probes ?? []).find((x) => x.order === orderId);
+    if (!p) return false;
+    return game.roll(p.id, randomDieRoll(), p.fingerprint);
+  };
+
+  game.rollWorld = () => {
+    const p = (game.base?.probes ?? []).find((x) => x.target == null && x.roller === 'player');
+    if (!p) return false;
+    return game.roll(p.id, randomDieRoll(), p.fingerprint);
+  };
+
+  game.endTurn = async () => {
+    for (const c of game.view.pendingChoices ?? []) {
+      if (!game.draft.choices?.[c.id] && c.options?.length) {
+        game.setChoice(c.id, c.options[0]);
+      }
+    }
+    const res = await game.seal();
+    if (res?.ok) {
+      game.view = {
+        ...game.view,
+        phase: res.phase ?? 'resolving',
+        ...(Number.isInteger(res.rev) ? { rev: res.rev } : {}),
+      };
+    }
+    return res;
+  };
+
   document.getElementById('strom-zurueck').href = `/spielbrett/?campaign=${encodeURIComponent(game.cid)}`;
   let historyReports = await loadTurnHistory(game.cid, game.view.turn);
   const mapView = initMapStratum(game, model);
@@ -1228,7 +1454,7 @@ if (game) {
   renderAll();
   installScrollSpy();
   onLanguage(() => {
-    game.rebuild();
+    game.relabel();
     renderAll();
   });
   window.addEventListener('resize', () => renderDiorama(game, model));

@@ -78,13 +78,14 @@ const people = obj({
       state: { enum: ['active', 'suspended'] },
       suspendedSince: nullable(ref('turn')),
     }), 200),
-    research: arr(obj({ ref: ref('ref'), progress: int(0, 99) }), 3),
+    research: arr(obj({ ref: ref('ref'), progress: int(0, 99), effectiveCost: int(0, 99) }, ['effectiveCost']), 3),
     candidates: arr(obj({
       ref: ref('ref'),
       offeredAt: ref('turn'),
       expiresAt: ref('turn'),
       origin: { enum: ['pool', 'agent', 'breakthrough'] },
-    }), 6),
+      effectiveCost: int(0, 99),
+    }, ['effectiveCost']), 6),
     // pfad: the path a research.direct named (default absent).
     requests: arr(obj({ turn: ref('turn'), tags: arr(ref('tag'), 3, 1), note: text(200), pfad: ref('id') }, ['pfad']), 8),
     instituted: arr(ref('ref'), 20),

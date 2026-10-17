@@ -10,8 +10,25 @@ const SPOTS = { food: 'nahrung', material: 'material', research: 'wissen', home:
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 const SEASON_KEYS = { spring: 'fruehling', summer: 'sommer', autumn: 'herbst', winter: 'winter' };
 
+export function supported(target) {
+  const landscape = typeof target === 'string'
+    ? target
+    : (target?.landscape
+      ?? target?.world?.landscape
+      ?? target?.creation?.world?.landscape
+      ?? target?.welt?.creation?.world?.landscape
+      ?? target?.pack?.welt?.creation?.world?.landscape
+      ?? target?.game?.pack?.welt?.creation?.world?.landscape
+      ?? 'highlands');
+  return landscape === 'highlands' || landscape === 'riverlands' || landscape === 'drylands';
+}
+
 /** A local community illustration. The existing context remains the only editor. */
 export class CommunityView {
+  static supported(target) {
+    return supported(target);
+  }
+
   constructor(api) {
     this.api = api;
     this.root = document.getElementById('gemeinschaft');
@@ -24,7 +41,7 @@ export class CommunityView {
     this.lastFrame = 0;
     this.buttons = new Map();
     this.nav = document.getElementById('ansichten');
-    this.supported = true;
+    this.supported = supported(api?.game);
     for (const mode of ['gemeinschaft', 'welt']) {
       if (mode === 'gemeinschaft' && !this.supported) continue;
       const btn = el('button', {

@@ -67,6 +67,13 @@ async function sendReportSummary(res, cid, player, file) {
   });
 }
 
+async function sendStatus(res, cid, player) {
+  const status = await readJson(join(CAMPAIGNS_DIR, cid, 'status.json'));
+  if (!status || status.format !== 'realmcraft-status') return notFound(res);
+  const { projectStatus } = await import('../engine/harness/status.js');
+  sendJson(res, 200, projectStatus(status, player));
+}
+
 /**
  * GET of a campaign file. Strict whitelist on the decoded segments: anything
  * not matched is a 404, so dot segments, backslashes and foreign peoples'
@@ -87,7 +94,7 @@ export async function handleCampaignFile(req, res, pathname) {
       return sendFile(res, join(dir, 'view', player, 'events', t[3]));
     }
   } else if (t.length === 1 && t[0] === 'status.json') {
-    return sendFile(res, join(dir, 'status.json'));
+    return sendStatus(res, cid, player);
   } else if (t[0] === 'narrative' && t.length >= 2) {
     const last = t.at(-1);
     if (t.slice(1, -1).every((s) => NARRATIVE_DIR_RE.test(s)) && NARRATIVE_FILE_RE.test(last)) {

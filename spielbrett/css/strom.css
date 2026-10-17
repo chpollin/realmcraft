@@ -354,6 +354,23 @@ body.strom-body {
   filter: brightness(1.22) drop-shadow(0 0 8px rgba(215, 154, 73, 0.35));
 }
 
+@keyframes stromPulseDie {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(231, 185, 107, 0.35));
+  }
+  50% {
+    filter: brightness(1.25) drop-shadow(0 0 10px rgba(231, 185, 107, 0.78));
+  }
+}
+
+.strom-wuerfel-offen {
+  animation: stromPulseDie 2.1s ease-in-out infinite;
+}
+
+#strom-zug-siegel.is-ready {
+  filter: drop-shadow(0 0 10px rgba(130, 184, 137, 0.38));
+}
+
 @media (max-width: 760px) {
   .strom-anker {
     inset-inline-end: 6px;

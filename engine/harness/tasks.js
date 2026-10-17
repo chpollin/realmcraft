@@ -23,13 +23,14 @@ import { ONCE_OPS, STANDING_OPS, TIERS } from '../schemas/effects.js';
 import { ITEMS_BY_AGENT } from '../schemas/proposal.js';
 import { projectFor } from '../core/project.js';
 import { practiceTop, openTier } from '../content/validate.js';
-import { libraryFrom } from '../content/library.js';
+import { libraryFrom, resolveRef } from '../content/library.js';
 import { catalogueFor, orderContext, registry, slotCapacity } from '../core/orders.js';
 import { homeSettlement, isAlive, kern, maxKnownTier, peopleIds, settingsOf, settlementsOf } from '../core/state.js';
 import { RULES } from '../core/rules.js';
 import { distance, parseKey } from '../world/index.js';
 import { calendarOf } from '../core/calendar.js';
 import { pathOfTags, pathsOf, pathsView } from '../core/pfade.js';
+import { researchCost } from '../core/research.js';
 
 const stem = (turn) => `T${String(turn).padStart(4, '0')}`;
 const ALL_PRIMITIVES = [...new Set([...STANDING_OPS, ...ONCE_OPS])];
@@ -258,6 +259,20 @@ function limitsFor(env, items, extra = {}) {
   };
 }
 
+function envWithLibrary(env, library) {
+  if (!library) return env;
+  return { ...env, entwicklung: (ref) => env.entwicklung(ref) ?? resolveRef(library, ref) };
+}
+
+function developmentsFor(state, env, pid) {
+  const dev = state.peoples[pid].developments;
+  const withCost = (item) => ({ ...item, effectiveCost: researchCost(state, env, pid, item.ref) });
+  return {
+    research: dev.research.map(withCost),
+    candidates: dev.candidates.map(withCost),
+  };
+}
+
 function researchTask(state, env, library, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
@@ -265,6 +280,7 @@ function researchTask(state, env, library, pid, notes) {
   const { maxTier } = env.regeln.tuning;
   const open = openTier(people, { state: view, regeln: env.regeln, library, turn: state.turn });
   const reach = Math.min(maxTier, open + lim.aboveTier);
+  const developments = developmentsFor(view, envWithLibrary(env, library), pid);
   return envelope(state, env, 'research', pid, {
     read: viewReads(state, pid),
     context: {
@@ -279,6 +295,8 @@ function researchTask(state, env, library, pid, notes) {
       requests: pathsOf(env).length ? people.developments.requests.map((r) => ({ ...r, pfad: r.pfad ?? pathOfTags(env, r.tags) })) : people.developments.requests,
       pfade: pathsView(view, env, pid),
       candidates: people.developments.candidates.length,
+      research: developments.research,
+      developments,
       known: people.developments.known.map((k) => k.ref),
       lebensweise: people.lebensweise,
       bestimmung: people.bestimmung ?? null,
@@ -295,7 +313,7 @@ function researchTask(state, env, library, pid, notes) {
   });
 }
 
-function rivalTask(state, env, pid, notes) {
+function rivalTask(state, env, library, pid, notes) {
   const view = projectFor(state, env, pid);
   const people = view.peoples[pid];
   const profile = env.regeln.aiProfiles.find((a) => a.id === people.agentProfile) ?? null;
@@ -310,6 +328,7 @@ function rivalTask(state, env, pid, notes) {
       catalogue: catalogueFor(view, env, pid),
       orders: orderGuide(view, env, pid),
       pfade: pathsView(view, env, pid),
+      developments: developmentsFor(view, envWithLibrary(env, library), pid),
       resources: people.resources,
       units: people.units,
       names: namesFor(view, env, pid),
@@ -391,7 +410,7 @@ export function buildTasks(state, env, { library, phase = state.phase, notes = n
   for (const pid of peopleIds(state)) {
     if (!isAlive(state, pid)) continue;
     out.push(researchTask(state, env, lib, pid, notes));
-    if (state.peoples[pid].controller === 'ai') out.push(rivalTask(state, env, pid, notes));
+    if (state.peoples[pid].controller === 'ai') out.push(rivalTask(state, env, lib, pid, notes));
     else out.push(councilTask(state, env, pid, notes));
   }
   out.push(chroniclerTask(state, env, notes));
@@ -401,15 +420,20 @@ export function buildTasks(state, env, { library, phase = state.phase, notes = n
 const JUDGES = ['judge-coherence', 'judge-balance', 'judge-narrative'];
 
 /** Judges see the whole state and the unfiltered round report, so their reads are the full files. */
-export function buildJudgeTask(state, env, judge) {
+export function buildJudgeTask(state, env, judge, { library = null } = {}) {
   if (!JUDGES.includes(judge)) throw new Error(`buildJudgeTask: unknown judge ${judge}`);
   const read = ['state.json'];
   if (state.turn > 0) read.push(`log/${stem(state.turn - 1)}.json`);
   read.push('library.json');
   if (judge === 'judge-narrative') read.push('narrative/gedaechtnis.md');
+  const e = envWithLibrary(env, library);
   return envelope(state, env, judge, null, {
     read,
-    context: { phase: 'judges', language: settingsOf(state).language },
+    context: {
+      phase: 'judges',
+      language: settingsOf(state).language,
+      developments: Object.fromEntries(peopleIds(state).map((pid) => [pid, developmentsFor(state, e, pid)])),
+    },
     limits: limitsFor(env, ITEMS_BY_AGENT[judge], {
       allowedPrimitives: [...ONCE_OPS],
       tags: tagsFor(env),

@@ -844,6 +844,7 @@
     "season.no-report": "No report for the last season available yet.",
     "season.back": "Continue planning",
     "season.end": "End season",
+    "season.world-roll": "Roll world event",
     "season.demo-note": "Offline test with kernel fallbacks. No LLM agents. You roll and confirm your own season.",
     "season.demo-go": "Continue offline",
     "season.demo-busy": "Resolving season …",

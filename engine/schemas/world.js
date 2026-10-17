@@ -96,12 +96,14 @@ export const WORLD_DEFS = Object.freeze({
       }, ['defense', 'yieldFactor'])),
       // Wissen burned from stock into research points per season, at most.
       knowledgeSpend: int(0, 10),
+      // A people collapses when population.core falls below this (1 = collapse at core 0).
+      collapseCore: int(0, 99),
       // Bounds and start value of the core meter zustimmung.
       approval: obj({ min: int(-5, 0), max: int(0, 5), start: int(-5, 5) }),
       // Per deposit or feature resource key: the world resource it yields and
       // how much per season in a worked region.
       featureYield: map(str(PATTERNS.key), obj({ res: ref('key'), amount: int(1, 5) })),
-    }, ['spoilage', 'loyaltyDecay', 'machtprobeCap', 'bestimmungBand', 'eventBands', 'terrainRules', 'knowledgeSpend', 'approval', 'featureYield']),
+    }, ['spoilage', 'loyaltyDecay', 'machtprobeCap', 'bestimmungBand', 'eventBands', 'terrainRules', 'knowledgeSpend', 'collapseCore', 'approval', 'featureYield']),
     aiProfiles: arr(obj({ id: ref('id'), name: text(60, 2), stance: text(400, 1), weights: map(str(PATTERNS.tag), int(-3, 3)) }), 8),
     moduleBindings: map(str(PATTERNS.id), map(str(PATTERNS.id), ref('key'))),
     // Research paths (engine/core/pfade.js). Absent, the world has no paths

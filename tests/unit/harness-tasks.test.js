@@ -7,7 +7,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { SCHEMAS } from '../../engine/schemas/index.js';
 import { validate } from '../../engine/content/schema.js';
-import { buildTasks } from '../../engine/harness/tasks.js';
+import { buildJudgeTask, buildTasks } from '../../engine/harness/tasks.js';
+import { researchCost } from '../../engine/core/research.js';
 import { freshCampaign, hochland } from '../fixtures/engine/k1/harness.js';
 
 const { env, library } = hochland();
@@ -67,5 +68,54 @@ describe('harness tasks', () => {
 
   it('name the narrative language in every task that asks for player-facing text', () => {
     for (const t of tasks) assert.equal(t.context.language, 'de', t.respondAs.proposalId);
+  });
+
+  it('expose effectiveCost on research and candidate items for research and judge tasks', () => {
+    const knownSet = new Set(state.peoples[player].developments.known.map((k) => k.ref));
+    const [first, second] = env.content.entwicklungen.filter((e) => !knownSet.has(`${e.id}@${e.rev}`) && e.cost.research >= 4);
+    const refA = `${first.id}@${first.rev}`;
+    const refB = `${second.id}@${second.rev}`;
+    const baseA = first.cost.research;
+    const baseB = second.cost.research;
+
+    // Without known developments: effectiveCost equals base cost (and halved for breakthrough).
+    const sEmpty = structuredClone(state);
+    sEmpty.peoples[player].developments.known = [];
+    sEmpty.peoples[player].developments.research = [{ ref: refA, progress: 1 }];
+    sEmpty.peoples[player].developments.candidates = [
+      { ref: refA, offeredAt: 0, expiresAt: 4, origin: 'pool' },
+      { ref: refB, offeredAt: 0, expiresAt: 4, origin: 'breakthrough' },
+    ];
+    const rEmpty = buildTasks(sEmpty, env, { library }).find((t) => t.task.agent === 'research' && t.task.people === player).task;
+    assert.equal(rEmpty.context.candidates, 2);
+    assert.equal(rEmpty.context.research[0].effectiveCost, baseA);
+    assert.equal(rEmpty.context.developments.candidates[0].effectiveCost, baseA);
+    assert.equal(rEmpty.context.developments.candidates[1].effectiveCost, Math.max(1, Math.floor(baseB / 2)));
+
+    // Opening campaign state (4 starting developments): surcharge floor(base * 4 / 16) already applies.
+    const s0 = structuredClone(sEmpty);
+    s0.peoples[player].developments.known = structuredClone(state.peoples[player].developments.known);
+    const r0 = buildTasks(s0, env, { library }).find((t) => t.task.agent === 'research' && t.task.people === player).task;
+    const expectedA0 = baseA + Math.floor((baseA * s0.peoples[player].developments.known.length) / 16);
+    const expectedB0 = Math.max(1, Math.floor((baseB + Math.floor((baseB * s0.peoples[player].developments.known.length) / 16)) / 2));
+    assert.equal(r0.context.research[0].effectiveCost, expectedA0);
+    assert.equal(r0.context.developments.research[0].effectiveCost, researchCost(s0, env, player, refA));
+    assert.equal(r0.context.developments.candidates[0].effectiveCost, expectedA0);
+    assert.equal(r0.context.developments.candidates[1].effectiveCost, expectedB0);
+
+    // Complexity surcharge (+base at 16 known developments) and breakthrough halving on top of surcharge.
+    const s16 = structuredClone(s0);
+    while (s16.peoples[player].developments.known.length < 16) {
+      const idx = s16.peoples[player].developments.known.length;
+      s16.peoples[player].developments.known.push({ ref: `extra-${idx}@1`, since: 0, effectiveFrom: 0, state: 'active', suspendedSince: null });
+    }
+    const r16 = buildTasks(s16, env, { library }).find((t) => t.task.agent === 'research' && t.task.people === player).task;
+    assert.equal(r16.context.developments.research[0].effectiveCost, baseA * 2);
+    assert.equal(r16.context.developments.candidates[0].effectiveCost, baseA * 2);
+    assert.equal(r16.context.developments.candidates[1].effectiveCost, Math.max(1, Math.floor((baseB * 2) / 2)));
+
+    const j16 = buildJudgeTask(s16, env, 'judge-balance', { library }).task;
+    assert.deepEqual(j16.context.developments[player], r16.context.developments);
+    assert.ok(j16.context.developments[ai[0]]);
   });
 });

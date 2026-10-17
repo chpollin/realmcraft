@@ -143,9 +143,14 @@ export function ingestProposal(state, env, proposal, { task = null, library = cr
       case 'bestimmung': {
         // A destiny becomes adoptable only as an offer to its people (Regelkern section 13).
         if (!people(pid)) return bad('target', '', `a destiny is offered to a people, the proposal names ${JSON.stringify(pid)}`, { reason: 'bestimmung-needs-people', people: named });
+        const prevLib = run.lib;
         const stored = storeContent(item.data);
         if (stored.error) return [stored.error];
         const refused = offerDestiny(tc, pid, stored.ref, 'agent', { path: `${base}/data`, refs: meta.refs });
+        if (refused.length) {
+          run.lib = prevLib;
+          if (holder) holder.library = prevLib;
+        }
         return refused;
       }
       case 'event': {

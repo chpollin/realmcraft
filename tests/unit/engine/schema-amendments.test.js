@@ -146,10 +146,13 @@ test('regeln.tuning accepts exactly the documented kernel constants', () => {
       .map(([lo, hi, nmin, nmax], i) => ({ band: i + 1, roll: { min: lo, max: hi }, net: { min: nmin, max: nmax } })),
     terrainRules: { gebirge: { defense: 2, yieldFactor: { winter: { nahrung: 0 } } }, wald: { defense: 1 } },
     knowledgeSpend: 2,
+    collapseCore: 2,
     approval: { min: -5, max: 5, start: 0 },
     featureYield: { eisenerz: { res: 'erz', amount: 1 } },
   };
   ok('regeln', { ...regeln, tuning });
+  ok('regeln', { ...regeln, tuning: { ...tuning, collapseCore: 0 } });
+  bad('regeln', { ...regeln, tuning: { ...tuning, collapseCore: -1 } });
   bad('regeln', { ...regeln, tuning: { ...tuning, perGroup: 2 } });
   bad('regeln', { ...regeln, tuning: { ...tuning, eventBands: tuning.eventBands.slice(1) } });
 });
