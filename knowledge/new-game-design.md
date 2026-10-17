@@ -9,19 +9,19 @@ method:
 status: active
 language: en
 created: 2026-10-15
-updated: 2026-10-16
+updated: 2026-10-17
 related: [vision, game-design, frontend, world-packages, journal]
 ---
 
 # New Game Design
 
-The owner defines RealmCraft as play inside an existing AI harness, with its chat beside the browser board. World, community and rule building belong in that chat. The browser supplies a copyable initialization prompt, follows the shared authoring workshop and reviews the executable start. Direct form editing remains a secondary route. The existing compiler, reversible kernel preview and explicit independent campaign creation are retained. This connection supplies no separate chat service or automatic compiler for arbitrary new mechanics.
+The owner defines RealmCraft as play inside an existing AI harness, with its chat beside the browser board. World, community and rule building belong in that chat, and its game-master system-prompt style is part of the game mechanic. The browser supplies a copyable initialization prompt, follows the shared authoring workshop and reviews the executable start. Direct form editing remains a secondary route. The existing compiler, reversible kernel preview and explicit independent campaign creation are retained. This connection supplies no separate chat service or automatic compiler for arbitrary new mechanics.
 
 ## Chat and browser roles
 
-The owner corrected the form-first interpretation on October 16. The primary task is a conversation in the existing harness. Its main agent gives concrete alternatives, asks targeted questions and publishes confirmed intermediate decisions through the workshop helper. The browser displays the shared draft, open questions and unsupported rule ideas, then the real kernel preview. It has no second conversation field and cannot automatically read or send harness messages.
+The owner corrected the form-first interpretation on October 16. The primary task is a conversation in the existing harness. Its main agent speaks as the RealmCraft game master and storyteller in a calm, precise, slightly mysterious tone with dry humour. It frames targeted questions through concrete situations and world tensions rather than form categories, offers two or three vivid options, and translates diegetic choices into the workshop packet quietly in the background without exposing internal enum keys (`highlands`, `settled`, `erkundung`), JSON field paths or revision numbers in player-facing prose. The browser displays the shared draft, open questions and unsupported rule ideas, then the real kernel preview. It has no second conversation field and cannot automatically read or send harness messages.
 
-The copying action establishes a private workshop before returning a prompt bound to its id, runtime root and library generation. The main chat can read the packet shape and supported choices, then publish a complete draft using the expected revision. Unanswered questions and unimplemented rule ideas remain explicit and block preview/start. The conversation can resolve an idea as fiction or supported choices with the player, or leave it for a separately authorized implementation task. Prose never becomes a hidden executable effect.
+The copying action establishes a private workshop before returning a prompt bound to its id, runtime root and library generation. After reading the packet shape and supported choices, the main chat publishes a concrete initial draft (marked as a proposal in conversation) together with open `questions` and `ruleIdeas` early so the companion studio in the browser opens immediately, then updates the draft after confirmed changes using the expected revision. Unanswered questions and unimplemented rule ideas remain explicit and block preview/start. The conversation can resolve an idea as fiction or supported choices with the player, or leave it for a separately authorized implementation task. Prose never becomes a hidden executable effect.
 
 New revisions invalidate an earlier preview. Explicit Start reserves the exact reviewed draft and start key before asynchronous campaign creation. The workshop then refuses further publication. A failed or lost response retains that attempt for recovery. This prevents a later chat update from silently changing what is being started. [operations.md](operations.md#chat-led-realm-initialization) defines the helper procedure, and [data-contracts.md](data-contracts.md#chat-workshops) defines its stored boundary.
 

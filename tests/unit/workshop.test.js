@@ -125,11 +125,22 @@ test('explicit reservation freezes one immutable snapshot; same-key retries and 
   assert.deepEqual(reserveWorkshopStart(root, ref(), attempt), completed);
 });
 
-test('prompt and CLI schema describe the actual isolated root and do not fabricate a campaign', () => {
+test('prompt and CLI schema describe the actual isolated root, anchor storyteller style and do not fabricate a campaign', () => {
   const workshop = create();
   const prompt = workshopPrompt(root, workshop);
   assert.ok(prompt.includes(root)); assert.ok(prompt.includes(id)); assert.ok(prompt.includes('--generation legacy'));
+  assert.match(prompt, /Spielleitung und Erzähler/);
+  assert.match(prompt, /still im Hintergrund/);
+  assert.match(prompt, /ohne interne Enum-Schlüssel/);
+  assert.match(prompt, /früh einen konkreten ersten Entwurf/);
   assert.match(prompt, /Keine Kampagne erzeugen/);
+  const enWorkshop = createWorkshop(root, { id: randomUUID(), language: 'en' });
+  const enPrompt = workshopPrompt(root, enWorkshop);
+  assert.match(enPrompt, /game master and storyteller/);
+  assert.match(enPrompt, /quietly in the background/);
+  assert.match(enPrompt, /without exposing internal enum keys/);
+  assert.match(enPrompt, /concrete initial draft/);
+  assert.match(enPrompt, /No campaign creation/);
   const schema = workshopSchema(workshop);
   assert.deepEqual(schema.packet.questions, []); assert.deepEqual(schema.supported.landscape, ['highlands', 'riverlands', 'drylands']);
   const cli = spawnSync(process.execPath, [helper, 'schema', '--root', root, '--id', id], { encoding: 'utf8' });

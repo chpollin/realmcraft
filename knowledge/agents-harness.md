@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, data-contracts, rules-kernel, operations, decisions]
@@ -118,7 +118,7 @@ The shell guard of the main session is a heuristic over the command text and doe
 
 ## Chat-led initialization
 
-The main existing harness chat conducts world and rule building before a campaign exists. The browser copies a workshop-specific initialization prompt, follows confirmed publications and supplies the real preview and explicit Start. The chat uses realm-workshop.mjs read, schema and publish with the expected revision and library generation, as described in [operations.md](operations.md#chat-led-realm-initialization). It does not write campaign files, roll or start automatically.
+The main existing harness chat conducts world and rule building before a campaign exists, guided by the copied workshop prompt (`engine/harness/workshop.js`) and `.claude/commands/partie.md`. Both anchor the game-master and storyteller style (calm, precise, slightly mysterious with dry humour) as part of the game mechanic. The main chat runs `realm-workshop.mjs` (`read`, `schema` and `publish` with the expected revision and library generation) quietly in the background, translates diegetic choices into the workshop packet without exposing internal enum keys, JSON paths or revision numbers in prose, and publishes an initial proposed draft together with open `questions` and `ruleIdeas` early so the companion studio in the browser opens immediately, as described in [operations.md](operations.md#chat-led-realm-initialization). It does not write campaign files, roll or start automatically.
 
 The turn workers and their guarded proposal paths remain unchanged. They are not repurposed as worldbuilding agents. Unsupported mechanics stay explicit workshop ruleIdeas until resolved with the player or implemented in a separate development task. This bridge requires no additional provider service and does not automate later turn orchestration or free in-game intentions.
 
