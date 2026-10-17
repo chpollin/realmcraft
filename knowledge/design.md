@@ -163,4 +163,50 @@ Alongside the instrument-framed board at `/spielbrett/`, `spielbrett/strom.html`
 | IV. Topographic world map (`#stratum-karte`) | Full-width 5-pass cartographic hex canvas (`MapView`) with floating layer sigils (`Gelände`, `Besitz`, `Bedrohung`, `Handel`) and zoom controls | Clicking a hex displays floating action sigils (`#strom-ort-aktionen`) that queue orders via `game.addOption()` |
 | V. Council scales and destiny constellation (`#stratum-rat`) | Left: horizontal `-5..+5` loyalty balance scales for each council member with role emblem and signed value. Right: three triangular destiny milestone rings with discrete `done/total` arc segments | Visual inspection of council standing and destiny progress without percentages |
 | VI. Practice roots and knowledge tree (`#stratum-wissen`) | Organic bottom-to-top SVG graph linking weighted practice roots (`praxis`) at the bottom through two-line known developments (`bekannt`) in the trunk to clickable research candidates (`forschung` / `vorschlaege`) in the crown | Clicking a crown node assigns the active `research.assign` target |
-| VII. Stratigraphic timeline (`#stratum-zeit`) | Vertical turn-by-turn geological timeline (`I`, `II`, `III`, `IV`) with resource stock sparklines on the left, 2d6 die-face glyphs and probe results (`roll+mod ▸ target`) on the right, and the active turn's queued `H`/`N` order seals, open probe dice (`[data-strom-roll-order]`), world-event die (`#strom-weltwurf`) and turn-end seal (`#strom-zug-siegel`) | Clicking an open 2d6 die rolls the order probe (`game.rollOrder()`) or world event (`game.rollWorld()`); clicking a queued `H`/`N` seal withdraws the order; clicking `#strom-zug-siegel` rolls any pending die or seals the season (`game.endTurn()`, with automatic offline demo continuation when enabled) |
+| VII. Stratigraphic timeline (`#stratum-zeit`) | Vertical turn-by-turn geological timeline (`I`, `II`, `III`, `IV`) with resource stock sparklines on the left, d10 glyphs with the raw face and probe results (`roll+mod ▸ target`) on the right, and the active turn's queued `H`/`N` order seals, open probe dice (`[data-strom-roll-order]`), world-event die (`#strom-weltwurf`) and turn-end seal (`#strom-zug-siegel`) | Clicking an open d10 rolls the order probe (`game.rollOrder()`) or world event (`game.rollWorld()`); clicking a queued `H`/`N` seal withdraws the order; clicking `#strom-zug-siegel` rolls any pending die or seals the season (`game.endTurn()`, with automatic offline demo continuation when enabled) |
+
+Every die on these surfaces is a d10, because probes and world events roll 1d10 in the kernel ([rules-kernel.md](rules-kernel.md), section 6, and [decisions.md](decisions.md), D7). The shared glyph `d10Glyph` in `spielbrett/js/prototypen.js` draws the kite silhouette of a d10 with the raw face value and stays blank while the roll is open.
+
+## Round dial and alternative visualization prototypes
+
+`strom.html` carries a prototype dock (`#proto-dock`) that switches between four renderings of the same live projection, addressable as `?proto=strom|astrolabium|naturgemaelde|webstuhl`. The Weltenstrom remains the default. The three alternatives live in `spielbrett/js/prototypen.js` and use the same game calls as the Weltenstrom (`game.setAssign`, `game.addOption`, `game.removeOrder`, `game.rollOrder`, `game.rollWorld`, `game.endTurn`), so each is playable. Routes, shared-state boundary and seal behaviour are kept in [frontend.md](frontend.md#visualization-prototypes). All four are prototypes awaiting the owner's artistic acceptance.
+
+### Round dial (Astrolabium)
+
+The round dial follows the owner's idea of October 17 that one round closes a circle. The whole state of a season sits on a single disc whose four quadrants fill clockwise as the player decides, so the dial looks different, and fuller, at every point of the round.
+
+The kernel season has three phases (`planning`, `resolving`, `agents`, [rules-kernel.md](rules-kernel.md), section 14). The dial therefore spreads the four decision steps of `planning` over the quadrants and lets the seal at twelve o'clock stand for the step into `resolving`. The quadrant names are display names for these steps and introduce no new game phase.
+
+```
+                       12 o'clock: season seal (#strom-zug-siegel)
+                  IV  rolls and chronicle  |  I  labour and harvest
+                 (turn spokes T1..Tn,      |  (three clan arcs with
+                  open d10, world roll)    |   -/+ and harvest chords)
+          9 ---------------------- [ hub: diorama, five stores ] ---------------------- 3
+                  III council, destiny     |  II space and orders
+                  and knowledge            |  (known tiles on distance
+                 (loyalty pendulums,       |   orbits d=0, d=1, d>=2,
+                  milestones, practices,   |   H and N per tile)
+                  research crown)          |
+                                       6 o'clock
+```
+
+| Quadrant | Planning step | Encoding | Fill measure |
+|---|---|---|---|
+| I (0° to 90°) | Clan labour | Three concentric arcs for food, research and material with Isotype clan figures, `−`/`+` controls and a chord into the matching store of the hub | Assigned clans over `population.core` |
+| II (90° to 180°) | Main and minor orders | Known tiles (`model.known`) placed on three orbits by hex distance to the home, each with `H` and `N` controls, a beam from the hub to every tile with a queued order | Used over available action slots from the preview (`model.slots`) |
+| III (180° to 270°) | Research target, read-only council and destiny | Loyalty pendulums (`-5..+5`), destiny milestones as diamonds, weighted practices, clickable research crown (`done/total`) | Whether a research target is set |
+| IV (270° to 360°) | Probe and world rolls | One radial spoke per played turn with its rolled d10s, the open order probes and the world roll near twelve o'clock | Rolled over required rolls of the turn |
+
+The hub holds the circular community diorama (`drawCommunity`) and the five stores with their net change. The clock hand stands at 90° times the sum of the four fills, so it advances with whichever step the player completes and reaches the seal only when all four are complete. Every fill is a count taken from the projection or the preview, in line with the rule that the board shows only kernel numbers ([decisions.md](decisions.md), D15).
+
+### Elevation section (Naturgemälde) and causal loom (Kräfte-Webstuhl)
+
+The elevation section, after Humboldt's Naturgemälde of the Andes, orders the known tiles by an elevation assigned to their terrain on a landscape profile, places the labour sluices and the knowledge veins below the ground line and stacks every played turn as a sediment layer with its rolls. The causal loom draws the five resources as vertical warp threads, from current stock at the top to projected stock at the bottom, and crosses them with horizontal weft threads for labour, tile orders and research, with a bead at each crossing whose size follows the effect.
+
+### Open questions of the prototypes
+
+- The dial's quadrant III fills by a yes or no, and quadrant IV is already full in a turn without required rolls, so the hand can stand in a quadrant whose own step is still empty.
+- Quadrant labels, the elevation table of terrains and the resource glyphs are hard-coded in German in `prototypen.js` and do not yet pass through the board labels.
+- The dial and the elevation section show at most twelve known tiles, chosen by home, queued orders, available actions and distance.
+- The loom links each tile order to a resource thread by its position in the list, which is a placeholder for a real effect lookup from the preview.

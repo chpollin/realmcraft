@@ -13,7 +13,7 @@ import { MapView } from './map/renderer.js';
 import { el, svg as svgEl, signed } from './dom.js';
 import { icon } from './icons.js';
 import { t, applyStatic, onLanguage } from './i18n/index.js';
-import { renderAstrolabium, renderNaturgemaelde, renderWebstuhl } from './prototypen.js';
+import { renderAstrolabium, renderNaturgemaelde, renderWebstuhl, d10Glyph } from './prototypen.js';
 
 const FONT_WORLD = 'var(--font-world)';
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -56,25 +56,6 @@ function sippeFigureSvg(color = '#ebe4d4', idle = false) {
     d: 'M4 13 C4 10.8, 14 10.8, 14 13 L15 22 L12 22 L11.5 29 L6.5 29 L6 22 L3 22 Z',
     fill: color,
   }));
-}
-
-// Draws a 2d6 die face glyph at (cx, cy) for a roll total (2..12)
-function dieGlyph(cx, cy, rollTotal, color) {
-  const val = Math.max(1, Math.min(6, Math.round((rollTotal || 7) / 2)));
-  const pips = {
-    1: [[0, 0]],
-    2: [[-4, -4], [4, 4]],
-    3: [[-4, -4], [0, 0], [4, 4]],
-    4: [[-4, -4], [4, -4], [-4, 4], [4, 4]],
-    5: [[-4, -4], [4, -4], [0, 0], [-4, 4], [4, 4]],
-    6: [[-4, -4], [4, -4], [-4, 0], [4, 0], [-4, 4], [4, 4]],
-  }[val] || [[0, 0]];
-  return svgEl('g', { transform: `translate(${cx},${cy})` },
-    svgEl('rect', {
-      x: -10, y: -10, width: 20, height: 20, rx: 4,
-      fill: '#141b1a', stroke: color, 'stroke-width': 1.4,
-    }),
-    ...pips.map(([px, py]) => svgEl('circle', { cx: px, cy: py, r: 1.6, fill: color })));
 }
 
 // Segmented circular arc ring (no percentages, shows exact discrete segments done/total)
@@ -1099,7 +1080,7 @@ function renderZeitspur(game, model, historyReports) {
         const ok = pr.band && SUCCESS_BANDS.includes(pr.band);
         const crit = pr.band === 'crit_success';
         const col = crit ? '#e2b25e' : ok ? '#7cb586' : '#c96b53';
-        svg.append(dieGlyph(px, y, pr.roll, col));
+        svg.append(d10Glyph(px, y, pr.roll, col));
         const modStr = pr.modTotal ? signed(pr.modTotal) : '';
         svg.append(svgEl('text', {
           x: px + 16, y: y - 2,
@@ -1117,7 +1098,7 @@ function renderZeitspur(game, model, historyReports) {
       });
       if (draw?.roll) {
         const dx = 1085;
-        svg.append(dieGlyph(dx, y, draw.roll, '#78b0c4'));
+        svg.append(d10Glyph(dx, y, draw.roll, '#78b0c4'));
         svg.append(svgEl('text', {
           x: dx, y: y + 22,
           'text-anchor': 'middle',
@@ -1174,7 +1155,7 @@ function renderZeitspur(game, model, historyReports) {
               x: dx - 14, y: dy - 14, width: 64, height: 28, rx: 6,
               fill: 'rgba(20, 27, 26, 0.01)',
             }));
-            rollNode.append(dieGlyph(dx, dy, 10, '#e7b96b'));
+            rollNode.append(d10Glyph(dx, dy, null, '#e7b96b'));
             rollNode.append(svgEl('text', {
               x: dx + 15, y: dy + 4,
               fill: '#e7b96b',
@@ -1197,7 +1178,7 @@ function renderZeitspur(game, model, historyReports) {
               x: dx - 14, y: dy - 14, width: 84, height: 28, rx: 6,
               fill: 'rgba(20, 27, 26, 0.01)',
             }));
-            rolledNode.append(dieGlyph(dx, dy, o.probe.wurf, rolledCol));
+            rolledNode.append(d10Glyph(dx, dy, o.probe.wurf, rolledCol));
             const modVal = o.probe.mod ?? 0;
             const modText = modVal ? signed(modVal) : '';
             rolledNode.append(svgEl('text', {
@@ -1234,7 +1215,7 @@ function renderZeitspur(game, model, historyReports) {
       x: 260, y: sealY - 16, width: 186, height: 32, rx: 6,
       fill: 'rgba(20, 27, 26, 0.01)',
     }));
-    ww.append(dieGlyph(430, sealY, 10, '#e7b96b'));
+    ww.append(d10Glyph(430, sealY, null, '#e7b96b'));
     ww.append(svgEl('text', {
       x: 414, y: sealY + 4,
       'text-anchor': 'end',
@@ -1257,7 +1238,7 @@ function renderZeitspur(game, model, historyReports) {
       x: 260, y: sealY - 16, width: 186, height: 32, rx: 6,
       fill: 'rgba(20, 27, 26, 0.01)',
     }));
-    ww.append(dieGlyph(430, sealY, model.weltwurf.wurf, '#78b0c4'));
+    ww.append(d10Glyph(430, sealY, model.weltwurf.wurf, '#78b0c4'));
     ww.append(svgEl('text', {
       x: 414, y: sealY + 4,
       'text-anchor': 'end',
@@ -1280,7 +1261,8 @@ function renderZeitspur(game, model, historyReports) {
 
   const readyToSeal = !model.weltwurf?.offen
     && !(model.orders ?? []).some((o) => o.probe && !Number.isInteger(o.probe.wurf))
-    && (model.probleme ?? []).length === 0;
+    && (model.probleme ?? []).length === 0
+    && !(game.unansweredChoices?.() ?? []).length;
   const sealStroke = readyToSeal ? '#82b889' : '#d79a49';
   const sealFill = readyToSeal ? '#15251d' : '#231c12';
 
@@ -1420,11 +1402,15 @@ if (game) {
     return game.roll(p.id, randomDieRoll(), p.fingerprint);
   };
 
+  game.unansweredChoices = () => (game.view.pendingChoices ?? [])
+    .filter((c) => !game.draft.choices?.[c.id] && c.options?.length);
+
   game.endTurn = async () => {
-    for (const c of game.view.pendingChoices ?? []) {
-      if (!game.draft.choices?.[c.id] && c.options?.length) {
-        game.setChoice(c.id, c.options[0]);
-      }
+    // This surface has no control for pending choices, and sealing would answer
+    // them for the player, so the main board takes over until they are answered.
+    if (game.unansweredChoices().length) {
+      location.href = `/spielbrett/?campaign=${encodeURIComponent(game.cid)}`;
+      return { ok: false, reason: 'choices' };
     }
     const res = await game.seal();
     if (res?.ok) {

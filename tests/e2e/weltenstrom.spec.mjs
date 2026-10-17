@@ -96,6 +96,22 @@ test('Weltenstrom renders all 7 strata, updates labour flows, rolls probes/world
   await expect(worldDie).toBeVisible();
   await worldDie.click();
 
+  // Every rolled die in the timeline is a d10 glyph carrying the raw face value.
+  await expect.poll(() => page.evaluate(() => {
+    const { game } = window.weltenstrom;
+    const values = Object.values(game.draft.rolls ?? {}).map((r) => String(r.value));
+    const faces = [...document.querySelectorAll('#viz-zeit path[d^="M0 -13"]')]
+      .map((p) => p.parentElement.querySelector('text')?.textContent);
+    return values.length >= 2 && values.every((v) => faces.includes(v));
+  })).toBe(true);
+
+  // The fixture carries a pending choice, which the player answers explicitly
+  // because the seal no longer answers it on the player's behalf.
+  await page.evaluate(() => {
+    const { game } = window.weltenstrom;
+    for (const c of game.unansweredChoices()) game.setChoice(c.id, c.options[0]);
+  });
+
   const seal = page.locator('#strom-zug-siegel');
   await expect(seal).toHaveAttribute('data-ready-seal', 'true');
   await seal.click();
@@ -121,4 +137,20 @@ test('Weltenstrom renders all 7 strata, updates labour flows, rolls probes/world
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
 
   expect(errors).toEqual([]);
+});
+
+test('Weltenstrom seal leaves an unanswered pending choice to the player and hands over to the main board', async ({ page }) => {
+  await page.goto(`${base}/spielbrett/strom.html?campaign=module`);
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  // The decision runs before the first await of endTurn, so the draft can be
+  // inspected in the same task, before the navigation to the main board lands.
+  const choice = await page.evaluate(() => {
+    const { game } = window.weltenstrom;
+    game.view.pendingChoices = [{ id: 'spec-choice', options: [{ id: 'a' }, { id: 'b' }] }];
+    game.endTurn();
+    return game.draft.choices?.['spec-choice'] ?? null;
+  });
+  expect(choice).toBeNull();
+  await expect(page).toHaveURL(/\/spielbrett\/\?campaign=module/);
 });

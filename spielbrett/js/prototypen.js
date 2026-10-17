@@ -118,22 +118,22 @@ function svgTwoLineText(x, y, textStr, attrs = {}) {
   return tNode;
 }
 
-function dieGlyph(cx, cy, rollTotal, color) {
-  const val = Math.max(1, Math.min(6, Math.round((rollTotal || 7) / 2)));
-  const pips = {
-    1: [[0, 0]],
-    2: [[-4, -4], [4, 4]],
-    3: [[-4, -4], [0, 0], [4, 4]],
-    4: [[-4, -4], [4, -4], [-4, 4], [4, 4]],
-    5: [[-4, -4], [4, -4], [0, 0], [-4, 4], [4, 4]],
-    6: [[-4, -4], [4, -4], [-4, 0], [4, 0], [-4, 4], [4, 4]],
-  }[val] || [[0, 0]];
-  return svgEl('g', { transform: `translate(${cx.toFixed(1)},${cy.toFixed(1)})` },
-    svgEl('rect', {
-      x: -11, y: -11, width: 22, height: 22, rx: 4,
-      fill: '#141b1a', stroke: color, 'stroke-width': 1.5,
+// Kernel probes and world events roll 1d10, so the glyph is the kite silhouette
+// of a d10 carrying the raw face value; an unrolled die (value null) stays blank.
+export function d10Glyph(cx, cy, value, color) {
+  const g = svgEl('g', { transform: `translate(${cx.toFixed(1)},${cy.toFixed(1)})` },
+    svgEl('path', {
+      d: 'M0 -13 L11 -3 L0 13 L-11 -3 Z',
+      fill: '#141b1a', stroke: color, 'stroke-width': 1.5, 'stroke-linejoin': 'round',
     }),
-    ...pips.map(([px, py]) => svgEl('circle', { cx: px, cy: py, r: 1.7, fill: color })));
+    svgEl('path', { d: 'M-11 -3 L0 1 L11 -3 M0 1 L0 13', fill: 'none', stroke: color, 'stroke-opacity': '0.35', 'stroke-width': 1 }));
+  if (Number.isInteger(value)) {
+    g.append(svgEl('text', {
+      x: 0, y: -1, 'text-anchor': 'middle', fill: color,
+      'font-size': '9', 'font-weight': '700', text: String(value),
+    }));
+  }
+  return g;
 }
 
 function hexDistance(q1, r1, q2, r2) {
@@ -362,7 +362,7 @@ function renderTurnSealBar(svg, cx, cy, game, model) {
           'aria-label': `${t('ui.wuerfeln')}: ${o.titel ?? o.id}`,
         }),
       });
-      dieG.append(dieGlyph(ox + 6, oy, rolled ? o.probe.wurf : 7, rolled ? '#82b889' : '#e2a84b'));
+      dieG.append(d10Glyph(ox + 6, oy, rolled ? o.probe.wurf : null, rolled ? '#82b889' : '#e2a84b'));
       dieG.append(svgEl('text', {
         x: ox + 22, y: oy + 4,
         fill: rolled ? '#82b889' : '#e2a84b',
@@ -389,7 +389,7 @@ function renderTurnSealBar(svg, cx, cy, game, model) {
         'aria-label': t('season.world-roll'),
       } : {}),
     });
-    wG.append(dieGlyph(wx, wy, isOpen ? 7 : (model.weltwurf.wurf ?? 7), isOpen ? '#e2a84b' : '#82b889'));
+    wG.append(d10Glyph(wx, wy, isOpen ? null : model.weltwurf.wurf, isOpen ? '#e2a84b' : '#82b889'));
     wG.append(svgEl('text', {
       x: wx + 18, y: wy + 4,
       fill: isOpen ? '#e2a84b' : '#82b889',
@@ -404,7 +404,7 @@ function renderTurnSealBar(svg, cx, cy, game, model) {
 
   const hasOpenRoll = Boolean(model.weltwurf?.offen)
     || orders.some((o) => o.probe && !Number.isInteger(o.probe.wurf));
-  const ready = !hasOpenRoll && (model.probleme ?? []).length === 0 && game.view?.phase === 'planning';
+  const ready = !hasOpenRoll && (model.probleme ?? []).length === 0 && !(game.unansweredChoices?.() ?? []).length && game.view?.phase === 'planning';
 
   const sealG = svgEl('g', {
     id: 'strom-zug-siegel',
@@ -498,21 +498,26 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
     'stroke-width': 2.2,
   }));
 
-  // Compute how far the current Round Clock has filled (0° -> 90° -> 180° -> 270° -> 360°)
+  // The kernel season has three phases (planning, resolving, agents). The dial
+  // spreads the four decision steps of `planning` over the quadrants, and each
+  // quadrant fills by a count taken from the preview, never by a tuned weight.
   const { stations, totalClans, assignedSum, adjust } = getLabourState(game);
   const hexItems = collectCandidateHexes(game, model);
   const { praxis, bekannt, krone, activeResearchRef, selectResearch } = getKnowledgeData(game, model);
   const orders = model.orders ?? [];
-  const hasMainOrder = orders.some((o) => o.slot === 'haupt');
-  const minorOrderCount = orders.filter((o) => o.slot === 'neben').length;
   const hasOpenOrderRoll = orders.some((o) => o.probe && !Number.isInteger(o.probe.wurf));
   const hasOpenWorldRoll = Boolean(model.weltwurf?.offen);
 
-  // Phase completion ratios (0..1 per quadrant)
+  const slotsUsed = (model.slots?.main?.used ?? 0) + (model.slots?.minor?.used ?? 0);
+  const slotsMax = (model.slots?.main?.max ?? 1) + (model.slots?.minor?.max ?? 2);
+  const rollsTotal = orders.filter((o) => o.probe).length + (model.weltwurf ? 1 : 0);
+  const rollsDone = orders.filter((o) => o.probe && Number.isInteger(o.probe.wurf)).length
+    + (model.weltwurf && !hasOpenWorldRoll ? 1 : 0);
+
   const p1Ratio = Math.min(1, assignedSum / Math.max(1, totalClans));
-  const p2Ratio = Math.min(1, (hasMainOrder ? 0.65 : 0.15) + Math.min(2, minorOrderCount) * 0.175);
-  const p3Ratio = activeResearchRef ? 1.0 : 0.55;
-  const p4Ratio = (!hasOpenOrderRoll && !hasOpenWorldRoll) ? 1.0 : (!hasOpenWorldRoll ? 0.6 : 0.25);
+  const p2Ratio = Math.min(1, slotsUsed / Math.max(1, slotsMax));
+  const p3Ratio = activeResearchRef ? 1 : 0;
+  const p4Ratio = rollsTotal ? rollsDone / rollsTotal : 1;
 
   const phaseArcs = [
     { idx: 0, start: 4,   end: 86,  ratio: p1Ratio, color: '#82b889', title: 'I · ARBEIT & ERNTE' },
@@ -521,11 +526,9 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
     { idx: 3, start: 274, end: 356, ratio: p4Ratio, color: '#d79a49', title: 'IV · PROBEN & CHRONIK' },
   ];
 
-  // Calculate cumulative Clock Hand Angle (advances clockwise as the round fills up!)
-  let clockAngle = 86 * p1Ratio;
-  if (p1Ratio >= 0.99) clockAngle = 90 + 90 * p2Ratio;
-  if (p1Ratio >= 0.99 && p2Ratio >= 0.6) clockAngle = 180 + 90 * p3Ratio;
-  if (p1Ratio >= 0.99 && p2Ratio >= 0.6 && p3Ratio >= 0.9) clockAngle = 270 + 88 * p4Ratio;
+  // The hand sums the four fills, so it advances whichever step the player
+  // completes first and reaches the 12 o'clock seal only when all are done.
+  const clockAngle = 90 * (p1Ratio + p2Ratio + p3Ratio + p4Ratio);
 
   // Draw the 4 Phase Quadrant Background Sectors & Outer Progress Rim (r = 558..576)
   phaseArcs.forEach((ph) => {
@@ -993,7 +996,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
     const probes = rep?.sections?.probes ?? [];
     probes.slice(0, 3).forEach((pr, pIdx) => {
       const dp = polar(CX, CY, 285 + pIdx * 55, deg);
-      svg.append(dieGlyph(dp.x, dp.y, pr.roll ?? 7, '#82b889'));
+      svg.append(d10Glyph(dp.x, dp.y, pr.roll, '#82b889'));
     });
   }
 
@@ -1012,7 +1015,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
           'aria-label': `${t('ui.wuerfeln')}: ${o.titel ?? o.id}`,
         }),
       });
-      dieG.append(dieGlyph(pt.x, pt.y, rolled ? o.probe.wurf : 7, rolled ? '#82b889' : '#e2a84b'));
+      dieG.append(d10Glyph(pt.x, pt.y, rolled ? o.probe.wurf : null, rolled ? '#82b889' : '#e2a84b'));
       dieG.append(svgEl('text', {
         x: pt.x, y: pt.y + 22, 'text-anchor': 'middle',
         fill: rolled ? '#82b889' : '#e2a84b',
@@ -1032,7 +1035,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
       class: isOpen ? 'svg-klickbar strom-wuerfel-offen' : '',
       ...(isOpen ? { role: 'button', tabindex: '0', 'aria-label': t('season.world-roll') } : {}),
     });
-    wG.append(dieGlyph(wPt.x, wPt.y, isOpen ? 7 : (model.weltwurf.wurf ?? 7), isOpen ? '#e2a84b' : '#82b889'));
+    wG.append(d10Glyph(wPt.x, wPt.y, isOpen ? null : model.weltwurf.wurf, isOpen ? '#e2a84b' : '#82b889'));
     wG.append(svgEl('text', {
       x: wPt.x, y: wPt.y + 22, 'text-anchor': 'middle',
       fill: isOpen ? '#e2a84b' : '#82b889', 'font-size': '11', 'font-weight': '700',
@@ -1046,7 +1049,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
   // 12 O'CLOCK ZENITH (0° / 360°): THE CIRCLE CLOSES — TURN SEAL & SEASON SUN
   // --------------------------------------------------------------------------
   const cal = calendarOf(game.env.regeln, game.view.turn);
-  const ready = !hasOpenOrderRoll && !hasOpenWorldRoll && (model.probleme ?? []).length === 0 && game.view?.phase === 'planning';
+  const ready = !hasOpenOrderRoll && !hasOpenWorldRoll && (model.probleme ?? []).length === 0 && !(game.unansweredChoices?.() ?? []).length && game.view?.phase === 'planning';
   const sealPt = polar(CX, CY, 515, 0);
 
   const sealG = svgEl('g', {
@@ -1457,7 +1460,7 @@ export function renderNaturgemaelde(host, game, model, historyReports = []) {
     const rep = historyReports[tIdx];
     const probes = rep?.sections?.probes ?? [];
     probes.slice(0, 5).forEach((pr, pIdx) => {
-      svg.append(dieGlyph(210 + pIdx * 120, sy + 22, pr.roll ?? 7, '#82b889'));
+      svg.append(d10Glyph(210 + pIdx * 120, sy + 22, pr.roll, '#82b889'));
       svg.append(svgEl('text', {
         x: 230 + pIdx * 120, y: sy + 26,
         fill: '#ebe4d4', 'font-size': '11.5',
@@ -1717,7 +1720,7 @@ export function renderWebstuhl(host, game, model) {
     }
   });
 
-  // 5. BOTTOM SELVEDGE (y = 1235): Turn Seal & 2d6 Loom Dice
+  // 5. BOTTOM SELVEDGE (y = 1235): Turn Seal & d10 Loom Dice
   renderTurnSealBar(svg, W / 2, 1235, game, model);
   host.replaceChildren(svg);
 }

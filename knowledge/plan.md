@@ -84,8 +84,6 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 Reproduce a specific current case before implementing an old audit recommendation. The historical observation alone does not establish a current defect.
 
-- Correct the visualization studio's automatic selection of the first option for unanswered pending choices in `js/strom.js` before sealing. Require an explicit player choice, preserve the unfinished draft and cover the behavior with a focused regression. Source inspection confirms the behavior.
-- Verify that the studio's dice glyphs preserve the raw 1d10 face and distinguish an open roll from a rolled value. A general season-transition browser check does not by itself establish glyph fidelity.
 - Review the added Astrolabium, Naturgemälde and Kräfte-Webstuhl renderers for keyboard operation, language handling, narrow layouts and decision-flow parity. These are alternatives to the same campaign, not additional kernel phases. Existing Weltenstrom browser coverage does not by itself exercise their tabs and interactions.
 
 - Observe the compact chat entry, two-stage game-master funnel and harness-curated Season Action Packages in actual play. The copy action, replacement status and short process line are implemented. The view stays compact with open questions while `draft` is `null` during general-to-concrete discovery and reveals the large studio once the derived shared draft is loaded. [frontend.md](frontend.md#chat-workshop-composition) records this interaction contract. Broader artistic acceptance remains open.

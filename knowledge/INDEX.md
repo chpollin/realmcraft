@@ -37,7 +37,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [world-packages.md](world-packages.md) | What a world package contains and how Hochland is built | Domain knowledge |
 | [agents-harness.md](agents-harness.md) | Which agents take part in a turn, what they may read and write and how `/zug` runs | Action |
 | [frontend.md](frontend.md) | How the main board, community view and visualization prototypes use kernel data and which UI rules bind them | Design |
-| [design.md](design.md) | How the OKLCH token architecture, five-pass procedural cartography, HUD ergonomics, council medallions and vertical Weltenstrom visualization are specified | Design |
+| [design.md](design.md) | How the OKLCH token architecture, five-pass procedural cartography, HUD ergonomics, council medallions, vertical Weltenstrom and round dial prototypes are specified | Design |
 | [testing.md](testing.md) | What the tests guarantee, how to run them and where the gaps are | Quality assurance |
 | [decisions.md](decisions.md) | Which fundamental decisions stand, why, and when to revisit them | Decision record |
 | [playtests.md](playtests.md) | What the owner reported in playtests and what became of each entry | Specification input |
