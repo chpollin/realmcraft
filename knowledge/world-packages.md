@@ -39,7 +39,7 @@ A campaign pins the package by hash in `world.lock.json` and in `state.campaign.
 
 ## Tuning
 
-`regeln.json/tuning` is a closed object. Its keys are `maxTier`, `lossAfter`, `newMemberLoyalty`, `slots { main, minor }`, `limits` (candidates per turn, above the highest known tier, open candidates, module activations) and `expected` (counts the budget assumes for scaled flows), plus the optional kernel overrides `spoilage`, `loyaltyDecay`, `machtprobeCap`, `bestimmungBand`, `eventBands`, `terrainRules` (defence and yield factor per terrain and season), `knowledgeSpend`, `approval` and `featureYield`. A missing optional key falls back to `RULES` in `engine/core/rules.js`. `collapseCore` is read by the kernel but not yet accepted by the schema.
+`regeln.json/tuning` is a closed object. Its keys are `maxTier`, `lossAfter`, `newMemberLoyalty`, `slots { main, minor }`, `limits` (candidates per turn, above the highest known tier, open candidates, module activations) and `expected` (counts the budget assumes for scaled flows), plus the optional kernel overrides `spoilage`, `loyaltyDecay`, `machtprobeCap`, `bestimmungBand`, `eventBands`, `terrainRules` (defence and yield factor per terrain and season), `knowledgeSpend`, `collapseCore`, `approval` and `featureYield`. `collapseCore` accepts an integer from 0 through 99 and defaults to 1 in the kernel. A missing optional key falls back to `RULES` in `engine/core/rules.js`.
 
 ## Hochland
 

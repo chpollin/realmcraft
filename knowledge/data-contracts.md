@@ -166,8 +166,7 @@ Issues carry machine-readable `params`, with `params.reason` for a concrete refu
 
 ## Gaps known on main
 
-- `engine/schemas/world.js` does not yet accept `tuning.collapseCore`, so no world can set it and the kernel default applies.
-- Trade ids reveal a global sequence counter.
+- Newly issued trade offers and contracts encode the shared ledger counter in `of-<turn>-<seq>` and `ct-<turn>-<seq>`. Filtering foreign offers from the projection does not remove the inference available from gaps in a player-visible identifier. Identifier privacy remains open.
 - The journal chain is tamper-evident only, `replay` is the full proof.
 
 Further work is routed through [plan.md](plan.md).
