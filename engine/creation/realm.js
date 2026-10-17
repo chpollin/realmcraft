@@ -112,9 +112,22 @@ function landscape(welt, profile, language) {
   welt.terrains.forEach((t) => { t.name = TERRAIN_NAMES[language][terrainIds.indexOf(t.id)] ?? t.id; });
   const depositIds = ['eisenerz', 'kupfererz', 'salz', 'edelsteine', 'flussgold', 'wild', 'gemsen', 'fisch', 'heilkraeuter', 'torf', 'feuerstein', 'lehm'];
   welt.resources.forEach((r) => { r.name = DEPOSIT_NAMES[language][depositIds.indexOf(r.key)] ?? r.key; });
-  welt.names = language === 'en'
-    ? { prefixes: ['North', 'South', 'Clear', 'Reed', 'Stone', 'Willow', 'East', 'West'], suffixes: ['bank', 'field', 'wood', 'water', 'haven', 'reach'] }
-    : { prefixes: ['Nord', 'Süd', 'Klar', 'Schilf', 'Stein', 'Weiden', 'Ost', 'West'], suffixes: ['ufer', 'feld', 'hain', 'wasser', 'grund', 'land'] };
+  const nameTable = {
+    highlands: {
+      de: { prefixes: ['Nord', 'Süd', 'Klar', 'Stein', 'Weiden', 'Grat', 'Firn', 'Kamm'], suffixes: ['ufer', 'feld', 'hain', 'fels', 'grund', 'tal'] },
+      en: { prefixes: ['North', 'South', 'Clear', 'Stone', 'Willow', 'Crest', 'Cairn', 'Ridge'], suffixes: ['bank', 'field', 'wood', 'crag', 'hollow', 'dale'] },
+    },
+    riverlands: {
+      de: { prefixes: ['Schilf', 'Wehr', 'Flut', 'Schlick', 'Auen', 'Fähr', 'Siel', 'Kiel'], suffixes: ['delta', 'werder', 'furt', 'wasser', 'bruch', 'ufer'] },
+      en: { prefixes: ['Reed', 'Weir', 'Tide', 'Silt', 'Meadow', 'Ferry', 'Sluice', 'Channel'], suffixes: ['delta', 'holm', 'ford', 'water', 'marsh', 'bank'] },
+    },
+    drylands: {
+      de: { prefixes: ['Salz', 'Dorn', 'Staub', 'Ocker', 'Glut', 'Wüsten', 'Klippen', 'Wind'], suffixes: ['senke', 'pfanne', 'kamm', 'brunnen', 'öd', 'steppe'] },
+      en: { prefixes: ['Salt', 'Thorn', 'Dust', 'Ochre', 'Ember', 'Dune', 'Mesa', 'Wind'], suffixes: ['basin', 'pan', 'ridge', 'well', 'waste', 'steppe'] },
+    },
+  };
+  const chosenNames = (nameTable[profile] ?? nameTable.highlands)[language === 'en' ? 'en' : 'de'];
+  welt.names = { prefixes: [...chosenNames.prefixes], suffixes: [...chosenNames.suffixes] };
 }
 
 function developments(base, en) {

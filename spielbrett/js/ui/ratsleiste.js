@@ -11,11 +11,14 @@ import { loyaltyMeter } from './dialoge.js';
 import { t } from '../i18n/index.js';
 import { describeParams } from '../data/adapter.js';
 
-// Role symbols of the Hochland roles; a role of another world falls back to the people symbol.
+// Role symbols of the Hochland and custom realm roles; a role of another world falls back to the people symbol.
 export const ROLE_ICON = {
   bundessprecherin: 'rat', erste: 'bestimmung', feldaelteste: 'nahrung', feuerhueterin: 'magie', herdenaelteste: 'herde',
   herdenreiterin: 'herde', knochenruferin: 'opfer', kriegsherr: 'krieger', pfadmeister: 'bewegung', schmied: 'technik',
   vogt: 'pass', zirkelmeister: 'magie',
+  'rc-role-0-0': 'rat', 'rc-role-0-1': 'nahrung', 'rc-role-0-2': 'bewegung',
+  'rc-role-1-0': 'rat', 'rc-role-1-1': 'nahrung', 'rc-role-1-2': 'bewegung',
+  'learning-delegate': 'wissen',
 };
 const STORE = 'spielbrett.ratsleiste';
 
@@ -42,7 +45,7 @@ function memberRows(api) {
   const people = view.peoples[game.pid];
   const derived = new Map((view.derived?.[game.pid]?.council ?? []).map((c) => [c.id, c]));
   const leads = Object.entries(game.draft.lead ?? {});
-  return model.rat.map((a) => {
+  return model.rat.map((a, idx) => {
     const m = people.council.find((x) => x.id === a.id);
     const d = derived.get(a.id);
     const led = leads.filter(([, member]) => member === a.id).map(([oid]) => model.orders.find((o) => o.id === oid)).filter(Boolean);
@@ -50,6 +53,7 @@ function memberRows(api) {
     const settlement = d?.location?.settlement ? view.map.settlements.find((x) => x.id === d.location.settlement) : null;
     return {
       ...a,
+      slotIdx: idx % 3,
       icon: ROLE_ICON[m?.role] ?? 'volk',
       auftrag: led.length ? { icon: 'wuerfel', text: t.fmt('board.council.leads', { orders: led.map((o) => o.titel).join(', ') }) } : null,
       ort: settlement?.name ?? (tile ? describeParams(view, game.env, t, { params: { tile } }, game.world) : null),
@@ -96,6 +100,7 @@ export function renderRatsleiste(api) {
       class: `rl-karte${a.leader ? ' is-anfuehrer' : ''}`,
       type: 'button',
       'data-rat': a.id,
+      'data-role-slot': String(a.slotIdx ?? 0),
       'aria-label': [a.name, a.rolle, `${t('ui.loyalitaet')} ${signed(a.loyalitaet)}`, a.ort ? `${t('board.council.place')} ${a.ort}` : null, a.auftrag?.text, a.fuehrung != null ? `${t('board.council.lead-probe')} ${signed(a.fuehrung)}` : null].filter(Boolean).join(', '),
       onclick: () => {
         api.openDialog('rat');

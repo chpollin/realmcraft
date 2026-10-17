@@ -45,6 +45,14 @@ export const locale = () => (current === 'de' ? 'de-DE' : 'en-GB');
 /** The world package's label files, labels.json first, then any labels.<lang>.json. */
 export function setWorldLabels(files) {
   worldFiles = files;
+  const storedLang = readSettings().language;
+  if (!LANGUAGES.includes(storedLang) && Array.isArray(files) && files.length === 1 && LANGUAGES.includes(files[0]?.locale) && files[0].locale !== current) {
+    current = files[0].locale;
+    active = makeLabels(worldFiles, current);
+    if (globalThis.document?.documentElement) applyStatic();
+    for (const fn of listeners) fn(current);
+    return;
+  }
   active = makeLabels(worldFiles, current);
 }
 

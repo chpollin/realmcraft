@@ -238,7 +238,7 @@ export function renderOrders(api, { freshId } = {}) {
   const locked = model.phase === 'A';
   ol.replaceChildren(
     ...(event ? [event] : []),
-    ...model.orders.map((o) => el('li', { class: `befehl${o.id === freshId ? ' is-new' : ''}${o.issues?.length ? ' is-problem' : ''}`, 'data-order-id': o.id },
+    ...model.orders.map((o) => el('li', { class: `befehl${o.type === 'research.assign' ? ' is-forschung-chip' : ''}${o.id === freshId ? ' is-new' : ''}${o.issues?.length ? ' is-problem' : ''}`, 'data-order-id': o.id, 'data-order-type': o.type },
       icon(SLOT_ICON[slotOf(o)] ?? 'enthaltung', { size: 16, cls: `befehl-art ${o.art}`, label: slotName(slotOf(o)) }),
       el('span', { class: 'befehl-text' },
         el('span', { class: 'befehl-titel', text: o.titel }), ' ',

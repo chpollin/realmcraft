@@ -272,9 +272,7 @@ export class MapView {
       cells.push({ tile, def, x: p.x, y: p.y, status: status ?? 'frontier', k });
     }
 
-    // Terrain fill on its own layer, drawn back softened: neighbouring terrains
-    // blend into a landscape and the hex structure is carried by the faint grid,
-    // the marks and the selection instead of by hard colour steps.
+    // Pass 1 & 2: Base biome fill with subtle edge blending and directional NW-SE relief shading.
     const tctx = this.terrainCanvas.getContext('2d');
     tctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     tctx.clearRect(0, 0, this.w, this.h);
@@ -282,24 +280,41 @@ export class MapView {
       const mode = c.status === 'frontier' ? 'frontier' : muted ? 'muted' : 'full';
       c.colour = this.tileColour(c.tile, c.def, mode);
       tctx.beginPath();
-      hexPath(tctx, c.x, c.y, s + 0.6);
+      hexPath(tctx, c.x, c.y, s + 0.8);
       tctx.fillStyle = col(c.colour);
       tctx.fill();
     }
     ctx.save();
-    ctx.filter = `blur(${Math.max(1.5, s * 0.2).toFixed(1)}px)`;
+    ctx.filter = `blur(${Math.max(0.8, s * 0.055).toFixed(1)}px)`;
     ctx.drawImage(this.terrainCanvas, 0, 0, this.w, this.h);
     ctx.restore();
 
-    // Faint hex grid only when zoomed in, so the board stays a landscape.
-    if (s > 26) {
-      ctx.strokeStyle = col('--map-grid', { a: Math.min(0.16, (s - 26) / 80) });
-      ctx.lineWidth = 1;
+    // Crisp hex relief facet and subtle cartographic tile rim
+    for (const c of cells) {
+      ctx.beginPath();
+      hexPath(ctx, c.x, c.y, s + 0.25);
+      ctx.fillStyle = col(c.colour, { a: 0.76 });
+      ctx.fill();
+      if (c.status !== 'frontier' && !c.def?.water && s >= 14) {
+        const grad = ctx.createLinearGradient(c.x - s * 0.7, c.y - s * 0.7, c.x + s * 0.7, c.y + s * 0.7);
+        grad.addColorStop(0, 'oklch(0.96 0.02 85 / 0.055)');
+        grad.addColorStop(0.5, 'oklch(0.5 0 0 / 0)');
+        grad.addColorStop(1, 'oklch(0.12 0.01 160 / 0.085)');
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+    }
+
+    // Subtle cartographic hex graticule
+    if (s > 18) {
+      ctx.strokeStyle = col('--map-grid', { a: Math.min(0.14, 0.04 + (s - 18) / 110) });
+      ctx.lineWidth = 0.8;
       ctx.beginPath();
       for (const c of cells) if (c.status !== 'frontier') hexPath(ctx, c.x, c.y, s);
       ctx.stroke();
     }
 
+    this.drawCoastlines(cells, s);
     this.drawRivers(cells, s);
 
     for (const c of cells) {
@@ -333,12 +348,49 @@ export class MapView {
     ctx.fillRect(0, 0, this.w, this.h);
   }
 
+  /** Concentric cartographic coastline ripples and shoreline casing where water meets land. */
+  drawCoastlines(cells, s) {
+    if (s < 12) return;
+    const { ctx, model } = this;
+    const shore = new Path2D();
+    const ripple1 = new Path2D();
+    const ripple2 = new Path2D();
+    for (const c of cells) {
+      if (c.status === 'frontier' || !c.def?.water) continue;
+      neighbors(c.tile.q, c.tile.r).forEach((nb, i) => {
+        const nt = tileAt(model.world, nb.q, nb.r);
+        if (model.terrains.get(nt.terrain)?.water) return;
+        const [a, b] = EDGE_CORNERS[i];
+        shore.moveTo(c.x + CORNERS[a][0] * s * 0.99, c.y + CORNERS[a][1] * s * 0.99);
+        shore.lineTo(c.x + CORNERS[b][0] * s * 0.99, c.y + CORNERS[b][1] * s * 0.99);
+        ripple1.moveTo(c.x + CORNERS[a][0] * s * 0.89, c.y + CORNERS[a][1] * s * 0.89);
+        ripple1.lineTo(c.x + CORNERS[b][0] * s * 0.89, c.y + CORNERS[b][1] * s * 0.89);
+        ripple2.moveTo(c.x + CORNERS[a][0] * s * 0.78, c.y + CORNERS[a][1] * s * 0.78);
+        ripple2.lineTo(c.x + CORNERS[b][0] * s * 0.78, c.y + CORNERS[b][1] * s * 0.78);
+      });
+    }
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.42 });
+    ctx.lineWidth = Math.max(1.2, s * 0.055);
+    ctx.stroke(shore);
+    ctx.strokeStyle = col('--map-river', { dL: 0.16, a: 0.34 });
+    ctx.lineWidth = Math.max(0.8, s * 0.03);
+    ctx.stroke(ripple1);
+    ctx.strokeStyle = col('--map-river', { dL: 0.14, a: 0.18 });
+    ctx.lineWidth = Math.max(0.6, s * 0.022);
+    ctx.stroke(ripple2);
+    ctx.restore();
+  }
+
   drawRivers(cells, s) {
     const { ctx, model } = this;
     const isWet = (q, r) => {
       const t = tileAt(model.world, q, r);
       return t.river || model.terrains.get(t.terrain)?.water;
     };
+    ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     const paths = new Path2D();
@@ -363,12 +415,19 @@ export class MapView {
         }
       }
     }
+    // Outer alluvial bank casing
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.52 });
+    ctx.lineWidth = Math.max(2.4, s * 0.175);
+    ctx.stroke(paths);
+    // Main river channel
     ctx.strokeStyle = col('--map-river');
-    ctx.lineWidth = Math.max(1.4, s * 0.11);
+    ctx.lineWidth = Math.max(1.5, s * 0.115);
     ctx.stroke(paths);
-    ctx.strokeStyle = col('--map-river', { dL: 0.14, a: 0.55 });
-    ctx.lineWidth = Math.max(0.6, s * 0.035);
+    // Specular water highlight thread
+    ctx.strokeStyle = col('--map-river', { dL: 0.16, a: 0.62 });
+    ctx.lineWidth = Math.max(0.65, s * 0.04);
     ctx.stroke(paths);
+    ctx.restore();
   }
 
   drawFog(cells, s) {
@@ -519,7 +578,7 @@ export class MapView {
     const hovered = this.hoverRegion();
     if (hovered) {
       ctx.save();
-      ctx.fillStyle = col('--map-region-hover', { a: 0.13 });
+      ctx.fillStyle = col('--map-region-hover', { a: 0.11 });
       for (const c of cells) {
         if (c.status === 'frontier' || c.tile.regionId !== hovered) continue;
         ctx.beginPath();
@@ -528,31 +587,50 @@ export class MapView {
       }
       ctx.restore();
     }
+    const neutralShared = new Path2D();
     const byStyle = new Map();
+    const seenShared = new Set();
     for (const c of cells) {
       if (c.status === 'frontier') continue;
       const id = c.tile.regionId;
       const strong = id === hovered;
+      const owner = owners.get(c.k) ?? null;
       neighbors(c.tile.q, c.tile.r).forEach((nb, i) => {
-        if (tileAt(this.model.world, nb.q, nb.r).regionId === id) return;
-        const owner = owners.get(c.k) ?? null;
+        const nt = tileAt(this.model.world, nb.q, nb.r);
+        if (nt.regionId === id) return;
+        const [a, b] = EDGE_CORNERS[i];
+        const nk = hexKey(nb.q, nb.r);
+        const edgeId = c.k < nk ? `${c.k}|${nk}` : `${nk}|${c.k}`;
+        if (!seenShared.has(edgeId)) {
+          seenShared.add(edgeId);
+          neutralShared.moveTo(c.x + CORNERS[a][0] * s, c.y + CORNERS[a][1] * s);
+          neutralShared.lineTo(c.x + CORNERS[b][0] * s, c.y + CORNERS[b][1] * s);
+        }
+        if (!owner && !strong) return;
         const key = `${owner ?? ''}|${strong ? 1 : 0}`;
         let path = byStyle.get(key);
         if (!path) byStyle.set(key, path = { owner, strong, p: new Path2D() });
-        const [a, b] = EDGE_CORNERS[i];
-        const inset = 0.93;
+        const inset = 0.94;
         path.p.moveTo(c.x + CORNERS[a][0] * s * inset, c.y + CORNERS[a][1] * s * inset);
         path.p.lineTo(c.x + CORNERS[b][0] * s * inset, c.y + CORNERS[b][1] * s * inset);
       });
     }
     ctx.save();
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Single-stroke cartographic province boundary
+    ctx.strokeStyle = col('--map-label-halo', { a: 0.28 });
+    ctx.lineWidth = Math.max(1.4, s * 0.055);
+    ctx.stroke(neutralShared);
+    ctx.strokeStyle = col('--map-region', { a: 0.32 });
+    ctx.lineWidth = Math.max(0.8, s * 0.024);
+    ctx.setLineDash([Math.max(2, s * 0.1), Math.max(2, s * 0.07)]);
+    ctx.stroke(neutralShared);
+    ctx.setLineDash([]);
+    // Asymmetric inner tint for controlled or hovered provinces
     for (const { owner, strong, p } of byStyle.values()) {
-      ctx.strokeStyle = col('--map-label-halo', { a: strong ? 0.5 : 0.3 });
-      ctx.lineWidth = Math.max(2, s * (strong ? 0.13 : 0.09));
-      ctx.stroke(p);
-      ctx.strokeStyle = owner ? col(peopleToken(owner), { a: strong ? 0.95 : 0.6 }) : col('--map-region', { a: strong ? 0.9 : 0.42 });
-      ctx.lineWidth = Math.max(1, s * (strong ? 0.06 : 0.035));
+      ctx.strokeStyle = owner ? col(peopleToken(owner), { a: strong ? 0.88 : 0.48 }) : col('--map-region', { a: 0.72 });
+      ctx.lineWidth = Math.max(1.4, s * (strong ? 0.065 : 0.045));
       ctx.stroke(p);
     }
     ctx.restore();
@@ -571,8 +649,9 @@ export class MapView {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const px = Math.round(Math.min(26, Math.max(14, s * 0.55)));
-    ctx.font = `500 ${px}px ${this.fontUi}`;
+    const px = Math.round(Math.min(24, Math.max(13, s * 0.5)));
+    ctx.font = `italic 600 ${px}px ${this.fontWorld}`;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0.04em';
     const marks = [...model.units, ...model.places]
       .filter((o) => model.known[hexKey(o.q, o.r)])
       .map((o) => this.hexScreen(o.q, o.r));
@@ -595,11 +674,11 @@ export class MapView {
       // A controlled province carries its owner's flag before the name.
       const owner = this.ownership().get(this.regions().get(id)?.anchor.k);
       if (owner) this.icon('besitz', x - half - s * 0.05, y, Math.max(12, px * 0.8), col(peopleToken(owner)), col('--map-label-halo', { a: 0.7 }));
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 3.5;
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = col('--map-label-halo', { a: lit ? 0.6 : 0.4 });
+      ctx.strokeStyle = col('--map-label-halo', { a: lit ? 0.78 : 0.62 });
       ctx.strokeText(name, x, y);
-      ctx.fillStyle = col('--map-label', { a: lit ? 0.95 : 0.7 });
+      ctx.fillStyle = col('--map-label', { a: lit ? 0.98 : 0.84 });
       ctx.fillText(name, x, y);
     }
     ctx.restore();

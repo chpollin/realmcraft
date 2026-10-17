@@ -22,7 +22,7 @@ RealmCraft is a turn-based open-world strategy game played through an existing A
 
 ## Reading order
 
-A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [plan.md](plan.md) and any incoming material in [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md). Running a game starts with [operations.md](operations.md).
+A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [plan.md](plan.md) and any incoming material in [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md) and [design.md](design.md). Running a game starts with [operations.md](operations.md).
 
 ## Documents
 
@@ -37,6 +37,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [world-packages.md](world-packages.md) | What a world package contains and how Hochland is built | Domain knowledge |
 | [agents-harness.md](agents-harness.md) | Which agents take part in a turn, what they may read and write and how `/zug` runs | Action |
 | [frontend.md](frontend.md) | How the game board, action planning and community view use kernel data and which UI rules bind them | Design |
+| [design.md](design.md) | How the visual token system, procedural 2D cartography, HUD ergonomics and council medallions are specified | Design |
 | [testing.md](testing.md) | What the tests guarantee, how to run them and where the gaps are | Quality assurance |
 | [decisions.md](decisions.md) | Which fundamental decisions stand, why, and when to revisit them | Decision record |
 | [playtests.md](playtests.md) | What the owner reported in playtests and what became of each entry | Specification input |

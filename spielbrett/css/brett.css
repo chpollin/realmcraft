@@ -30,16 +30,18 @@
     align-items: center;
     gap: var(--space-5);
     padding-inline: var(--space-4);
-    background: var(--night-1);
-    border-block-end: 1px solid var(--hairline);
-    box-shadow: 0 4px 16px var(--scrim);
+    background: linear-gradient(180deg, var(--night-2) 0%, var(--night-1) 100%);
+    border-block-end: 1px solid oklch(from var(--ember) l c h / 0.24);
+    box-shadow: inset 0 -1px 0 oklch(0.95 0.02 85 / 0.06), 0 4px 16px var(--scrim);
     min-inline-size: 0;
   }
   .volk { flex: none; display: flex; align-items: baseline; gap: var(--space-3); }
   .volk-name {
     font-family: var(--font-world);
-    font-size: 1.125rem;
+    font-size: 1.15rem;
     font-weight: 600;
+    letter-spacing: 0.015em;
+    color: var(--ink);
     white-space: nowrap;
   }
   .zeit { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--ink-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -242,27 +244,37 @@
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: var(--space-5);
+    gap: var(--space-4);
     min-block-size: var(--zug-h);
     padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
-    background: var(--night-1);
-    border-block-start: 1px solid var(--hairline);
-    box-shadow: 0 -4px 16px var(--scrim);
+    background: linear-gradient(180deg, var(--night-2) 0%, var(--night-1) 100%);
+    border-block-start: 1px solid oklch(from var(--ember) l c h / 0.24);
+    box-shadow: inset 0 1px 0 oklch(0.95 0.02 85 / 0.07), 0 -6px 20px var(--scrim);
   }
   .zug-bereich { display: flex; align-items: center; gap: var(--space-3); min-inline-size: 0; flex: 1 1 auto; }
-  .budget { display: flex; flex-direction: column; gap: 2px; font-size: var(--step--1); color: var(--ink-subtle); white-space: nowrap; }
+  .budget { display: flex; flex-direction: column; gap: 2px; font-size: var(--step--1); color: var(--ink-subtle); white-space: nowrap; flex: none; }
   .budget span { display: inline-flex; align-items: center; gap: var(--space-2); }
-  .befehle { display: flex; gap: var(--space-2); overflow-x: auto; scrollbar-width: thin; padding-block: 2px; }
+  .befehle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-block: 2px;
+  }
+  .befehle::-webkit-scrollbar { display: none; }
   .befehl {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    min-block-size: 2.75rem;
+    min-block-size: 2.65rem;
     flex: none;
-    max-inline-size: min(26rem, 85vw);
+    max-inline-size: min(18rem, 80vw);
     padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
     border-radius: var(--radius-s);
+    border: 1px solid var(--hairline);
     background: var(--night-2);
+    box-shadow: inset 0 1px 0 oklch(0.95 0.02 85 / 0.05);
     white-space: nowrap;
   }
   .befehl.is-new { animation: befehl-in var(--dur-3) var(--ease-spring); }
@@ -270,25 +282,28 @@
   .befehl-art { inline-size: 7px; block-size: 7px; rotate: 45deg; border-radius: 1px; background: var(--ember); }
   .befehl-art.neben { background: transparent; border: 1.5px solid var(--ember); }
   .befehl-art.frei { background: var(--ink-faint); }
-  .befehl-text { min-inline-size: 0; white-space: normal; overflow-wrap: anywhere; }
+  .befehl-text { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .befehl-titel { font-weight: 600; }
   .befehl-ziel { color: var(--ink-subtle); font-size: var(--step--1); }
-  .befehl-wurf { font-size: var(--step--1); font-weight: 600; }
+  @media (min-width: 761px) {
+    .befehl.is-forschung-chip:not(.is-problem) { display: none; }
+  }
+  .befehl-wurf { font-size: var(--step--1); font-weight: 600; font-variant-numeric: tabular-nums; }
   .befehl-wurf.gut { color: var(--up); }
   .befehl-wurf.schlecht { color: var(--down); }
-  .befehl .icon-btn { inline-size: 2rem; block-size: 2rem; }
+  .befehl .icon-btn { inline-size: 2rem; block-size: 2rem; flex: none; }
   .befehle-einstieg { display: flex; align-items: center; flex: none; }
   .befehl-planen {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    min-block-size: 2.75rem;
+    min-block-size: 2.65rem;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-s);
     color: var(--ember);
     background: var(--night-2);
-    box-shadow: inset 0 0 0 1px var(--ember);
+    box-shadow: inset 0 0 0 1px oklch(from var(--ember) l c h / 0.65);
     font-weight: 600;
     white-space: normal;
     text-align: start;

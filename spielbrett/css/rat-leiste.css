@@ -12,15 +12,16 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    padding: var(--space-1);
+    padding: 6px;
     border-radius: var(--radius-m);
-    border: 1px solid var(--hairline);
-    background: var(--night-1);
-    box-shadow: var(--shadow-float);
+    border: 1px solid oklch(from var(--ember) l c h / 0.24);
+    background: linear-gradient(180deg, var(--night-2) 0%, var(--night-1) 100%);
+    box-shadow: inset 0 1px 0 oklch(0.95 0.02 85 / 0.07), var(--shadow-float);
   }
   .ratsleiste:empty { display: none; }
-  .rl-schalter { align-self: flex-start; }
-  .rl-liste { display: grid; gap: 2px; overflow-y: auto; scrollbar-width: thin; }
+  .rl-schalter { align-self: center; }
+  .ratsleiste[data-zu="false"] .rl-schalter { align-self: flex-start; }
+  .rl-liste { display: grid; gap: 6px; overflow-y: auto; scrollbar-width: thin; padding: 2px; }
   .rl-liste > li { display: grid; grid-template-columns: 1fr auto; align-items: start; }
   .rl-liste > li > .has-tip { display: block; min-inline-size: 0; }
   .rl-zeigen { inline-size: 2rem; block-size: 2rem; margin-block-start: var(--space-1); color: var(--ink-subtle); }
@@ -31,48 +32,59 @@
     align-items: center;
     gap: var(--space-2);
     inline-size: 100%;
-    padding: var(--space-1);
+    padding: 5px;
     border-radius: var(--radius-s);
     text-align: start;
+    transition: background var(--dur-1);
   }
-  .ratsleiste[data-zu="false"] .rl-karte { inline-size: 15rem; }
+  .ratsleiste[data-zu="true"] .rl-karte {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 6px 4px 4px;
+  }
+  .ratsleiste[data-zu="false"] .rl-karte { inline-size: 15.5rem; }
   .rl-karte:hover { background: var(--hover-wash); }
   .rl-karte:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-  .rl-karte .portraet { --ring: var(--ink-faint); }
+  .rl-karte .portraet { --ring: oklch(0.58 0.035 85); }
+  .rl-karte[data-role-slot="0"] .portraet { background: radial-gradient(circle at 35% 30%, oklch(0.36 0.055 245), oklch(0.22 0.03 245)); }
+  .rl-karte[data-role-slot="1"] .portraet { background: radial-gradient(circle at 35% 30%, oklch(0.38 0.065 78), oklch(0.23 0.035 78)); }
+  .rl-karte[data-role-slot="2"] .portraet { background: radial-gradient(circle at 35% 30%, oklch(0.36 0.055 152), oklch(0.22 0.03 152)); }
   .rl-karte.is-anfuehrer .portraet { --ring: var(--ember); }
   .rl-bild { position: relative; display: grid; }
   .rl-rolle {
     position: absolute;
     inset-block-end: -3px;
-    inset-inline-end: -5px;
+    inset-inline-end: -4px;
     display: grid;
     place-items: center;
-    inline-size: 1.2rem;
-    block-size: 1.2rem;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
     border-radius: 50%;
     background: var(--night-2);
-    color: var(--ink-dim);
-    box-shadow: 0 0 0 1.5px var(--night-1);
+    color: var(--ember);
+    box-shadow: 0 0 0 1.5px var(--night-1), inset 0 0 0 1px oklch(from var(--ember) l c h / 0.35);
   }
   .rl-text { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px var(--space-2); min-inline-size: 0; }
   .rl-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rl-loyal { font-size: var(--step--1); font-weight: 600; color: var(--ink-subtle); }
   .rl-loyal-badge {
     position: absolute;
-    inset-block-start: 0;
-    inset-inline-end: 0;
-    min-inline-size: 1.5rem;
-    padding: 1px 3px;
-    border-radius: var(--radius-s);
+    inset-block-start: 1px;
+    inset-inline-end: 1px;
+    min-inline-size: 1.45rem;
+    padding: 1px 4px;
+    border-radius: 999px;
     background: var(--night-1);
+    box-shadow: 0 0 0 1px var(--hairline);
     color: var(--ink-dim);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
     text-align: center;
     pointer-events: none;
   }
-  .rl-loyal-badge.up { color: var(--up); }
-  .rl-loyal-badge.down { color: var(--down); }
+  .rl-loyal-badge.up { color: var(--up); box-shadow: 0 0 0 1px oklch(from var(--up) l c h / 0.35); }
+  .rl-loyal-badge.down { color: var(--down); box-shadow: 0 0 0 1px oklch(from var(--down) l c h / 0.35); }
   .rl-loyal.up { color: var(--up); }
   .rl-loyal.down { color: var(--down); }
   .rl-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 1px var(--space-2); }
@@ -95,7 +107,7 @@
   .rl-chip.gegen { color: var(--ink-subtle); }
 
   /* Action slots open planning or the queued order; research keeps its own budget. */
-  .budget { display: flex; flex-direction: row; align-items: center; gap: var(--space-4); }
+  .budget { display: flex; flex-direction: row; align-items: center; gap: var(--space-3); }
   .budget > .has-tip { display: inline-flex; }
   .slot-gruppe { display: grid; justify-items: start; gap: 2px; }
   .slot-name { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--ink-subtle); }
@@ -105,8 +117,8 @@
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
+    inline-size: 2.65rem;
+    block-size: 2.65rem;
     border-radius: var(--radius-s);
     border: 1.5px dashed var(--ink-faint);
     color: var(--ink-faint);
@@ -132,8 +144,8 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    max-inline-size: 13rem;
-    min-block-size: 2.75rem;
+    max-inline-size: 14rem;
+    min-block-size: 2.65rem;
     margin-block-start: 1rem;
     padding-inline: var(--space-3);
     border-radius: var(--radius-s);
@@ -145,9 +157,9 @@
   .forschung-budget.is-ziel { box-shadow: 0 0 0 4px oklch(from var(--origin-forschung) l c h / 0.35); }
   .forschung-budget:hover { background: oklch(from var(--origin-forschung) l c h / 0.2); }
   .forschung-budget:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-  .fb-punkte { font-weight: 700; color: var(--origin-forschung); }
+  .fb-punkte { font-weight: 700; color: var(--origin-forschung); font-variant-numeric: tabular-nums; }
   .fb-projekt { display: grid; gap: 3px; min-inline-size: 0; }
-  .fb-name { overflow-wrap: anywhere; font-size: var(--step--1); font-weight: 500; }
+  .fb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--step--1); font-weight: 500; }
   .fb-balken { display: flex; block-size: 4px; border-radius: var(--radius-s); background: oklch(from var(--origin-forschung) l c h / 0.2); overflow: hidden; }
   .fb-stand { background: var(--origin-forschung); }
   .fb-zuwachs { background: var(--ember); }
