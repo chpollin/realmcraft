@@ -17,7 +17,7 @@ import { hashValue } from '../../../engine/core/hash.js';
 
 const SAVE_DELAY = 250;
 const RECONCILE_INTERVAL = 5000;
-const LIVE_PARTS = ['view', 'status', 'chronik', 'report'];
+const LIVE_PARTS = ['view', 'draft', 'status', 'chronik', 'report'];
 const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 // Agents of status.json and sources of log entries on the origin tokens the board colours by.
 const ORIGIN = { kernel: 'kern', player: 'kern', world: 'welt', rival: 'rivalen', research: 'forschung', council: 'rat', chronicler: 'chronist', image: 'chronist' };
@@ -472,7 +472,19 @@ export async function createGame(model, { cid: wanted } = {}) {
         model.zz.phaseTitel = phaseTitle();
       }
       emit('view', { before, after: { turn: g.view.turn, phase: g.view.phase } });
-      live.request('status', 'chronik', 'report');
+      live.request('draft', 'status', 'chronik', 'report');
+    } else if (part === 'draft') {
+      if (hasUnsavedDraft() || persistence.locked) return;
+      const stored = await server.draft(cid);
+      if (!current() || hasUnsavedDraft() || persistence.locked) return;
+      const next = draftFor(g.view, stored?.draft ?? null);
+      if (!sameJson(next, g.draft)) {
+        g.draft = next;
+        g.saveError = null;
+        persistence.markClean();
+        refresh();
+        emit('draft');
+      }
     } else if (part === 'status') {
       await loadStatus(current);
     } else if (part === 'chronik') {

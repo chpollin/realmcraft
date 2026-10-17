@@ -61,7 +61,7 @@ export const server = {
   activate: (cid) => post(`${a(cid)}/activate`, {}),
 
   /**
-   * Server-Sent-Events of one campaign: view, status, chronik, report. The
+   * Server-Sent-Events of one campaign: view, draft, status, chronik, report. The
    * handler receives (event, data); events of other campaigns are dropped.
    */
   subscribe(cid, handler) {
@@ -69,7 +69,7 @@ export const server = {
     const es = new EventSource('/events');
     // Reconcile changes that happened before connection or during reconnect.
     es.addEventListener('hello', () => handler('view', { campaign: cid }));
-    for (const ev of ['view', 'status', 'chronik', 'report']) {
+    for (const ev of ['view', 'draft', 'status', 'chronik', 'report']) {
       es.addEventListener(ev, (e) => {
         let data = null;
         try { data = JSON.parse(e.data); } catch { return; }

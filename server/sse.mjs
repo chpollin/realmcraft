@@ -1,5 +1,5 @@
 // Server-Sent-Events on /events. After 'hello' the board receives 'view',
-// 'status', 'chronik' and 'report', each with JSON data { campaign, file },
+// 'draft', 'status', 'chronik' and 'report', each with JSON data { campaign, file },
 // whenever the kernel rewrites one of those files.
 import { watch } from 'node:fs';
 import { CAMPAIGNS_DIR, ID_RE } from './config.mjs';
@@ -37,19 +37,22 @@ function notify(event, cid, file, key = '') {
   clearTimeout(timers.get(id));
   timers.set(id, setTimeout(async () => {
     timers.delete(id);
-    if (event === 'view' && (await playerOf(cid)) !== key) return;
+    if ((event === 'view' || event === 'draft') && (await playerOf(cid)) !== key) return;
     broadcast(event, JSON.stringify({ campaign: cid, file }));
   }, 120));
 }
 
 /**
- * Pushes 'view' and 'status' of a campaign without waiting for the watcher.
+ * Pushes 'view', 'draft' and 'status' of a campaign without waiting for the watcher.
  * A load swaps whole folders, and a renamed folder is no file event the
  * watcher matches. Debounced together with the watcher's own events.
  */
 export async function pushCampaign(cid) {
   const player = await playerOf(cid);
-  if (player) notify('view', cid, `view/${player}.json`, player);
+  if (player) {
+    notify('view', cid, `view/${player}.json`, player);
+    notify('draft', cid, `drafts/${player}.json`, player);
+  }
   notify('status', cid, 'status.json');
 }
 
@@ -61,6 +64,7 @@ function onChange(_event, filename) {
   let m;
   if ((m = file.match(/^view\/([a-z][a-z0-9-]*)\.json$/))) notify('view', cid, file, m[1]);
   else if ((m = file.match(/^view\/([a-z][a-z0-9-]*)\/events\/[^/]+\.json$/))) notify('view', cid, file, m[1]);
+  else if ((m = file.match(/^drafts\/([a-z][a-z0-9-]*)\.json$/))) notify('draft', cid, file, m[1]);
   else if (file === 'status.json') notify('status', cid, file);
   else if (/^narrative\/chronik\/[^/]+\.md$/.test(file)) notify('chronik', cid, file);
   else if (/^log\/T\d{4}\.json$/.test(file)) notify('report', cid, file);

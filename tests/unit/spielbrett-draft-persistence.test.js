@@ -167,6 +167,12 @@ test('a refused snapshot operation releases the barrier for further edits', asyn
   assert.equal(writes, 1);
 });
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { hashValue } from '../../engine/core/hash.js';
+import { server } from '../../spielbrett/js/data/server.js';
+import { createGame } from '../../spielbrett/js/data/game.js';
+
 test('a canonical new-turn draft remains clean when an older write is refused', async () => {
   let draft = { turn: 0, orders: [] };
   const pending = deferred();
@@ -180,4 +186,59 @@ test('a canonical new-turn draft remains clean when an older write is refused', 
   assert.equal((await flushing).stored, true);
   assert.equal(persistence.unsaved, false);
   assert.equal(writes, 1);
+});
+
+test('external SSE draft updates reload server.draft when clean and preserve unsaved local edits', async () => {
+  const json = (p) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../${p}`, import.meta.url)), 'utf8'));
+  const view = json('tests/fixtures/spielbrett/view-hochland-t0.json');
+  const viewHash = hashValue(view);
+  let storedDraft = null;
+  let sseHandler = null;
+  const saved = { ...server };
+  Object.assign(server, {
+    index: async () => ({ campaigns: [{ id: 'c1', player: view.people, world: 'hochland', status: 'playing', updatedAt: '2026-10-17T00:00:00Z' }] }),
+    pack: async (_w, file) => {
+      if (file === 'labels.en.json') return json('welten/hochland/labels.en.json');
+      return json(`welten/hochland/${file}`);
+    },
+    view: async () => view,
+    content: async () => ({ viewHash, items: [] }),
+    app: async () => ({ mode: 'dev' }),
+    draft: async () => ({ draft: storedDraft }),
+    chronik: async () => ({ entries: [] }),
+    status: async () => null,
+    report: async () => null,
+    saveDraft: async () => ({ stored: true, issues: [] }),
+    subscribe: (_cid, handler) => { sseHandler = handler; return () => {}; },
+  });
+  let game = null;
+  try {
+    const model = {};
+    game = await createGame(model, { cid: 'c1' });
+    assert.deepEqual(game.draft.orders, []);
+    const camp = view.map.settlements.find((s) => s.people === view.people);
+    storedDraft = {
+      ...game.draft,
+      orders: [{ id: 'o1', type: 'explore', params: { tile: camp.tile } }],
+    };
+    let updates = 0;
+    game.onUpdate((kind) => { if (kind === 'draft') updates += 1; });
+    sseHandler('draft', { campaign: 'c1', file: `drafts/${view.people}.json` });
+    for (let i = 0; i < 40 && game.draft.orders.length === 0; i += 1) await wait(10);
+    assert.equal(game.draft.orders.length, 1);
+    assert.equal(game.draft.orders[0].type, 'explore');
+    assert.ok(updates >= 1);
+
+    // While a local edit is unsaved, an external draft event must not overwrite it.
+    game.setAssign({ ...(game.draft.assign ?? {}), research: 2 });
+    assert.equal(game.hasUnsavedDraft(), true);
+    storedDraft = { ...game.draft, orders: [] };
+    sseHandler('draft', { campaign: 'c1', file: `drafts/${view.people}.json` });
+    await wait(30);
+    assert.equal(game.draft.assign.research, 2);
+    assert.equal(game.draft.orders.length, 1);
+  } finally {
+    game?.dispose();
+    Object.assign(server, saved);
+  }
 });

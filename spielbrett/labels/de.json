@@ -848,6 +848,7 @@
     "season.demo-busy": "Saison wird aufgelöst …",
     "season.demo-error": "Fortsetzung nicht bestätigt. Lade die Seite neu und prüfe den Stand vor einem weiteren Versuch.",
     "board.labour.no-yield.one": "Eine Sippe für {name} findet vor Ort keinen nutzbaren Ertrag.",
-    "board.labour.no-yield.other": "{n} Sippen für {name} finden vor Ort keinen nutzbaren Ertrag."
+    "board.labour.no-yield.other": "{n} Sippen für {name} finden vor Ort keinen nutzbaren Ertrag.",
+    "board.labour.full-hint": "Alle Sippen eingeteilt, ziehe mit − eine Sippe ab, um sie neu zuzuweisen."
   }
 }

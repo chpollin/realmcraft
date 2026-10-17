@@ -181,15 +181,16 @@ test('draft preview, seal without rolls, then seal with the roll', async () => {
   assert.equal(unsealed.json.exit, 3);
   assert.ok(unsealed.json.issues.some((i) => i.code === 'roll_missing'), JSON.stringify(unsealed.json.issues));
 
-  const rolls = { [PROBE]: { value: 4, fingerprint: probe.fingerprint } };
-  const second = await post('/api/draft', { campaign: CID, people: PLAYER, draft: emptyDraft(view.rev, rolls) });
-  assert.equal(second.status, 200);
-  assert.equal(second.json.stored, true);
-  assert.equal(second.json.exit, 0, JSON.stringify(second.json.issues));
-
-  // Listen before sealing: the seal rewrites the view files the watcher reports.
   const sse = await openEvents();
   try {
+    const rolls = { [PROBE]: { value: 4, fingerprint: probe.fingerprint } };
+    const second = await post('/api/draft', { campaign: CID, people: PLAYER, draft: emptyDraft(view.rev, rolls) });
+    assert.equal(second.status, 200);
+    assert.equal(second.json.stored, true);
+    assert.equal(second.json.exit, 0, JSON.stringify(second.json.issues));
+    const draftHit = await sse.waitFor((e) => e.event === 'draft' && e.data?.campaign === CID, 5000);
+    assert.equal(draftHit.data.file, `drafts/${PLAYER}.json`);
+
     const sealed = await post('/api/seal', { campaign: CID });
     assert.equal(sealed.status, 200);
     assert.equal(sealed.json.ok, true, JSON.stringify(sealed.json));

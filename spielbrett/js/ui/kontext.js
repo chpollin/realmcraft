@@ -206,7 +206,7 @@ export function orderOptions(api, target, { given = null, titel = t('board.optio
       el('span', { class: 'bo-marken' },
         costChips(api, o.kosten),
         o.probe ? el('span', { class: 'probe-tag', 'aria-label': t.fmt(o.probe.chance != null ? 'board.option.probe-chance' : 'board.option.probe', { target: o.probe.ziel, mod: signed(sum), chance: o.probe.chance }) }, icon('wuerfel', { size: 15 }), `${o.probe.ziel}`, el('span', { class: 'probe-mod', text: signed(sum) }), o.probe.chance != null ? el('span', { class: 'probe-chance', text: `${o.probe.chance} %` }) : null) : null),
-      el('span', { class: 'bo-folge', text: o.folge }),
+      el('span', { class: 'bo-folge', text: [slotName(slot), o.folge].filter(Boolean).join(' · ') }),
       o.extra ? el('span', { class: 'bo-extra' }, ...o.extra) : null,
       o.ersetzt && !queued ? el('span', { class: 'bo-ersetzt' }, icon('praxis', { size: 14 }), t.fmt('board.option.instead', { title: [o.ersetzt.titel, o.ersetzt.ziel].filter(Boolean).join(', ') })) : null,
       queued ? el('span', { class: 'is-queued' }, icon('ja', { size: 14 }), t('board.option.queued')) : null,
@@ -268,6 +268,9 @@ export function labour(api, headingId = 'arbeit-h') {
       btn(k, -1, locked || !(assign[k] > 0), label(k)),
       el('span', { class: 'num arbeit-zahl', text: String(assign[k] ?? 0) }),
       btn(k, 1, locked || total >= core || !productive.has(k), label(k))))));
+  if (!locked && total >= core) {
+    work.append(el('p', { class: 'meta', 'data-labour-hint': 'full', text: t('board.labour.full-hint') }));
+  }
   for (const idle of game.base.forecast?.harvest?.filter((entry) => entry.kind === 'idle') ?? []) {
     work.append(el('p', { class: 'meta', text: t.plural('board.labour.no-yield', idle.clans, { name: label(idle.res) }) }));
   }

@@ -848,6 +848,7 @@
     "season.demo-busy": "Resolving season …",
     "season.demo-error": "Continuation not confirmed. Reload and check the state before trying again.",
     "board.labour.no-yield.one": "One clan assigned to {name} finds no usable local yield.",
-    "board.labour.no-yield.other": "{n} clans assigned to {name} find no usable local yield."
+    "board.labour.no-yield.other": "{n} clans assigned to {name} find no usable local yield.",
+    "board.labour.full-hint": "All clans assigned, use − to free a clan before reassigning."
   }
 }

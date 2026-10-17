@@ -84,11 +84,11 @@ describe('turn commands', () => {
     }
   });
 
-  it('the game master neither rolls for the player nor recommends', () => {
+  it('the game master neither rolls for the player nor decides in their place', () => {
     for (const file of ['zug.md', 'partie.md']) {
       const text = readFileSync(join(COMMANDS_DIR, file), 'utf8');
       assert.match(text, /würfelst nie für den Spieler/, file);
-      assert.match(text, /empfiehlst ihm keine Aktion|Keine Empfehlung/, file);
+      assert.match(text, /empfiehlst ihm keine Aktion|Keine Empfehlung|triffst keine Entscheidung an seiner Stelle/, file);
     }
   });
 });
