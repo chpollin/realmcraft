@@ -36,7 +36,7 @@ export class CommunityView {
     this.streamLink = el('a', {
       class: 'ansicht-wahl', 'data-ansicht': 'strom',
       href: `strom.html?campaign=${encodeURIComponent(api.game.cid)}`,
-    }, icon('chronist', { size: 18 }), el('span', { text: 'Strom' }));
+    }, icon('chronist', { size: 18 }), el('span'));
     this.nav.append(this.streamLink);
     for (const spot of COMMUNITY_ANCHORS) {
       const btn = el('button', {
@@ -144,7 +144,7 @@ export class CommunityView {
         btn.querySelector('.gemeinschaft-einheit').textContent = t('population.core');
       }
     }
-    for (const btn of this.nav.querySelectorAll('button')) btn.querySelector('span').textContent = t('board.community.view.' + btn.dataset.ansicht);
+    for (const node of this.nav.querySelectorAll('[data-ansicht]')) node.querySelector('span').textContent = t('board.community.view.' + node.dataset.ansicht);
     document.getElementById('gemeinschaft-saison-label').textContent = t('board.community.season');
     // Relabel options without replacing the focused select.
     if (!this.seasonSelect.options.length) {

@@ -7,40 +7,18 @@ import { createGame } from './data/game.js';
 import { server, turnStem } from './data/server.js';
 import { calendarOf, SUCCESS_BANDS } from './data/kernel.js';
 import { objectsAt } from './data/adapter.js';
-import { signed } from './data/labels.js';
 import { RULES } from '../../engine/core/rules.js';
 import { drawCommunity, COMMUNITY_SIZE } from './community/scene.js';
 import { MapView } from './map/renderer.js';
-import { el, prefersReducedMotion } from './dom.js';
+import { el, svg as svgEl, signed } from './dom.js';
 import { icon } from './icons.js';
-import { t, applyStatic } from './i18n/index.js';
+import { t, applyStatic, onLanguage } from './i18n/index.js';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
+const FONT_WORLD = 'var(--font-world)';
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 const SEASON_ORDER = ['fruehling', 'sommer', 'herbst', 'winter'];
 const SEASON_SCENE = { fruehling: 'spring', sommer: 'summer', herbst: 'autumn', winter: 'winter' };
 const LAYERS = ['gelaende', 'besitz', 'bedrohung', 'handel'];
-
-function svgEl(tag, attrs = {}, ...children) {
-  const node = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (v === undefined || v === null || v === false) continue;
-    if (k === 'text') node.textContent = String(v);
-    else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
-    else node.setAttribute(k, String(v));
-  }
-  for (const child of children.flat()) {
-    if (child === null || child === undefined || child === false) continue;
-    node.append(child instanceof Node ? child : document.createTextNode(String(child)));
-  }
-  return node;
-}
-
-function shortWord(str, maxLen = 24) {
-  const s = String(str ?? '').trim();
-  if (s.length <= maxLen) return s;
-  return s.slice(0, maxLen - 1).trimEnd();
-}
 
 function svgTwoLineText(x, y, textStr, maxLine = 16, attrs = {}) {
   const raw = String(textStr ?? '').trim();
@@ -65,12 +43,6 @@ function svgTwoLineText(x, y, textStr, maxLine = 16, attrs = {}) {
   }
   return tNode;
 }
-
-const MILESTONE_LABELS = {
-  institutions: 'Institutionen',
-  relations: 'Bündnisse',
-  people: 'Sippen',
-};
 
 function sippeFigureSvg(color = '#ebe4d4', idle = false) {
   return svgEl('svg', {
@@ -231,7 +203,7 @@ function renderHimmel(game, model) {
       x, y: y + (isCurrent ? 42 : 25),
       'text-anchor': 'middle',
       fill: isCurrent ? '#ebe4d4' : 'rgba(235,228,212,0.48)',
-      'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+      'font-family': FONT_WORLD,
       'font-size': isCurrent ? '13' : '11',
       'font-weight': isCurrent ? '600' : '400',
       'letter-spacing': '0.06em',
@@ -244,7 +216,7 @@ function renderHimmel(game, model) {
     x: 600, y: 168,
     'text-anchor': 'middle',
     fill: '#ebe4d4',
-    'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+    'font-family': FONT_WORLD,
     'font-size': '26',
     'font-weight': '600',
     'letter-spacing': '0.04em',
@@ -255,7 +227,7 @@ function renderHimmel(game, model) {
     x: 600, y: 194,
     'text-anchor': 'middle',
     fill: 'rgba(235,228,212,0.58)',
-    'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+    'font-family': FONT_WORLD,
     'font-style': 'italic',
     'font-size': '14',
     'letter-spacing': '0.08em',
@@ -382,7 +354,7 @@ function renderFluesse(game, model) {
   const orderedKeys = ['nahrung', 'volk', 'wissen', 'zustimmung', 'material'];
   const resList = orderedKeys.map((k) => byKey.get(k)).filter(Boolean);
 
-  const svg = svgEl('svg', { viewBox: '0 0 1200 350', class: 'strom-svg', role: 'img', 'aria-label': 'Ressourcenströme' });
+  const svg = svgEl('svg', { viewBox: '0 0 1200 350', class: 'strom-svg', role: 'img', 'aria-label': t('board.topbar.stores') });
 
   const sourceX = {
     nahrung: 220,
@@ -638,15 +610,15 @@ function initMapStratum(game, model) {
   const zoomHost = document.getElementById('strom-zoom');
   zoomHost.replaceChildren(
     el('button', {
-      type: 'button', class: 'strom-sigil-btn', 'aria-label': '+', title: '+',
+      type: 'button', class: 'strom-sigil-btn', 'aria-label': t('board.zoom.in'), title: t('board.zoom.in'),
       onclick: () => mapView.zoomAt(1.25),
     }, icon('plus', { size: 16 })),
     el('button', {
-      type: 'button', class: 'strom-sigil-btn', 'aria-label': '−', title: '−',
+      type: 'button', class: 'strom-sigil-btn', 'aria-label': t('board.zoom.out'), title: t('board.zoom.out'),
       onclick: () => mapView.zoomAt(0.8),
     }, icon('minus', { size: 16 })),
     el('button', {
-      type: 'button', class: 'strom-sigil-btn', 'aria-label': '⌂', title: '⌂',
+      type: 'button', class: 'strom-sigil-btn', 'aria-label': t('board.zoom.home'), title: t('board.zoom.home'),
       onclick: () => {
         if (model.home) mapView.flyTo(model.home.q, model.home.r);
         else mapView.fitKnown();
@@ -668,7 +640,7 @@ function renderRatUndBestimmung(game, model) {
   const rat = model.rat ?? [];
   const ms = model.bestimmung?.meilensteine ?? [];
 
-  const svg = svgEl('svg', { viewBox: '0 0 1200 320', class: 'strom-svg', role: 'img', 'aria-label': 'Rat und Bestimmung' });
+  const svg = svgEl('svg', { viewBox: '0 0 1200 320', class: 'strom-svg', role: 'img', 'aria-label': t('board.council.bar') });
 
   // Left half (x = 70..540): Council Loyalty Balance Scales (-5 ─── 0 ─── +5)
   const roleColors = ['#d79a49', '#7cb586', '#78b0c4'];
@@ -712,7 +684,7 @@ function renderRatUndBestimmung(game, model) {
       x: 82, y: y + 5,
       'text-anchor': 'middle',
       fill: col,
-      'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+      'font-family': FONT_WORLD,
       'font-size': '15',
       'font-weight': '700',
       text: m.leader ? '♛' : i === 1 ? '⚘' : '🧭',
@@ -793,7 +765,7 @@ function renderRatUndBestimmung(game, model) {
       'text-anchor': 'middle',
       fill: 'rgba(235,228,212,0.68)',
       'font-size': '12',
-      text: MILESTONE_LABELS[m.id] ?? m.id,
+      text: m.einheit ?? m.id,
     }));
   });
 
@@ -802,7 +774,7 @@ function renderRatUndBestimmung(game, model) {
       x: 900, y: 278,
       'text-anchor': 'middle',
       fill: 'rgba(215,154,73,0.85)',
-      'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+      'font-family': FONT_WORLD,
       'font-style': 'italic',
       'font-size': '15',
       'letter-spacing': '0.05em',
@@ -818,7 +790,7 @@ function renderWissen(game, model) {
   const host = document.getElementById('viz-wissen');
   const ent = model.entwicklungen ?? { praxis: [], bekannt: [], forschung: [], vorschlaege: [] };
 
-  const svg = svgEl('svg', { viewBox: '0 0 1200 460', class: 'strom-svg', role: 'img', 'aria-label': 'Wissensgeflecht' });
+  const svg = svgEl('svg', { viewBox: '0 0 1200 460', class: 'strom-svg', role: 'img', 'aria-label': t('board.paths.title') });
 
   const praxis = ent.praxis.slice(0, 6);
   const bekannt = ent.bekannt.slice(0, 6);
@@ -981,7 +953,7 @@ function renderZeitspur(game, model, historyReports) {
   const rowH = 92;
   const svgH = 80 + rowsCount * rowH + 90;
 
-  const svg = svgEl('svg', { viewBox: `0 0 1200 ${svgH}`, class: 'strom-svg', role: 'img', 'aria-label': 'Zeitspur' });
+  const svg = svgEl('svg', { viewBox: `0 0 1200 ${svgH}`, class: 'strom-svg', role: 'img', 'aria-label': t('season.title') });
 
   const currentRes = game.view.peoples[game.pid].resources ?? {};
   const seriesKeys = [
@@ -1053,7 +1025,7 @@ function renderZeitspur(game, model, historyReports) {
       x: 600, y: y + 5,
       'text-anchor': 'middle',
       fill: isNow ? '#e7b96b' : '#ebe4d4',
-      'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+      'font-family': FONT_WORLD,
       'font-size': isNow ? '14' : '12',
       'font-weight': '700',
       text: ROMAN[tIdx] ?? String(tIdx + 1),
@@ -1062,7 +1034,7 @@ function renderZeitspur(game, model, historyReports) {
     svg.append(svgEl('text', {
       x: 95, y: y + 4,
       fill: isNow ? '#ebe4d4' : 'rgba(235,228,212,0.58)',
-      'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+      'font-family': FONT_WORLD,
       'font-size': isNow ? '14' : '12',
       'font-weight': isNow ? '600' : '400',
       text: `${t(`season.${cal.season}`, cal.season)} ${cal.year}`,
@@ -1186,7 +1158,7 @@ function renderZeitspur(game, model, historyReports) {
     x: 680, y: sealY + 5,
     'text-anchor': 'start',
     fill: '#d79a49',
-    'font-family': 'Palatino Linotype, Book Antiqua, Palatino, serif',
+    'font-family': FONT_WORLD,
     'font-size': '14',
     'letter-spacing': '0.05em',
     text: t('season.end'),
@@ -1230,7 +1202,13 @@ const model = {
   highlights: [], orders: [], meldungen: [], chronik: [], zz: null,
 };
 
-const game = await createGame(model, { cid: params.get('campaign') });
+let game;
+try {
+  game = await createGame(model, { cid: params.get('campaign') });
+} catch (err) {
+  console.error(err);
+}
+
 if (game) {
   document.getElementById('strom-zurueck').href = `/spielbrett/?campaign=${encodeURIComponent(game.cid)}`;
   let historyReports = await loadTurnHistory(game.cid, game.view.turn);
@@ -1240,7 +1218,7 @@ if (game) {
     renderHimmel(game, model);
     renderDiorama(game, model);
     renderFluesse(game, model);
-    renderHexActions(game, model, mapView);
+    renderHexActions(game, model);
     mapView.changed();
     renderRatUndBestimmung(game, model);
     renderWissen(game, model);
@@ -1249,6 +1227,10 @@ if (game) {
 
   renderAll();
   installScrollSpy();
+  onLanguage(() => {
+    game.rebuild();
+    renderAll();
+  });
   window.addEventListener('resize', () => renderDiorama(game, model));
   game.onUpdate(async (kind) => {
     if (kind === 'view') {

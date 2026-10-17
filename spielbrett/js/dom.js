@@ -27,6 +27,25 @@ export function el(tag, attrs = {}, ...children) {
   return node;
 }
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * @param {string} tag
+ * @param {Record<string, any>} [attrs]
+ * @param {...(Node|string|null|undefined|false)} children
+ */
+export function svg(tag, attrs = {}, ...children) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === 'text') node.textContent = String(v);
+    else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, String(v));
+  }
+  append(node, children);
+  return node;
+}
+
 function append(node, children) {
   for (const c of children) {
     if (c === null || c === undefined || c === false) continue;

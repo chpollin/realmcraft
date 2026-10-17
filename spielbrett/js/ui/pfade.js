@@ -5,14 +5,13 @@
 // of the people opens it. Selecting a path or an achievement opens its panel
 // with the research orders, each previewed by the kernel before it is added.
 
-import { el, signed } from '../dom.js';
+import { el, svg as s, signed } from '../dom.js';
 import { icon, ICONS } from '../icons.js';
 import { costChips } from './kontext.js';
 import { hintSlot } from './leiste.js';
 import { t, locale } from '../i18n/index.js';
 import { wheelOf } from '../data/pfade.js';
 
-const SVG = 'http://www.w3.org/2000/svg';
 const HUB = 74;
 const OUTER = 430;
 const LABEL_R = 486;
@@ -45,14 +44,6 @@ function compactNavigation(w) {
       el('span', { class: 'pf-mobile-name', text: p.name }),
       el('span', { class: 'pf-mobile-state', 'aria-hidden': 'true' },
         t.fmt('board.paths.tier', { tier: p.cap }), ', ', t(p.open ? 'board.paths.state.open' : 'board.paths.state.closed'))))));
-}
-
-
-function s(tag, attrs = {}, ...children) {
-  const n = document.createElementNS(SVG, tag);
-  for (const [k, v] of Object.entries(attrs)) if (v !== null && v !== undefined && v !== false) n.setAttribute(k, String(v));
-  for (const c of children) if (c) n.append(c);
-  return n;
 }
 
 function glyph(name, size, cls) {

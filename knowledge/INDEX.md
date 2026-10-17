@@ -10,10 +10,10 @@ status: complete
 language: en
 version: 1.0
 created: 2026-10-03
-updated: 2026-10-16
+updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
-related: [vision, glossary, plan, plan-m1, journal, handoff]
+related: [vision, glossary, design, frontend, plan, plan-m1, journal, handoff]
 ---
 
 # Index
@@ -36,8 +36,8 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [data-contracts.md](data-contracts.md) | Which files and schemas carry state, content, tasks and proposals, and how they evolve | Specification |
 | [world-packages.md](world-packages.md) | What a world package contains and how Hochland is built | Domain knowledge |
 | [agents-harness.md](agents-harness.md) | Which agents take part in a turn, what they may read and write and how `/zug` runs | Action |
-| [frontend.md](frontend.md) | How the game board, action planning and community view use kernel data and which UI rules bind them | Design |
-| [design.md](design.md) | How the visual token system, procedural 2D cartography, HUD ergonomics and council medallions are specified | Design |
+| [frontend.md](frontend.md) | How the game board, action planning, community view and vertical Weltenstrom visualization use kernel data and which UI rules bind them | Design |
+| [design.md](design.md) | How the OKLCH token architecture, five-pass procedural cartography, HUD ergonomics, council medallions and vertical Weltenstrom visualization are specified | Design |
 | [testing.md](testing.md) | What the tests guarantee, how to run them and where the gaps are | Quality assurance |
 | [decisions.md](decisions.md) | Which fundamental decisions stand, why, and when to revisit them | Decision record |
 | [playtests.md](playtests.md) | What the owner reported in playtests and what became of each entry | Specification input |
