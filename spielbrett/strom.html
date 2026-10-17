@@ -13,6 +13,13 @@
   <script type="module" src="js/strom.js"></script>
 </head>
 <body class="strom-body">
+  <nav class="proto-dock" id="proto-dock" aria-label="Visualisierungs-Prototypen">
+    <button type="button" class="proto-tab is-active" data-proto="strom">I · Weltenstrom</button>
+    <button type="button" class="proto-tab" data-proto="astrolabium">II · Astrolabium</button>
+    <button type="button" class="proto-tab" data-proto="naturgemaelde">III · Naturgemälde</button>
+    <button type="button" class="proto-tab" data-proto="webstuhl">IV · Kräfte-Webstuhl</button>
+  </nav>
+
   <nav class="strom-anker" id="strom-anker" aria-label="Ebenen">
     <a class="strom-punkt is-active" href="#stratum-himmel" title="I · Jahreskreis" aria-label="I · Jahreskreis"><span>I</span></a>
     <a class="strom-punkt" href="#stratum-siedlung" title="II · Siedlung &amp; Sippen" aria-label="II · Siedlung &amp; Sippen"><span>II</span></a>
@@ -23,6 +30,8 @@
     <a class="strom-punkt" href="#stratum-zeit" title="VII · Zeitspur" aria-label="VII · Zeitspur"><span>VII</span></a>
     <a class="strom-punkt strom-zurueck" id="strom-zurueck" href="/spielbrett/" title="Klassisches Spielbrett" aria-label="Klassisches Spielbrett">⊞</a>
   </nav>
+
+  <section class="proto-stage" id="proto-stage" hidden aria-label="Prototyp-Ansicht"></section>
 
   <main class="weltenstrom" id="weltenstrom">
     <!-- I. HIMMEL & JAHRESKREIS -->

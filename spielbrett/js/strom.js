@@ -13,6 +13,7 @@ import { MapView } from './map/renderer.js';
 import { el, svg as svgEl, signed } from './dom.js';
 import { icon } from './icons.js';
 import { t, applyStatic, onLanguage } from './i18n/index.js';
+import { renderAstrolabium, renderNaturgemaelde, renderWebstuhl } from './prototypen.js';
 
 const FONT_WORLD = 'var(--font-world)';
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -1440,7 +1441,41 @@ if (game) {
   let historyReports = await loadTurnHistory(game.cid, game.view.turn);
   const mapView = initMapStratum(game, model);
 
+  let activeProto = ['strom', 'astrolabium', 'naturgemaelde', 'webstuhl'].includes(params.get('proto'))
+    ? params.get('proto')
+    : 'strom';
+
+  const weltenstromEl = document.getElementById('weltenstrom');
+  const protoStageEl = document.getElementById('proto-stage');
+  const stromAnkerEl = document.getElementById('strom-anker');
+  const protoTabs = [...document.querySelectorAll('#proto-dock .proto-tab[data-proto]')];
+
+  const syncProtoVisibility = () => {
+    for (const tab of protoTabs) {
+      tab.classList.toggle('is-active', tab.dataset.proto === activeProto);
+    }
+    const isStrom = activeProto === 'strom';
+    if (weltenstromEl) weltenstromEl.hidden = !isStrom;
+    if (protoStageEl) protoStageEl.hidden = isStrom;
+    for (const a of stromAnkerEl?.querySelectorAll('.strom-punkt[href^="#"]') ?? []) {
+      a.hidden = !isStrom;
+    }
+  };
+
   const renderAll = () => {
+    syncProtoVisibility();
+    if (activeProto === 'astrolabium' && protoStageEl) {
+      renderAstrolabium(protoStageEl, game, model, historyReports);
+      return;
+    }
+    if (activeProto === 'naturgemaelde' && protoStageEl) {
+      renderNaturgemaelde(protoStageEl, game, model, historyReports);
+      return;
+    }
+    if (activeProto === 'webstuhl' && protoStageEl) {
+      renderWebstuhl(protoStageEl, game, model);
+      return;
+    }
     renderHimmel(game, model);
     renderDiorama(game, model);
     renderFluesse(game, model);
@@ -1451,19 +1486,44 @@ if (game) {
     renderZeitspur(game, model, historyReports);
   };
 
+  for (const tab of protoTabs) {
+    tab.addEventListener('click', () => {
+      activeProto = tab.dataset.proto || 'strom';
+      const nextUrl = new URL(location.href);
+      if (activeProto === 'strom') nextUrl.searchParams.delete('proto');
+      else nextUrl.searchParams.set('proto', activeProto);
+      history.replaceState(null, '', nextUrl);
+      renderAll();
+    });
+  }
+
   renderAll();
   installScrollSpy();
   onLanguage(() => {
     game.relabel();
     renderAll();
   });
-  window.addEventListener('resize', () => renderDiorama(game, model));
+  window.addEventListener('resize', () => {
+    if (activeProto === 'strom') renderDiorama(game, model);
+  });
   game.onUpdate(async (kind) => {
     if (kind === 'view') {
       historyReports = await loadTurnHistory(game.cid, game.view.turn);
     }
     renderAll();
   });
-  window.weltenstrom = { game, model, mapView };
+  window.weltenstrom = {
+    game,
+    model,
+    mapView,
+    setProto: (p) => {
+      activeProto = p;
+      renderAll();
+    },
+    continueDemo: async (expectTurn, expectRev) => {
+      await server.continueDemo(game.cid, { expectTurn, expectRev });
+      await game.reload?.();
+    },
+  };
   document.documentElement.dataset.ready = 'true';
 }
