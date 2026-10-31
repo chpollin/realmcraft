@@ -1,0 +1,560 @@
+/*
+ * Leitstand der Schwarzkämme — dystopisches Sci-Fi-Frontend für die Talustan-Partie.
+ * Eigenständige, dunkle Oberfläche; berührt weder index.html noch css/style.css
+ * des Haupt-Dashboards. Stylt auch die aus js/components/ui.js wiederverwendeten
+ * Klassen (.scale/.fill/.mid, .loy-track/.marker, .stat/.num/.lab/.note).
+ */
+
+:root {
+  color-scheme: dark;
+
+  --bg:        #080a0d;
+  --bg-2:      #0c0f13;
+  --panel:     #11151b;
+  --panel-2:   #151a21;
+  --inset:     #0a0d11;
+
+  --ink:       #cdd6e0;
+  --ink-dim:   #8b95a3;
+  --ink-faint: #5b6472;
+
+  --line:      #1e2530;
+  --line-soft: #171d26;
+
+  --cold:      #4aa8c0;   /* Zentrum, Netz, kaltes Signal */
+  --cold-deep: #2b6d80;
+  --amber:     #d0953a;   /* Volk, Warnung, warmes Signal */
+  --danger:    #c65442;   /* Aufmerksamkeit, Repression, Abfluss */
+  --ok:        #4f9e6e;   /* Rückhalt, günstiger Trend */
+  --flame:     linear-gradient(90deg, #d0953a, #c65442);
+
+  --radius: 5px;
+  --gap: 16px;
+  --pad: clamp(16px, 2vw, 30px);
+  --mono: "JetBrains Mono", "Cascadia Code", "Consolas", ui-monospace, monospace;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+body {
+  min-height: 100vh;
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(74,168,192,.06), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(208,149,58,.05), transparent 55%);
+}
+
+/* faint CRT scanlines over everything, non-interactive */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,.014) 0px,
+    rgba(255,255,255,.014) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: .9em;
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--cold);
+}
+
+/* ============================================================ Kopf */
+
+.kopf {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "marke zeit" "signal signal";
+  gap: 8px var(--gap);
+  align-items: center;
+  padding: 18px var(--pad);
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(4px);
+}
+
+.kopf-marke { grid-area: marke; display: flex; align-items: center; gap: 14px; }
+.kopf-siegel {
+  font-size: 30px;
+  color: var(--amber);
+  text-shadow: 0 0 14px rgba(208,149,58,.5);
+  line-height: 1;
+}
+.kopf-titel {
+  font-family: var(--mono);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #eef3f8;
+}
+.kopf-unter {
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.kopf-zeit { grid-area: zeit; text-align: right; }
+.kopf-zeit-zeile {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-dim);
+  letter-spacing: .03em;
+}
+.kopf-zeit-zeile .sep { color: var(--line); margin: 0 6px; }
+.kopf-ansehen {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--amber);
+  letter-spacing: .04em;
+}
+
+/* signal readouts (Rang / Aufmerksamkeit) */
+.kopf-signal {
+  grid-area: signal;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.signal {
+  flex: 1 1 260px;
+  min-width: 220px;
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cold);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+}
+.signal.warm { border-left-color: var(--amber); }
+.signal.hot  { border-left-color: var(--danger); }
+.signal-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.signal-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.signal-wert {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: #eef3f8;
+}
+.signal-grund {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  line-height: 1.35;
+}
+
+/* ============================================================ Grid */
+
+.leitstand {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+  padding: var(--gap) var(--pad) 60px;
+  max-width: 1600px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cold-deep), transparent);
+  opacity: .5;
+}
+.panel > h2 {
+  margin: 0 0 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel > h2::before {
+  content: "▚";
+  color: var(--cold);
+  font-size: 11px;
+}
+
+.col-12 { grid-column: span 12; }
+.col-8  { grid-column: span 8; }
+.col-6  { grid-column: span 6; }
+.col-4  { grid-column: span 4; }
+@media (max-width: 1100px) {
+  .col-8, .col-6, .col-4 { grid-column: span 12; }
+}
+
+/* ============================================================ Stat cards (ui.js) */
+
+.stat-reihe {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.stat {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  text-align: left;
+}
+.stat .num {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: #eef3f8;
+}
+.stat .lab {
+  margin-top: 6px;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--cold);
+}
+.stat .note {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  line-height: 1.35;
+}
+.trend { font-family: var(--mono); font-size: 13px; margin-left: 8px; }
+.trend.up   { color: var(--ok); }
+.trend.down { color: var(--danger); }
+.trend.flat { color: var(--ink-faint); }
+
+/* ============================================================ Gauges (ui.js) */
+
+.messreihe { display: flex; flex-direction: column; gap: 14px; }
+.messzeile { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.messzeile .mz-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.messzeile .mz-name {
+  font-size: 13px;
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+.messzeile .mz-wert {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: #eef3f8;
+}
+.messzeile .mz-note { font-size: 11.5px; color: var(--ink-faint); }
+
+/* the .scale meter from ui.js: horizontal track with zero-point */
+.scale {
+  position: relative;
+  height: 8px;
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.scale .mid {
+  position: absolute;
+  top: -2px; bottom: -2px;
+  width: 1px;
+  background: var(--ink-faint);
+  opacity: .6;
+}
+.scale .fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  border-radius: 4px;
+}
+.scale .fill.pos { background: linear-gradient(90deg, var(--cold-deep), var(--cold)); }
+.scale .fill.neg { background: linear-gradient(90deg, var(--danger), #8f3a2e); }
+
+/* ============================================================ Rat / loyalty (ui.js) */
+
+.rat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.rat-karte {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rat-karte.mole { border-color: var(--cold-deep); box-shadow: inset 0 0 0 1px rgba(74,168,192,.12); }
+.rat-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rat-name { font-family: var(--mono); font-weight: 700; font-size: 15px; color: #eef3f8; }
+.rat-rolle { font-size: 12px; color: var(--cold); letter-spacing: .02em; }
+.rat-ziel { font-size: 12.5px; color: var(--ink-dim); line-height: 1.4; }
+.rat-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.rat-tag.mole { color: var(--cold); border-color: var(--cold-deep); }
+.rat-tag.lebensabend { color: var(--amber); }
+
+.meterzeile { display: grid; grid-template-columns: 74px 1fr auto; gap: 8px; align-items: center; }
+.meterzeile .m-lab {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.meterzeile .m-val { font-family: var(--mono); font-size: 12px; color: var(--ink); min-width: 58px; text-align: right; }
+
+/* loyalty track from ui.js */
+.loy-track {
+  position: relative;
+  height: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: linear-gradient(90deg, #7a2e24, #4a4a52 50%, #2f6e4e);
+}
+.loy-track .marker {
+  position: absolute;
+  top: 50%;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #eef3f8;
+  border: 1px solid var(--bg);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px rgba(0,0,0,.6);
+}
+/* the Zentrum<->Volk axis reuses .loy-track but with a cold/warm gradient */
+.achse .loy-track { background: linear-gradient(90deg, var(--cold), #3a3f48 50%, var(--amber)); }
+.achse-pole {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* ============================================================ Abfluss ledger */
+
+.ledger { display: flex; flex-direction: column; gap: 12px; }
+.ledger-zeile { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.ledger-name { font-size: 13.5px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.ledger-name::before { content: "↑"; color: var(--danger); font-family: var(--mono); font-weight: 700; }
+.ledger-wert { font-family: var(--mono); font-weight: 700; color: var(--danger); }
+.ledger-quelle { grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-faint); line-height: 1.35; }
+.ledger-bar {
+  grid-column: 1 / -1;
+  height: 5px;
+  background: var(--inset);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.ledger-bar > span { display: block; height: 100%; background: var(--flame); }
+
+/* ============================================================ Mächte */
+
+.macht-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.macht {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.macht-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.macht-name { font-family: var(--mono); font-weight: 700; font-size: 14.5px; color: #eef3f8; }
+.macht-typ { font-size: 11px; color: var(--ink-faint); letter-spacing: .04em; }
+.macht-bez {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.macht-bez.pos { color: var(--ok); }
+.macht-bez.neg { color: var(--danger); }
+.macht-bez.neutral { color: var(--ink-dim); }
+.macht-haltung { font-size: 12.5px; color: var(--ink-dim); line-height: 1.4; }
+.macht-profil { display: flex; flex-wrap: wrap; gap: 6px; }
+.profil-chip {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+}
+.profil-chip .cv { color: var(--ink); font-weight: 700; }
+
+/* ============================================================ Aktionsbrett */
+
+.brett-budget {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--amber);
+  letter-spacing: .05em;
+  margin-bottom: 12px;
+}
+.aktion {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--inset);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.aktion-kopf { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.aktion-art {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+}
+.aktion-art.haupt { color: var(--amber); border-color: var(--amber); }
+.aktion-art.neben { color: var(--cold); border-color: var(--cold-deep); }
+.aktion-titel { font-weight: 700; font-size: 14.5px; color: #eef3f8; }
+.aktion-kern { font-size: 11.5px; color: var(--ink-faint); font-style: italic; }
+.aktion-folge { font-size: 12.5px; color: var(--ink-dim); margin: 6px 0; line-height: 1.45; }
+.aktion-probe {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.aktion-probe b { color: var(--amber); }
+.aktion-ergebnis {
+  margin-top: 7px;
+  font-size: 12.5px;
+  color: var(--ok);
+  border-top: 1px dashed var(--line);
+  padding-top: 7px;
+}
+
+/* ============================================================ Listen / Setzungen / Karte */
+
+.faeden { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.faeden li {
+  font-size: 13px;
+  color: var(--ink-dim);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.45;
+}
+.faeden li::before { content: "▸"; position: absolute; left: 0; color: var(--cold); }
+
+.setzung { border-bottom: 1px solid var(--line-soft); padding: 10px 0; }
+.setzung:last-child { border-bottom: none; }
+.setzung-titel { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 3px; }
+.setzung-text { font-size: 12.5px; color: var(--ink-dim); line-height: 1.45; }
+
+.orte { display: flex; flex-direction: column; gap: 10px; }
+.ort {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cold-deep);
+  border-radius: var(--radius);
+  background: var(--inset);
+  padding: 10px 13px;
+}
+.ort-name { font-family: var(--mono); font-weight: 700; font-size: 13.5px; color: #eef3f8; }
+.ort-typ { font-size: 11px; color: var(--cold); letter-spacing: .04em; }
+.ort-bez { font-size: 12px; color: var(--ink-dim); margin-top: 4px; line-height: 1.4; }
+.karte-prompt {
+  margin-top: 14px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 10px;
+  font-style: italic;
+}
+
+.status-text {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.volk-zeile { font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; line-height: 1.5; }
+.volk-zeile b { color: var(--amber); font-weight: 600; }
+
+/* ============================================================ Leerzustand */
+
+.leerzustand {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+  padding: var(--pad);
+}
+.leerzustand[hidden] { display: none; }
+.leer-inner { text-align: center; max-width: 520px; }
+.leer-siegel { font-size: 64px; color: var(--amber); opacity: .5; margin-bottom: 12px; }
+.leer-inner h1 { font-family: var(--mono); font-weight: 700; letter-spacing: .04em; }
+.leer-inner p { color: var(--ink-dim); font-size: 14px; }

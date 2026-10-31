@@ -1,0 +1,52 @@
+{
+  "format": "realmcraft-nachtmeer",
+  "version": 1,
+  "scenario": "nachtmeer-die-erloschenen-feuer",
+  "commands": [
+    {
+      "turn": 0,
+      "choice": "open",
+      "orders": [
+        {
+          "action": "explore",
+          "place": "aster"
+        },
+        {
+          "action": "explore",
+          "place": "gaerten"
+        }
+      ],
+      "mandate": "council"
+    },
+    {
+      "turn": 1,
+      "choice": "charter",
+      "orders": [
+        {
+          "action": "beacon",
+          "place": "aster"
+        },
+        {
+          "action": "provisions",
+          "place": "lys"
+        }
+      ],
+      "mandate": "council"
+    }
+  ],
+  "draft": {
+    "turn": 2,
+    "choice": "commons",
+    "orders": [
+      {
+        "action": "study",
+        "place": "aster"
+      },
+      {
+        "action": "provisions",
+        "place": "lys"
+      }
+    ],
+    "mandate": "council"
+  }
+}

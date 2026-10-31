@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talustan · Leitstand der Schwarzkämme</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="kopf" data-testid="kopf">
+    <div class="kopf-marke">
+      <span class="kopf-siegel" aria-hidden="true">◈</span>
+      <div>
+        <div class="kopf-titel" data-testid="republik-name">—</div>
+        <div class="kopf-unter">Republik unter der Rodenischen Föderation · Leitstand</div>
+      </div>
+    </div>
+    <div class="kopf-zeit">
+      <div class="kopf-zeit-zeile">
+        <span data-testid="kapitel">Kapitel —</span>
+        <span class="sep">·</span>
+        <span data-testid="zeit">—</span>
+        <span class="sep">·</span>
+        <span data-testid="weltereignis">—</span>
+      </div>
+      <div class="kopf-ansehen" data-testid="ansehen">—</div>
+    </div>
+    <div class="kopf-signal" data-testid="signalwerte"></div>
+  </header>
+
+  <main id="leitstand" class="leitstand" data-testid="leitstand" hidden></main>
+
+  <section class="leerzustand" data-testid="leerzustand">
+    <div class="leer-inner">
+      <div class="leer-siegel" aria-hidden="true">◈</div>
+      <h1>Kein Lagebild geladen</h1>
+      <p>Der Leitstand spiegelt <code>savegame.json</code> live, sobald der Spielleiter im Terminal schreibt.
+         Starte den Server (<code>npm run serve</code>) und öffne diese Seite über <code>http://localhost:4173/schwarzkaemme/</code>.</p>
+    </div>
+  </section>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
