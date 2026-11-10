@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-15
-updated: 2026-10-17
+updated: 2026-11-10
 related: [vision, new-game-design, design, frontend, testing, playtests, plan-m1, journal, handoff]
 ---
 
@@ -105,4 +105,4 @@ Reproduce a specific current case before implementing an old audit recommendatio
 
 Per-campaign path configuration, editable campaign rules and the final artistic direction remain product decisions. The owner has requested freely described worlds; that does not establish a decision to let arbitrary runtime rule changes bypass the kernel. Viewer settings remain distinct from campaign configuration.
 
-The untracked `design/`, `schwarzkaemme/` and owner save material, the frozen `realmcraft-spieltest` worktree and the local `archiv/vor-neuaufbau` branch remain untouched. Keeping or removing those artifacts is an owner decision. New portrait assets are optional; key readiness was not inspected.
+The `design/` screenshots and the `schwarzkaemme/` prototype were committed unchanged on 2026-10-31 (`27253dd`). The ignored owner save material, the local branches `archiv/vor-neuaufbau` and `wip/fuzz-ingest` and the stash of 2026-10-03 remain untouched, and the `realmcraft-spieltest` worktree is no longer registered. Keeping or removing those artifacts is an owner decision. New portrait assets are optional; key readiness was not inspected.
