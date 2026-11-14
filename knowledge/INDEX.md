@@ -13,7 +13,7 @@ created: 2026-10-03
 updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
-related: [vision, glossary, design, frontend, plan, plan-m1, journal, handoff]
+related: [vision, glossary, design, frontend, plan, plan-m1, journal]
 ---
 
 # Index
@@ -22,7 +22,7 @@ RealmCraft is a turn-based open-world strategy game played through an existing A
 
 ## Reading order
 
-A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [plan.md](plan.md) and any incoming material in [handoff.md](handoff.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md) and [design.md](design.md). Running a game starts with [operations.md](operations.md).
+A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index, then [plan.md](plan.md) and the `## Open` section of the [journal](journal.md), then the document of the task. Game design work starts with [vision.md](vision.md) and [game-design.md](game-design.md). Campaign authoring and its chat simulation start with [new-game-design.md](new-game-design.md). Kernel or content work starts with [rules-kernel.md](rules-kernel.md) and [data-contracts.md](data-contracts.md). Harness work starts with [agents-harness.md](agents-harness.md). Board work starts with [frontend.md](frontend.md) and [design.md](design.md). Running a game starts with [operations.md](operations.md).
 
 ## Documents
 
@@ -45,8 +45,7 @@ A new session reads the action layer [CLAUDE.md](../CLAUDE.md), then this index,
 | [operations.md](operations.md) | How to start the server, play a turn, create a game, repin and recover | Action |
 | [plan.md](plan.md) | Current kernel corrections, product integrations, UI review and verification work | Planning |
 | [plan-m1.md](plan-m1.md) | The M1 milestone contract, historical build lanes and current evidence limits | Milestone contract |
-| [journal.md](journal.md) | How the project got here | Provenance |
-| [handoff.md](handoff.md) | Which hand-over points wait for integration | Handoff |
+| [journal.md](journal.md) | What is open, and how the project got here | Provenance |
 
 ## Terms and naming
 

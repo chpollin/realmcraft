@@ -69,7 +69,7 @@ Details in [knowledge/testing.md](knowledge/testing.md).
 - `.claude/` subagents, the commands `/zug` and `/partie`, hook settings.
 - `tools/hooks/`, `tools/harness/` hooks and helpers of the agent harness. `tools/sim/` balance simulation and fuzzing, `tools/portraits/` portrait generation.
 - `tests/` unit, acceptance and end-to-end tests.
-- `knowledge/` specification, architecture, decisions, playtests, handoff and journal.
+- `knowledge/` specification, architecture, decisions, playtests and journal.
 - `campaigns/` running campaigns, private and ignored by git. Authored packages under `welten/realm-*/` and start receipts under `authoring/` are private runtime data too. Back up the campaign together with its package.
 
 The earlier games and the old savegame dashboard are preserved in the git history and the local branch `archiv/vor-neuaufbau`.

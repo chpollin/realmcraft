@@ -12,12 +12,16 @@ created: 2026-10-03
 updated: 2026-10-17
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
-related: [decisions, playtests, handoff, plan-m1]
+related: [decisions, playtests, plan-m1]
 ---
 
 # Journal
 
-The curated backward-looking provenance index of the project. Current specification and rules live in the declarative documents, future work in [plan.md](plan.md), open inputs in [handoff.md](handoff.md). Earlier wordings are kept by git.
+The curated backward-looking provenance index of the project. Current specification and rules live in the declarative documents, future work in [plan.md](plan.md), open inputs in the section below. Earlier wordings are kept by git.
+
+## Open
+
+Nothing open.
 
 ## Entries
 
@@ -285,3 +289,8 @@ The curated backward-looking provenance index of the project. Current specificat
 - Source. A maintenance pass over the owner's repositories, checked against Git and the test suite.
 - Result. Corrected the [plan](plan.md#owner-decisions-and-preserved-material), which still called `design/` and `schwarzkaemme/` untracked although commit `27253dd` of 2026-10-31 secured them, and named the remaining local branches, the stash and the absent `realmcraft-spieltest` worktree. `main` matches `origin/main` apart from this commit.
 - Verification. `npm test` passes (check, unit and acceptance suites). The repository is public and GitHub Pages serves the root of `main`, so `knowledge/`, `CLAUDE.md` and the design screenshots are reachable on the published site. Whether that stays so is an owner decision.
+
+### 2026-11-14 dissolved the handoff file into the journal
+
+- Source. Owner decision of 2026-11-14 that a Promptotyping repository no longer keeps `knowledge/handoff.md`.
+- Result. The handoff file held no open point, so nothing was carried over and `## Open` reads `Nothing open.`. The file is removed, and the action layer, README, index and plan no longer name it. Earlier entries keep their links to it as history.

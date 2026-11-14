@@ -10,7 +10,7 @@ status: active
 language: en
 created: 2026-10-15
 updated: 2026-11-10
-related: [vision, new-game-design, design, frontend, testing, playtests, plan-m1, journal, handoff]
+related: [vision, new-game-design, design, frontend, testing, playtests, plan-m1, journal]
 ---
 
 # Development plan
@@ -21,7 +21,7 @@ The implemented baseline is a turn-based strategy kernel, world packages, an ext
 
 Continue from the relevant section below with one bounded task and its acceptance checks. The M1 build and its first refactor wave are already integrated. The old complete refactor workflow is retired from the executable workflow directory; its source remains in Git history. The supported shared-draft, preview, explicit-start and save/load journey now has a continuous developer browser regression, including retained orders and recoverable backups ([testing.md](testing.md#chat-workshop-coverage)). A documentation reconciliation or passing fixture suite does not establish completion of a live multi-turn game or the owner's artistic acceptance.
 
-[plan-m1.md](plan-m1.md) retains the milestone contract and its current evidence limits. [playtests.md](playtests.md) retains owner feedback and the historical UI audits. [handoff.md](handoff.md) is only an inbox for material awaiting integration, not a second backlog.
+[plan-m1.md](plan-m1.md) retains the milestone contract and its current evidence limits. [playtests.md](playtests.md) retains owner feedback and the historical UI audits. The `## Open` section of the [journal](journal.md) lists only what the next session needs to continue and is no second backlog.
 
 ## Playable candidate 0.2.0
 
