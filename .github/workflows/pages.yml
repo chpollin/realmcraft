@@ -1,0 +1,47 @@
+name: Deploy Pages
+
+# Publishes only the reader-facing files from an explicit list. Agent
+# instructions (.claude/, CLAUDE.md), knowledge/, snapshots/, research
+# artefacts, design screenshots, tests, tools and the local server stay in the
+# repository. A new folder the page loads at runtime has to be added to the
+# list. Requires the Pages source "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the published tree
+        run: |
+          mkdir _site
+          git ls-files -z -- index.html LICENSE CITATION.cff codemeta.json \
+              spielbrett engine fonts welten schwarzkaemme \
+            | xargs -0 cp --parents -t _site
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
