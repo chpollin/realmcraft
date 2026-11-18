@@ -19,6 +19,8 @@ import { brandMark } from './realm-art.js';
 
 const SEED_MAX = 0xffffffff;
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
+// Every public DHCraft project site links the one publisher imprint.
+const IMPRINT_URL = 'https://dhcraft.org/imprint/';
 
 export const randomSeed = () => globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
 
@@ -273,7 +275,9 @@ export async function startScreen() {
     root.replaceChildren(el('div', { class: 'start-buehne' },
       el('header', { class: 'start-kopf' }, el('h1', { class: 'world' }, brandMark(), el('span', { text: 'RealmCraft' }))),
       nav(),
-      pane));
+      pane,
+      el('footer', { class: 'start-fuss' }, el('p', {}, `${t('shell.start.imprint')}: `,
+        el('a', { href: IMPRINT_URL, text: IMPRINT_URL })))));
     realm.setActive(st.pane === 'new' && st.creationMode === 'realm');
     if (focusId) document.getElementById(focusId)?.focus();
   }

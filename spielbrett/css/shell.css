@@ -24,8 +24,8 @@
     margin-inline: auto;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
-    grid-template-areas: "kopf menu" "pane pane";
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "kopf menu" "pane pane" "fuss fuss";
     align-content: start;
     gap: var(--space-4) var(--space-6);
     padding: var(--space-4) clamp(1rem, 3vw, 2.5rem) var(--space-6);
@@ -35,13 +35,14 @@
   .realm-brand-mark { inline-size: 2rem; block-size: 2rem; color: var(--ember); flex: none; }
   .start-menu { grid-area: menu; align-self: center; justify-self: end; }
   .start-pane { grid-area: pane; align-self: start; }
+  .start-fuss { grid-area: fuss; }
 }
 
 @media (max-width: 760px) {
   .start-buehne {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "kopf" "menu" "pane";
-    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "kopf" "menu" "pane" "fuss";
+    grid-template-rows: auto auto 1fr auto;
     gap: var(--space-4);
     padding: var(--space-4) 1rem var(--space-6);
   }
@@ -51,6 +52,7 @@
 
 @layer components {
   /* Start screen */
+  .start-fuss { font-size: var(--step--1); color: var(--ink-dim); }
   .start-menu ul { display: flex; flex-wrap: wrap; gap: var(--space-1); }
   .start-menu .start-punkt { inline-size: auto; min-block-size: 2.75rem; padding-inline: var(--space-3); font-size: var(--step-0); border-radius: var(--radius-s); }
   .start-punkt, .menu-punkt {
