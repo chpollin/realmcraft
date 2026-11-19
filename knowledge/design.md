@@ -19,6 +19,8 @@ related: [frontend, game-design, new-game-design, architecture]
 
 The visual surface of RealmCraft (`spielbrett/`) follows the Weltenwerkstatt direction, a cartographic command table that pairs an illustrated world map with a dark slate and brass instrument frame. The browser board uses plain ES modules, native HTML5 `<dialog>` elements, SVG diagrams and Canvas 2D without a build step or external framework. While the AI harness chat acts as the conversational control deck for world creation and season planning, the browser surfaces render spatial geography, resource flows, council standing and historical stratigraphy from the player's fog-safe projection and kernel `preview()`.
 
+Authored realms open in the community. The spring field, summer irrigation and stored harvest use the existing food work area. A free decision keeps the player's wording in the order bar and chronicle. The forecast reports the maximum harvest before storage limits, and the harvest entry reports the quantity actually admitted to stock.
+
 ## Token architecture and typography
 
 All colors in `spielbrett/css/tokens.css` are defined in perceptual OKLCH space so lightness and chroma steps maintain readable contrast across dark slate panels and warm cartographic pigments. DOM stylesheets reference semantic custom properties, and the Canvas 2D palette reader (`spielbrett/js/map/palette.js`) reads computed `:root` tokens once per theme or resize to derive shaded and translucent stops.

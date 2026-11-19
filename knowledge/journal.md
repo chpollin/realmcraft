@@ -25,6 +25,11 @@ The curated backward-looking provenance index of the project. Current specificat
 
 ## Entries
 
+### 2026-11-19 Shared fields and player decisions
+
+- Changed: free orders retain the player's wording in the planning bar and private chronicle. In authored riverlands, shared sowing and optional irrigation determine the autumn yield. The community scene depicts the plot and harvest.
+- Evidence: the season-plan browser scenario submits orders through the harness CLI, advances from spring to winter, compares the irrigated and untended outcomes and restores the opening plan. Human choices and enjoyment remain to be observed.
+
 ### 2026-10-03 condensed development history before the rebuild
 
 - Predecessor state. `docs/Entwicklungsjournal.md` at commit `7bfa6ab`, and the branch `archiv/vor-neuaufbau`.

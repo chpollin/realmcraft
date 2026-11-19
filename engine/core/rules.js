@@ -8,6 +8,8 @@
 
 export const RULES_VERSION = 1;
 
+export const SHARED_FIELD = Object.freeze({ seed: 2, irrigation: 1, seasons: 2, harvest: 3, irrigatedHarvest: 5 });
+
 export const RULES = Object.freeze({
   // Core resources every world carries (owner decision 2026-10-03): the kernel
   // may rely on them. Every other resource (herden, erz, salz, psil ...) is

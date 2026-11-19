@@ -14,7 +14,7 @@
 // The four maps after `orders` are optional and default to {}. Their keys
 // that name orders must be ids of orders in this draft (content validator).
 
-import { COMMON_DEFS, PATTERNS, arr, bundle, int, map, obj, ref, str } from './common.js';
+import { COMMON_DEFS, PATTERNS, arr, bundle, int, map, obj, ref, str, text } from './common.js';
 
 const roll = { value: int(1, 10), fingerprint: ref('hash') };
 
@@ -25,7 +25,7 @@ export const DRAFT_DEFS = Object.freeze({
     people: ref('id'),
     turn: ref('turn'),
     baseRev: int(0, 999999),
-    orders: arr(obj({ id: ref('orderId'), type: ref('order'), params: { type: 'object' } }), 16),
+    orders: arr(obj({ id: ref('orderId'), type: ref('order'), params: { type: 'object' }, intent: text(180, 1) }, ['intent']), 16),
     // Labour of the turn: groups (clans) per target, where a target is a
     // resource key, "research" or a module activity ("hueten", "adepten").
     // The sum must not exceed population.core (issue labour).

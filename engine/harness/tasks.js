@@ -161,6 +161,7 @@ function candidateParams(view, env, pid, type) {
     case 'move': return p.units.flatMap((u) => nearTiles(view, pid).map((tile) => ({ unit: u.id, tile })));
     case 'retreat': return p.units.map((u) => ({ unit: u.id }));
     case 'talk': return [{ mode: 'listen', member: p.council[0]?.id }];
+    case 'field.sow': case 'field.tend': return [{}];
     case 'machtprobe': return [{ aim: 'rally' }];
     default: return [];
   }
@@ -172,7 +173,7 @@ function candidateParams(view, env, pid, type) {
  * example order. Types without enumerable targets list their parameters only.
  */
 export function orderGuide(view, env, pid) {
-  const reg = registry();
+  const reg = registry(env.welt);
   const ox0 = orderContext(view, env, pid, { path: '/orders/0' });
   const out = [];
   for (const c of catalogueFor(view, env, pid, ox0)) {

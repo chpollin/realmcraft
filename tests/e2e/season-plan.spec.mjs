@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { startServer } from '../lib/server.mjs';
+import { REPO, startServer } from '../lib/server.mjs';
 
-for (const width of [1440, 390]) test(`season plan, two offline seasons and restore at ${width}px`, async ({ page }, info) => {
+for (const width of [1440, 390]) test(`season plan, three offline seasons with chat decisions and restore at ${width}px`, async ({ page }, info) => {
   test.setTimeout(90000);
   const root = mkdtempSync(join(tmpdir(), 'rc-season-ui-'));
   const server = await startServer(root, { demo: true });
@@ -25,11 +26,12 @@ for (const width of [1440, 390]) test(`season plan, two offline seasons and rest
     const created = await (await page.request.post(`${base}/api/realms/start`, { data: {
       draft, fingerprint: preview.fingerprint, startKey: randomUUID(),
     } })).json();
-    expect(created.ok).toBe(true);
+    expect(created.ok, JSON.stringify(created.issues)).toBe(true);
     const cid = created.id;
     const readDraft = async () => (await (await page.request.get(`${base}/api/campaigns/${cid}/draft`)).json()).draft;
     await page.goto(`${base}/spielbrett/?campaign=${cid}`);
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator('#gemeinschaft')).toBeVisible();
     await page.locator('[data-dialog="saison"]').click();
     await expect(page.locator('#dlg-saison')).toBeVisible();
     await expect(page.locator('#dlg-saison')).toContainText('Wirtschaft zeigt Ertrag');
@@ -59,7 +61,19 @@ for (const width of [1440, 390]) test(`season plan, two offline seasons and rest
     const planned = await readDraft();
     await page.keyboard.press('Escape');
     await page.locator('[data-menu="resume"]').click();
-    for (let turn = 0; turn < 2; turn++) {
+    const sow = 'Beide Familien bekommen Saatgut für einen gemeinsamen Acker.';
+    const tend = 'Wir ziehen gemeinsam Wassergräben.';
+    for (let turn = 0; turn < 3; turn++) {
+      if (turn === 0 || (turn === 1 && width === 1440)) {
+        const next = await page.evaluate(() => structuredClone(window.spielbrett.game.draft));
+        next.orders.push({ id: 'field', type: turn ? 'field.tend' : 'field.sow', params: {}, intent: turn ? tend : sow });
+        const file = join(root, 'chat-draft.json');
+        writeFileSync(file, JSON.stringify(next));
+        const cli = spawnSync(process.execPath, ['engine/cli.mjs', 'preview', '--campaign', cid, '--draft', file, '--json'],
+          { cwd: REPO, env: { ...process.env, REALMCRAFT_ROOT: root }, encoding: 'utf8' });
+        expect([0, 3], cli.stdout + cli.stderr).toContain(cli.status);
+        await expect.poll(() => page.evaluate(() => window.spielbrett.game.draft.orders.some(o => o.id === 'field'))).toBe(true);
+      }
       await page.locator('[data-dialog="saison"]').click();
       await page.locator('#dlg-saison').getByRole('button', { name: 'Saison abschließen', exact: true }).click();
       await page.locator('#dlg-probe [data-wuerfeln]').click();
@@ -79,20 +93,30 @@ for (const width of [1440, 390]) test(`season plan, two offline seasons and rest
       await expect.poll(() => page.evaluate(() => window.spielbrett?.game.view.turn)).toBe(turn + 1);
       await expect(page.locator('#dlg-ereignis')).toBeVisible();
       while (await page.locator('#dlg-ereignis').isVisible()) await page.locator('#dlg-ereignis [data-fokus="weiter"]').click();
+      const fieldLabel = page.locator('[data-community-spot="food"] .gemeinschaft-ort-name');
+      const tended = width === 1440;
+      const expected = turn === 2 ? `Ernteertrag: +${tended ? 5 : 3} Nahrung` : turn === 1 && tended ? 'Bewässerter Acker' : 'Gemeinschaftsacker';
+      await expect(fieldLabel).toHaveText(expected);
       await page.locator('[data-dialog="saison"]').click();
       await expect(page.locator('#dlg-saison')).toContainText('Protokollierte Änderungen');
       await page.locator('#dlg-saison .overlay-body').evaluate((body) => { body.scrollTop = body.scrollHeight; });
       await page.screenshot({ animations: 'disabled', path: info.outputPath(`season-result-${width}-${turn}.png`) });
       await page.locator('#dlg-saison').getByRole('button', { name: 'Weiter planen', exact: true }).click();
     }
-    await page.route('**/log/T0001.json', (route) => route.fulfill({ status: 503, body: 'Unavailable' }));
+    await page.locator('[data-dialog="chronik"]').click();
+    await expect(page.locator('#dlg-chronik')).toContainText(sow);
+    if (width === 1440) await expect(page.locator('#dlg-chronik')).toContainText(tend);
+    await expect(page.locator('#dlg-chronik')).toContainText('Die Ernte ist eingebracht');
+    await expect(page.locator('#dlg-chronik')).toContainText(`Ernteertrag: +${width === 1440 ? 5 : 3} Nahrung`);
+    await page.keyboard.press('Escape');
+    await page.route('**/log/T0002.json', (route) => route.fulfill({ status: 503, body: 'Unavailable' }));
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     if (await page.locator('#dlg-ereignis').isVisible()) await page.keyboard.press('Escape');
     if (await page.locator('#dlg-menu').isVisible()) await page.locator('[data-menu="resume"]').click();
     await page.locator('[data-dialog="saison"]').click();
     await expect(page.locator('#dlg-saison')).toContainText('Noch kein Bericht');
-    await page.unroute('**/log/T0001.json');
+    await page.unroute('**/log/T0002.json');
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     if (await page.locator('#dlg-ereignis').isVisible()) await page.keyboard.press('Escape');
@@ -109,6 +133,6 @@ for (const width of [1440, 390]) test(`season plan, two offline seasons and rest
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     expect(await page.evaluate(() => window.spielbrett.game.draft)).toEqual(planned);
     const saves = (await (await page.request.get(`${base}/api/campaigns/${cid}/saves`)).json()).saves;
-    expect(saves.some((s) => s.auto?.reason === 'load' && s.turn === 2)).toBe(true);
+    expect(saves.some((s) => s.auto?.reason === 'load' && s.turn === 3)).toBe(true);
   } finally { await server.stop(); rmSync(root, { recursive: true, force: true }); }
 });

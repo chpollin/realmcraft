@@ -195,6 +195,10 @@ The child harness also receives `--sealed-only --expect-turn <turn> --expect-rev
 
 Keep this root exclusive to offline testing. Do not run an external `/zug` or a second harness against it. The HTTP queue and initial marker check do not provide an atomic reservation against independent external processes. Full agent play continues through the normal harness on its own campaign. The temporary test world is a developer fixture and does not establish human acceptance of its setting, narration or balance.
 
+In an authored river world, `field.sow` spends two food and one minor action in spring. In summer the community can reserve one material and one minor action for `field.tend` or keep them for another purpose. Autumn harvest enters the same capped income calculation used by the forecast. It yields up to three food without irrigation or five with irrigation. The community scene shows the resulting plot, irrigation and stored harvest. The original intention accompanies the harvest receipt. Family names and competing claims belong to the fiction unless another supported action implements their effects.
+
+Free orders may carry the player's wording in the optional `orders[].intent` field (1–180 characters). Confirm any difference between the requested effect and the available action before submitting the draft. The board shows the intent during planning. After resolution the player's chronicle pairs it with the action, target tile when present, verdict and any newly revealed tile count. The private kernel event survives reload and restore within the existing chronicle retention window.
+
 ### Guided assessment and recovery
 
 Prepare a separate fresh campaign on the isolated demo server and save its opening plan with the label `Beginn der gemeinsamen Spielprobe`. Verify that label in Menu > Load before handing over the current local URL. Keep earlier campaigns available. The local URL and temporary campaign identifiers belong in the dated delivery, not as permanent project links.

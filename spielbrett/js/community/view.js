@@ -88,7 +88,8 @@ export class CommunityView {
     const params = new URLSearchParams(location.search);
     this.debug = params.get('debug') === '1';
     if (!this.debug) this.season = '';
-    this.setMode(params.get('ansicht') === 'gemeinschaft' ? 'gemeinschaft' : 'welt', false);
+    const initial = this.api.game.pack?.welt?.creation ? 'gemeinschaft' : 'welt';
+    this.setMode((params.get('ansicht') ?? initial) === 'gemeinschaft' ? 'gemeinschaft' : 'welt', false);
   }
 
   setMode(mode, navigate = true) {
@@ -98,6 +99,7 @@ export class CommunityView {
     if (navigate) {
       const url = new URL(location.href);
       if (mode === 'gemeinschaft') url.searchParams.set('ansicht', mode);
+      else if (this.api.game.pack?.welt?.creation) url.searchParams.set('ansicht', 'welt');
       else url.searchParams.delete('ansicht');
       if (url.href !== location.href) history.pushState(null, '', url);
       this.api.setPanel(null);
@@ -143,6 +145,8 @@ export class CommunityView {
       settled: model.home?.kind !== 'lager', clans: people.population.core,
       labour: { food: assign[RULES.food] ?? 0, material: assign[RULES.material] ?? 0, research: assign.research ?? 0 },
       seed: String(game.view.map.seed), reducedMotion: prefersReducedMotion(),
+      field: people.modules?.kern?.field ?? null,
+      harvest: game.view.chronicle?.find((entry) => entry.kind === 'field.harvest' && entry.turn === game.view.turn - 1 && entry.target.id === game.pid)?.change.after.food,
       herds: people.resources.herden ?? 0,
       landscape: game.pack?.welt?.creation?.world?.landscape || 'highlands',
     };
@@ -150,10 +154,14 @@ export class CommunityView {
     this.root.dataset.settled = String(this.state.settled);
     for (const [id, btn] of this.buttons) {
       btn.querySelector('.gemeinschaft-ort-name').textContent = id === 'home' ? t('settlement.' + model.home?.kind, t('board.community.manage-short')) : id === 'research' ? t('ui.forschung') : this.api.resourceName(id === 'food' ? RULES.food : RULES.material);
+      if (id === 'food' && this.state.field) btn.querySelector('.gemeinschaft-ort-name').textContent =
+        t(this.state.field.tended ? 'decision.irrigated' : 'decision.seedlings');
+      if (id === 'food' && this.state.harvest !== undefined) btn.querySelector('.gemeinschaft-ort-name').textContent =
+        t.fmt('decision.yield', { n: this.state.harvest });
       const name = btn.querySelector('.gemeinschaft-ort-name').textContent;
       btn.setAttribute('aria-label', id === 'home'
         ? name + ', ' + t('board.community.home')
-        : t('board.community.' + id) + ', ' + t('population.core') + ' ' + this.state.labour[id]);
+        : name + ', ' + t('board.community.' + id) + ', ' + t('population.core') + ' ' + this.state.labour[id]);
       btn.setAttribute('aria-pressed', String(model.panel === 'kontext' && model.selection?.id === model.home?.id && this.selected === id));
       const count = btn.querySelector('[data-community-count]');
       if (count) {

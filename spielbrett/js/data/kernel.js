@@ -18,7 +18,7 @@ import { pathsView, pathsOf, pfadOf, pointsOf } from '../../../engine/core/pfade
 import { ofOp, standingOf } from '../../../engine/core/effects.js';
 
 /** True for order types the kernel allows once per season (research.assign, research.direct). */
-export const isUnique = (type) => registry()[type]?.def?.unique === true;
+export const isUnique = (type, world) => registry(world)[type]?.def?.unique === true;
 
 export { tune, preview, emptyDraft, eventBand, bandOf, resolveProbe, calculation, chance, loyaltyBand, mapLayers, researchCost, calendarOf, SUCCESS_BANDS, BANDS, pathsView, pathsOf, pfadOf };
 

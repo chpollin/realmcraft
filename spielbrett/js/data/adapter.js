@@ -461,6 +461,11 @@ export function messages(view, env, t, pv) {
 
 // --- orders of the draft ---------------------------------------------------------
 
+export function harvestTarget(env, t, harvest) {
+  const time = seasonOf(env, t, harvest.turn);
+  return t.fmt('decision.expected', { season: time.saison, amount: harvest.amount });
+}
+
 /** Readable target of an order from its params, using names the view and env know. */
 export function describeParams(view, env, t, order, world) {
   const p = order.params ?? {};
@@ -537,8 +542,8 @@ export function orderRows(view, env, t, draft, pv, world) {
     return {
       id: o.id,
       type: o.type,
-      titel: t(`order.${o.type}`, o.type),
-      ziel: describeParams(view, env, t, o, world),
+      titel: o.intent || t(`order.${o.type}`, o.type),
+      ziel: [o.intent && t(`order.${o.type}`, o.type), po?.harvest ? harvestTarget(env, t, po.harvest) : describeParams(view, env, t, o, world)].filter(Boolean).join(', '),
       kosten: Object.entries(po?.costs ?? {}).filter(([, n]) => n > 0).map(([k, n]) => ({ key: k, menge: n })),
       art: slotArt(po?.slot),
       probe: probe?.id ?? null,
@@ -642,7 +647,19 @@ export function adaptView({ view, env, t, world, preview: pv, chronik }) {
     rivalen: rivals(view, env),
     bestimmung: destiny(view, env, t),
     entwicklungen: developments(view, env, t),
-    chronik: chronicle(env, t, chronik),
+    chronik: [...chronicle(env, t, chronik), ...(view.chronicle ?? [])
+      .filter((event) => ['order.memory', 'field.harvest'].includes(event.kind) && event.target.id === pid)
+      .map((event) => {
+        const result = event.change.after;
+        if (event.kind === 'field.harvest') return {
+          turn: event.turn, ...seasonOf(env, t, event.turn), titel: t('decision.harvest'),
+          text: [event.reason === 'field.sow' ? t('order.field.sow') : event.reason, t.fmt('decision.yield', { n: result.food })].join(' — '),
+        };
+        const details = [t(`order.${result.type}`, result.type), result.tile,
+          result.band ? t(bandKey(result.band), result.band) : t(`decision.${result.status}`)];
+        if (result.revealed !== undefined) details.push(t.fmt('decision.revealed', { n: result.revealed }));
+        return { turn: event.turn, ...seasonOf(env, t, event.turn), titel: event.reason, text: details.filter(Boolean).join(', ') };
+      })].sort((a, b) => a.turn - b.turn),
     meldungen: messages(view, env, t, pv),
   };
 }

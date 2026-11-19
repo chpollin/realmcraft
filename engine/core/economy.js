@@ -18,9 +18,9 @@
 // and their consequence (suspension, strength loss) is the penalty, so they
 // leave no shortfall.
 
-import { RULES, tune } from './rules.js';
+import { SHARED_FIELD, RULES, tune } from './rules.js';
 import { calendarOf } from './calendar.js';
-import { applyOnceList, changeUnitStrength, ofOp, standingOf } from './effects.js';
+import { applyOnceList, changeUnitStrength, setKern, ofOp, standingOf } from './effects.js';
 import { addPeople, addResource, changeLoyalty, fireHook, noteChange, setPeople } from './log.js';
 import { clamp, controlledRegions, isAlive, peopleIds, regionTerrain, settlementsOf } from './state.js';
 import { unitStats } from './military.js';
@@ -265,6 +265,10 @@ export function planEconomy(state, env, pid, now) {
   // (a) gains
   const { gains, harvest } = gainsOf(state, env, pid, standing, season, now, cx);
   plan.harvest = harvest;
+  const field = people.modules?.kern?.field;
+  if (field && turn >= field.since + SHARED_FIELD.seasons) {
+    gains.unshift({ res: RULES.food, n: field.tended ? SHARED_FIELD.irrigatedHarvest : SHARED_FIELD.harvest, kind: 'field', reason: 'Harvest from the shared field', refs: [] });
+  }
   // Gains are capped before losses: a gain never lifts a stock above its cap
   // (or above where it already stands), so a surplus cannot cushion this
   // season's consumption and upkeep.
@@ -272,6 +276,7 @@ export function planEconomy(state, env, pid, now) {
   const ceiling = (res) => Math.min(MAX_STOCK, Math.max(caps[res] ?? MAX_STOCK, now.stock[res] ?? 0));
   for (const g of gains) {
     const n = Math.min(g.n, ceiling(g.res) - get(g.res));
+    if (g.kind === 'field') ops.push({ t: 'close-field', n, field });
     if (n <= 0) continue;
     st[g.res] = get(g.res) + n;
     ops.push({ t: 'gain', ...g, n });
@@ -415,6 +420,11 @@ function setDevelopment(tc, pid, ref, patch, kind, reason) {
 function applyOp(tc, pid, op) {
   const { env } = tc;
   switch (op.t) {
+    case 'close-field':
+      noteChange(tc, 'field.harvest', { kind: 'people', id: pid }, 'harvest', null, { food: op.n, since: op.field.since },
+        op.field.intent ?? 'field.sow', { people: pid });
+      setKern(tc, pid, 'field', null, 'The shared field has been harvested', { kind: 'field.closed' });
+      break;
     case 'gain':
       addResource(tc, pid, op.res, op.n, op.reason, { kind: op.kind === 'flow' ? 'economy.flow' : 'economy.harvest', refs: op.refs });
       break;

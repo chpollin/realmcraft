@@ -338,7 +338,7 @@ function sheep(ctx, x, y, s, winter, phase) {
   line(ctx, [[13, -11 + phase * 2], [19, -12 + phase * 2]], '#4b5947', 2.2);
   ctx.restore();
 }
-function foodArea(ctx, palette, winter, time, herds) {
+function foodArea(ctx, palette, winter, time, herds, field, harvest) {
   ellipse(ctx, 342, 484, 125, 62, '#687a453b');
   polygon(ctx, [[218, 448], [343, 410], [455, 451], [401, 535], [260, 537]], winter ? '#bec8b7' : '#9aab6e');
   fence(ctx, [[220, 454], [267, 440], [313, 426], [357, 414], [405, 432], [453, 450]]);
@@ -348,7 +348,24 @@ function foodArea(ctx, palette, winter, time, herds) {
   polygon(ctx, [[255, 557], [311, 546], [348, 559], [291, 573]], '#937a51');
   line(ctx, [[258, 556], [258, 585]], '#685e43', 4); line(ctx, [[339, 558], [339, 585]], '#685e43', 4);
   for (let i = 0; i < 6; i++) line(ctx, [[268 + i * 11, 558], [273 + i * 11, 571]], '#cfb275', 4);
-  if (!winter) {
+  if (field) {
+    polygon(ctx, [[420, 551], [504, 522], [550, 551], [463, 583]], '#806743');
+    for (let row = 0; row < 5; row++) {
+      const x = 432 + row * 16, y = 551 - row * 5;
+      line(ctx, [[x, y], [x + 32, y + 20]], field.tended ? '#7dada7' : '#635037', 3);
+      for (let stem = 0; stem < 5; stem++) {
+        const sx = x + stem * 7, sy = y + stem * 4;
+        line(ctx, [[sx - 3, sy - 5], [sx, sy], [sx + 2, sy - (field.tended ? 12 : 6)]],
+          field.tended ? '#e1bf69' : '#a8bb71', 2);
+      }
+    }
+  } else if (harvest > 0) {
+    for (let i = 0; i < harvest; i++) {
+      const x = 450 + i * 13, y = 552 - i * 4;
+      polygon(ctx, [[x - 6, y], [x - 2, y - 11], [x - 5, y - 20], [x + 4, y - 19], [x + 2, y - 11], [x + 7, y]], '#cfa95e');
+      line(ctx, [[x - 3, y - 10], [x + 4, y - 11]], '#736044', 2);
+    }
+  } else if (!winter) {
     polygon(ctx, [[441, 546], [495, 527], [525, 544], [474, 562]], '#817b4e');
     for (let i = 0; i < 4; i++) line(ctx, [[453 + i * 13, 545 - i * 3], [473 + i * 13, 553 - i * 4]], palette.leaf, 5);
   }
@@ -436,7 +453,7 @@ export function drawCommunity(ctx, state = {}, time = 0) {
   line(ctx, [[688, 331], [688, 272]], '#5a644c', 3);
   polygon(ctx, [[690, 275], [728, 285 + Math.sin(t * 1.8) * 3], [711, 298], [690, 290]], '#b57b44');
   polygon(ctx, [[696, 284], [701, 277], [707, 286], [703, 286], [701, 282], [698, 287]], '#e6d7ad');
-  foodArea(ctx, palette, winter, t, state.herds); materialArea(ctx, winter, palette); hearth(ctx, t);
+  foodArea(ctx, palette, winter, t, state.herds, state.field, state.harvest); materialArea(ctx, winter, palette); hearth(ctx, t);
   const zones = {
     food: [[453, 510], [328, 584], [278, 457], [405, 568], [310, 480], [430, 490], [360, 530], [260, 550]],
     material: [[850, 488], [792, 502], [913, 550], [808, 536], [942, 478], [869, 544], [770, 466], [895, 511]],

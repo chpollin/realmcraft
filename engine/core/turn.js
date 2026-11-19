@@ -18,7 +18,7 @@
 // costs, all other orders), modules, economy, research, military, vision,
 // events, council, cleanup, bestimmung, finalize. Every change lands in the log.
 
-import { RULES, RULES_VERSION, tune } from './rules.js';
+import { RULES, RULES_VERSION, SHARED_FIELD, tune } from './rules.js';
 import { issue, hasErrors } from './issues.js';
 import { hashValue } from './hash.js';
 import { seedState } from './rng.js';
@@ -329,6 +329,11 @@ export function preview(state, env, draft, { as } = {}) {
     for (const c of result.choices) for (const [res, n] of Object.entries(c.delta.resources ?? {})) spend[res] = (spend[res] ?? 0) - n;
     for (const o of result.orders) {
       const e = chk.entries.find((x) => x.order.id === o.id);
+      if (o.ok && (o.type === 'field.sow' || o.type === 'field.tend')) {
+        const field = state.peoples[pid].modules?.kern?.field;
+        o.harvest = { turn: (field?.since ?? state.turn) + SHARED_FIELD.seasons,
+          amount: o.type === 'field.tend' ? SHARED_FIELD.irrigatedHarvest : SHARED_FIELD.harvest };
+      }
       if (o.type === 'destiny.adopt' && o.ok && e) o.destiny = previewAdopt(state, env, pid, e);
     }
     result.forecast = economy.forecast(state, env, pid, { spend, assign: chk.assign });
@@ -575,7 +580,17 @@ export function apply(state, env, drafts = {}) {
   };
   const contexts = {};
   for (const pid of Object.keys(used).sort()) contexts[pid] = orderContext(s0, env, pid);
+  // The private receipt preserves the player's words alongside the kernel verdict.
+  function remember(pid, order, status, band = null, effects = []) {
+    if (!order.intent) return;
+    const explored = effects.find((entry) => entry.kind === 'map.explore');
+    const result = { type: order.type, status: effects.some((event) => event.kind === 'order.blocked') ? 'blocked' : status, band, tile: typeof order.params.tile === 'string' ? order.params.tile : null };
+    if (explored) result.revealed = explored.change.after.added;
+    noteChange(tc, 'order.memory', { kind: 'people', id: pid }, 'decision', null, result,
+      order.intent, { people: pid, refs: [order.id] });
+  }
   const execute = (pid, e, out) => {
+    const start = tc.log.length;
     const ox = { ...contexts[pid], path: `/orders/${e.index}` };
     if (out) {
       tc.probes.push(out.probe);
@@ -592,6 +607,7 @@ export function apply(state, env, drafts = {}) {
     const at = lead ? orderTile(s0, tc.world, pid, e.order) : null;
     if (at) setMember(tc, pid, lead, 'at', at, `leads order ${e.order.id} (${e.order.type}) at ${at}`, { kind: 'member.at' });
     (tc.scratch.executed[pid] ??= []).push({ order: e.order, slot: e.slot, tags: e.tags, band: out?.band ?? null });
+    remember(pid, e.order, 'executed', out?.band, tc.log.slice(start));
     fireHook(tc, pid, `use:${e.order.type}`, e.tags);
     orderReport.push({ people: pid, id: e.order.id, type: e.order.type, status: 'executed', band: out?.band ?? null, venture: e.venture });
   };
@@ -615,6 +631,7 @@ export function apply(state, env, drafts = {}) {
         if (e.vote.decree && !overridden) council.bookDecree(tc, contexts[pid], e);
         else if (!overridden) {
           notice(tc, 'order.rejected', { kind: 'people', id: pid }, `council rejects ${e.order.type} ${e.order.id}; the Machtprobe failed`, { people: pid });
+          remember(pid, e.order, 'rejected');
           orderReport.push({ people: pid, id: e.order.id, type: e.order.type, status: 'rejected', band: null, venture: e.venture });
           continue;
         }
@@ -626,6 +643,7 @@ export function apply(state, env, drafts = {}) {
   for (const pid of Object.keys(runs).sort()) {
     runs[pid] = runs[pid].filter((e) => {
       if (payCosts(tc, pid, e)) return true;
+      remember(pid, e.order, 'unpaid');
       orderReport.push({ people: pid, id: e.order.id, type: e.order.type, status: 'unpaid', band: null, venture: e.venture });
       return false;
     });

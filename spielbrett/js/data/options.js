@@ -8,7 +8,7 @@
 import { distance, key, parseKey, reveal } from '../../../engine/world/index.js';
 import { previewDraft, isUnique } from './kernel.js';
 import { withOrder, withReplacedOrder } from './draft.js';
-import { describeParams, issueText, issuesOfOrder, previewDeltas, slotArt } from './adapter.js';
+import { describeParams, harvestTarget, issueText, issuesOfOrder, previewDeltas, slotArt } from './adapter.js';
 import { activeModules } from '../../../engine/modules/index.js';
 import { activeDevelopments } from '../../../engine/core/state.js';
 import { moveBudget, reach } from '../../../engine/core/map.js';
@@ -84,6 +84,7 @@ export function candidates(view, env, target) {
       if (ent?.kind === 'bauwerk') out.push({ type: 'build', params: { development: k.ref, settlement: settlement.id } });
       if (ent?.kind === 'einheit') out.push({ type: 'recruit', params: { settlement: settlement.id, type: k.ref } });
     }
+    out.push({ type: 'field.sow', params: {} }, { type: 'field.tend', params: {} });
     out.push(...adoptCandidates(view, env), ...disciplineCandidates(view, env, 'none'));
   }
   if (ownUnit) out.push({ type: 'retreat', params: { unit: ownUnit.id } }, ...disciplineCandidates(view, env, 'unit', ownUnit.id));
@@ -199,7 +200,7 @@ function draftWith(draft, cand, extra, replaceId, base) {
 export function previewOption(ctx, cand, extra = {}) {
   const { view, env, t, draft, base, world } = ctx;
   const { replace: wanted = null, ...ext } = extra;
-  const namesake = isUnique(cand.type) ? draft.orders.find((o) => o.type === cand.type && !sameOrder(o, cand)) : null;
+  const namesake = isUnique(cand.type, env.welt) ? draft.orders.find((o) => o.type === cand.type && !sameOrder(o, cand)) : null;
   const replaceId = wanted ?? namesake?.id ?? null;
   const next = draftWith(draft, cand, ext, replaceId, base);
   const order = next.orders.at(-1);
@@ -229,7 +230,7 @@ export function previewOption(ctx, cand, extra = {}) {
     type: cand.type,
     params: cand.params,
     titel: t(`order.${cand.type}`, cand.type),
-    ziel: describeParams(view, env, t, cand, world),
+    ziel: po?.harvest ? harvestTarget(env, t, po.harvest) : describeParams(view, env, t, cand, world),
     art: slotArt(po?.slot),
     kosten: Object.entries(po?.costs ?? {}).filter(([, n]) => n > 0).map(([k, n]) => ({ key: k, menge: n })),
     probe: probe ? {

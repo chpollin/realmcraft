@@ -129,9 +129,9 @@ function render(dlg, data) {
 }
 
 /** Opens the rules reference for a world package's regeln.json. */
-export function openRegeln(regeln) {
+export function openRegeln(regeln, world) {
   const dlg = document.getElementById('dlg-regeln');
-  render(dlg, rulesData(regeln));
+  render(dlg, rulesData(regeln, registry(world)));
   if (!dlg.open) dlg.showModal();
   dlg.querySelector('h2')?.focus();
   return dlg;

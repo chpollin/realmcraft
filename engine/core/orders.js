@@ -20,7 +20,7 @@
 // is built from the opening state; resolve writes into tc.state through the
 // log helpers and must read positions and stocks from ox.state (S0).
 
-import { RULES } from './rules.js';
+import { SHARED_FIELD, RULES } from './rules.js';
 import { issue, hasErrors } from './issues.js';
 import { calendarOf } from './calendar.js';
 import { evalCondition } from './conditions.js';
@@ -95,6 +95,29 @@ function nearOwn(ox, tile, range) {
   const pts = [...settlementsOf(ox.state, ox.pid).map((s) => s.tile), ...ox.people.units.map((u) => u.tile)];
   return pts.some((t) => distance(parseKey(t), p) <= range);
 }
+
+const RIVER_ORDERS = {
+  'field.sow': {
+    slot: 'minor', unique: true, tags: ['siedlung'],
+    available: (ox) => ox.cal.seasonIndex === 0 && !kern(ox.people).field,
+    check: () => [],
+    plan: () => ({ costs: { [RULES.food]: SHARED_FIELD.seed }, probe: null }),
+    resolve(tc, ox, order) {
+      setKern(tc, ox.pid, 'field', { since: tc.turn, tended: false, intent: order.intent ?? null },
+        'The community planted its seed grain', { kind: 'field.sown' });
+    },
+  },
+  'field.tend': {
+    slot: 'minor', unique: true, tags: ['siedlung'],
+    available: (ox) => kern(ox.people).field?.since === ox.turn - 1 && !kern(ox.people).field.tended,
+    check: () => [],
+    plan: () => ({ costs: { [RULES.material]: SHARED_FIELD.irrigation }, probe: null }),
+    resolve(tc, ox) {
+      setKern(tc, ox.pid, 'field', { ...kern(ox.people).field, tended: true },
+        'The community maintained its irrigation channels', { kind: 'field.tended' });
+    },
+  },
+};
 
 const CORE_ORDERS = {
   build: {
@@ -285,9 +308,10 @@ function roadTiles(ox, to, mode) {
 }
 
 /** Every registered order type: { type: { def, origin } } where origin is 'core' or a module id. */
-export function registry() {
+export function registry(world) {
+  const landscapeOrders = world?.creation?.world.landscape === 'riverlands' ? RIVER_ORDERS : {};
   const out = {};
-  for (const [t, def] of Object.entries({ ...CORE_ORDERS, ...COUNCIL_ORDERS, ...RESEARCH_ORDERS, ...BESTIMMUNG_ORDERS })) {
+  for (const [t, def] of Object.entries({ ...CORE_ORDERS, ...landscapeOrders, ...COUNCIL_ORDERS, ...RESEARCH_ORDERS, ...BESTIMMUNG_ORDERS })) {
     out[t] = { def, origin: 'core' };
   }
   for (const [t, { def, module }] of Object.entries(moduleOrders())) out[t] = { def, origin: module };
@@ -302,7 +326,7 @@ export function registry() {
  * with the reason key), so the board labels it without the text.
  */
 export function catalogueFor(state, env, pid, ox = orderContext(state, env, pid)) {
-  const reg = registry();
+  const reg = registry(env.welt);
   const unlocks = {};
   for (const s of ofOp(ox.standing, 'order.unlock')) {
     const prev = unlocks[s.effect.order];
@@ -453,7 +477,7 @@ export function checkDraft(state, env, draft, { as, mode = 'preview' } = {}) {
   checkChoices(state, draft, pid, issues);
   out.assign = effectiveAssign(state, draft, pid);
   const ox0 = orderContext(state, env, pid);
-  const reg = registry();
+  const reg = registry(env.welt);
   const catalogue = Object.fromEntries(catalogueFor(state, env, pid, ox0).map((c) => [c.type, c]));
   const typeCount = {};
   const used = { main: 0, minor: 0 };

@@ -56,7 +56,7 @@ export function installMenu({ api, regeln, ended, onResult }) {
     { id: 'save', icon: 'speichern', run: () => sub('save', () => saves('save')) },
     { id: 'load', icon: 'laden', run: () => sub('load', () => saves('load')) },
     { id: 'settings', icon: 'zahnrad', run: () => sub('settings', openEinstellungen) },
-    { id: 'rules', icon: 'buch', run: () => sub('rules', () => { const r = regeln(); return r ? openRegeln(r) : null; }), when: () => Boolean(regeln()) },
+    { id: 'rules', icon: 'buch', run: () => sub('rules', () => { const r = regeln(); return r ? openRegeln(r, game.env.welt) : null; }), when: () => Boolean(regeln()) },
     { id: 'result', icon: 'bestimmung', run: () => { dlg.close(); onResult(); }, when: ended },
     { id: 'to-start', icon: 'verlassen', run: leave },
   ];
