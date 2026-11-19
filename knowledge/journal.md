@@ -21,9 +21,16 @@ The curated backward-looking provenance index of the project. Current specificat
 
 ## Open
 
-- Continue the owner's active goal of a finished, enjoyable RealmCraft game through [plan.md](plan.md#active-product-goal). Studio integrity and phone module access are corrected. First-reader comprehension, readable mobile studio composition, remaining kernel boundaries and sustained play evidence remain open. Technical delivery does not establish gameplay acceptance.
+- Resume the player's spring plan in the local Orin playtest from the live draft. The opening save predates sowing. The player can still consult the council or change the plan before rolling the world event and ending spring. In summer, let the player decide whether to irrigate. After the autumn harvest, ask how they understood the shared yield and whether the board conveyed their agreement.
+- Continue the broader [product goal](plan.md#active-product-goal). First-reader comprehension, the mobile studio layout, outstanding kernel checks and evidence from sustained human play remain open.
 
 ## Entries
+
+### 2026-11-19 First player decision in the Orin playtest
+
+The player offered seed on condition that two families cultivate the field together and share the harvest. The board displayed the player's wording and the corresponding sowing order. A read-only kernel preview at handoff found order `saatgut` valid in spring planning. It reserves two food and one minor action, requires no action roll and forecasts up to three food in autumn. Only the world-event roll was outstanding.
+
+The implemented rule credits the harvest to the community store. The agreement between families survives in the order text. Individual shares and compliance have no kernel representation. The automated three-season runs below cover the harvest calculation. The human playtest has reached planning of the first season.
 
 ### 2026-11-19 Shared fields and player decisions
 
