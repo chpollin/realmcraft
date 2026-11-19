@@ -673,3 +673,40 @@ export function peopleName(model, id) {
 export function resourceByKey(model, k) {
   return model.ressourcen.find((r) => r.key === k) ?? model.module.find((r) => r.key === k);
 }
+
+
+/** Display-only probes keep renderer enrichment out of the draft control model. */
+export function studioModel(model, preview, draft, problems = []) {
+  const probes = preview?.probes ?? [];
+  const stale = new Set((preview?.issues ?? [])
+    .filter((issue) => issue.code === 'roll_stale')
+    .map((issue) => issue.path.replace('/rolls/', '')));
+  const face = (probe) => {
+    const roll = draft?.rolls?.[probe.id];
+    return Number.isInteger(roll?.value) && !stale.has(probe.id)
+      && roll.fingerprint === probe.fingerprint ? roll.value : null;
+  };
+  const worldProbe = probes.find((probe) => probe.target == null && probe.roller === 'player');
+  const worldFace = worldProbe ? face(worldProbe) : null;
+  return {
+    ...model,
+    orders: (model.orders ?? []).map((order) => {
+      const probe = probes.find((item) => item.order === order.id);
+      return { ...order, probe: probe
+        ? { id: probe.id, ziel: probe.target, mod: probe.modTotal, wurf: face(probe) }
+        : null };
+    }),
+    weltwurf: worldProbe ? { id: worldProbe.id, offen: worldFace == null, wurf: worldFace } : null,
+    probleme: problems,
+  };
+}
+
+
+/** Spatial orders can target a tile, a settlement (including camps), or a unit. */
+export function ordersAt(model, q, r) {
+  const { units, places } = objectsAt(model, q, r);
+  const settlements = [...places, ...units.filter((unit) => unit.objekt === 'settlement')];
+  return (model.orders ?? []).filter(({ params = {} }) => params.tile === key(q, r)
+    || (params.settlement && settlements.some((item) => item.id === params.settlement))
+    || (params.unit && units.some((item) => item.objekt === 'unit' && item.id === params.unit)));
+}

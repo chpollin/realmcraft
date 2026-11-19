@@ -5,7 +5,7 @@
 //   4. 'webstuhl'       — IV · Kräfte-Webstuhl (Cybernetic Warp-and-Weft Causal Matrix)
 
 import { calendarOf } from './data/kernel.js';
-import { objectsAt, regionName } from './data/adapter.js';
+import { objectsAt, ordersAt, regionName } from './data/adapter.js';
 import { tileAt } from '/engine/world/index.js';
 import { RULES } from '../../engine/core/rules.js';
 import { drawCommunity, COMMUNITY_SIZE } from './community/scene.js';
@@ -216,9 +216,9 @@ function collectCandidateHexes(game, model) {
       : [];
     const allOpts = [...opts, ...tileOpts];
 
-    const mainAct = allOpts.find((o) => o.slot === 'haupt') ?? allOpts[0] ?? null;
-    const minorAct = allOpts.find((o) => o.slot === 'neben') ?? allOpts[1] ?? null;
-    const queuedHere = orders.filter((o) => o.ort && o.ort.q === q && o.ort.r === r);
+    const mainAct = allOpts.find((o) => o.art === 'haupt') ?? null;
+    const minorAct = allOpts.find((o) => o.art === 'neben') ?? null;
+    const queuedHere = ordersAt(model, q, r);
     const isHome = q === homeQ && r === homeR;
     const dist = hexDistance(q, r, homeQ, homeR);
 
@@ -271,35 +271,7 @@ function getKnowledgeData(game, model) {
   return { praxis, bekannt, krone, activeResearchRef, selectResearch };
 }
 
-function syncRollsAndSeal(game, model) {
-  const probes = game.base?.probes ?? [];
-  const rolls = game.draft?.rolls ?? {};
-  for (const o of model.orders ?? []) {
-    const p = probes.find((x) => x.order === o.id);
-    if (p) {
-      const val = rolls[p.id]?.value;
-      o.probe = {
-        ...(o.probe ?? {}),
-        id: p.id,
-        ziel: p.threshold ?? o.probe?.ziel ?? 5,
-        mod: p.mod ?? o.probe?.mod ?? 0,
-        wurf: Number.isInteger(val) ? val : null,
-      };
-    }
-  }
-  const wp = probes.find((x) => x.target == null && x.roller === 'player');
-  if (wp) {
-    const val = rolls[wp.id]?.value;
-    model.weltwurf = {
-      id: wp.id,
-      offen: !Number.isInteger(val),
-      wurf: Number.isInteger(val) ? val : null,
-    };
-  }
-}
-
 async function triggerTurnSealOrRoll(game, model) {
-  syncRollsAndSeal(game, model);
   if (model.weltwurf?.offen) {
     game.rollWorld?.();
     return;
@@ -324,20 +296,20 @@ async function triggerTurnSealOrRoll(game, model) {
 }
 
 function renderTurnSealBar(svg, cx, cy, game, model) {
-  syncRollsAndSeal(game, model);
   const g = svgEl('g', {});
   const orders = model.orders ?? [];
 
   orders.forEach((o, idx) => {
     const ox = cx - 280 + idx * 125;
     const oy = cy;
-    const isMain = o.slot === 'haupt';
+    const isMain = o.art === 'haupt';
     const col = isMain ? '#e2a84b' : '#7ec4ba';
 
     const rmGroup = svgEl('g', {
       class: 'svg-klickbar',
       role: 'button',
       tabindex: '0',
+      'data-strom-remove-order': o.id,
       'aria-label': `${o.titel ?? o.id} (${t('board.blocker.withdraw')})`,
     });
     rmGroup.append(
@@ -458,7 +430,6 @@ function renderTurnSealBar(svg, cx, cy, game, model) {
 //   - Quadrant III (180°..270°,  6–9 Uhr): Phase III · Rat, Bestimmung & Wissenspfade
 //   - Quadrant IV  (270°..360°, 9–12 Uhr): Phase IV  · Schicksalswürfe, Zeitringe (T1..Tn) & Siegel
 export function renderAstrolabium(host, game, model, historyReports = []) {
-  syncRollsAndSeal(game, model);
   const W = 1280;
   const H = 1280;
   const CX = 640;
@@ -477,7 +448,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
   const svg = svgEl('svg', {
     viewBox: `0 0 ${W} ${H}`,
     class: 'proto-svg astro-svg',
-    role: 'img',
+    role: 'group',
     'aria-label': 'Astrolabium der Gezeiten',
   });
 
@@ -814,11 +785,12 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
           class: 'svg-klickbar',
           role: 'button',
           tabindex: '0',
-          'aria-label': `${q.titel ?? q.id} (${t('board.blocker.withdraw')})`,
+          'data-strom-remove-order': q.id,
+        'aria-label': `${q.titel ?? q.id} (${t('board.blocker.withdraw')})`,
         });
         qG.append(
           svgEl('circle', { cx: pt.x + 20, cy: pt.y - 18, r: 11, fill: '#e2a84b', stroke: '#141b1a', 'stroke-width': 1.5 }),
-          svgEl('text', { x: pt.x + 20, y: pt.y - 14, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '10', 'font-weight': '700', text: q.slot === 'haupt' ? 'H✓' : 'N✓' }),
+          svgEl('text', { x: pt.x + 20, y: pt.y - 14, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '10', 'font-weight': '700', text: q.art === 'haupt' ? 'H✓' : 'N✓' }),
         );
         qG.addEventListener('click', () => game.removeOrder(q.id));
         svg.append(qG);
@@ -898,7 +870,7 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
     const pt = polar(CX, CY, 265, deg);
     svg.append(svgEl('polygon', {
       points: `${pt.x},${pt.y - 9} ${pt.x + 9},${pt.y} ${pt.x},${pt.y + 9} ${pt.x - 9},${pt.y}`,
-      fill: ms.erfuellt ? '#e2a84b' : '#15201f',
+      fill: ms.erreicht ? '#e2a84b' : '#15201f',
       stroke: '#e2a84b',
       'stroke-width': 1.6,
     }));
@@ -1004,6 +976,19 @@ export function renderAstrolabium(host, game, model, historyReports = []) {
   orders.forEach((o, idx) => {
     const deg = 330 + idx * 10;
     const pt = polar(CX, CY, 345 + idx * 52, deg);
+    const seal = svgEl('g', {
+      role: 'button', tabindex: '0', class: 'svg-klickbar',
+      'data-strom-remove-order': o.id,
+      'aria-label': t.fmt('board.orders.withdraw', { title: o.titel }),
+      onclick: () => game.removeOrder(o.id),
+    });
+    seal.append(
+      svgEl('circle', { cx: pt.x + 42, cy: pt.y, r: 13,
+        fill: '#17201f', stroke: o.art === 'haupt' ? '#e2a84b' : '#7ec4ba', 'stroke-width': 1.8 }),
+      svgEl('text', { x: pt.x + 42, y: pt.y + 4, 'text-anchor': 'middle',
+        fill: '#ebe4d4', 'font-size': '11', text: o.art === 'haupt' ? 'H' : 'N' }),
+    );
+    svg.append(seal);
     if (o.probe) {
       const rolled = Number.isInteger(o.probe.wurf);
       const dieG = svgEl('g', {
@@ -1140,7 +1125,7 @@ export function renderNaturgemaelde(host, game, model, historyReports = []) {
   const svg = svgEl('svg', {
     viewBox: `0 0 ${W} ${H}`,
     class: 'proto-svg naturgemaelde-svg',
-    role: 'img',
+    role: 'group',
     'aria-label': 'Humboldt-Naturgemälde',
   });
 
@@ -1256,12 +1241,13 @@ export function renderNaturgemaelde(host, game, model, historyReports = []) {
         class: 'svg-klickbar',
         role: 'button',
         tabindex: '0',
+        'data-strom-remove-order': q.id,
         'aria-label': `${q.titel ?? q.id} (${t('board.blocker.withdraw')})`,
       });
       fG.append(
         svgEl('line', { x1: x, y1: y - 12, x2: x, y2: flagY, stroke: '#e2a84b', 'stroke-width': 2 }),
         svgEl('rect', { x: x - 15, y: flagY - 12, width: 30, height: 19, rx: 4, fill: '#e2a84b' }),
-        svgEl('text', { x, y: flagY + 1, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '11', 'font-weight': '700', text: q.slot === 'haupt' ? 'H✓' : 'N✓' }),
+        svgEl('text', { x, y: flagY + 1, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '11', 'font-weight': '700', text: q.art === 'haupt' ? 'H✓' : 'N✓' }),
       );
       fG.addEventListener('click', () => game.removeOrder(q.id));
       svg.append(fG);
@@ -1482,7 +1468,7 @@ export function renderWebstuhl(host, game, model) {
   const svg = svgEl('svg', {
     viewBox: `0 0 ${W} ${H}`,
     class: 'proto-svg webstuhl-svg',
-    role: 'img',
+    role: 'group',
     'aria-label': 'Kräfte-Webstuhl',
   });
 
@@ -1627,7 +1613,7 @@ export function renderWebstuhl(host, game, model) {
       const qG = svgEl('g', { class: 'svg-klickbar', role: 'button', tabindex: '0', 'aria-label': `${q.titel ?? q.id} (${t('board.blocker.withdraw')})` });
       qG.append(
         svgEl('circle', { cx: 254, cy: y, r: 12, fill: '#e2a84b' }),
-        svgEl('text', { x: 254, y: y + 4, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '11', 'font-weight': '700', text: q.slot === 'haupt' ? 'H✓' : 'N✓' }),
+        svgEl('text', { x: 254, y: y + 4, 'text-anchor': 'middle', fill: '#141b1a', 'font-size': '11', 'font-weight': '700', text: q.art === 'haupt' ? 'H✓' : 'N✓' }),
       );
       qG.addEventListener('click', () => game.removeOrder(q.id));
       svg.append(qG);

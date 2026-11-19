@@ -190,6 +190,21 @@ test('the board keeps the modules usable on a phone', async ({ page }) => {
 });
 
 
+test('community work controls and modules stay reachable below phone view navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await openBoard(page);
+  await readCards(page);
+  await page.locator('#ansichten [data-ansicht="gemeinschaft"]').click();
+  const modules = page.locator('#module');
+  const views = await page.locator('#ansichten').boundingBox();
+  const work = await page.locator('.gemeinschaft-orte').boundingBox();
+  const moduleBox = await modules.boundingBox();
+  expect(moduleBox.y).toBeGreaterThanOrEqual(views.y + views.height);
+  expect(work.y).toBeGreaterThanOrEqual(moduleBox.y + moduleBox.height);
+  await modules.locator('[data-modul="militaer"]').click();
+  await expect(page.locator('#kontext')).toBeVisible();
+});
+
 test('season plan permits next-season orders during agents while keeping the turn closed', async ({ page }) => {
   await openBoard(page, AGENTS);
   expect(await page.evaluate(() => window.spielbrett.game.view.phase)).toBe('agents');

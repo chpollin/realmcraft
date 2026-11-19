@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-17
+updated: 2026-11-19
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [architecture, rules-kernel, agents-harness, frontend, operations]
@@ -153,3 +153,15 @@ The curation rechecked the current source for `collapseCore`, region parsing, ge
 The studio correction later that day closes the last two gaps on the Weltenstrom. `weltenstrom.spec.mjs` now asserts that every rolled d10 glyph in the timeline shows the raw face from the draft, answers the fixture's pending choice explicitly before sealing, and has a separate case in which the seal leaves an injected unanswered choice untouched and hands over to the main board. That case fails against the former auto-answer. The alternative renderers still have no browser case of their own.
 
 A read-only request to the existing local assessment server confirms package 0.2.0 with offline demo capability. That response does not identify the server's imported backend revision or establish a new human playtest. Existing assessment and owner campaigns were not advanced or edited during curation. Numeric region bounds, pathological generator configuration and trade identifier inference remain open. Artistic acceptance and sustained play with real LLM agents remain separate evidence.
+
+
+## Studio and mobile interaction regressions
+
+The 19 November correction adds a real-browser roundtrip for every studio renderer. Each case queues an exploration, checks the canonical probe identifier, rolls through Enter or Space, verifies focus, switches through all views and withdraws the order through its visible control. The retained raw roll and fingerprint must appear in `withdrawn`, not remain as an active roll. These cases failed against the previous renderer mutation before the correction. A separate pointer-to-keyboard case queues the actual way-of-life action and verifies its H withdrawal seal even though it has no map target; it also failed before the seal existed.
+
+DOM-free adapter cases use the existing Hochland fixture and kernel previews to check display isolation, stale or removed probes, world-event state and withdrawal evidence. Target mapping covers a camp settlement and multiple units on one tile. Phone browser cases verify module access on the map and separation of navigation, module controls and work controls in community mode. The save test reads a load response as it arrives, before navigation can discard its network body, while retaining the existing server status, restoration and backup assertions.
+
+Manual inspection on the isolated local fixture confirmed main-action selection and keyboard withdrawal in Astrolabium and pointer access to the Army module on the narrow main board. The community screen was inspected with requested 1280 by 800 and 360 by 740 browser viewports. A fresh screenshot reader recognized community management and the work areas, but left action budgets, research status and several icons unexplained. This is an unresolved usability finding. The Astrolabium disc remains too small on a phone. Native 200 percent zoom, full alternative-view accessibility, human gameplay enjoyment and sustained real-LLM play remain unverified.
+
+
+After correcting the mobile overlap and the test-response race, the complete project gate and installed-Chrome browser suite pass. The earlier failed report is retained in session scratch evidence. Independent source review checked the additional fixes without claiming another visual inspection. The isolated opening save was read through the CLI and seen by name in the actual Load dialog. Existing owner campaigns and their servers were not used as test fixtures.

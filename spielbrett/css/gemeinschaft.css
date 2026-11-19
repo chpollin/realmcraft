@@ -80,7 +80,7 @@
     .brett[data-ansicht="gemeinschaft"] .ratsleiste { display: none; }
     .gemeinschaft-orte {
       position: absolute;
-      inset-block-start: 4.25rem;
+      inset-block-start: 7rem;
       inset-inline: var(--space-2);
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));

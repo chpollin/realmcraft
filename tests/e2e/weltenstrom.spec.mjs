@@ -12,6 +12,9 @@ let base;
 test.beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'rc-weltenstrom-'));
   createModuleCampaign(root, 'module');
+  for (const proto of ['strom', 'astrolabium', 'naturgemaelde', 'webstuhl']) {
+    createModuleCampaign(root, `studio-${proto}`);
+  }
   server = await startServer(root, { demo: true, port: process.env.SPEC_PORT });
   base = `http://127.0.0.1:${server.port}`;
 });
@@ -153,4 +156,67 @@ test('Weltenstrom seal leaves an unanswered pending choice to the player and han
   });
   expect(choice).toBeNull();
   await expect(page).toHaveURL(/\/spielbrett\/\?campaign=module/);
+});
+
+
+for (const proto of ['strom', 'astrolabium', 'naturgemaelde', 'webstuhl']) {
+  test(`${proto} preserves a rolled order when switching views and withdrawing it`, async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('realmcraft.settings', JSON.stringify({ language: 'de', reduced: true }));
+    });
+    await page.goto(`${base}/spielbrett/strom.html?campaign=studio-${proto}&proto=${proto}`);
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    const order = await page.evaluate(() => {
+      const { game, model } = window.weltenstrom;
+      const option = game.optionsFor({ kind: 'tile', q: model.home.q, r: model.home.r })
+        .find((o) => o.type === 'explore' && !o.grund);
+      if (!option) throw new Error('Fixture has no available exploration');
+      game.addOption(option);
+      const row = model.orders.find((o) => o.type === 'explore');
+      const probe = game.base.probes.find((p) => p.order === row.id);
+      return { id: row.id, probe: probe.id, target: probe.target, canonicalProbe: row.probe };
+    });
+    expect(order.canonicalProbe).toBe(order.probe);
+    const surface = proto === 'strom' ? page.locator('#viz-zeit') : page.locator('#proto-stage');
+    const die = surface.locator(`[data-strom-roll-order="${order.id}"]`).first();
+    await expect(die).toContainText(String(order.target));
+    await die.press(proto === 'astrolabium' || proto === 'webstuhl' ? 'Space' : 'Enter');
+    await expect.poll(() => page.evaluate((id) => window.weltenstrom.game.draft.rolls[id]?.value ?? null, order.probe))
+      .not.toBeNull();
+    await expect(surface.locator(`[data-strom-remove-order="${order.id}"]`).first()).toBeFocused();
+    const roll = await page.evaluate((id) => window.weltenstrom.game.draft.rolls[id], order.probe);
+    for (const other of ['strom', 'astrolabium', 'naturgemaelde', 'webstuhl', proto]) {
+      await page.locator(`[data-proto="${other}"]`).click();
+    }
+    expect(await page.evaluate((id) => window.weltenstrom.model.orders.find((o) => o.id === id).probe, order.id))
+      .toBe(order.probe);
+    await surface.locator(`[data-strom-remove-order="${order.id}"]`).first().click();
+    const withdrawn = await page.evaluate(({ id, probe }) => {
+      const { draft } = window.weltenstrom.game;
+      return { exists: draft.orders.some((o) => o.id === id), roll: draft.rolls[probe] ?? null,
+        withdrawn: draft.withdrawn.find((r) => r.probe === probe) };
+    }, order);
+    expect(withdrawn).toEqual({ exists: false, roll: null, withdrawn: { probe: order.probe, ...roll } });
+  });
+}
+
+
+test('Astrolabium exposes non-spatial main actions as withdrawable H seals', async ({ page }) => {
+  await page.goto(`${base}/spielbrett/strom.html?campaign=module&proto=astrolabium`);
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const option = await page.evaluate(() => {
+    const { game, model } = window.weltenstrom;
+    const action = game.optionsFor({ kind: 'tile', q: model.home.q, r: model.home.r })
+      .find((o) => o.type === 'adopt' && !o.grund);
+    if (!action) throw new Error('Fixture has no way-of-life action');
+    return { label: action.titel, main: action.art === 'haupt' };
+  });
+  expect(option.main).toBe(true);
+  await page.locator('#proto-stage').getByRole('button', { name: new RegExp(`^${option.label}:`) }).first().click();
+  const id = await page.evaluate(() => window.weltenstrom.game.draft.orders.find((o) => o.type === 'adopt').id);
+  const seal = page.locator(`#proto-stage [data-strom-remove-order="${id}"]`).first();
+  await expect(seal).toContainText('H');
+  await seal.press('Space');
+  expect(await page.evaluate((id) => window.weltenstrom.game.draft.orders.some((o) => o.id === id), id)).toBe(false);
+  await expect(page.locator('#strom-zug-siegel')).toBeFocused();
 });

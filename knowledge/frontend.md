@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-03
-updated: 2026-10-17
+updated: 2026-11-19
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [design, game-design, architecture, data-contracts, playtests, testing, plan-m1]
@@ -193,3 +193,11 @@ The Season plan shortcut (P) opens a native dialog. Assigned clans and action bu
 `data/saison.js` arranges stocks, reserved order costs, economic net and effective research costs from the kernel. Economic net excludes order reservations, while unresolved rolls, events and research spending can change the eventual balance. Missing forecasts remain unknown. An available forecast with no change for a resource means zero. The recap sums only resource events targeting the player in the immediately preceding report and retains the actual calendar season. Reload in planning fetches that report without replaying its highlights.
 
 Labour work areas come from terrain yields and positive standing yield modifiers, plus the existing activities. When all clans (`core`) are assigned, `board.labour.full-hint` explains that a clan must be removed from another work area before increasing an allocation. A positive inherited unsupported allocation remains visible for reduction, but cannot be increased. Explicit edits pass the shared kernel validation. The labour section reports any locally idle resource work directly from the harvest forecast. The menu reads the application version from `/api/app`, whose demo capability also governs the optional offline continuation in Weltgeschehen.
+
+
+## Studio draft integrity
+
+All studio renderers must read a derived display copy of order probes. The canonical board model retains probe identifiers because withdrawing or replacing an order uses that identifier to preserve its roll in `draft.withdrawn`. Display probes use the current preview's `target`, `modTotal` and fingerprint. Stale or removed probes must not count as completed rolls. Main/minor labels use `art`, spatial markers use the order's actual parameters, and destiny milestones use `erreicht`. SVG controls must respond to Enter and Space as well as pointer activation. This corrects the existing studio contract without changing campaign rules or the chosen composition.
+
+
+On phones, the module toolbar shares the second control row with map layers, below view navigation. Community work areas begin below that toolbar. The same placement holds while a bottom-sheet context is open, so navigation cannot intercept module clicks. The studio keyboard handler is scoped to studio SVG controls and does not duplicate the research wheel's own handling.

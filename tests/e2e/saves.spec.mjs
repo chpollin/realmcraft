@@ -84,12 +84,15 @@ async function load(page, id, slot) {
   const dialog = await menu(page, 'load');
   await dialog.locator(`[data-load-slot="${slot}"]`).click();
   await expect(dialog.locator('#save-load-confirm')).toBeVisible();
-  const response = page.waitForResponse((r) => isWrite(r.request(), `/api/campaigns/${id}/load`));
+  // Read while the response still belongs to this document, before load navigates.
+  const response = page.waitForResponse((r) => isWrite(r.request(), `/api/campaigns/${id}/load`))
+    .then(async (loaded) => {
+      expect(loaded.status()).toBe(200);
+      return loaded.json();
+    });
   const navigation = page.waitForEvent('framenavigated', { predicate: (frame) => frame === page.mainFrame() });
   await dialog.locator('#save-load-confirm').click();
-  const loaded = await response;
-  expect(loaded.status()).toBe(200);
-  const result = await loaded.json();
+  const result = await response;
   await navigation;
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   return result;

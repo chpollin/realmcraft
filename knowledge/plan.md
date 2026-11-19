@@ -9,13 +9,17 @@ method:
 status: active
 language: en
 created: 2026-10-15
-updated: 2026-11-10
+updated: 2026-11-19
 related: [vision, new-game-design, design, frontend, testing, playtests, plan-m1, journal]
 ---
 
 # Development plan
 
 The implemented baseline is a turn-based strategy kernel, world packages, an external agent harness and a browser board. The board has chat-led realm creation through a copied prompt and shared workshop, optional direct editing and pure map previews, a separate template start, five-pass procedural cartography, `highlands`, `riverlands` and `drylands` community views, the self-contained vertical Weltenstrom visualization (`strom.html`), direct main/minor planning, research, council medallions, module views, named saves with pre-load recovery, audio cues and a rules reference. The shared Weltenwerkstatt direction frames these controls, with a compact native research view on phones. Its artistic acceptance remains open. [frontend.md](frontend.md) and [design.md](design.md) describe the current controls, visual specification and product boundaries. Existing campaigns remain private and are never development fixtures.
+
+## Active product goal
+
+The owner asks for a finished game that is enjoyable and worth returning to. That requires meaningful choices with understandable consequences across realm creation, seasonal planning, evolving people and research, narrative results and reliable recovery. Passing technical checks alone cannot establish that goal. Continue implementing the existing scope, and distinguish observed interaction, autonomous fallback play and human gameplay judgement.
 
 ## Continuation
 
@@ -84,7 +88,9 @@ Legacy journal anchors and their regression tests already exist. Do not repeat t
 
 Reproduce a specific current case before implementing an old audit recommendation. The historical observation alone does not establish a current defect.
 
-- Review the added Astrolabium, Naturgemälde and Kräfte-Webstuhl renderers for keyboard operation, language handling, narrow layouts and decision-flow parity. These are alternatives to the same campaign, not additional kernel phases. Existing Weltenstrom browser coverage does not by itself exercise their tabs and interactions.
+- Studio order integrity is corrected through a display-only adapter. Browser regressions now cover rolling, keyboard activation, switching between every studio view, withdrawal evidence and non-spatial main-action withdrawal. Unit cases cover stale probes and camp/unit target mapping. Preserve those contracts while improving the remaining language, layout and decision flows.
+- The 19 November fresh-reader check recognized community management and the work areas but could not explain the action plus slots, `Main`/`Minor`, research `+4 open`, `1 roll open`, `Stream`, council monograms, status symbols or unlabeled toolbars from the screenshots. Improve the first meaningful planning task using the established game terms, then repeat the reader check. Adding explanatory paragraphs throughout the board would conflict with the owner's request for less text.
+- The phone inspection confirms that Astrolabium's scaled disc is not a readable mobile interface. Its responsive composition and the loom's unsupported causal links remain open design work. Studio alternatives are views of the same campaign, not additional kernel phases.
 
 - Observe the compact chat entry, two-stage game-master funnel and harness-curated Season Action Packages in actual play. The copy action, replacement status and short process line are implemented. The view stays compact with open questions while `draft` is `null` during general-to-concrete discovery and reveals the large studio once the derived shared draft is loaded. [frontend.md](frontend.md#chat-workshop-composition) records this interaction contract. Broader artistic acceptance remains open.
 

@@ -9,7 +9,7 @@ method:
 status: complete
 language: en
 created: 2026-10-17
-updated: 2026-10-17
+updated: 2026-11-19
 authors: [Christopher Pollin]
 generated-with: Antigravity
 related: [frontend, game-design, new-game-design, architecture]
@@ -210,4 +210,8 @@ The elevation section, after Humboldt's Naturgemälde of the Andes, orders the k
 - Quadrant labels, the elevation table of terrains and the resource glyphs are hard-coded in German in `prototypen.js` and do not yet pass through the board labels.
 - The dial and the elevation section show at most twelve known tiles, chosen by home, queued orders, available actions and distance.
 - The loom links each tile order to a resource thread by its position in the list, which is a placeholder for a real effect lookup from the preview.
-- The alternative renderers read `o.slot`, `o.ort` and `ms.erfuellt`, which the order rows and destiny milestones do not carry (they carry `art`, `params` and `erreicht`). Every queued order therefore shows as minor, the beam to a queued tile never appears and milestones stay unfilled. Both studio files also overwrite `o.probe` in `model.orders` with an object, so withdrawing a rolled order cannot move its roll to `withdrawn`. A review of 17 October 2026 found these defects, and they await the planned simplification.
+- The round dial scales its full disc down on a phone, leaving labels too small for comfortable reading. The 19 November screen inspection confirms this remains a layout limitation, separate from corrected controls and state integrity.
+
+### Studio data and control correction
+
+The shared `studioModel` adapter derives display probes without changing the canonical order rows. It reads `target`, `modTotal`, current fingerprints and stale-roll issues from the kernel preview. Every studio view consumes that display copy. Order categories use `art`, target markers resolve `params.tile`, `params.settlement` and `params.unit` across all objects at a tile, and milestones use `erreicht`. Astrolabium also shows an H/N withdrawal seal for orders without a spatial target. SVG controls respond to Enter and Space, retain focus after rolls and withdrawal, and expose interactive roots as groups. These corrections preserve the existing composition and mechanics. They do not establish artistic acceptance.

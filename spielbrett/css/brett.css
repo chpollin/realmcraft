@@ -450,8 +450,8 @@
   .ebene-label { display: none; }
   .ebene { padding-inline: 0.6rem; }
   .ebenen { inset-block-start: var(--space-2); inset-inline-start: var(--space-2); }
-  /* The panel is a bottom sheet here, so the module bar keeps its corner. */
-  .module, .brett.has-panel .module { inset-block-start: var(--space-2); inset-inline-end: var(--space-2); }
+  /* Share the second toolbar row with map layers, below the view selector. */
+  .module, .brett.has-panel .module { inset-block-start: 4rem; inset-inline-end: var(--space-2); }
   .minimap { inline-size: 7.5rem; block-size: 5.5rem; inset-block-end: var(--space-2); inset-inline-start: var(--space-2); }
   .zoom { inset-block-end: var(--space-2); inset-inline-end: var(--space-2); }
   .brett.has-panel .zoom, .brett.has-panel .minimap { display: none; }

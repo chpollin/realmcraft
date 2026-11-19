@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildEnv, previewDraft, bandOf, calendarOf, loyaltyBand, mapLayers, researchCost, sameWorld, emptyDraft } from '../../spielbrett/js/data/kernel.js';
 import { makeLabels, bandKey } from '../../spielbrett/js/data/labels.js';
-import { adaptView, destiny, issueKey, orderRows, previewDeltas, rivals } from '../../spielbrett/js/data/adapter.js';
+import { adaptView, destiny, issueKey, orderRows, previewDeltas, rivals, studioModel, ordersAt } from '../../spielbrett/js/data/adapter.js';
 import { draftFor, nextOrderId, openRolls, withAssign, withOrder, withoutOrder, withRoll, withMandate } from '../../spielbrett/js/data/draft.js';
 import { candidates, optionsFor } from '../../spielbrett/js/data/options.js';
 import { originOf, pickCampaign } from '../../spielbrett/js/data/game.js';
@@ -566,4 +566,58 @@ describe('destinies and rivals on the projection', () => {
     for (const m of d.meilensteine) assert.equal(typeof m.icon, 'string');
     for (const w of d.wechsel) for (const m of w.meilensteine) assert.equal(typeof m.icon, 'string');
   });
+});
+
+
+describe('studio display boundary', () => {
+  test('drawing a rolled order keeps its canonical probe id and preserves withdrawal evidence', () => {
+    let draft = withOrder(draft0, EXPLORE);
+    let preview = previewDraft(view, env, draft);
+    const probe = preview.probes.find((p) => p.order === draft.orders[0].id);
+    draft = withRoll(draft, probe.id, 7, probe.fingerprint);
+    preview = previewDraft(view, env, draft);
+    const rows = orderRows(view, env, t, draft, preview, world);
+    const model = Object.freeze({ orders: Object.freeze(rows.map(Object.freeze)) });
+    const display = studioModel(model, preview, draft);
+    const current = preview.probes.find((p) => p.id === probe.id);
+    assert.equal(model.orders[0].probe, probe.id);
+    assert.deepEqual(display.orders[0].probe, { id: probe.id, ziel: current.target, mod: current.modTotal, wurf: 7 });
+    const withdrawn = withoutOrder(draft, rows[0].id, rows[0].probe);
+    assert.deepEqual(withdrawn.rolls[probe.id], undefined);
+    assert.deepEqual(withdrawn.withdrawn.at(-1), { probe: probe.id, value: 7, fingerprint: probe.fingerprint });
+  });
+
+  test('stale and removed probes are open or absent, including the world event', () => {
+    let draft = withOrder(draft0, EXPLORE);
+    const preview = previewDraft(view, env, draft);
+    const model = { orders: orderRows(view, env, t, draft, preview, world) };
+    for (const probe of preview.probes) draft = withRoll(draft, probe.id, 10, probe.fingerprint);
+    const stale = { ...preview, issues: preview.probes.map((p) => ({ code: 'roll_stale', path: `/rolls/${p.id}` })) };
+    const display = studioModel(model, stale, draft);
+    assert.equal(display.orders[0].probe.wurf, null);
+    assert.equal(display.weltwurf.offen, true);
+    const changed = { ...preview, probes: preview.probes.map((p) => ({ ...p, fingerprint: 'changed' })) };
+    assert.equal(studioModel(model, changed, draft).orders[0].probe.wurf, null);
+    const removed = studioModel(model, { probes: [] }, draft);
+    assert.equal(removed.orders[0].probe, null);
+    assert.equal(removed.weltwurf, null);
+  });
+});
+
+
+test('spatial order markers include camp buildings and every unit on a shared tile', () => {
+  const model = adaptView({ view, env, t, world, preview: pv0, chronik: [] });
+  const home = model.units.find((unit) => unit.id === camp.id);
+  assert.equal(home.objekt, 'settlement');
+  const fixture = { ...model,
+    units: [...model.units, { ...home, id: 'unit-a', objekt: 'unit' }, { ...home, id: 'unit-b', objekt: 'unit' }],
+    orders: [
+      { id: 'build', params: { settlement: camp.id } },
+      { id: 'first', params: { unit: 'unit-a' } },
+      { id: 'second', params: { unit: 'unit-b' } },
+      { id: 'explore', params: { tile: camp.tile } },
+      { id: 'elsewhere', params: { tile: `${home.q + 1},${home.r}` } },
+    ],
+  };
+  assert.deepEqual(ordersAt(fixture, home.q, home.r).map((order) => order.id), ['build', 'first', 'second', 'explore']);
 });

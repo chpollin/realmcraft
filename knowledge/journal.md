@@ -9,7 +9,7 @@ method:
 status: active
 language: en
 created: 2026-10-03
-updated: 2026-10-17
+updated: 2026-11-19
 authors: [Christopher Pollin]
 generated-with: Claude Code (Claude Opus 5.5)
 related: [decisions, playtests, plan-m1]
@@ -21,7 +21,7 @@ The curated backward-looking provenance index of the project. Current specificat
 
 ## Open
 
-Nothing open.
+- Continue the owner's active goal of a finished, enjoyable RealmCraft game through [plan.md](plan.md#active-product-goal). Studio integrity and phone module access are corrected. First-reader comprehension, readable mobile studio composition, remaining kernel boundaries and sustained play evidence remain open. Technical delivery does not establish gameplay acceptance.
 
 ## Entries
 
@@ -294,3 +294,13 @@ Nothing open.
 
 - Source. Owner decision of 2026-11-14 that a Promptotyping repository no longer keeps `knowledge/handoff.md`.
 - Result. The handoff file held no open point, so nothing was carried over and `## Open` reads `Nothing open.`. The file is removed, and the action layer, README, index and plan no longer name it. Earlier entries keep their links to it as history.
+
+
+### 2026-11-19 corrected studio planning integrity and phone module access
+
+- Trigger. The owner's active goal of finishing an enjoyable game, checked against the current source and the earlier studio review findings.
+- Found. Studio rendering overwrote canonical probe identifiers, losing withdrawal evidence. Alternative renderers used absent order and milestone fields. The round dial had no withdrawal control for non-spatial main actions, and phone navigation intercepted the military module control.
+- Decided. Keep the existing game rules and composition, derive display probes at the shared adapter boundary, resolve all objects at a target tile and retain keyboard focus. Separate the phone control rows. Capture the save test's response body before navigation instead of changing working save logic.
+- Changed. Studio renderers, adapter, narrow toolbar placement, unit and browser regressions, frontend/design contracts and the development plan.
+- Evidence. The original studio identifier and missing main-action withdrawal cases fail before their fixes and pass afterward. The complete project gate and installed-Chrome browser suite pass. Independent code review found and rechecked the camp-target and duplicate-keyboard-handler corrections. Manual browser inspection confirmed the main-action withdrawal and narrow military access. A separate temporary campaign has the named opening save verified through the CLI and visible Load dialog. The explicit Pages file allowlist was assembled in a temporary directory and checked for excluded internal and private paths.
+- Remaining. The fresh screenshot reader recognized community management but could not explain several action and research labels or symbols. The round dial remains too small on a phone. These findings remain in [plan.md](plan.md#current-ui-review). Neither technical tests nor fallback play establish a finished, enjoyable game or human artistic acceptance.

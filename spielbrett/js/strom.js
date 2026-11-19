@@ -6,7 +6,7 @@
 import { createGame } from './data/game.js';
 import { server, turnStem } from './data/server.js';
 import { calendarOf, SUCCESS_BANDS } from './data/kernel.js';
-import { objectsAt } from './data/adapter.js';
+import { objectsAt, studioModel } from './data/adapter.js';
 import { RULES } from '../../engine/core/rules.js';
 import { drawCommunity, COMMUNITY_SIZE } from './community/scene.js';
 import { MapView } from './map/renderer.js';
@@ -771,7 +771,7 @@ function renderWissen(game, model) {
   const host = document.getElementById('viz-wissen');
   const ent = model.entwicklungen ?? { praxis: [], bekannt: [], forschung: [], vorschlaege: [] };
 
-  const svg = svgEl('svg', { viewBox: '0 0 1200 460', class: 'strom-svg', role: 'img', 'aria-label': t('board.paths.title') });
+  const svg = svgEl('svg', { viewBox: '0 0 1200 460', class: 'strom-svg', role: 'group', 'aria-label': t('board.paths.title') });
 
   const praxis = ent.praxis.slice(0, 6);
   const bekannt = ent.bekannt.slice(0, 6);
@@ -933,59 +933,14 @@ function randomDieRoll() {
   return (buf[0] % 10) + 1;
 }
 
-function syncStromRolls(game, model) {
-  const probes = game.base?.probes ?? [];
-  const rolls = game.draft?.rolls ?? {};
-  const stale = new Set(
-    (game.base?.issues ?? [])
-      .filter((i) => i.code === 'roll_stale')
-      .map((i) => i.path.replace('/rolls/', '')),
-  );
-
-  for (const o of model.orders ?? []) {
-    const p = probes.find((x) => x.order === o.id) ?? (typeof o.probe === 'string' ? probes.find((x) => x.id === o.probe) : null);
-    if (p) {
-      const r = rolls[p.id];
-      const hasValidRoll = Boolean(r && !stale.has(p.id));
-      o.probe = {
-        id: p.id,
-        ziel: p.target,
-        mod: p.modTotal ?? 0,
-        wurf: hasValidRoll ? r.value : null,
-      };
-    } else if (o.probe && typeof o.probe === 'object') {
-      // keep existing object if already enriched
-    } else {
-      o.probe = null;
-    }
-  }
-
-  const worldProbe = probes.find((x) => x.target == null && x.roller === 'player');
-  if (worldProbe) {
-    const wr = rolls[worldProbe.id];
-    const hasValidWorldRoll = Boolean(wr && !stale.has(worldProbe.id));
-    model.weltwurf = {
-      id: worldProbe.id,
-      offen: !hasValidWorldRoll,
-      wurf: hasValidWorldRoll ? wr.value : null,
-    };
-  } else {
-    model.weltwurf = null;
-  }
-
-  const blockers = game.blockers ? game.blockers() : { probleme: [] };
-  model.probleme = blockers.probleme ?? [];
-}
-
 function renderZeitspur(game, model, historyReports) {
-  syncStromRolls(game, model);
   const host = document.getElementById('viz-zeit');
   const currentTurn = game.view.turn;
   const rowsCount = currentTurn + 1;
   const rowH = 92;
   const svgH = 80 + rowsCount * rowH + 90;
 
-  const svg = svgEl('svg', { viewBox: `0 0 1200 ${svgH}`, class: 'strom-svg', role: 'img', 'aria-label': t('season.title') });
+  const svg = svgEl('svg', { viewBox: `0 0 1200 ${svgH}`, class: 'strom-svg', role: 'group', 'aria-label': t('season.title') });
 
   const currentRes = game.view.peoples[game.pid].resources ?? {};
   const seriesKeys = [
@@ -1449,27 +1404,40 @@ if (game) {
   };
 
   const renderAll = () => {
-    syncProtoVisibility();
-    if (activeProto === 'astrolabium' && protoStageEl) {
-      renderAstrolabium(protoStageEl, game, model, historyReports);
-      return;
+    const active = document.activeElement;
+    const focusedOrder = active?.getAttribute('data-strom-roll-order')
+      ?? active?.getAttribute('data-strom-remove-order');
+    try {
+      syncProtoVisibility();
+      const display = studioModel(model, game.base, game.draft, game.blockers().probleme);
+      if (activeProto === 'astrolabium' && protoStageEl) {
+        renderAstrolabium(protoStageEl, game, display, historyReports);
+        return;
+      }
+      if (activeProto === 'naturgemaelde' && protoStageEl) {
+        renderNaturgemaelde(protoStageEl, game, display, historyReports);
+        return;
+      }
+      if (activeProto === 'webstuhl' && protoStageEl) {
+        renderWebstuhl(protoStageEl, game, display);
+        return;
+      }
+      renderHimmel(game, display);
+      renderDiorama(game, display);
+      renderFluesse(game, display);
+      renderHexActions(game, display);
+      mapView.changed();
+      renderRatUndBestimmung(game, display);
+      renderWissen(game, display);
+      renderZeitspur(game, display, historyReports);
+    } finally {
+      if (focusedOrder) {
+        const scope = document.getElementById(activeProto === 'strom' ? 'viz-zeit' : 'proto-stage');
+        const next = scope?.querySelector(`[data-strom-remove-order="${CSS.escape(focusedOrder)}"]`)
+          ?? document.getElementById('strom-zug-siegel');
+        next?.focus();
+      }
     }
-    if (activeProto === 'naturgemaelde' && protoStageEl) {
-      renderNaturgemaelde(protoStageEl, game, model, historyReports);
-      return;
-    }
-    if (activeProto === 'webstuhl' && protoStageEl) {
-      renderWebstuhl(protoStageEl, game, model);
-      return;
-    }
-    renderHimmel(game, model);
-    renderDiorama(game, model);
-    renderFluesse(game, model);
-    renderHexActions(game, model);
-    mapView.changed();
-    renderRatUndBestimmung(game, model);
-    renderWissen(game, model);
-    renderZeitspur(game, model, historyReports);
   };
 
   for (const tab of protoTabs) {
@@ -1483,6 +1451,16 @@ if (game) {
     });
   }
 
+  document.addEventListener('keydown', (event) => {
+    const node = event.target;
+    if (!(node instanceof SVGElement) || node.getAttribute('role') !== 'button'
+      || !node.closest('#weltenstrom, #proto-stage') || event.repeat
+      || !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    if (node.getAttribute('aria-disabled') !== 'true') {
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    }
+  });
   renderAll();
   installScrollSpy();
   onLanguage(() => {
